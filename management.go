@@ -76,22 +76,141 @@ func managementError(status int, msg string) pluginapi.ManagementResponse {
 	return managementJSON(status, map[string]string{"error": msg})
 }
 
-// 临时桩：任务 4/5 替换为真实现
+type stateResponse struct {
+	Version     int          `json:"version"`
+	Rules       RuleSet      `json:"rules"`
+	KeyBindings []KeyBinding `json:"key_bindings"`
+	UpdatedAt   string       `json:"updated_at,omitempty"`
+	Persisted   bool         `json:"persisted"`
+}
+
 func managementGetState() pluginapi.ManagementResponse {
-	return managementError(http.StatusNotImplemented, "state api pending")
+	st, persisted := loadedStateSnapshot()
+	if st.KeyBindings == nil {
+		st.KeyBindings = []KeyBinding{}
+	}
+	return managementJSON(http.StatusOK, stateResponse{
+		Version: stateVersion, Rules: st.Rules,
+		KeyBindings: st.KeyBindings, UpdatedAt: st.UpdatedAt, Persisted: persisted,
+	})
 }
+
 func managementPutRules(req pluginapi.ManagementRequest) pluginapi.ManagementResponse {
-	return managementError(http.StatusNotImplemented, "rules api pending")
+	var body RuleSet
+	if err := json.Unmarshal(req.Body, &body); err != nil {
+		return managementError(http.StatusBadRequest, "invalid rules payload: "+err.Error())
+	}
+	err := applyStateUpdate(func(st *State) error {
+		st.Rules = body
+		return nil
+	})
+	if err != nil {
+		return managementError(http.StatusBadRequest, err.Error())
+	}
+	return managementGetState()
 }
+
 func managementPostKey(req pluginapi.ManagementRequest) pluginapi.ManagementResponse {
-	return managementError(http.StatusNotImplemented, "keys api pending")
+	var binding KeyBinding
+	if err := json.Unmarshal(req.Body, &binding); err != nil {
+		return managementError(http.StatusBadRequest, "invalid key binding payload: "+err.Error())
+	}
+	err := applyStateUpdate(func(st *State) error {
+		for i, b := range st.KeyBindings {
+			if b.Key == binding.Key {
+				st.KeyBindings[i] = binding // upsert
+				return nil
+			}
+		}
+		st.KeyBindings = append(st.KeyBindings, binding)
+		return nil
+	})
+	if err != nil {
+		return managementError(http.StatusBadRequest, err.Error())
+	}
+	return managementGetState()
 }
+
+// keyFromRequest locates the target binding key from query (?key=) or body {"key":...}.
+func keyFromRequest(req pluginapi.ManagementRequest) string {
+	if key := strings.TrimSpace(req.Query.Get("key")); key != "" {
+		return key
+	}
+	var body struct {
+		Key string `json:"key"`
+	}
+	_ = json.Unmarshal(req.Body, &body)
+	return strings.TrimSpace(body.Key)
+}
+
 func managementPatchKey(req pluginapi.ManagementRequest) pluginapi.ManagementResponse {
-	return managementError(http.StatusNotImplemented, "keys api pending")
+	target := keyFromRequest(req)
+	if target == "" {
+		return managementError(http.StatusBadRequest, "key is required")
+	}
+	var patch struct {
+		Alias   *string  `json:"alias"`
+		Enabled *bool    `json:"enabled"`
+		Rules   *RuleSet `json:"rules"`
+	}
+	if err := json.Unmarshal(req.Body, &patch); err != nil {
+		return managementError(http.StatusBadRequest, "invalid patch payload: "+err.Error())
+	}
+	found := false
+	err := applyStateUpdate(func(st *State) error {
+		for i, b := range st.KeyBindings {
+			if b.Key != target {
+				continue
+			}
+			found = true
+			if patch.Alias != nil {
+				st.KeyBindings[i].Alias = *patch.Alias
+			}
+			if patch.Enabled != nil {
+				st.KeyBindings[i].Enabled = *patch.Enabled
+			}
+			if patch.Rules != nil {
+				st.KeyBindings[i].Rules = *patch.Rules
+			}
+			return nil
+		}
+		return nil
+	})
+	if err != nil {
+		return managementError(http.StatusBadRequest, err.Error())
+	}
+	if !found {
+		return managementError(http.StatusNotFound, "key binding not found")
+	}
+	return managementGetState()
 }
+
 func managementDeleteKey(req pluginapi.ManagementRequest) pluginapi.ManagementResponse {
-	return managementError(http.StatusNotImplemented, "keys api pending")
+	target := keyFromRequest(req)
+	if target == "" {
+		return managementError(http.StatusBadRequest, "key is required")
+	}
+	found := false
+	err := applyStateUpdate(func(st *State) error {
+		for i, b := range st.KeyBindings {
+			if b.Key == target {
+				st.KeyBindings = append(st.KeyBindings[:i], st.KeyBindings[i+1:]...)
+				found = true
+				return nil
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		return managementError(http.StatusBadRequest, err.Error())
+	}
+	if !found {
+		return managementError(http.StatusNotFound, "key binding not found")
+	}
+	return managementGetState()
 }
+
+// 临时桩：任务 5 替换为真实现
 func managementPreview(req pluginapi.ManagementRequest) pluginapi.ManagementResponse {
 	return managementError(http.StatusNotImplemented, "preview api pending")
 }
