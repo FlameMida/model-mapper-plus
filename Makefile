@@ -1,4 +1,4 @@
-PLUGIN_NAME := model-mapper
+PLUGIN_NAME := model-mapper-plus
 DIST_DIR := dist
 GO ?= go
 GOOS ?=

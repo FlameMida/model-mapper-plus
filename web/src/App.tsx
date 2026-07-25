@@ -45,7 +45,7 @@ export default function App() {
     return (
       <Layout style={{ minHeight: '100vh' }}>
         <Content style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-          <Card title="Model Mapper 登录" style={{ width: 380 }}>
+          <Card title="Model Mapper Plus 登录" style={{ width: 380 }}>
             <Input
               mode="password"
               placeholder="CPA management key"
@@ -64,7 +64,7 @@ export default function App() {
   return (
     <Layout style={{ minHeight: '100vh' }}>
       <Header>
-        <Nav mode="horizontal" header={{ text: 'Model Mapper' }}
+        <Nav mode="horizontal" header={{ text: 'Model Mapper Plus' }}
           footer={
             <>
               <Tag color={state ? 'green' : 'grey'}>{state ? '已连接' : '加载中'}</Tag>

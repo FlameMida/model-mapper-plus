@@ -24,12 +24,12 @@ func TestManagementRegisterRoutes(t *testing.T) {
 		routes[r.Method+" "+r.Path] = true
 	}
 	for _, want := range []string{
-		"GET /plugins/model-mapper/state",
-		"PUT /plugins/model-mapper/rules",
-		"POST /plugins/model-mapper/keys",
-		"PATCH /plugins/model-mapper/keys",
-		"DELETE /plugins/model-mapper/keys",
-		"POST /plugins/model-mapper/preview",
+		"GET /plugins/model-mapper-plus/state",
+		"PUT /plugins/model-mapper-plus/rules",
+		"POST /plugins/model-mapper-plus/keys",
+		"PATCH /plugins/model-mapper-plus/keys",
+		"DELETE /plugins/model-mapper-plus/keys",
+		"POST /plugins/model-mapper-plus/preview",
 	} {
 		if !routes[want] {
 			t.Fatalf("missing route %s in %v", want, routes)
@@ -44,7 +44,7 @@ func TestManagementRegisterRoutes(t *testing.T) {
 func TestDispatchManagementServesIndex(t *testing.T) {
 	resp := dispatchManagement(pluginapi.ManagementRequest{
 		Method: http.MethodGet,
-		Path:   "/v0/resource/plugins/model-mapper/index.html",
+		Path:   "/v0/resource/plugins/model-mapper-plus/index.html",
 	})
 	if resp.StatusCode != http.StatusOK {
 		t.Fatalf("status = %d", resp.StatusCode)
@@ -53,7 +53,7 @@ func TestDispatchManagementServesIndex(t *testing.T) {
 		t.Fatalf("content-type = %q", resp.Headers.Get("Content-Type"))
 	}
 	lower := strings.ToLower(string(resp.Body))
-	if !strings.Contains(lower, "<html") || !strings.Contains(lower, "model mapper") {
+	if !strings.Contains(lower, "<html") || !strings.Contains(lower, "model mapper plus") {
 		t.Fatal("body missing html or plugin marker")
 	}
 }
@@ -76,7 +76,7 @@ func TestPluginRegistrationDeclaresManagement(t *testing.T) {
 }
 
 func TestDispatchManagementUnknown(t *testing.T) {
-	resp := dispatchManagement(pluginapi.ManagementRequest{Method: http.MethodGet, Path: "/plugins/model-mapper/nope"})
+	resp := dispatchManagement(pluginapi.ManagementRequest{Method: http.MethodGet, Path: "/plugins/model-mapper-plus/nope"})
 	if resp.StatusCode != http.StatusNotFound {
 		t.Fatalf("status = %d, want 404", resp.StatusCode)
 	}

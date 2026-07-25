@@ -13,7 +13,7 @@ import (
 	"strings"
 )
 
-const pluginName = "model-mapper"
+const pluginName = "model-mapper-plus"
 
 type artifactSpec struct {
 	osName string

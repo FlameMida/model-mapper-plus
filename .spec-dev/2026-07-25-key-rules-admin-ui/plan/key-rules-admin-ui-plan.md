@@ -4,7 +4,7 @@
 >
 > **偏差处理**：执行中发现计划与现实不符——小偏差（路径笔误、明显遗漏但意图清楚）就地修正并在提交信息中注明；接口、数据结构等契约级偏差停下向计划作者确认，不猜着改。
 
-**目标**：为 model-mapper 插件增加 key 绑定（指定客户端 key 追加规则集、串联跑在顶层规则之后）与 web 管理界面（规则/Key 绑定/试跑三板块，state_file 为真相源）。
+**目标**：为 model-mapper-plus 插件增加 key 绑定（指定客户端 key 追加规则集、串联跑在顶层规则之后）与 web 管理界面（规则/Key 绑定/试跑三板块，state_file 为真相源）。
 
 **Spec**：`.spec-dev/2026-07-25-key-rules-admin-ui/spec/key-rules-admin-ui-design.md`
 
@@ -199,7 +199,7 @@ import (
 
 const (
 	stateVersion    = 1
-	defaultStateFile = "model-mapper-state.json"
+	defaultStateFile = "model-mapper-plus-state.json"
 )
 
 // RuleSet mirrors the four top-level rule fields; the same shape is reused
@@ -303,7 +303,7 @@ func atomicWriteState(path string, st State) error {
 		return err
 	}
 	dir := filepath.Dir(path)
-	tmp, err := os.CreateTemp(dir, ".model-mapper-state-*")
+	tmp, err := os.CreateTemp(dir, ".model-mapper-plus-state-*")
 	if err != nil {
 		return err
 	}
@@ -812,12 +812,12 @@ func TestManagementRegisterRoutes(t *testing.T) {
 		routes[r.Method+" "+r.Path] = true
 	}
 	for _, want := range []string{
-		"GET /plugins/model-mapper/state",
-		"PUT /plugins/model-mapper/rules",
-		"POST /plugins/model-mapper/keys",
-		"PATCH /plugins/model-mapper/keys",
-		"DELETE /plugins/model-mapper/keys",
-		"POST /plugins/model-mapper/preview",
+		"GET /plugins/model-mapper-plus/state",
+		"PUT /plugins/model-mapper-plus/rules",
+		"POST /plugins/model-mapper-plus/keys",
+		"PATCH /plugins/model-mapper-plus/keys",
+		"DELETE /plugins/model-mapper-plus/keys",
+		"POST /plugins/model-mapper-plus/preview",
 	} {
 		if !routes[want] {
 			t.Fatalf("missing route %s in %v", want, routes)
@@ -832,7 +832,7 @@ func TestManagementRegisterRoutes(t *testing.T) {
 func TestDispatchManagementServesIndex(t *testing.T) {
 	resp := dispatchManagement(pluginapi.ManagementRequest{
 		Method: http.MethodGet,
-		Path:   "/v0/resource/plugins/model-mapper/index.html",
+		Path:   "/v0/resource/plugins/model-mapper-plus/index.html",
 	})
 	if resp.StatusCode != http.StatusOK {
 		t.Fatalf("status = %d", resp.StatusCode)
@@ -864,7 +864,7 @@ func TestPluginRegistrationDeclaresManagement(t *testing.T) {
 }
 
 func TestDispatchManagementUnknown(t *testing.T) {
-	resp := dispatchManagement(pluginapi.ManagementRequest{Method: http.MethodGet, Path: "/plugins/model-mapper/nope"})
+	resp := dispatchManagement(pluginapi.ManagementRequest{Method: http.MethodGet, Path: "/plugins/model-mapper-plus/nope"})
 	if resp.StatusCode != http.StatusNotFound {
 		t.Fatalf("status = %d, want 404", resp.StatusCode)
 	}
@@ -902,14 +902,14 @@ import (
 )
 
 const (
-	managementBase = "/plugins/model-mapper"
-	resourcePrefix = "/v0/resource/plugins/model-mapper"
+	managementBase = "/plugins/model-mapper-plus"
+	resourcePrefix = "/v0/resource/plugins/model-mapper-plus"
 )
 
 func handleManagementRegister() ([]byte, error) {
 	return json.Marshal(pluginapi.ManagementRegistrationResponse{
 		Routes: []pluginapi.ManagementRoute{
-			{Method: http.MethodGet, Path: managementBase + "/state", Description: "Read full model-mapper state."},
+			{Method: http.MethodGet, Path: managementBase + "/state", Description: "Read full model-mapper-plus state."},
 			{Method: http.MethodPut, Path: managementBase + "/rules", Description: "Replace top-level rule sets."},
 			{Method: http.MethodPost, Path: managementBase + "/keys", Description: "Create or replace a key binding."},
 			{Method: http.MethodPatch, Path: managementBase + "/keys", Description: "Update a key binding by key."},
@@ -917,7 +917,7 @@ func handleManagementRegister() ([]byte, error) {
 			{Method: http.MethodPost, Path: managementBase + "/preview", Description: "Dry-run rule resolution."},
 		},
 		Resources: []pluginapi.ResourceRoute{
-			{Path: "/index.html", Menu: "Model Mapper", Description: "Model Mapper admin UI."},
+			{Path: "/index.html", Menu: "Model Mapper Plus", Description: "Model Mapper Plus admin UI."},
 		},
 	})
 }
@@ -997,8 +997,8 @@ func serveIndexHTML() pluginapi.ManagementResponse {
 <!-- web/dist/index.html — 占位页，任务 6 由 vite 构建产物替换 -->
 <!DOCTYPE html>
 <html lang="zh-CN">
-<head><meta charset="utf-8"><title>Model Mapper</title></head>
-<body>Model Mapper admin UI placeholder — run <code>make web-build</code> to embed the real UI.</body>
+<head><meta charset="utf-8"><title>Model Mapper Plus</title></head>
+<body>Model Mapper Plus admin UI placeholder — run <code>make web-build</code> to embed the real UI.</body>
 </html>
 ```
 
@@ -1591,7 +1591,7 @@ git commit -m "feat(T5): add dry-run preview API"
 
 ```json
 {
-  "name": "model-mapper-web",
+  "name": "model-mapper-plus-web",
   "private": true,
   "version": "0.1.0",
   "type": "module",
@@ -1627,7 +1627,7 @@ import { viteSingleFile } from 'vite-plugin-singlefile'
 // VITE_HOSTED=1: base 指向 CPA 资源挂载路径（与 key-policy 同一模式）。
 export default defineConfig({
   plugins: [react(), viteSingleFile()],
-  base: process.env.VITE_HOSTED === '1' ? '/v0/resource/plugins/model-mapper/' : '/',
+  base: process.env.VITE_HOSTED === '1' ? '/v0/resource/plugins/model-mapper-plus/' : '/',
   build: {
     assetsInlineLimit: 100000000,
     cssCodeSplit: false,
@@ -1659,7 +1659,7 @@ export default defineConfig({
 ```html
 <!DOCTYPE html>
 <html lang="zh-CN">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Model Mapper</title></head>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Model Mapper Plus</title></head>
 <body><div id="root"></div><script type="module" src="/src/main.tsx"></script></body>
 </html>
 ```
@@ -1736,7 +1736,7 @@ export interface PreviewResponse {
   final: string
 }
 
-const PLUGIN_BASE = '/v0/management/plugins/model-mapper'
+const PLUGIN_BASE = '/v0/management/plugins/model-mapper-plus'
 
 async function call<T>(method: string, path: string, body?: unknown): Promise<T> {
   const resp = await fetch(PLUGIN_BASE + path, {
@@ -1824,7 +1824,7 @@ export default function App() {
     return (
       <Layout style={{ minHeight: '100vh' }}>
         <Content style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-          <Card title="Model Mapper 登录" style={{ width: 380 }}>
+          <Card title="Model Mapper Plus 登录" style={{ width: 380 }}>
             <Input.Password
               placeholder="CPA management key"
               value={inputKey}
@@ -1842,7 +1842,7 @@ export default function App() {
   return (
     <Layout style={{ minHeight: '100vh' }}>
       <Header>
-        <Nav mode="horizontal" header={{ text: 'Model Mapper' }}
+        <Nav mode="horizontal" header={{ text: 'Model Mapper Plus' }}
           footer={
             <>
               <Tag color={state ? 'green' : 'grey'}>{state ? '已连接' : '加载中'}</Tag>
@@ -1893,7 +1893,7 @@ web-build:
 - [ ] **步骤 3：验证嵌入与 Go 测试**
 
 运行：`go test ./... && go vet ./...`
-预期：全部 PASS（`web/dist/index.html` 已是构建产物（title "Model Mapper"，与任务 3 断言的 ToLower "model mapper" 匹配），`go:embed` 正常）
+预期：全部 PASS（`web/dist/index.html` 已是构建产物（title "Model Mapper Plus"，与任务 3 断言的 ToLower "model mapper" 匹配），`go:embed` 正常）
 
 - [ ] **步骤 4：生成并提交 lockfile**
 
@@ -2414,14 +2414,14 @@ git commit -m "feat(T9): add dry-run preview panel"
 ```markdown
 ### Web 管理界面
 
-插件注册管理页面于 `http://<cpa-host>:<api-port>/v0/resource/plugins/model-mapper/index.html`，
+插件注册管理页面于 `http://<cpa-host>:<api-port>/v0/resource/plugins/model-mapper-plus/index.html`，
 使用 CPA management key 登录。界面提供三个板块：
 
 - **规则管理**：编辑全局与三个端点的有序规则条目（含 `\a`/`\A` 大小写操作）
 - **Key 绑定**：为指定客户端 API key 追加规则集，在该 key 的请求上串联跑在顶层规则之后
 - **规则试跑**：输入 key（可选）、端点、模型，预览 M→M₁→M₂ 分步改写结果
 
-首次保存后，规则与 key 绑定写入 `state_file`（默认 `model-mapper-state.json`，权限 0600）；
+首次保存后，规则与 key 绑定写入 `state_file`（默认 `model-mapper-plus-state.json`，权限 0600）；
 此后 `state_file` 为唯一真相源，YAML 中的规则字段不再生效（`enabled` 仍只来自 YAML）。
 删除 `state_file` 即可回到 YAML 配置。
 
@@ -2469,7 +2469,7 @@ git commit -m "docs(T10): wire web build into CI and document key bindings"
 |-------------------|------|---------|------|----------|---------|
 | key 下拉来自 CPA | integration | 验收任务 | 本地 CPA（`make smoke-local` 环境） | 新增绑定弹窗的 key 下拉列出 `config.yaml` 的 api-keys | 截图/录屏 |
 | 端到端：绑定 key 请求经接力改写且响应模型字段恢复 | e2e | 验收任务 | smoke 环境（`CPA_SMOKE_API_KEY`/`CPA_SMOKE_CPA_BIN`） | 绑定 key 的请求出站模型为 key 层结果；响应 `model` 字段恢复为客户端请求模型 | smoke 输出 |
-| 管理页可访问（真实浏览器） | e2e | 验收任务 | `http://<cpa-host>:<port>/v0/resource/plugins/model-mapper/index.html` | 页面加载、登录、三板块可切换 | 截图 |
+| 管理页可访问（真实浏览器） | e2e | 验收任务 | `http://<cpa-host>:<port>/v0/resource/plugins/model-mapper-plus/index.html` | 页面加载、登录、三板块可切换 | 截图 |
 
 ### 任务 12：合并与清理
 

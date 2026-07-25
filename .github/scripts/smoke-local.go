@@ -103,13 +103,13 @@ func run() error {
 		dir:      filepath.Join(repoRoot, ".test-cpa"),
 	}
 	env.config = filepath.Join(env.dir, "config.yaml")
-	env.plugin = filepath.Join(env.dir, "plugins", "windows", "amd64", "model-mapper.dll")
+	env.plugin = filepath.Join(env.dir, "plugins", "windows", "amd64", "model-mapper-plus.dll")
 	env.logsDir = filepath.Join(env.dir, "logs")
 	env.logFile = filepath.Join(env.logsDir, "cpa.log")
 	if err := prepareDirs(env); err != nil {
 		return err
 	}
-	if err := copyFile(filepath.Join(repoRoot, "dist", "windows_amd64", "model-mapper.dll"), env.plugin); err != nil {
+	if err := copyFile(filepath.Join(repoRoot, "dist", "windows_amd64", "model-mapper-plus.dll"), env.plugin); err != nil {
 		return err
 	}
 
@@ -193,7 +193,7 @@ func buildConfig(env smokeEnv, pluginRules string) string {
 	b.WriteString("  enabled: true\n")
 	b.WriteString("  dir: ./plugins\n")
 	b.WriteString("  configs:\n")
-	b.WriteString("    model-mapper:\n")
+	b.WriteString("    model-mapper-plus:\n")
 	b.WriteString("      enabled: true\n")
 	b.WriteString("      priority: 1\n")
 	fmt.Fprintf(&b, "      global_rules: %q\n", "")

@@ -43,8 +43,8 @@ func TestArtifactSpecsCoverFullPlatformMatrix(t *testing.T) {
 
 func TestPackageLibraryWritesRootLibraryEntryAndChecksum(t *testing.T) {
 	dir := t.TempDir()
-	libraryPath := filepath.Join(dir, "model-mapper.so")
-	archivePath := filepath.Join(dir, "model-mapper_0.1.0_linux_amd64.zip")
+	libraryPath := filepath.Join(dir, "model-mapper-plus.so")
+	archivePath := filepath.Join(dir, "model-mapper-plus_0.1.0_linux_amd64.zip")
 	checksumPath := archivePath + ".sha256"
 
 	if err := os.WriteFile(libraryPath, []byte("plugin-binary"), 0o644); err != nil {
@@ -77,9 +77,9 @@ func TestPackageLibraryWritesRootLibraryEntryAndChecksum(t *testing.T) {
 	for _, entry := range reader.File {
 		entries[entry.Name] = entry
 	}
-	entry := entries["model-mapper.so"]
+	entry := entries["model-mapper-plus.so"]
 	if entry == nil {
-		t.Fatalf("zip entries = %v, missing model-mapper.so", entries)
+		t.Fatalf("zip entries = %v, missing model-mapper-plus.so", entries)
 	}
 	if entries["LICENSE"] == nil {
 		t.Fatalf("zip entries = %v, missing LICENSE", entries)
@@ -93,11 +93,11 @@ func TestPackageLibraryWritesRootLibraryEntryAndChecksum(t *testing.T) {
 		t.Fatalf("read checksum: %v", err)
 	}
 	sum := sha256.Sum256(archiveData)
-	wantLine := hex.EncodeToString(sum[:]) + "  model-mapper_0.1.0_linux_amd64.zip\n"
+	wantLine := hex.EncodeToString(sum[:]) + "  model-mapper-plus_0.1.0_linux_amd64.zip\n"
 	if string(checksumRaw) != wantLine {
 		t.Fatalf("checksum line = %q, want %q", string(checksumRaw), wantLine)
 	}
-	if strings.Contains(string(checksumRaw), string(filepath.Separator)+"model-mapper_0.1.0_linux_amd64.zip") {
+	if strings.Contains(string(checksumRaw), string(filepath.Separator)+"model-mapper-plus_0.1.0_linux_amd64.zip") {
 		t.Fatalf("checksum line includes a path: %q", string(checksumRaw))
 	}
 }
@@ -114,10 +114,10 @@ func TestPackageExistingArtifactsUsesSha256sumFormat(t *testing.T) {
 	if err := os.MkdirAll(windowsDir, 0o755); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(filepath.Join(linuxDir, "model-mapper.so"), []byte("linux"), 0o644); err != nil {
+	if err := os.WriteFile(filepath.Join(linuxDir, "model-mapper-plus.so"), []byte("linux"), 0o644); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(filepath.Join(windowsDir, "model-mapper.dll"), []byte("windows"), 0o644); err != nil {
+	if err := os.WriteFile(filepath.Join(windowsDir, "model-mapper-plus.dll"), []byte("windows"), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -131,8 +131,8 @@ func TestPackageExistingArtifactsUsesSha256sumFormat(t *testing.T) {
 	}
 	got := string(gotBytes)
 	for _, name := range []string{
-		"model-mapper_0.1.0_linux_amd64.zip",
-		"model-mapper_0.1.0_windows_amd64.zip",
+		"model-mapper-plus_0.1.0_linux_amd64.zip",
+		"model-mapper-plus_0.1.0_windows_amd64.zip",
 	} {
 		zipBytes, err := os.ReadFile(filepath.Join(out, name))
 		if err != nil {

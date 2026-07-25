@@ -37,3 +37,6 @@ Thumbs.db
 
 # web build
 web/node_modules/
+
+# IDE
+.idea/

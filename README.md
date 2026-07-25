@@ -1,10 +1,10 @@
-# CPA Model Mapper Plugin
+# CPA Model Mapper Plus Plugin
 
-`model-mapper` is a CLIProxyAPI (CPA) native plugin. It maps text-generation request model names before CPA selects the upstream execution path, then restores supported response model fields back to the client-requested model only when a mapping matched or a case operation executed and the final model differs from the original.
+`model-mapper-plus` is a CLIProxyAPI (CPA) native plugin. It maps text-generation request model names before CPA selects the upstream execution path, then restores supported response model fields back to the client-requested model only when a mapping matched or a case operation executed and the final model differs from the original.
 
 When CPA invokes the plugin executor callbacks, the same mapping applies across non-streaming HTTP responses, SSE streams, and WebSocket-backed CPA streams that arrive as raw JSON chunks through the existing stream bridge.
 
-The plugin registers `management.register`/`management.handle`: a resource route serves the embedded admin UI (unauthenticated static page), and data routes under `/v0/management/plugins/model-mapper/` manage rules, key bindings, and dry-run previews after CPA-side management authentication.
+The plugin registers `management.register`/`management.handle`: a resource route serves the embedded admin UI (unauthenticated static page), and data routes under `/v0/management/plugins/model-mapper-plus/` manage rules, key bindings, and dry-run previews after CPA-side management authentication.
 
 ## Configuration
 
@@ -12,27 +12,27 @@ The plugin registers `management.register`/`management.handle`: a resource route
 plugins:
   enabled: true
   configs:
-    model-mapper:
+    model-mapper-plus:
       enabled: true
       priority: 1
       global_rules: ""
       claude_messages_rules: ""
       codex_responses_rules: ""
       openai_completions_rules: ""
-      state_file: ""  # optional, defaults to model-mapper-state.json
+      state_file: ""  # optional, defaults to model-mapper-plus-state.json
 ```
 
 The plugin's own `enabled` field defaults to `true`. Empty rule fields mean the request is skipped and CPA behaves normally.
 
 ## Web admin UI
 
-The plugin serves an admin page at `http://<cpa-host>:<api-port>/v0/resource/plugins/model-mapper/index.html`, signed in with the CPA management key. It has three panels:
+The plugin serves an admin page at `http://<cpa-host>:<api-port>/v0/resource/plugins/model-mapper-plus/index.html`, signed in with the CPA management key. It has three panels:
 
 - **Rules**: edit the global and per-endpoint ordered rule entries (including `\a`/`\A` case operations).
 - **Key bindings**: attach an extra rule set to a specific client API key, chained after the top-level rules for that key's requests.
 - **Preview**: dry-run a (key, endpoint, model) triple and inspect the M→M₁→M₂ rewrite steps.
 
-After the first save, rules and key bindings live in `state_file` (default `model-mapper-state.json`, mode 0600); from then on the state file is the single source of truth and the YAML rule fields no longer take effect (`enabled` still comes from YAML only). Delete the state file to fall back to YAML configuration.
+After the first save, rules and key bindings live in `state_file` (default `model-mapper-plus-state.json`, mode 0600); from then on the state file is the single source of truth and the YAML rule fields no longer take effect (`enabled` still comes from YAML only). Delete the state file to fall back to YAML configuration.
 
 ## Key bindings and thinking-effort control
 
@@ -159,21 +159,21 @@ Full-platform release builds run in GitHub Actions for:
 
 Local artifacts commonly used for smoke checks:
 
-- `dist/windows_amd64/model-mapper.dll`
-- `dist/linux_amd64/model-mapper.so`
+- `dist/windows_amd64/model-mapper-plus.dll`
+- `dist/linux_amd64/model-mapper-plus.so`
 
 ## Deploy
 
 Windows CPA:
 
 ```text
-<CPA directory>/plugins/windows/amd64/model-mapper.dll
+<CPA directory>/plugins/windows/amd64/model-mapper-plus.dll
 ```
 
 Linux amd64 CPA:
 
 ```text
-<CPA directory>/plugins/linux/amd64/model-mapper.so
+<CPA directory>/plugins/linux/amd64/model-mapper-plus.so
 ```
 
 ## Smoke test

@@ -35,7 +35,7 @@ export interface PreviewResponse {
   final: string
 }
 
-const PLUGIN_BASE = '/v0/management/plugins/model-mapper'
+const PLUGIN_BASE = '/v0/management/plugins/model-mapper-plus'
 
 async function call<T>(method: string, path: string, body?: unknown): Promise<T> {
   const resp = await fetch(PLUGIN_BASE + path, {

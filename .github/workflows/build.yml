@@ -13,7 +13,7 @@ permissions:
   contents: read
 
 env:
-  PLUGIN_NAME: model-mapper
+  PLUGIN_NAME: model-mapper-plus
 
 jobs:
   test:

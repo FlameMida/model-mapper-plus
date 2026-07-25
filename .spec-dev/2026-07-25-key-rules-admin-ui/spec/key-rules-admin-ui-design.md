@@ -24,7 +24,7 @@ spec_dev:
 
 ## 背景与目标
 
-model-mapper 现状仅有 YAML 单行配置的四段规则，无 key 维度、无可视化管理。本特性增加两项能力：①**key 绑定**——指定客户端 API key 追加独立规则集，串联跑在顶层规则之后；②**web 管理界面**——规则管理 / Key 绑定 / 规则试跑三板块，可写直改、即时生效。思考强度控制并入规则 DSL（模型名后缀），不设独立机制（ADR-0002）。
+model-mapper-plus 现状仅有 YAML 单行配置的四段规则，无 key 维度、无可视化管理。本特性增加两项能力：①**key 绑定**——指定客户端 API key 追加独立规则集，串联跑在顶层规则之后；②**web 管理界面**——规则管理 / Key 绑定 / 规则试跑三板块，可写直改、即时生效。思考强度控制并入规则 DSL（模型名后缀），不设独立机制（ADR-0002）。
 
 **成功标准**：指定 key 的请求按"顶层规则集 → key 规则集"接力改写模型（含强度后缀）；web UI 完成全部配置读写且保存即生效、无需 reload CPA；state_file 与 YAML 的真相源关系有文档且可验证。
 
@@ -149,7 +149,7 @@ state_file 的每次写入 SHALL 原子完成：写临时文件、fsync、chmod 
 #### Scenario: 管理页可访问
 
 - **GIVEN** 插件已加载
-- **WHEN** 浏览器 GET `/v0/resource/plugins/model-mapper/index.html`
+- **WHEN** 浏览器 GET `/v0/resource/plugins/model-mapper-plus/index.html`
 - **THEN** 返回管理页面 HTML（资源路由不经 management 鉴权；数据 API 由 CPA 侧鉴权后转发）
 
 ### Requirement: 保存前 DSL 预校验
@@ -196,7 +196,7 @@ handleModelRoute SHALL 以 `SourceFormat`、`RequestedModel`、`Headers` 为输�
 
 ### Requirement: 插件注册能力（改：新增 ManagementAPI 与 state_file 配置项）
 
-pluginRegistration SHALL 在 `model_router`、`executor`、`executor.execute_stream` 之外声明 ManagementAPI 能力；`Metadata.ConfigFields` 增加 `state_file` 路径字段（默认 `model-mapper-state.json`）。
+pluginRegistration SHALL 在 `model_router`、`executor`、`executor.execute_stream` 之外声明 ManagementAPI 能力；`Metadata.ConfigFields` 增加 `state_file` 路径字段（默认 `model-mapper-plus-state.json`）。
 
 #### Scenario: 注册包含 management 声明
 
@@ -238,7 +238,7 @@ func apiKeyFromHeaders(h http.Header) string            // Bearer 优先，x-api
 func routeModel(cfg Config, st *State, format, model, apiKey string) (string, bool)
 ```
 
-management API（CPA 挂载于 `/v0/management/plugins/model-mapper/`）：
+management API（CPA 挂载于 `/v0/management/plugins/model-mapper-plus/`）：
 
 | 方法 | 路径 | 说明 |
 |------|------|------|

@@ -15,7 +15,7 @@ func TestDispatchManagementRealHostPath(t *testing.T) {
 	setupManagementTest(t, Config{Enabled: true, GlobalRules: "a=>b"})
 	resp := dispatchManagement(pluginapi.ManagementRequest{
 		Method: http.MethodGet,
-		Path:   "/v0/management/plugins/model-mapper/state",
+		Path:   "/v0/management/plugins/model-mapper-plus/state",
 	})
 	if resp.StatusCode != http.StatusOK {
 		t.Fatalf("status=%d body=%s", resp.StatusCode, resp.Body)

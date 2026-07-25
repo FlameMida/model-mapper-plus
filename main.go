@@ -299,7 +299,7 @@ func pluginRegistration() registration {
 	return registration{
 		SchemaVersion: pluginabi.SchemaVersion,
 		Metadata: pluginapi.Metadata{
-			Name:             "model-mapper",
+			Name:             "model-mapper-plus",
 			Version:          pluginVersion,
 			Author:           "DoingDog",
 			GitHubRepository: "https://github.com/DoingDog/cpa-plugin-model-mapper",
@@ -473,7 +473,7 @@ func handlePluginReconfigure(raw []byte) ([]byte, error) {
 func handleExecutorIdentifier() ([]byte, error) {
 	return json.Marshal(struct {
 		Identifier string `json:"identifier"`
-	}{Identifier: "model-mapper"})
+	}{Identifier: "model-mapper-plus"})
 }
 
 type routeDecision struct {
@@ -553,7 +553,7 @@ func handleModelRoute(raw []byte) ([]byte, error) {
 	if !decision.Handled {
 		return json.Marshal(pluginapi.ModelRouteResponse{Handled: false})
 	}
-	return json.Marshal(pluginapi.ModelRouteResponse{Handled: true, TargetKind: pluginapi.ModelRouteTargetSelf, Reason: "model mapped by model-mapper"})
+	return json.Marshal(pluginapi.ModelRouteResponse{Handled: true, TargetKind: pluginapi.ModelRouteTargetSelf, Reason: "model mapped by model-mapper-plus"})
 }
 
 func routeModel(cfg Config, src ruleSource, format, model, apiKey string) (routeDecision, error) {
@@ -848,7 +848,7 @@ func handleMethod(method string, request []byte) ([]byte, error) {
 	case pluginabi.MethodExecutorExecuteStream:
 		return wrapEnvelope(handleExecutorExecuteStream(request, callHost))
 	case pluginabi.MethodExecutorCountTokens:
-		return errorEnvelope("unsupported", "executor.count_tokens is not supported by model-mapper"), nil
+		return errorEnvelope("unsupported", "executor.count_tokens is not supported by model-mapper-plus"), nil
 	case pluginabi.MethodManagementRegister:
 		return wrapEnvelope(handleManagementRegister())
 	case pluginabi.MethodManagementHandle:

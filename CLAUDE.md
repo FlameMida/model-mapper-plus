@@ -51,7 +51,7 @@ Important model-rewrite invariants:
 - single-platform mode with `-library`, `-archive`, and `-checksum`
 - aggregate mode with `-version`, `-dist`, and `-out`
 
-Release zip files are named `model-mapper_<version>_<goos>_<goarch>.zip`, contain the dynamic library at zip root plus optional root `LICENSE`, and use sha256sum-format checksum lines with only the archive basename.
+Release zip files are named `model-mapper-plus_<version>_<goos>_<goarch>.zip`, contain the dynamic library at zip root plus optional root `LICENSE`, and use sha256sum-format checksum lines with only the archive basename.
 
 The GitHub Actions workflow runs tests/vet on PRs, builds all release platforms on non-PR events, and publishes only for `v*` tags. Global workflow permissions are `contents: read`; only the release job uses `contents: write`.
 

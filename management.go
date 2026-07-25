@@ -10,16 +10,16 @@ import (
 
 const (
 	// Register paths are relative under /v0/management/ (key-policy / SDK convention).
-	managementRegisterBase = "/plugins/model-mapper"
+	managementRegisterBase = "/plugins/model-mapper-plus"
 	// Handle paths are the full host-forwarded URL.Path.
-	managementHandleBase = "/v0/management/plugins/model-mapper"
-	resourcePrefix       = "/v0/resource/plugins/model-mapper"
+	managementHandleBase = "/v0/management/plugins/model-mapper-plus"
+	resourcePrefix       = "/v0/resource/plugins/model-mapper-plus"
 )
 
 func handleManagementRegister() ([]byte, error) {
 	return json.Marshal(pluginapi.ManagementRegistrationResponse{
 		Routes: []pluginapi.ManagementRoute{
-			{Method: http.MethodGet, Path: managementRegisterBase + "/state", Description: "Read full model-mapper state."},
+			{Method: http.MethodGet, Path: managementRegisterBase + "/state", Description: "Read full model-mapper-plus state."},
 			{Method: http.MethodPut, Path: managementRegisterBase + "/rules", Description: "Replace top-level rule sets."},
 			{Method: http.MethodPost, Path: managementRegisterBase + "/keys", Description: "Create or replace a key binding."},
 			{Method: http.MethodPatch, Path: managementRegisterBase + "/keys", Description: "Update a key binding by key."},
@@ -27,7 +27,7 @@ func handleManagementRegister() ([]byte, error) {
 			{Method: http.MethodPost, Path: managementRegisterBase + "/preview", Description: "Dry-run rule resolution."},
 		},
 		Resources: []pluginapi.ResourceRoute{
-			{Path: "/index.html", Menu: "Model Mapper", Description: "Model Mapper admin UI."},
+			{Path: "/index.html", Menu: "Model Mapper Plus", Description: "Model Mapper Plus admin UI."},
 		},
 	})
 }

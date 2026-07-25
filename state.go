@@ -13,7 +13,7 @@ import (
 
 const (
 	stateVersion     = 1
-	defaultStateFile = "model-mapper-state.json"
+	defaultStateFile = "model-mapper-plus-state.json"
 )
 
 // RuleSet mirrors the four top-level rule fields; the same shape is reused
@@ -117,7 +117,7 @@ func atomicWriteState(path string, st State) error {
 		return err
 	}
 	dir := filepath.Dir(path)
-	tmp, err := os.CreateTemp(dir, ".model-mapper-state-*")
+	tmp, err := os.CreateTemp(dir, ".model-mapper-plus-state-*")
 	if err != nil {
 		return err
 	}

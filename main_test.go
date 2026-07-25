@@ -21,7 +21,7 @@ func TestPluginRegistrationMetadataAndConfigFields(t *testing.T) {
 	if reg.SchemaVersion != pluginabi.SchemaVersion {
 		t.Fatalf("schema version=%d, want %d", reg.SchemaVersion, pluginabi.SchemaVersion)
 	}
-	if reg.Metadata.Name != "model-mapper" {
+	if reg.Metadata.Name != "model-mapper-plus" {
 		t.Fatalf("plugin name=%q", reg.Metadata.Name)
 	}
 	if reg.Metadata.Version != pluginVersion || reg.Metadata.Author == "" || reg.Metadata.GitHubRepository == "" {
@@ -1284,7 +1284,7 @@ func TestHandleMethodDispatchesRegisterReconfigureAndUnknown(t *testing.T) {
 	if err := json.Unmarshal(env.Result, &reg); err != nil {
 		t.Fatalf("decode register result: %v", err)
 	}
-	if reg.Metadata.Name != "model-mapper" {
+	if reg.Metadata.Name != "model-mapper-plus" {
 		t.Fatalf("registration=%#v", reg)
 	}
 
@@ -1296,7 +1296,7 @@ func TestHandleMethodDispatchesRegisterReconfigureAndUnknown(t *testing.T) {
 	if err := json.Unmarshal(identifierRaw, &identifierEnv); err != nil {
 		t.Fatalf("decode identifier env: %v", err)
 	}
-	if !identifierEnv.OK || !bytes.Contains(identifierEnv.Result, []byte(`"identifier":"model-mapper"`)) {
+	if !identifierEnv.OK || !bytes.Contains(identifierEnv.Result, []byte(`"identifier":"model-mapper-plus"`)) {
 		t.Fatalf("identifier env=%s", identifierRaw)
 	}
 
