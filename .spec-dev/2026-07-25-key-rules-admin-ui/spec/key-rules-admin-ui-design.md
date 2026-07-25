@@ -17,7 +17,7 @@ spec_dev:
     - ".github/workflows/build.yml"
     - "README.md"
     - "CLAUDE.md"
-  sync_commit: null
+  sync_commit: 2f2ba474a8674d3c4171034337ecccb7c9b5dbaa
 ---
 
 # Key 维度规则与 Web 管理界面 设计
