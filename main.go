@@ -292,6 +292,7 @@ type registrationCapabilities struct {
 	ExecutorModelScope    string   `json:"executor_model_scope"`
 	ExecutorInputFormats  []string `json:"executor_input_formats"`
 	ExecutorOutputFormats []string `json:"executor_output_formats"`
+	ManagementAPI         bool     `json:"management_api"`
 }
 
 func pluginRegistration() registration {
@@ -317,6 +318,7 @@ func pluginRegistration() registration {
 			ExecutorModelScope:    string(pluginapi.ExecutorModelScopeStatic),
 			ExecutorInputFormats:  []string{"openai", "claude", "openai-response"},
 			ExecutorOutputFormats: []string{"openai", "claude", "openai-response"},
+			ManagementAPI:         true,
 		},
 	}
 }
@@ -827,6 +829,10 @@ func handleMethod(method string, request []byte) ([]byte, error) {
 		return wrapEnvelope(handleExecutorExecuteStream(request, callHost))
 	case pluginabi.MethodExecutorCountTokens:
 		return errorEnvelope("unsupported", "executor.count_tokens is not supported by model-mapper"), nil
+	case pluginabi.MethodManagementRegister:
+		return wrapEnvelope(handleManagementRegister())
+	case pluginabi.MethodManagementHandle:
+		return wrapEnvelope(handleManagement(request))
 	default:
 		return errorEnvelope("unknown_method", "unknown method: "+method), nil
 	}
