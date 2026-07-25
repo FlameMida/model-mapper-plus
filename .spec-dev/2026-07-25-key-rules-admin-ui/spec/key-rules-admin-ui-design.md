@@ -3,7 +3,7 @@
 spec_dev:
   version: 1
   feature: key-rules-admin-ui
-  status: draft
+  status: active
   covers:
     - "main.go"
     - "main_test.go"
