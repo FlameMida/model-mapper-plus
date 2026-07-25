@@ -4,6 +4,7 @@ import { api, StateResponse } from './api'
 import { hasKey, setKey } from './session'
 import { readPanelAuth } from './panelAuth'
 import RulesPanel from './panels/RulesPanel'
+import KeysPanel from './panels/KeysPanel'
 
 const { Header, Content } = Layout
 
@@ -78,7 +79,7 @@ export default function App() {
             { itemKey: 'preview', text: '规则试跑' },
           ]} />
         {tab === 'rules' && state && <RulesPanel state={state} onSaved={setState} />}
-        {tab === 'keys' && <Placeholder name="Key 绑定" />}
+        {tab === 'keys' && state && <KeysPanel state={state} onSaved={setState} />}
         {tab === 'preview' && <Placeholder name="规则试跑" />}
       </Content>
     </Layout>
