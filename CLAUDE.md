@@ -45,7 +45,7 @@ Important model-rewrite invariants:
 
 ## Release and packaging
 
-`pluginVersion` defaults to `0.0.0-dev` and is injected during release builds with `-X main.pluginVersion=$(VERSION)`. Keep `go.mod` module path and `pluginRegistration().Metadata.GitHubRepository` aligned with `github.com/DoingDog/cpa-plugin-model-mapper`.
+`pluginVersion` defaults to `0.0.0-dev` and is injected during release builds with `-X main.pluginVersion=$(VERSION)`. Keep `go.mod` module path and `pluginRegistration().Metadata.GitHubRepository` aligned with `github.com/FlameMida/cpa-model-mapper-plus`.
 
 `.github/scripts/package-release.go` is the packaging boundary. It supports:
 

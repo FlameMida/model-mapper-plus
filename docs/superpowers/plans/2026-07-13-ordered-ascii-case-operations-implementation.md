@@ -153,7 +153,7 @@ Run the same focused command from Step 3.
 Expected:
 
 ```text
-ok github.com/DoingDog/cpa-plugin-model-mapper
+ok github.com/FlameMida/cpa-model-mapper-plus
 ```
 
 - [ ] **Step 7: Run existing parser and character-semantic regressions**
@@ -349,7 +349,7 @@ Run the same command from Step 4.
 Expected:
 
 ```text
-ok github.com/DoingDog/cpa-plugin-model-mapper
+ok github.com/FlameMida/cpa-model-mapper-plus
 ```
 
 - [ ] **Step 8: Run all rule and routing tests**
@@ -597,7 +597,7 @@ $env:CGO_ENABLED = "0"
 Expected:
 
 ```text
-ok github.com/DoingDog/cpa-plugin-model-mapper
+ok github.com/FlameMida/cpa-model-mapper-plus
 ```
 
 No test may be skipped or weakened to obtain GREEN.
