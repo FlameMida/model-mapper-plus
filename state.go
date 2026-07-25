@@ -17,12 +17,16 @@ const (
 )
 
 // ResolveStatePath returns an absolute path for the plugin state file.
-// Empty input uses defaultStateFile. Relative paths are resolved against the
-// process working directory (same contract as key-policy ResolveStatePath).
+//
+// Empty input uses defaultStatePath(): prefer the directory of this plugin's
+// loaded .so/.dll (same folder as the binary), then
+// <dir(executable)>/plugins/<goos>/<goarch>/, then process cwd.
+// Non-empty relative paths are resolved against the process working directory.
+// Absolute paths are cleaned and returned as-is.
 func ResolveStatePath(path string) (string, error) {
 	path = strings.TrimSpace(path)
 	if path == "" {
-		path = defaultStateFile
+		return defaultStatePath()
 	}
 	if filepath.IsAbs(path) {
 		return filepath.Clean(path), nil

@@ -309,7 +309,7 @@ func pluginRegistration() registration {
 				{Name: "claude_messages_rules", Type: pluginapi.ConfigFieldTypeString, Description: "Rules for Claude Messages-compatible requests."},
 				{Name: "codex_responses_rules", Type: pluginapi.ConfigFieldTypeString, Description: "Rules for OpenAI Responses/Codex-compatible requests."},
 				{Name: "openai_completions_rules", Type: pluginapi.ConfigFieldTypeString, Description: "Rules for OpenAI Completions and Chat Completions requests."},
-				{Name: "state_file", Type: pluginapi.ConfigFieldTypeString, Description: "Path to the JSON state file that stores rules and key bindings once managed via the admin UI."},
+				{Name: "state_file", Type: pluginapi.ConfigFieldTypeString, Description: "Path to the JSON state file (rules + key bindings). Empty defaults to model-mapper-plus-state.json next to this plugin library (or <exe>/plugins/<goos>/<goarch>/)."},
 			},
 		},
 		Capabilities: registrationCapabilities{

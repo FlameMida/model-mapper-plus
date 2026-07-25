@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 )
@@ -113,6 +114,11 @@ func TestValidateState(t *testing.T) {
 }
 
 func TestResolveStatePathDefaultAndAbs(t *testing.T) {
+	// Force a known self-library path so the default is next to the "plugin".
+	pluginDir := t.TempDir()
+	selfLibraryPathForTest = filepath.Join(pluginDir, "model-mapper-plus.so")
+	t.Cleanup(func() { selfLibraryPathForTest = "" })
+
 	abs, err := ResolveStatePath("")
 	if err != nil {
 		t.Fatal(err)
@@ -123,16 +129,52 @@ func TestResolveStatePathDefaultAndAbs(t *testing.T) {
 	if filepath.Base(abs) != defaultStateFile {
 		t.Fatalf("base = %q, want %q", filepath.Base(abs), defaultStateFile)
 	}
+	if filepath.Dir(abs) != pluginDir {
+		t.Fatalf("dir = %q, want plugin dir %q", filepath.Dir(abs), pluginDir)
+	}
+
 	custom := filepath.Join(t.TempDir(), "sub", "custom.json")
 	got, err := ResolveStatePath(custom)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if got != filepath.Clean(custom) && got != custom {
-		// both cleaned abs
-		if !filepath.IsAbs(got) || filepath.Base(got) != "custom.json" {
-			t.Fatalf("got %q", got)
-		}
+	if !filepath.IsAbs(got) || filepath.Base(got) != "custom.json" {
+		t.Fatalf("got %q", got)
+	}
+}
+
+func TestResolveStatePathSkipsWindowsShadowDir(t *testing.T) {
+	shadow := filepath.Join(os.TempDir(), "cliproxy-pluginhost", "pid-12345")
+	selfLibraryPathForTest = filepath.Join(shadow, "model-mapper-plus.dll")
+	t.Cleanup(func() { selfLibraryPathForTest = "" })
+
+	abs, err := ResolveStatePath("")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if filepath.Dir(abs) == shadow {
+		t.Fatalf("must not place state next to shadow copy: %q", abs)
+	}
+	if filepath.Base(abs) != defaultStateFile {
+		t.Fatalf("base = %q", filepath.Base(abs))
+	}
+	// Prefer <exe>/plugins/<goos>/<goarch>/ when shadow is skipped.
+	if !strings.Contains(abs, filepath.Join("plugins", runtime.GOOS, runtime.GOARCH)) {
+		// May fall back to cwd if Executable fails in tests — still must not be shadow.
+		t.Logf("resolved (non-shadow) path: %s", abs)
+	}
+}
+
+func TestIsPluginShadowDir(t *testing.T) {
+	marker := filepath.Join(os.TempDir(), "cliproxy-pluginhost")
+	if !isPluginShadowDir(marker) {
+		t.Fatal("expected marker itself to match")
+	}
+	if !isPluginShadowDir(filepath.Join(marker, "pid-1")) {
+		t.Fatal("expected nested shadow dir to match")
+	}
+	if isPluginShadowDir(filepath.Join(os.TempDir(), "other")) {
+		t.Fatal("unrelated temp subdir must not match")
 	}
 }
 

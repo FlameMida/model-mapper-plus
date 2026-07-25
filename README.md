@@ -32,7 +32,7 @@ The plugin serves an admin page at `http://<cpa-host>:<api-port>/v0/resource/plu
 - **Key bindings**: attach an extra rule set to a specific client API key, chained after the top-level rules for that key's requests.
 - **Preview**: dry-run a (key, endpoint, model) triple and inspect the M→M₁→M₂ rewrite steps.
 
-After the first save, rules and key bindings live in `state_file` (default basename `model-mapper-plus-state.json`, resolved to an absolute path against the CPA process working directory; parent dirs are created as needed, mode 0600); from then on the state file is the single source of truth and the YAML rule fields no longer take effect (`enabled` still comes from YAML only). Delete the state file to fall back to YAML configuration. The admin UI follows the CPA panel light/dark theme when embedded.
+After the first save, rules and key bindings live in `state_file`. When unset, the default basename is `model-mapper-plus-state.json` and the directory is chosen as: (1) the folder of this plugin’s loaded `.so`/`.dll` (same place as the binary), unless that is CPA’s Windows shadow temp under `$TMP/cliproxy-pluginhost`; (2) otherwise `<dir(executable)>/plugins/<goos>/<goarch>/`; (3) last resort process cwd. Parent dirs are created as needed (mode 0700); the file is mode 0600. Once present, the state file is the single source of truth and the YAML rule fields no longer take effect (`enabled` still comes from YAML only). Delete the state file to fall back to YAML configuration. Prefer an absolute `state_file` in config for production. The admin UI follows the CPA panel light/dark theme when embedded.
 
 ## Key bindings and thinking-effort control
 
