@@ -32,7 +32,7 @@ The plugin serves an admin page at `http://<cpa-host>:<api-port>/v0/resource/plu
 - **Key bindings**: attach an extra rule set to a specific client API key, chained after the top-level rules for that key's requests.
 - **Preview**: dry-run a (key, endpoint, model) triple and inspect the M→M₁→M₂ rewrite steps.
 
-After the first save, rules and key bindings live in `state_file` (default `model-mapper-plus-state.json`, mode 0600); from then on the state file is the single source of truth and the YAML rule fields no longer take effect (`enabled` still comes from YAML only). Delete the state file to fall back to YAML configuration.
+After the first save, rules and key bindings live in `state_file` (default basename `model-mapper-plus-state.json`, resolved to an absolute path against the CPA process working directory; parent dirs are created as needed, mode 0600); from then on the state file is the single source of truth and the YAML rule fields no longer take effect (`enabled` still comes from YAML only). Delete the state file to fall back to YAML configuration. The admin UI follows the CPA panel light/dark theme when embedded.
 
 ## Key bindings and thinking-effort control
 

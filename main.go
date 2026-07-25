@@ -385,9 +385,10 @@ func keyBindingExists(key string) bool {
 // resolveState loads state_file when present and valid; otherwise falls back
 // to a YAML-seed state without creating the file (ADR-0001).
 func resolveState(cfg Config) stateHolder {
-	path := strings.TrimSpace(cfg.StateFile)
-	if path == "" {
-		path = defaultStateFile
+	path, err := ResolveStatePath(cfg.StateFile)
+	if err != nil {
+		seed := seedStateFromConfig(cfg)
+		return stateHolder{src: ruleSourceFromState(seed), state: seed}
 	}
 	if st, err := readStateFile(path); err == nil {
 		if err := validateState(st); err == nil {
@@ -400,8 +401,9 @@ func resolveState(cfg Config) stateHolder {
 }
 
 func stateFilePathFrom(cfg Config) string {
-	path := strings.TrimSpace(cfg.StateFile)
-	if path == "" {
+	path, err := ResolveStatePath(cfg.StateFile)
+	if err != nil {
+		// Fall back to default basename if Abs fails (should be rare).
 		return defaultStateFile
 	}
 	return path

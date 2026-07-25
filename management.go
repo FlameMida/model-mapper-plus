@@ -85,6 +85,7 @@ type stateResponse struct {
 	KeyBindings []KeyBinding `json:"key_bindings"`
 	UpdatedAt   string       `json:"updated_at,omitempty"`
 	Persisted   bool         `json:"persisted"`
+	StateFile   string       `json:"state_file"`
 }
 
 func managementGetState() pluginapi.ManagementResponse {
@@ -95,6 +96,7 @@ func managementGetState() pluginapi.ManagementResponse {
 	return managementJSON(http.StatusOK, stateResponse{
 		Version: stateVersion, Rules: st.Rules,
 		KeyBindings: st.KeyBindings, UpdatedAt: st.UpdatedAt, Persisted: persisted,
+		StateFile: stateFilePath(),
 	})
 }
 
@@ -249,9 +251,12 @@ type previewResponse struct {
 	Final  string `json:"final"`
 }
 
-// previewRoute evaluates the two-layer chain without the enabled gate:
-// dry-run is a rule debugging tool (see plan task 5 note).
-func previewRoute(src ruleSource, format, model, apiKey string) (previewResponse, error) {
+// previewRoute evaluates the same two-layer chain as routeModel (including the
+// enabled gate) so dry-run matches production routing.
+func previewRoute(cfg Config, src ruleSource, format, model, apiKey string) (previewResponse, error) {
+	if !cfg.Enabled {
+		return previewResponse{M1: model, M2: model, Routed: false, Final: model}, nil
+	}
 	m1 := model
 	mapped, matched, err := applyRuleSet(src.Rules, format, model)
 	if err != nil {
@@ -281,7 +286,7 @@ func managementPreview(req pluginapi.ManagementRequest) pluginapi.ManagementResp
 	if strings.TrimSpace(body.Model) == "" || strings.TrimSpace(body.Format) == "" {
 		return managementError(http.StatusBadRequest, "format and model are required")
 	}
-	resp, err := previewRoute(loadedRuleSource(), body.Format, body.Model, strings.TrimSpace(body.Key))
+	resp, err := previewRoute(loadedConfig(), loadedRuleSource(), body.Format, body.Model, strings.TrimSpace(body.Key))
 	if err != nil {
 		return managementError(http.StatusBadRequest, err.Error())
 	}

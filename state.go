@@ -16,6 +16,24 @@ const (
 	defaultStateFile = "model-mapper-plus-state.json"
 )
 
+// ResolveStatePath returns an absolute path for the plugin state file.
+// Empty input uses defaultStateFile. Relative paths are resolved against the
+// process working directory (same contract as key-policy ResolveStatePath).
+func ResolveStatePath(path string) (string, error) {
+	path = strings.TrimSpace(path)
+	if path == "" {
+		path = defaultStateFile
+	}
+	if filepath.IsAbs(path) {
+		return filepath.Clean(path), nil
+	}
+	abs, err := filepath.Abs(path)
+	if err != nil {
+		return "", err
+	}
+	return abs, nil
+}
+
 // RuleSet mirrors the four top-level rule fields; the same shape is reused
 // for per-key bindings (ADR-0003 symmetric segment selection).
 type RuleSet struct {
@@ -117,6 +135,11 @@ func atomicWriteState(path string, st State) error {
 		return err
 	}
 	dir := filepath.Dir(path)
+	if dir != "" && dir != "." {
+		if err := os.MkdirAll(dir, 0o700); err != nil {
+			return err
+		}
+	}
 	tmp, err := os.CreateTemp(dir, ".model-mapper-plus-state-*")
 	if err != nil {
 		return err

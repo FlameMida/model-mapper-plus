@@ -70,7 +70,10 @@ export default function App() {
               <Tag color={state ? 'green' : 'grey'}>{state ? '已连接' : '加载中'}</Tag>
               {state && (
                 <Typography.Text size="small" style={{ marginLeft: 8 }}>
-                  {state.persisted ? `state 已保存 ${state.updated_at ?? ''}` : '当前为 YAML 配置（首次保存后接管）'}
+                  {state.persisted
+                    ? `state 已保存 ${state.updated_at ?? ''}`
+                    : '当前为 YAML 配置（首次保存后接管）'}
+                  {state.state_file ? ` · ${state.state_file}` : ''}
                 </Typography.Text>
               )}
             </>

@@ -16,7 +16,7 @@ func TestPreviewRouteChained(t *testing.T) {
 			Rules: RuleSet{Claude: `claude-opus-4-5(high)=>claude-opus-4-5(medium)`},
 		}},
 	}
-	got, err := previewRoute(src, "claude", "claude-opus-4-5(max)", "sk-k")
+	got, err := previewRoute(Config{Enabled: true}, src, "claude", "claude-opus-4-5(max)", "sk-k")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -29,7 +29,7 @@ func TestPreviewRouteChained(t *testing.T) {
 }
 
 func TestPreviewRouteNoMatch(t *testing.T) {
-	got, err := previewRoute(ruleSource{Rules: RuleSet{Global: "a=>b"}}, "openai", "gpt-4o", "")
+	got, err := previewRoute(Config{Enabled: true}, ruleSource{Rules: RuleSet{Global: "a=>b"}}, "openai", "gpt-4o", "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -40,7 +40,7 @@ func TestPreviewRouteNoMatch(t *testing.T) {
 
 func TestPreviewRouteInvalidRules(t *testing.T) {
 	src := ruleSource{Rules: RuleSet{Global: "a => b"}}
-	if _, err := previewRoute(src, "openai", "x", ""); err == nil {
+	if _, err := previewRoute(Config{Enabled: true}, src, "openai", "x", ""); err == nil {
 		t.Fatal("want parse error surfaced")
 	}
 }
@@ -58,5 +58,21 @@ func TestManagementPreviewEndpoint(t *testing.T) {
 	decodeBody(t, resp, &body)
 	if body.M1 != "claude-opus-4-5(high)" || !body.Routed {
 		t.Fatalf("got %+v", body)
+	}
+}
+
+func TestPreviewRespectsDisabledPlugin(t *testing.T) {
+	setupManagementTest(t, Config{Enabled: false, ClaudeMessagesRules: `a=>b`})
+	resp := managementPreview(pluginapi.ManagementRequest{
+		Method: http.MethodPost,
+		Body:   []byte(`{"format":"claude","model":"a"}`),
+	})
+	if resp.StatusCode != http.StatusOK {
+		t.Fatalf("status=%d body=%s", resp.StatusCode, resp.Body)
+	}
+	var body previewResponse
+	decodeBody(t, resp, &body)
+	if body.Routed || body.Final != "a" {
+		t.Fatalf("disabled plugin must not map in preview: %+v", body)
 	}
 }

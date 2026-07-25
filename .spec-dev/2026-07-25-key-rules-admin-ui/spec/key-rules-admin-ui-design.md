@@ -114,13 +114,19 @@ model-mapper-plus 现状仅有 YAML 单行配置的四段规则，无 key 维度
 
 ### Requirement: state_file 真相源与 YAML seed
 
-state_file 存在时 SHALL 作为顶层规则四段与 key 绑定的唯一真相源；不存在时 SHALL 以 YAML 规则字段为运行值，并于首次经 management API 保存时创建 state_file（纳入当时 YAML 值）。`enabled` 开关 SHALL 只来自 YAML，不进 state_file。
+state_file 路径 SHALL 经 `ResolveStatePath` 规范化为绝对路径：配置为空时默认 `model-mapper-plus-state.json`（相对路径按进程工作目录转绝对路径）。state_file 存在且合法时 SHALL 作为顶层规则四段与 key 绑定的唯一真相源；不存在时 SHALL 以 YAML 规则字段为运行值，并于首次经 management API 保存时创建 state_file（纳入当时 YAML 值，并在需要时创建父目录 mode 0700）。`enabled` 开关 SHALL 只来自 YAML，不进 state_file。`GET /state` SHALL 返回规范化后的 `state_file` 绝对路径供 UI 展示。
 
 #### Scenario: seed 仅一次
 
 - **GIVEN** 无 state_file，YAML `global_rules` 为 R1
 - **WHEN** 插件加载后经 UI 保存一次 key 绑定
-- **THEN** state_file 创建且其 `rules.global` 为 R1；此后修改 YAML `global_rules` 不再影响运行值
+- **THEN** 绝对路径上的 state_file 创建且其 `rules.global` 为 R1；此后修改 YAML `global_rules` 不再影响运行值
+
+#### Scenario: 默认路径为绝对路径
+
+- **GIVEN** 配置未写 `state_file` 或为空
+- **WHEN** 解析状态路径
+- **THEN** 得到以 `model-mapper-plus-state.json` 为 basename 的绝对路径
 
 ### Requirement: state_file 损坏回退
 
@@ -134,13 +140,19 @@ state_file 无法解析时 SHALL 回退 YAML seed 值继续运行，不中断插
 
 ### Requirement: state_file 原子写
 
-state_file 的每次写入 SHALL 原子完成：写临时文件、fsync、chmod 0600、rename 替换。
+state_file 的每次写入 SHALL：必要时创建父目录 (0700)，再原子完成（写临时文件、fsync、chmod 0600、rename 替换）。
 
 #### Scenario: 任意时刻文件完整
 
 - **GIVEN** web UI 连续多次保存
 - **WHEN** 任一时刻读取 state_file
 - **THEN** 内容为完整的旧版或完整的新版之一，且权限为 0600
+
+#### Scenario: 嵌套目录自动创建
+
+- **GIVEN** `state_file` 指向尚不存在的嵌套目录下的文件
+- **WHEN** 首次保存
+- **THEN** 父目录被创建且 state 文件成功写入
 
 ### Requirement: management 能力注册与路由
 
@@ -164,7 +176,7 @@ state_file 的每次写入 SHALL 原子完成：写临时文件、fsync、chmod 
 
 ### Requirement: 规则试跑
 
-`POST /preview` SHALL 按给定 key（可选）、端点、模型返回分步结果：顶层输出 M₁、key 层输出 M₂、是否路由、最终出站模型。
+`POST /preview` SHALL 使用与正式 `routeModel` 相同的两层规则链与 `enabled` 开关，按给定 key（可选）、端点、模型返回分步结果：顶层输出 M₁、key 层输出 M₂、是否路由、最终出站模型。
 
 #### Scenario: 分步结果可见
 
@@ -172,15 +184,27 @@ state_file 的每次写入 SHALL 原子完成：写临时文件、fsync、chmod 
 - **WHEN** `POST /preview`（key=K，format=claude，model=`claude-opus-4-5(max)`）
 - **THEN** 返回 M₁=`claude-opus-4-5(high)`、M₂=`claude-opus-4-5(medium)`、routed=true
 
+#### Scenario: 插件禁用时试跑不映射
+
+- **GIVEN** `enabled: false` 且存在会改写模型的规则
+- **WHEN** `POST /preview`
+- **THEN** routed=false 且 final 等于输入模型
+
 ### Requirement: web 管理界面三板块
 
-web UI SHALL 以顶部横向导航提供三板块：规则管理（四段有序条目编辑，条目支持上移/下移/删除，含 `\a`/`\A` 大小写操作条目）、Key 绑定（列表 + 新增/编辑弹窗，规则集编辑器与规则管理同构）、规则试跑（preview 表单与分步结果展示）。
+web UI SHALL 以顶部横向导航提供三板块：规则管理（四段有序条目编辑，条目支持上移/下移/删除，含 `\a`/`\A` 大小写操作条目）、Key 绑定（列表 + 新增/编辑弹窗，规则集编辑器与规则管理同构）、规则试跑（preview 表单与分步结果展示）。作为 CPA panel 同源 iframe 时 SHALL 跟随父页面 `data-theme`（light/white/dark）自动切换 Semi 主题。
 
 #### Scenario: key 下拉来自 CPA
 
 - **GIVEN** CPA 配置 `api-keys: [sk-a, sk-b]`
 - **WHEN** 打开新增绑定弹窗
 - **THEN** key 下拉列出 sk-a、sk-b（前端以 management key 调 `GET /v0/management/api-keys`）
+
+#### Scenario: 跟随 panel 深色主题
+
+- **GIVEN** UI 嵌入 CPA panel 且父文档 `data-theme=dark`
+- **WHEN** 页面加载
+- **THEN** iframe 应用 dark 主题（body `theme-mode=dark`）
 
 ## MODIFIED Requirements
 

@@ -20,6 +20,7 @@ export interface StateResponse {
   key_bindings: KeyBinding[]
   updated_at?: string
   persisted: boolean
+  state_file?: string
 }
 
 export interface PreviewRequest {

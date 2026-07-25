@@ -41,6 +41,13 @@ export function splitEntries(dsl: string): Entry[] {
 
 export function joinEntries(entries: Entry[]): string {
   return entries
-    .map((e) => (e.kind === 'case' ? (e.op === 'lower' ? '\\a' : '\\A') : `${e.find}=>${e.replace}`))
+    .map((e) => {
+      if (e.kind === 'case') return e.op === 'lower' ? '\\a' : '\\A'
+      // Skip incomplete map rows so "Add mapping" placeholders never produce
+      // empty find/replace (which parseRules rejects as invalid).
+      if (!e.find.trim() || !e.replace.trim()) return ''
+      return `${e.find}=>${e.replace}`
+    })
+    .filter(Boolean)
     .join(';')
 }

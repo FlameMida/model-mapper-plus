@@ -111,3 +111,43 @@ func TestValidateState(t *testing.T) {
 		})
 	}
 }
+
+func TestResolveStatePathDefaultAndAbs(t *testing.T) {
+	abs, err := ResolveStatePath("")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !filepath.IsAbs(abs) {
+		t.Fatalf("want absolute path, got %q", abs)
+	}
+	if filepath.Base(abs) != defaultStateFile {
+		t.Fatalf("base = %q, want %q", filepath.Base(abs), defaultStateFile)
+	}
+	custom := filepath.Join(t.TempDir(), "sub", "custom.json")
+	got, err := ResolveStatePath(custom)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got != filepath.Clean(custom) && got != custom {
+		// both cleaned abs
+		if !filepath.IsAbs(got) || filepath.Base(got) != "custom.json" {
+			t.Fatalf("got %q", got)
+		}
+	}
+}
+
+func TestAtomicWriteStateCreatesParentDir(t *testing.T) {
+	dir := filepath.Join(t.TempDir(), "nested", "dir")
+	path := filepath.Join(dir, "state.json")
+	st := State{Version: stateVersion, Rules: RuleSet{Global: "a=>b"}}
+	if err := atomicWriteState(path, st); err != nil {
+		t.Fatalf("write: %v", err)
+	}
+	got, err := readStateFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got.Rules.Global != "a=>b" {
+		t.Fatalf("got %+v", got)
+	}
+}

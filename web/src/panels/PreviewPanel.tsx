@@ -29,7 +29,7 @@ export default function PreviewPanel() {
   }
 
   return (
-    <Card title="规则试跑（不落盘、不发上游）" style={{ margin: 16 }}>
+    <Card title="规则试跑（不落盘、不发上游；引擎与正式路由相同，含 enabled 开关）" style={{ margin: 16 }}>
       <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}>
         <Select style={{ width: 260 }} filter allowCreate placeholder="Key（可选，模拟 key 维度）"
           value={key || undefined} onChange={(v) => setKey(String(v))} showClear>
