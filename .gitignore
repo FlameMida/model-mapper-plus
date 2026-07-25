@@ -34,3 +34,6 @@ Thumbs.db
 # embedded web UI build output must be committed for go:embed
 !web/dist/
 !web/dist/index.html
+
+# web build
+web/node_modules/

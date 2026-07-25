@@ -12,10 +12,13 @@ LINUX_AMD64_OUT := $(DIST_DIR)/linux_amd64/$(PLUGIN_NAME).so
 LINUX_AMD64_CC ?=
 LINUX_AMD64_CC_BIN := $(firstword $(LINUX_AMD64_CC))
 
-.PHONY: test vet build-platform build-windows-amd64 build-linux-amd64 build package-platform package install-local install-linux-amd64 smoke-local clean
+.PHONY: test vet web-build build-platform build-windows-amd64 build-linux-amd64 build package-platform package install-local install-linux-amd64 smoke-local clean
 
 test:
 	$(GO) test ./...
+
+web-build:
+	cd web && npm install && VITE_HOSTED=1 npm run build
 
 vet:
 	$(GO) vet ./...
