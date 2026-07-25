@@ -1,0 +1,113 @@
+package main
+
+import (
+	"encoding/json"
+	"os"
+	"path/filepath"
+	"strings"
+	"testing"
+)
+
+func TestSeedStateFromConfig(t *testing.T) {
+	cfg := Config{GlobalRules: "g1", ClaudeMessagesRules: "c1"}
+	st := seedStateFromConfig(cfg)
+	if st.Version != stateVersion {
+		t.Fatalf("version = %d, want %d", st.Version, stateVersion)
+	}
+	if st.Rules.Global != "g1" || st.Rules.Claude != "c1" || st.Rules.Codex != "" || st.Rules.OpenAI != "" {
+		t.Fatalf("unexpected seed rules: %+v", st.Rules)
+	}
+	if len(st.KeyBindings) != 0 {
+		t.Fatalf("seed key bindings = %v, want empty", st.KeyBindings)
+	}
+}
+
+// Scenario: seed 仅一次（读取侧：state_file 存在时 YAML 不再生效）
+func TestReadStateFileTakesPrecedence(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "state.json")
+	st := State{Version: stateVersion, Rules: RuleSet{Global: "from-state"}, KeyBindings: []KeyBinding{{Key: "sk-a", Enabled: true}}}
+	if err := atomicWriteState(path, st); err != nil {
+		t.Fatalf("write: %v", err)
+	}
+	got, err := readStateFile(path)
+	if err != nil {
+		t.Fatalf("read: %v", err)
+	}
+	if got.Rules.Global != "from-state" || len(got.KeyBindings) != 1 {
+		t.Fatalf("unexpected state: %+v", got)
+	}
+}
+
+// Scenario: 非法 JSON 回退（readStateFile 报错，调用方回退 seed）
+func TestReadStateFileCorrupt(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "state.json")
+	if err := os.WriteFile(path, []byte("{not json"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := readStateFile(path); err == nil {
+		t.Fatal("want error for corrupt state file")
+	}
+}
+
+func TestReadStateFileUnknownVersion(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "state.json")
+	if err := os.WriteFile(path, []byte(`{"version":99,"rules":{}}`), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := readStateFile(path); err == nil {
+		t.Fatal("want error for unknown version")
+	}
+}
+
+// Scenario: 任意时刻文件完整（原子写产物合法且权限 0600）
+func TestAtomicWriteStatePermAndValid(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "state.json")
+	st := State{Version: stateVersion, Rules: RuleSet{Global: "g"}}
+	if err := atomicWriteState(path, st); err != nil {
+		t.Fatalf("write: %v", err)
+	}
+	info, err := os.Stat(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if info.Mode().Perm() != 0o600 {
+		t.Fatalf("perm = %o, want 600", info.Mode().Perm())
+	}
+	raw, _ := os.ReadFile(path)
+	var decoded State
+	if err := json.Unmarshal(raw, &decoded); err != nil {
+		t.Fatalf("written file not valid json: %v", err)
+	}
+	if entries, _ := os.ReadDir(dir); len(entries) != 1 {
+		t.Fatalf("temp files left behind: %d entries", len(entries))
+	}
+}
+
+func TestValidateState(t *testing.T) {
+	cases := []struct {
+		name    string
+		st      State
+		wantErr string
+	}{
+		{"ok", State{Version: stateVersion, Rules: RuleSet{Global: "a=>b"}}, ""},
+		{"bad top-level rules", State{Version: stateVersion, Rules: RuleSet{Global: "a => b"}}, "rules.global"},
+		{"bad binding rules", State{Version: stateVersion, KeyBindings: []KeyBinding{{Key: "sk-a", Rules: RuleSet{Claude: "x => y"}}}}, "claude"},
+		{"empty binding key", State{Version: stateVersion, KeyBindings: []KeyBinding{{Key: "  "}}}, "key"},
+		{"duplicate binding key", State{Version: stateVersion, KeyBindings: []KeyBinding{{Key: "sk-a"}, {Key: "sk-a"}}}, "duplicate"},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			err := validateState(tc.st)
+			if tc.wantErr == "" && err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+			if tc.wantErr != "" && (err == nil || !strings.Contains(err.Error(), tc.wantErr)) {
+				t.Fatalf("want error containing %q, got %v", tc.wantErr, err)
+			}
+		})
+	}
+}
