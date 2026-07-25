@@ -3,6 +3,7 @@ import { Layout, Nav, Button, Tag, Typography, Card, Input, Toast } from '@douyi
 import { api, StateResponse } from './api'
 import { hasKey, setKey } from './session'
 import { readPanelAuth } from './panelAuth'
+import RulesPanel from './panels/RulesPanel'
 
 const { Header, Content } = Layout
 
@@ -14,6 +15,7 @@ export default function App() {
   const [authed, setAuthed] = useState(hasKey())
   const [state, setState] = useState<StateResponse | null>(null)
   const [inputKey, setInputKey] = useState('')
+  const [tab, setTab] = useState('rules')
 
   useEffect(() => {
     if (!authed) {
@@ -68,13 +70,16 @@ export default function App() {
         />
       </Header>
       <Content>
-        <Nav mode="horizontal" selectedKey="rules" style={{ marginBottom: 8 }}
+        <Nav mode="horizontal" selectedKey={tab} style={{ marginBottom: 8 }}
+          onSelect={(data) => setTab(String(data.itemKey))}
           items={[
             { itemKey: 'rules', text: '规则管理' },
             { itemKey: 'keys', text: 'Key 绑定' },
             { itemKey: 'preview', text: '规则试跑' },
           ]} />
-        <Placeholder name="规则管理" />
+        {tab === 'rules' && state && <RulesPanel state={state} onSaved={setState} />}
+        {tab === 'keys' && <Placeholder name="Key 绑定" />}
+        {tab === 'preview' && <Placeholder name="规则试跑" />}
       </Content>
     </Layout>
   )
