@@ -5,12 +5,9 @@ import { hasKey, setKey } from './session'
 import { readPanelAuth } from './panelAuth'
 import RulesPanel from './panels/RulesPanel'
 import KeysPanel from './panels/KeysPanel'
+import PreviewPanel from './panels/PreviewPanel'
 
 const { Header, Content } = Layout
-
-function Placeholder({ name }: { name: string }) {
-  return <Card style={{ margin: 16 }}>{name}（任务 7/8/9 实现）</Card>
-}
 
 export default function App() {
   const [authed, setAuthed] = useState(hasKey())
@@ -80,7 +77,7 @@ export default function App() {
           ]} />
         {tab === 'rules' && state && <RulesPanel state={state} onSaved={setState} />}
         {tab === 'keys' && state && <KeysPanel state={state} onSaved={setState} />}
-        {tab === 'preview' && <Placeholder name="规则试跑" />}
+        {tab === 'preview' && <PreviewPanel />}
       </Content>
     </Layout>
   )
