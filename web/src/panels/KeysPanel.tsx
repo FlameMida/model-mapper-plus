@@ -28,6 +28,10 @@ interface Props {
 export default function KeysPanel({ state, onSaved }: Props) {
   const [cpaKeys, setCpaKeys] = useState<string[]>([])
   const [editing, setEditing] = useState<KeyBinding | null>(null)
+  // originalKey tracks the binding being edited; empty means "create new".
+  // Used so the upsert warning only shows when the selected key collides with
+  // a *different* existing binding (M4).
+  const [originalKey, setOriginalKey] = useState('')
   const [saving, setSaving] = useState(false)
 
   useEffect(() => {
@@ -38,10 +42,29 @@ export default function KeysPanel({ state, onSaved }: Props) {
     if (!editing) return
     setSaving(true)
     api.postKey(editing)
-      .then((s) => { onSaved(s); setEditing(null); Toast.success('绑定已保存') })
+      .then((s) => { onSaved(s); setEditing(null); setOriginalKey(''); Toast.success('绑定已保存') })
       .catch((e: Error) => Toast.error(e.message))
       .finally(() => setSaving(false))
   }
+
+  const openCreate = () => {
+    setOriginalKey('')
+    setEditing({ key: '', alias: '', enabled: true, rules: EMPTY_RULES })
+  }
+
+  const openEdit = (b: KeyBinding) => {
+    setOriginalKey(b.key)
+    setEditing({ ...b, rules: { ...b.rules } })
+  }
+
+  const closeEdit = () => {
+    setEditing(null)
+    setOriginalKey('')
+  }
+
+  const isKeyCollision =
+    !!editing?.key &&
+    state.key_bindings.some((b) => b.key === editing.key && b.key !== originalKey)
 
   const toggleEnabled = (b: KeyBinding, enabled: boolean) => {
     api.patchKey(b.key, { enabled }).then(onSaved).catch((e: Error) => Toast.error(e.message))
@@ -58,7 +81,7 @@ export default function KeysPanel({ state, onSaved }: Props) {
   return (
     <Card title="指定 Key 追加规则集（串联跑在顶层规则之后）" style={{ margin: 16 }}
       headerExtraContent={
-        <Button theme="solid" onClick={() => setEditing({ key: '', alias: '', enabled: true, rules: EMPTY_RULES })}>
+        <Button theme="solid" onClick={openCreate}>
           + 新增绑定
         </Button>
       }>
@@ -72,7 +95,7 @@ export default function KeysPanel({ state, onSaved }: Props) {
           { title: '启用', dataIndex: 'enabled', render: (on: boolean, b: KeyBinding) => <Switch checked={on} onChange={(v) => toggleEnabled(b, v)} /> },
           { title: '', dataIndex: 'ops', render: (_: unknown, b: KeyBinding) => (
             <>
-              <Button size="small" onClick={() => setEditing(b)}>编辑</Button>{' '}
+              <Button size="small" onClick={() => openEdit(b)}>编辑</Button>{' '}
               <Button size="small" type="danger" onClick={() => remove(b)}>删除</Button>
             </>
           ) },
@@ -83,9 +106,9 @@ export default function KeysPanel({ state, onSaved }: Props) {
       </Typography.Paragraph>
 
       <Modal
-        title={editing?.key ? `编辑绑定：${editing.alias || maskKey(editing.key)}` : '新增绑定'}
+        title={originalKey ? `编辑绑定：${editing?.alias || maskKey(originalKey)}` : '新增绑定'}
         visible={editing !== null}
-        onCancel={() => setEditing(null)}
+        onCancel={closeEdit}
         onOk={save}
         confirmLoading={saving}
         width={860}
@@ -114,7 +137,7 @@ export default function KeysPanel({ state, onSaved }: Props) {
             </div>
             <div>
               <Switch checked={editing.enabled} onChange={(v) => setEditing({ ...editing, enabled: v })} /> 启用
-              {state.key_bindings.some((b) => b.key === editing.key && b !== editing) && (
+              {isKeyCollision && (
                 <Tag color="orange" style={{ marginLeft: 8 }}>同 key 已存在，保存将覆盖</Tag>
               )}
             </div>

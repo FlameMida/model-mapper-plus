@@ -362,13 +362,24 @@ type stateHolder struct {
 func loadedRuleSource() ruleSource {
 	loadedStateMu.RLock()
 	defer loadedStateMu.RUnlock()
-	return loadedHolder.src
+	return cloneRuleSource(loadedHolder.src)
 }
 
 func loadedStateSnapshot() (State, bool) {
 	loadedStateMu.RLock()
 	defer loadedStateMu.RUnlock()
-	return loadedHolder.state, loadedHolder.persisted
+	return cloneState(loadedHolder.state), loadedHolder.persisted
+}
+
+func keyBindingExists(key string) bool {
+	loadedStateMu.RLock()
+	defer loadedStateMu.RUnlock()
+	for _, b := range loadedHolder.state.KeyBindings {
+		if b.Key == key {
+			return true
+		}
+	}
+	return false
 }
 
 // resolveState loads state_file when present and valid; otherwise falls back
@@ -379,35 +390,44 @@ func resolveState(cfg Config) stateHolder {
 		path = defaultStateFile
 	}
 	if st, err := readStateFile(path); err == nil {
-		return stateHolder{src: ruleSourceFromState(st), persisted: true, state: st}
+		if err := validateState(st); err == nil {
+			return stateHolder{src: ruleSourceFromState(st), persisted: true, state: st}
+		}
+		// Invalid DSL in state_file: fall back to YAML seed (M1).
 	}
 	seed := seedStateFromConfig(cfg)
 	return stateHolder{src: ruleSourceFromState(seed), state: seed}
 }
 
-func stateFilePath() string {
-	path := strings.TrimSpace(loadedConfig().StateFile)
+func stateFilePathFrom(cfg Config) string {
+	path := strings.TrimSpace(cfg.StateFile)
 	if path == "" {
 		return defaultStateFile
 	}
 	return path
 }
 
-// applyStateUpdate clones the current state, applies mutate, validates,
+func stateFilePath() string {
+	return stateFilePathFrom(loadedConfig())
+}
+
+// applyStateUpdate deep-clones the current state, applies mutate, validates,
 // persists atomically, then swaps the runtime view. Any failure leaves the
-// previous state untouched.
+// previous state untouched (H2). Path is resolved before taking loadedStateMu
+// to avoid AB-BA lock order with reconfigure (H4).
 func applyStateUpdate(mutate func(*State) error) error {
+	path := stateFilePath()
 	loadedStateMu.Lock()
 	defer loadedStateMu.Unlock()
-	st := loadedHolder.state
+	st := cloneState(loadedHolder.state)
 	if err := mutate(&st); err != nil {
 		return err
 	}
 	if err := validateState(st); err != nil {
 		return err
 	}
-	if err := atomicWriteState(stateFilePath(), st); err != nil {
-		return err
+	if err := atomicWriteState(path, st); err != nil {
+		return &statePersistError{err: err}
 	}
 	loadedHolder = stateHolder{src: ruleSourceFromState(st), persisted: true, state: st}
 	return nil

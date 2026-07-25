@@ -3,6 +3,7 @@ package main
 import (
 	"crypto/subtle"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -151,4 +152,43 @@ func findKeyBinding(bindings []KeyBinding, apiKey string) (KeyBinding, bool) {
 		}
 	}
 	return KeyBinding{}, false
+}
+
+func cloneKeyBindings(in []KeyBinding) []KeyBinding {
+	if in == nil {
+		return nil
+	}
+	out := make([]KeyBinding, len(in))
+	copy(out, in)
+	return out
+}
+
+func cloneState(st State) State {
+	st.KeyBindings = cloneKeyBindings(st.KeyBindings)
+	return st
+}
+
+func cloneRuleSource(src ruleSource) ruleSource {
+	src.KeyBindings = cloneKeyBindings(src.KeyBindings)
+	return src
+}
+
+// errKeyBindingNotFound is returned from mutate when the target key disappeared.
+var errKeyBindingNotFound = errors.New("key binding not found")
+
+// statePersistError wraps disk/atomic-write failures so management maps them to 500.
+type statePersistError struct{ err error }
+
+func (e *statePersistError) Error() string {
+	if e == nil || e.err == nil {
+		return "state persist failed"
+	}
+	return e.err.Error()
+}
+
+func (e *statePersistError) Unwrap() error {
+	if e == nil {
+		return nil
+	}
+	return e.err
 }

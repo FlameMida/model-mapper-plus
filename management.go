@@ -9,19 +9,22 @@ import (
 )
 
 const (
-	managementBase = "/plugins/model-mapper"
-	resourcePrefix = "/v0/resource/plugins/model-mapper"
+	// Register paths are relative under /v0/management/ (key-policy / SDK convention).
+	managementRegisterBase = "/plugins/model-mapper"
+	// Handle paths are the full host-forwarded URL.Path.
+	managementHandleBase = "/v0/management/plugins/model-mapper"
+	resourcePrefix       = "/v0/resource/plugins/model-mapper"
 )
 
 func handleManagementRegister() ([]byte, error) {
 	return json.Marshal(pluginapi.ManagementRegistrationResponse{
 		Routes: []pluginapi.ManagementRoute{
-			{Method: http.MethodGet, Path: managementBase + "/state", Description: "Read full model-mapper state."},
-			{Method: http.MethodPut, Path: managementBase + "/rules", Description: "Replace top-level rule sets."},
-			{Method: http.MethodPost, Path: managementBase + "/keys", Description: "Create or replace a key binding."},
-			{Method: http.MethodPatch, Path: managementBase + "/keys", Description: "Update a key binding by key."},
-			{Method: http.MethodDelete, Path: managementBase + "/keys", Description: "Delete a key binding by key."},
-			{Method: http.MethodPost, Path: managementBase + "/preview", Description: "Dry-run rule resolution."},
+			{Method: http.MethodGet, Path: managementRegisterBase + "/state", Description: "Read full model-mapper state."},
+			{Method: http.MethodPut, Path: managementRegisterBase + "/rules", Description: "Replace top-level rule sets."},
+			{Method: http.MethodPost, Path: managementRegisterBase + "/keys", Description: "Create or replace a key binding."},
+			{Method: http.MethodPatch, Path: managementRegisterBase + "/keys", Description: "Update a key binding by key."},
+			{Method: http.MethodDelete, Path: managementRegisterBase + "/keys", Description: "Delete a key binding by key."},
+			{Method: http.MethodPost, Path: managementRegisterBase + "/preview", Description: "Dry-run rule resolution."},
 		},
 		Resources: []pluginapi.ResourceRoute{
 			{Path: "/index.html", Menu: "Model Mapper", Description: "Model Mapper admin UI."},
@@ -44,17 +47,17 @@ func dispatchManagement(req pluginapi.ManagementRequest) pluginapi.ManagementRes
 		return serveIndexHTML()
 	}
 	switch {
-	case req.Method == http.MethodGet && path == managementBase+"/state":
+	case req.Method == http.MethodGet && path == managementHandleBase+"/state":
 		return managementGetState()
-	case req.Method == http.MethodPut && path == managementBase+"/rules":
+	case req.Method == http.MethodPut && path == managementHandleBase+"/rules":
 		return managementPutRules(req)
-	case req.Method == http.MethodPost && path == managementBase+"/keys":
+	case req.Method == http.MethodPost && path == managementHandleBase+"/keys":
 		return managementPostKey(req)
-	case req.Method == http.MethodPatch && path == managementBase+"/keys":
+	case req.Method == http.MethodPatch && path == managementHandleBase+"/keys":
 		return managementPatchKey(req)
-	case req.Method == http.MethodDelete && path == managementBase+"/keys":
+	case req.Method == http.MethodDelete && path == managementHandleBase+"/keys":
 		return managementDeleteKey(req)
-	case req.Method == http.MethodPost && path == managementBase+"/preview":
+	case req.Method == http.MethodPost && path == managementHandleBase+"/preview":
 		return managementPreview(req)
 	}
 	return managementError(http.StatusNotFound, "unknown management route")
@@ -95,6 +98,26 @@ func managementGetState() pluginapi.ManagementResponse {
 	})
 }
 
+func managementStateError(err error) pluginapi.ManagementResponse {
+	if err == nil {
+		return managementError(http.StatusInternalServerError, "unknown state error")
+	}
+	// Validation / user-input failures are 400; persistence failures are 500 (spec).
+	msg := err.Error()
+	if strings.Contains(msg, "rules.") || strings.Contains(msg, "key_bindings") ||
+		strings.Contains(msg, "key is required") || strings.Contains(msg, "duplicate key") ||
+		strings.Contains(msg, "invalid ") {
+		return managementError(http.StatusBadRequest, msg)
+	}
+	// parseRules errors bubble as validateState "rules.global: ..." already covered;
+	// anything else (disk, rename, fsync) is a server fault.
+	if _, ok := err.(*statePersistError); ok {
+		return managementError(http.StatusInternalServerError, msg)
+	}
+	// Default: treat as validation (applyStateUpdate mutate/validate path).
+	return managementError(http.StatusBadRequest, msg)
+}
+
 func managementPutRules(req pluginapi.ManagementRequest) pluginapi.ManagementResponse {
 	var body RuleSet
 	if err := json.Unmarshal(req.Body, &body); err != nil {
@@ -105,7 +128,7 @@ func managementPutRules(req pluginapi.ManagementRequest) pluginapi.ManagementRes
 		return nil
 	})
 	if err != nil {
-		return managementError(http.StatusBadRequest, err.Error())
+		return managementStateError(err)
 	}
 	return managementGetState()
 }
@@ -126,7 +149,7 @@ func managementPostKey(req pluginapi.ManagementRequest) pluginapi.ManagementResp
 		return nil
 	})
 	if err != nil {
-		return managementError(http.StatusBadRequest, err.Error())
+		return managementStateError(err)
 	}
 	return managementGetState()
 }
@@ -156,13 +179,15 @@ func managementPatchKey(req pluginapi.ManagementRequest) pluginapi.ManagementRes
 	if err := json.Unmarshal(req.Body, &patch); err != nil {
 		return managementError(http.StatusBadRequest, "invalid patch payload: "+err.Error())
 	}
-	found := false
+	// Fail before applyStateUpdate so missing keys never create/touch state_file (M2).
+	if !keyBindingExists(target) {
+		return managementError(http.StatusNotFound, "key binding not found")
+	}
 	err := applyStateUpdate(func(st *State) error {
 		for i, b := range st.KeyBindings {
 			if b.Key != target {
 				continue
 			}
-			found = true
 			if patch.Alias != nil {
 				st.KeyBindings[i].Alias = *patch.Alias
 			}
@@ -174,13 +199,13 @@ func managementPatchKey(req pluginapi.ManagementRequest) pluginapi.ManagementRes
 			}
 			return nil
 		}
-		return nil
+		return errKeyBindingNotFound
 	})
 	if err != nil {
-		return managementError(http.StatusBadRequest, err.Error())
-	}
-	if !found {
-		return managementError(http.StatusNotFound, "key binding not found")
+		if err == errKeyBindingNotFound {
+			return managementError(http.StatusNotFound, "key binding not found")
+		}
+		return managementStateError(err)
 	}
 	return managementGetState()
 }
@@ -190,22 +215,23 @@ func managementDeleteKey(req pluginapi.ManagementRequest) pluginapi.ManagementRe
 	if target == "" {
 		return managementError(http.StatusBadRequest, "key is required")
 	}
-	found := false
+	if !keyBindingExists(target) {
+		return managementError(http.StatusNotFound, "key binding not found")
+	}
 	err := applyStateUpdate(func(st *State) error {
 		for i, b := range st.KeyBindings {
 			if b.Key == target {
 				st.KeyBindings = append(st.KeyBindings[:i], st.KeyBindings[i+1:]...)
-				found = true
 				return nil
 			}
 		}
-		return nil
+		return errKeyBindingNotFound
 	})
 	if err != nil {
-		return managementError(http.StatusBadRequest, err.Error())
-	}
-	if !found {
-		return managementError(http.StatusNotFound, "key binding not found")
+		if err == errKeyBindingNotFound {
+			return managementError(http.StatusNotFound, "key binding not found")
+		}
+		return managementStateError(err)
 	}
 	return managementGetState()
 }

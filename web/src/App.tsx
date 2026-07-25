@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Layout, Nav, Button, Tag, Typography, Card, Input, Toast } from '@douyinfe/semi-ui'
 import { api, StateResponse } from './api'
-import { hasKey, setKey } from './session'
+import { hasKey, setKey, onAuthChange } from './session'
 import { readPanelAuth } from './panelAuth'
 import RulesPanel from './panels/RulesPanel'
 import KeysPanel from './panels/KeysPanel'
@@ -14,6 +14,16 @@ export default function App() {
   const [state, setState] = useState<StateResponse | null>(null)
   const [inputKey, setInputKey] = useState('')
   const [tab, setTab] = useState('rules')
+
+  useEffect(() => {
+    return onAuthChange((ok) => {
+      setAuthed(ok)
+      if (!ok) {
+        setState(null)
+        setInputKey('')
+      }
+    })
+  }, [])
 
   useEffect(() => {
     if (!authed) {
