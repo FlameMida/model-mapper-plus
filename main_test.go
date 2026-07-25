@@ -39,7 +39,7 @@ func TestPluginRegistrationMetadataAndConfigFields(t *testing.T) {
 	if !reflect.DeepEqual(reg.Capabilities.ExecutorOutputFormats, []string{"openai", "claude", "openai-response"}) {
 		t.Fatalf("executor output formats=%v", reg.Capabilities.ExecutorOutputFormats)
 	}
-	wantFields := []string{"enabled", "global_rules", "claude_messages_rules", "codex_responses_rules", "openai_completions_rules"}
+	wantFields := []string{"enabled", "global_rules", "claude_messages_rules", "codex_responses_rules", "openai_completions_rules", "state_file"}
 	got := make([]string, 0, len(reg.Metadata.ConfigFields))
 	for _, field := range reg.Metadata.ConfigFields {
 		got = append(got, field.Name)
@@ -388,7 +388,7 @@ func TestRouteModelSkipsDisabledNoRulesUnmatchedAndUnchanged(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			decision, err := routeModel(tt.cfg, tt.format, tt.model)
+			decision, err := routeModel(tt.cfg, ruleSourceFromConfig(tt.cfg), tt.format, tt.model, "")
 			if err != nil {
 				t.Fatalf("routeModel error = %v", err)
 			}
@@ -401,7 +401,7 @@ func TestRouteModelSkipsDisabledNoRulesUnmatchedAndUnchanged(t *testing.T) {
 
 func TestRouteModelHandlesOnlyMatchedChanged(t *testing.T) {
 	cfg := Config{Enabled: true, OpenAICompletionsRules: "deepseek-v4-pro=>deepseek-v4-flash;deepseek-v4-flash=>gpt-5.4-mini", GlobalRules: "deepseek-v4-pro=>wrong"}
-	decision, err := routeModel(cfg, "openai", "deepseek-v4-pro")
+	decision, err := routeModel(cfg, ruleSourceFromConfig(cfg), "openai", "deepseek-v4-pro", "")
 	if err != nil {
 		t.Fatalf("routeModel error = %v", err)
 	}
@@ -412,7 +412,7 @@ func TestRouteModelHandlesOnlyMatchedChanged(t *testing.T) {
 
 func TestRouteModelCaseOperationChanged(t *testing.T) {
 	cfg := Config{Enabled: true, GlobalRules: `\A`}
-	decision, err := routeModel(cfg, "openai", "model-v2")
+	decision, err := routeModel(cfg, ruleSourceFromConfig(cfg), "openai", "model-v2", "")
 	if err != nil {
 		t.Fatalf("routeModel error = %v", err)
 	}
@@ -433,7 +433,7 @@ func TestRouteModelCaseOperationNoChangeIsUnhandled(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			decision, err := routeModel(Config{Enabled: true, GlobalRules: tt.rules}, "openai", tt.model)
+			decision, err := routeModel(Config{Enabled: true, GlobalRules: tt.rules}, ruleSourceFromConfig(Config{Enabled: true, GlobalRules: tt.rules}), "openai", tt.model, "")
 			if err != nil {
 				t.Fatalf("routeModel error = %v", err)
 			}
@@ -446,7 +446,7 @@ func TestRouteModelCaseOperationNoChangeIsUnhandled(t *testing.T) {
 
 func TestRouteModelBadSelectedRulesErrors(t *testing.T) {
 	cfg := Config{Enabled: true, ClaudeMessagesRules: "bad rule"}
-	if _, err := routeModel(cfg, "claude", "a"); err == nil {
+	if _, err := routeModel(cfg, ruleSourceFromConfig(cfg), "claude", "a", ""); err == nil {
 		t.Fatalf("routeModel bad selected rules error = nil")
 	}
 }
@@ -1310,7 +1310,7 @@ func TestHandleMethodDispatchesRegisterReconfigureAndUnknown(t *testing.T) {
 	if !env.OK || len(env.Result) == 0 {
 		t.Fatalf("reconfigure envelope=%#v", env)
 	}
-	decision, err := routeModel(loadedConfig(), "openai", "a")
+	decision, err := routeModel(loadedConfig(), loadedRuleSource(), "openai", "a", "")
 	if err != nil {
 		t.Fatalf("route after reconfigure: %v", err)
 	}

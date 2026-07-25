@@ -277,6 +277,7 @@ type Config struct {
 	ClaudeMessagesRules    string `json:"claude_messages_rules"`
 	CodexResponsesRules    string `json:"codex_responses_rules"`
 	OpenAICompletionsRules string `json:"openai_completions_rules"`
+	StateFile              string `json:"state_file"`
 }
 
 type registration struct {
@@ -307,6 +308,7 @@ func pluginRegistration() registration {
 				{Name: "claude_messages_rules", Type: pluginapi.ConfigFieldTypeString, Description: "Rules for Claude Messages-compatible requests."},
 				{Name: "codex_responses_rules", Type: pluginapi.ConfigFieldTypeString, Description: "Rules for OpenAI Responses/Codex-compatible requests."},
 				{Name: "openai_completions_rules", Type: pluginapi.ConfigFieldTypeString, Description: "Rules for OpenAI Completions and Chat Completions requests."},
+				{Name: "state_file", Type: pluginapi.ConfigFieldTypeString, Description: "Path to the JSON state file that stores rules and key bindings once managed via the admin UI."},
 			},
 		},
 		Capabilities: registrationCapabilities{
@@ -344,7 +346,70 @@ var (
 
 	hostAPIMu      sync.RWMutex
 	hostCallbackFn hostCallback
+
+	loadedStateMu sync.RWMutex
+	loadedHolder  = stateHolder{src: ruleSourceFromConfig(defaultConfig())}
 )
+
+type stateHolder struct {
+	src       ruleSource
+	persisted bool
+	state     State
+}
+
+func loadedRuleSource() ruleSource {
+	loadedStateMu.RLock()
+	defer loadedStateMu.RUnlock()
+	return loadedHolder.src
+}
+
+func loadedStateSnapshot() (State, bool) {
+	loadedStateMu.RLock()
+	defer loadedStateMu.RUnlock()
+	return loadedHolder.state, loadedHolder.persisted
+}
+
+// resolveState loads state_file when present and valid; otherwise falls back
+// to a YAML-seed state without creating the file (ADR-0001).
+func resolveState(cfg Config) stateHolder {
+	path := strings.TrimSpace(cfg.StateFile)
+	if path == "" {
+		path = defaultStateFile
+	}
+	if st, err := readStateFile(path); err == nil {
+		return stateHolder{src: ruleSourceFromState(st), persisted: true, state: st}
+	}
+	seed := seedStateFromConfig(cfg)
+	return stateHolder{src: ruleSourceFromState(seed), state: seed}
+}
+
+func stateFilePath() string {
+	path := strings.TrimSpace(loadedConfig().StateFile)
+	if path == "" {
+		return defaultStateFile
+	}
+	return path
+}
+
+// applyStateUpdate clones the current state, applies mutate, validates,
+// persists atomically, then swaps the runtime view. Any failure leaves the
+// previous state untouched.
+func applyStateUpdate(mutate func(*State) error) error {
+	loadedStateMu.Lock()
+	defer loadedStateMu.Unlock()
+	st := loadedHolder.state
+	if err := mutate(&st); err != nil {
+		return err
+	}
+	if err := validateState(st); err != nil {
+		return err
+	}
+	if err := atomicWriteState(stateFilePath(), st); err != nil {
+		return err
+	}
+	loadedHolder = stateHolder{src: ruleSourceFromState(st), persisted: true, state: st}
+	return nil
+}
 
 type hostCallback func(method string, request []byte) ([]byte, error)
 
@@ -358,6 +423,9 @@ func setLoadedConfigForTest(cfg Config) {
 	loadedConfigMu.Lock()
 	loadedCfg = cfg
 	loadedConfigMu.Unlock()
+	loadedStateMu.Lock()
+	loadedHolder = stateHolder{src: ruleSourceFromConfig(cfg), state: seedStateFromConfig(cfg)}
+	loadedStateMu.Unlock()
 }
 
 func handlePluginRegister(raw []byte) ([]byte, error) {
@@ -374,6 +442,9 @@ func handlePluginReconfigure(raw []byte) ([]byte, error) {
 		return nil, err
 	}
 	setLoadedConfigForTest(cfg)
+	loadedStateMu.Lock()
+	loadedHolder = resolveState(cfg)
+	loadedStateMu.Unlock()
 	return json.Marshal(pluginRegistration())
 }
 
@@ -390,24 +461,62 @@ type routeDecision struct {
 }
 
 func selectRules(cfg Config, format string) (string, bool) {
+	return selectRulesFrom(ruleSetFromConfig(cfg), format)
+}
+
+// apiKeyFromHeaders extracts the client API key from inbound headers:
+// "Authorization: Bearer <key>" wins, then "x-api-key" (ADR key extraction).
+func apiKeyFromHeaders(h http.Header) string {
+	if auth := strings.TrimSpace(h.Get("Authorization")); auth != "" {
+		if token, ok := strings.CutPrefix(auth, "Bearer "); ok {
+			if token = strings.TrimSpace(token); token != "" {
+				return token
+			}
+		}
+	}
+	return strings.TrimSpace(h.Get("x-api-key"))
+}
+
+func selectRulesFrom(rs RuleSet, format string) (string, bool) {
 	switch format {
 	case "claude":
-		if cfg.ClaudeMessagesRules != "" {
-			return cfg.ClaudeMessagesRules, true
+		if rs.Claude != "" {
+			return rs.Claude, true
 		}
 	case "openai-response":
-		if cfg.CodexResponsesRules != "" {
-			return cfg.CodexResponsesRules, true
+		if rs.Codex != "" {
+			return rs.Codex, true
 		}
 	case "openai":
-		if cfg.OpenAICompletionsRules != "" {
-			return cfg.OpenAICompletionsRules, true
+		if rs.OpenAI != "" {
+			return rs.OpenAI, true
 		}
 	}
-	if cfg.GlobalRules != "" {
-		return cfg.GlobalRules, true
+	if rs.Global != "" {
+		return rs.Global, true
 	}
 	return "", false
+}
+
+// applyRuleSet selects the segment for format and applies it once.
+// It returns (output, matched, error); unmatched leaves model unchanged.
+func applyRuleSet(rs RuleSet, format, model string) (string, bool, error) {
+	raw, ok := selectRulesFrom(rs, format)
+	if !ok {
+		return model, false, nil
+	}
+	rules, err := parseRules(raw)
+	if err != nil {
+		return "", false, err
+	}
+	mapped, matched, err := applyRules(model, rules)
+	if err != nil {
+		return "", false, err
+	}
+	if !matched {
+		return model, false, nil
+	}
+	return mapped, true, nil
 }
 
 func handleModelRoute(raw []byte) ([]byte, error) {
@@ -415,7 +524,7 @@ func handleModelRoute(raw []byte) ([]byte, error) {
 	if err := json.Unmarshal(raw, &req); err != nil {
 		return nil, err
 	}
-	decision, err := routeModel(loadedConfig(), req.SourceFormat, req.RequestedModel)
+	decision, err := routeModel(loadedConfig(), loadedRuleSource(), req.SourceFormat, req.RequestedModel, apiKeyFromHeaders(req.Headers))
 	if err != nil {
 		return nil, err
 	}
@@ -425,26 +534,31 @@ func handleModelRoute(raw []byte) ([]byte, error) {
 	return json.Marshal(pluginapi.ModelRouteResponse{Handled: true, TargetKind: pluginapi.ModelRouteTargetSelf, Reason: "model mapped by model-mapper"})
 }
 
-func routeModel(cfg Config, format string, model string) (routeDecision, error) {
+func routeModel(cfg Config, src ruleSource, format, model, apiKey string) (routeDecision, error) {
 	if !cfg.Enabled {
 		return routeDecision{}, nil
 	}
-	raw, ok := selectRules(cfg, format)
-	if !ok {
-		return routeDecision{}, nil
-	}
-	rules, err := parseRules(raw)
+	current := model
+	mapped, matched, err := applyRuleSet(src.Rules, format, current)
 	if err != nil {
 		return routeDecision{}, err
 	}
-	mapped, matched, err := applyRules(model, rules)
-	if err != nil {
-		return routeDecision{}, err
+	if matched {
+		current = mapped
 	}
-	if !matched || mapped == model {
+	if binding, ok := findKeyBinding(src.KeyBindings, apiKey); ok {
+		mapped, matched, err := applyRuleSet(binding.Rules, format, current)
+		if err != nil {
+			return routeDecision{}, err
+		}
+		if matched {
+			current = mapped
+		}
+	}
+	if current == model {
 		return routeDecision{}, nil
 	}
-	return routeDecision{Handled: true, OriginalModel: model, UpstreamModel: mapped}, nil
+	return routeDecision{Handled: true, OriginalModel: model, UpstreamModel: current}, nil
 }
 
 func rewriteRequestModel(body []byte, upstreamModel string) ([]byte, bool, error) {
@@ -495,7 +609,7 @@ func startExecutorStream(req executorRPCRequest, call hostCaller, closeStream fu
 }
 
 func runStreamForward(req executorRPCRequest, call hostCaller) error {
-	decision, err := routeModel(loadedConfig(), req.SourceFormat, req.Model)
+	decision, err := routeModel(loadedConfig(), loadedRuleSource(), req.SourceFormat, req.Model, apiKeyFromHeaders(req.Headers))
 	if err != nil {
 		return fmt.Errorf("route stream: %w", err)
 	}
@@ -627,7 +741,7 @@ func handleExecutorExecute(raw []byte, call hostCaller) ([]byte, error) {
 	if err := json.Unmarshal(raw, &req); err != nil {
 		return nil, err
 	}
-	decision, err := routeModel(loadedConfig(), req.SourceFormat, req.Model)
+	decision, err := routeModel(loadedConfig(), loadedRuleSource(), req.SourceFormat, req.Model, apiKeyFromHeaders(req.Headers))
 	if err != nil {
 		return nil, err
 	}
@@ -755,6 +869,8 @@ func decodeLifecycleConfig(raw []byte) (json.RawMessage, bool, error) {
 				cfg.CodexResponsesRules = value
 			case "openai_completions_rules":
 				cfg.OpenAICompletionsRules = value
+			case "state_file":
+				cfg.StateFile = value
 			}
 		}
 		if err := scanner.Err(); err != nil {
@@ -887,7 +1003,7 @@ type rule struct {
 }
 
 func defaultConfig() Config {
-	return Config{Enabled: true}
+	return Config{Enabled: true, StateFile: defaultStateFile}
 }
 
 func parseRules(raw string) ([]rule, error) {
