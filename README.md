@@ -4,7 +4,7 @@
 
 When CPA invokes the plugin executor callbacks, the same mapping applies across non-streaming HTTP responses, SSE streams, and WebSocket-backed CPA streams that arrive as raw JSON chunks through the existing stream bridge.
 
-The plugin does not register management/resource routes and does not use `/v0/resource/plugins/` for business logic or state-changing actions.
+The plugin registers `management.register`/`management.handle`: a resource route serves the embedded admin UI (unauthenticated static page), and data routes under `/v0/management/plugins/model-mapper/` manage rules, key bindings, and dry-run previews after CPA-side management authentication.
 
 ## Configuration
 
@@ -19,9 +19,24 @@ plugins:
       claude_messages_rules: ""
       codex_responses_rules: ""
       openai_completions_rules: ""
+      state_file: ""  # optional, defaults to model-mapper-state.json
 ```
 
 The plugin's own `enabled` field defaults to `true`. Empty rule fields mean the request is skipped and CPA behaves normally.
+
+## Web admin UI
+
+The plugin serves an admin page at `http://<cpa-host>:<api-port>/v0/resource/plugins/model-mapper/index.html`, signed in with the CPA management key. It has three panels:
+
+- **Rules**: edit the global and per-endpoint ordered rule entries (including `\a`/`\A` case operations).
+- **Key bindings**: attach an extra rule set to a specific client API key, chained after the top-level rules for that key's requests.
+- **Preview**: dry-run a (key, endpoint, model) triple and inspect the M→M₁→M₂ rewrite steps.
+
+After the first save, rules and key bindings live in `state_file` (default `model-mapper-state.json`, mode 0600); from then on the state file is the single source of truth and the YAML rule fields no longer take effect (`enabled` still comes from YAML only). Delete the state file to fall back to YAML configuration.
+
+## Key bindings and thinking-effort control
+
+A key binding runs one more structurally identical rule set on top of the top-level output for requests carrying that client key (endpoint segment wins; the binding's global segment is the fallback). Thinking effort is expressed directly through model-name suffixes, for example `claude-opus-4-5(max)=>claude-opus-4-5(high)` — CPA resolves the suffix and it overrides effort fields in the request body. Note that `*` captures swallow the suffix too (`claude-*` captures `opus-4-5(max)`).
 
 ## Rule syntax
 
