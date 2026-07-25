@@ -6,6 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 - Run all unit tests: `make test` or `go test ./...`
 - Build the admin UI into `web/dist/index.html` (requires npm): `make web-build`
+- Build/package targets force `web-build` first so the embedded UI is always fresh; multi-platform `make build` runs `web-build` once then compiles each OS/arch.
 - Run vet: `make vet` or `go vet ./...`
 - Run one plugin test: `go test . -run TestName`
 - Run release packager tests: `go test .github/scripts/package-release.go .github/scripts/package-release_test.go`
