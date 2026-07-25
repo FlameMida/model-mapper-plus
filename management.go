@@ -210,7 +210,54 @@ func managementDeleteKey(req pluginapi.ManagementRequest) pluginapi.ManagementRe
 	return managementGetState()
 }
 
-// 临时桩：任务 5 替换为真实现
+type previewRequest struct {
+	Key    string `json:"key"`
+	Format string `json:"format"`
+	Model  string `json:"model"`
+}
+
+type previewResponse struct {
+	M1     string `json:"m1"`
+	M2     string `json:"m2"`
+	Routed bool   `json:"routed"`
+	Final  string `json:"final"`
+}
+
+// previewRoute evaluates the two-layer chain without the enabled gate:
+// dry-run is a rule debugging tool (see plan task 5 note).
+func previewRoute(src ruleSource, format, model, apiKey string) (previewResponse, error) {
+	m1 := model
+	mapped, matched, err := applyRuleSet(src.Rules, format, model)
+	if err != nil {
+		return previewResponse{}, err
+	}
+	if matched {
+		m1 = mapped
+	}
+	m2 := m1
+	if binding, ok := findKeyBinding(src.KeyBindings, apiKey); ok {
+		mapped, matched, err = applyRuleSet(binding.Rules, format, m1)
+		if err != nil {
+			return previewResponse{}, err
+		}
+		if matched {
+			m2 = mapped
+		}
+	}
+	return previewResponse{M1: m1, M2: m2, Routed: m2 != model, Final: m2}, nil
+}
+
 func managementPreview(req pluginapi.ManagementRequest) pluginapi.ManagementResponse {
-	return managementError(http.StatusNotImplemented, "preview api pending")
+	var body previewRequest
+	if err := json.Unmarshal(req.Body, &body); err != nil {
+		return managementError(http.StatusBadRequest, "invalid preview payload: "+err.Error())
+	}
+	if strings.TrimSpace(body.Model) == "" || strings.TrimSpace(body.Format) == "" {
+		return managementError(http.StatusBadRequest, "format and model are required")
+	}
+	resp, err := previewRoute(loadedRuleSource(), body.Format, body.Model, strings.TrimSpace(body.Key))
+	if err != nil {
+		return managementError(http.StatusBadRequest, err.Error())
+	}
+	return managementJSON(http.StatusOK, resp)
 }
