@@ -20,6 +20,41 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Do not run `go test ./.github/scripts`; that directory contains multiple `package main` scripts and will collide on duplicate `main`/`run` symbols. Test script files explicitly as shown above.
 
+## Local development & debugging
+
+Target setup: **mac host + docker CPA (linux/amd64)**, the CPA `plugins` dir bind-mounted to `CPA_PLUGINS_DIR` (default `/Users/flame/CLIProxyAPI/plugins`). Host toolchain: `go`, `npm`, and `zig` (`brew install zig`) for cgo cross-compilation.
+
+Prerequisites on the CPA side (its `config.yaml`): `plugins.enabled: true`, a `plugins.configs.model-mapper-plus` block, a `remote-management.secret-key` (for the admin UI + smoke), and at least one entry in `api-keys` (client key for chat requests).
+
+### Edit → verify loop
+
+| You changed | Run | Then |
+|---|---|---|
+| Go code | `make dev-so` | `docker compose restart <cpa>` (or let CPA hot-reload) |
+| Frontend only | `make dev-ui` (vite on :5173) | before shipping, `make dev-so` to bake the new UI into the `.so` |
+| Mapping behavior | `CPA_SMOKE_MGMT_KEY=… CPA_SMOKE_CLIENT_KEY=… make smoke-local` | reads pass/fail per case |
+
+`make dev-so` = `web-build` (fresh `web/dist/index.html`) → zig cross-compile `linux/amd64` `.so` → `cp` into `CPA_PLUGINS_DIR/linux/amd64/`.
+
+`make dev-ui` = vite dev server; `/v0/management` is proxied to `CPA_HOST` (default `http://127.0.0.1:8317`), so the SPA talks to the running CPA.
+
+### Admin UI & key endpoints
+
+- Admin page: `http://<cpa-host>:<port>/v0/resource/plugins/model-mapper-plus/index.html` (sign in with the management key; resource route is unauthenticated, data API is CPA-authenticated)
+- `GET /v0/management/plugins/model-mapper-plus/state` returns the resolved absolute `state_file` path — check it when saves don't seem to persist
+- Rules injection (what smoke uses): `PUT /v0/management/plugins/model-mapper-plus/rules` with `{global,claude,codex,openai}`
+
+### Tunable variables
+
+- Build/deploy: `ZIG` (default `zig`), `CPA_PLUGINS_DIR`, `CPA_HOST`
+- Smoke: `CPA_SMOKE_MGMT_KEY`, `CPA_SMOKE_CLIENT_KEY`, `CPA_SMOKE_BASE_URL` (default `http://127.0.0.1:8317`), `CPA_SMOKE_WRONG_KEY`, and `CPA_SMOKE_MODEL_PASSTHROUGH` / `_CHAIN_SRC` / `_CHAIN_MID` / `_CHAIN_DST` (defaults `deepseek-v4-flash` / `deepseek-v4-pro` / `deepseek-v4-flash` / `gpt-5.4-mini` — set to models your upstream actually serves)
+
+### Gotchas
+
+- `state_file` defaults next to the loaded `.so` (in-container: `plugins/linux/amd64/model-mapper-plus-state.json`). If that dir is mounted read-only, saves 500 — set an explicit writable `state_file` in the plugin config.
+- Success-case smoke (`openai-dedicated-chain`, `streaming`) requires the chain-end model to be actually servable by your upstream; override `CPA_SMOKE_MODEL_*` to match.
+- `make dev-ui` serves the real React app but the `.so` still embeds the **last built** UI — re-run `make dev-so` before relying on the embedded page.
+
 ## Architecture overview
 
 This is a single-package Go `c-shared` CLIProxyAPI native plugin. `abi_cgo.go` is the C ABI bridge: it exports `cliproxy_plugin_init`, `cliproxyPluginCall`, `cliproxyPluginFree`, and `cliproxyPluginShutdown`, then forwards plugin method calls into `handleMethod` in `main.go`.
