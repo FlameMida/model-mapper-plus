@@ -124,10 +124,11 @@ smoke-persistence:
 # dev-so: cross-compile linux/amd64 .so via zig (with fresh UI) and copy it
 # into your docker CPA's mounted plugins dir, then the host hot-reloads it.
 dev-so: web-build
-	@$(MAKE) --no-print-directory build-platform-go GOOS=linux GOARCH=amd64 GO="$(GO)" DIST_DIR="$(DIST_DIR)" PLUGIN_NAME="$(PLUGIN_NAME)" BUILD_CC="$(ZIG) cc -target x86_64-linux-gnu" LDFLAGS="$(LDFLAGS)" VERSION_LDFLAGS=""
+	@$(MAKE) --no-print-directory build-platform-go GOOS=linux GOARCH=amd64 GO="$(GO)" DIST_DIR="$(DIST_DIR)" PLUGIN_NAME="$(PLUGIN_NAME)" BUILD_CC="$(ZIG) cc -target x86_64-linux-gnu" LDFLAGS="$(LDFLAGS)" VERSION_LDFLAGS="$(VERSION_LDFLAGS)"
 	@mkdir -p "$(CPA_PLUGINS_DIR)/linux/amd64"
-	cp $(DIST_DIR)/linux_amd64/$(PLUGIN_NAME).so "$(CPA_PLUGINS_DIR)/linux/amd64/$(PLUGIN_NAME).so"
-	@echo ">> deployed $(PLUGIN_NAME).so -> $(CPA_PLUGINS_DIR)/linux/amd64/ (restart/reload your CPA to pick it up)"
+	@rm -f "$(CPA_PLUGINS_DIR)/linux/amd64/$(PLUGIN_NAME)-v"*.so
+	cp $(DIST_DIR)/linux_amd64/$(PLUGIN_NAME)-v$(PLUGIN_VERSION).so "$(CPA_PLUGINS_DIR)/linux/amd64/$(PLUGIN_NAME).so"
+	@echo ">> deployed $(PLUGIN_NAME).so (v$(PLUGIN_VERSION)) -> $(CPA_PLUGINS_DIR)/linux/amd64/ (restart/reload your CPA to pick it up)"
 
 # dev-ui: vite dev server on :5173, proxying /v0/management to your CPA.
 dev-ui:
