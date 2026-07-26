@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"os"
 	"strings"
 	"time"
@@ -16,27 +17,31 @@ import (
 
 // smoke-local exercises the model-mapper-plus plugin against an ALREADY
 // RUNNING CPA instance (typically the docker-compose one). It injects each
-// case's rules via the plugin's own management API (PUT /rules), sends a chat
-// request, and asserts the rewrite result.
+// case's rules / key bindings via the plugin's own management API, sends a
+// chat request, and asserts the rewrite result.
 //
 // Required env:
 //
-//	CPA_SMOKE_MGMT_KEY   management key (remote-management.secret-key) for PUT /rules
-//	CPA_SMOKE_CLIENT_KEY a valid client api-key for /v1/chat/completions
+//	CPA_SMOKE_MGMT_KEY   management key (remote-management.secret-key plaintext) for PUT/POST /rules,/keys
+//	CPA_SMOKE_CLIENT_KEY a valid client api-key for /v1/chat/completions (also used as the bound key in key-chain cases)
 //
 // Optional env (defaults shown):
 //
 //	CPA_SMOKE_BASE_URL=http://127.0.0.1:8317
 //	CPA_SMOKE_WRONG_KEY=wrong-local-smoke-key
 //	CPA_SMOKE_MODEL_PASSTHROUGH=deepseek-v4-flash   # a model your upstream actually serves
-//	CPA_SMOKE_MODEL_CHAIN_SRC=deepseek-v4-pro       # chain start (client-visible)
-//	CPA_SMOKE_MODEL_CHAIN_MID=deepseek-v4-flash     # chain middle
-//	CPA_SMOKE_MODEL_CHAIN_DST=gpt-5.4-mini          # chain end (must be servable for success cases)
+//	CPA_SMOKE_MODEL_CHAIN_SRC=deepseek-v4-pro
+//	CPA_SMOKE_MODEL_CHAIN_MID=deepseek-v4-flash
+//	CPA_SMOKE_MODEL_CHAIN_DST=gpt-5.4-mini
+//	CPA_SMOKE_MODEL_KEY_TEST=keytest-src            # fake name only resolvable via a key binding
+//	CPA_SMOKE_MODEL_EFFORT_SRC=glm-5.2(max)         # model with thinking-effort suffix
+//	CPA_SMOKE_MODEL_EFFORT_DST=glm-5.2(high)
 
 const (
 	defaultBaseURL  = "http://127.0.0.1:8317"
 	defaultWrongKey = "wrong-local-smoke-key"
 	rulesEndpoint   = "/v0/management/plugins/model-mapper-plus/rules"
+	keysEndpoint    = "/v0/management/plugins/model-mapper-plus/keys"
 )
 
 type smokeEnv struct {
@@ -48,15 +53,16 @@ type smokeEnv struct {
 }
 
 type caseConfig struct {
-	name             string
-	pluginRules      string // injected into the openai ruleset segment
-	requestModel     string
-	useWrongKey      bool
-	stream           bool
-	wantSuccess      bool
+	name              string
+	pluginRules       string // injected into the openai ruleset segment
+	keyBinding        string // if set, bind clientKey with this openai ruleset for the case
+	requestModel      string
+	useWrongKey       bool
+	stream            bool
+	wantSuccess       bool
 	wantOriginalModel string
-	forbidModel      string
-	wantRulesReject  bool // expect PUT /rules to return 4xx (e.g. bad rules)
+	forbidModel       string
+	wantRulesReject   bool // expect PUT /rules to return 4xx (e.g. bad rules)
 }
 
 type openAIResponse struct {
@@ -104,16 +110,20 @@ func run() error {
 			"chainSrc":    env("CPA_SMOKE_MODEL_CHAIN_SRC", "deepseek-v4-pro"),
 			"chainMid":    env("CPA_SMOKE_MODEL_CHAIN_MID", "deepseek-v4-flash"),
 			"chainDst":    env("CPA_SMOKE_MODEL_CHAIN_DST", "gpt-5.4-mini"),
+			"keyTest":     env("CPA_SMOKE_MODEL_KEY_TEST", "keytest-src"),
+			"effortSrc":   env("CPA_SMOKE_MODEL_EFFORT_SRC", "glm-5.2(max)"),
+			"effortDst":   env("CPA_SMOKE_MODEL_EFFORT_DST", "glm-5.2(high)"),
 		},
 	}
 
 	if err := waitReady(envCfg); err != nil {
 		return err
 	}
-	// Start from a clean ruleset so a previous run cannot leak state.
 	if err := clearRules(envCfg); err != nil {
 		return fmt.Errorf("clear rules: %w", err)
 	}
+	defer func() { _ = clearRules(envCfg) }()
+	defer func() { _ = deleteKey(envCfg, envCfg.clientKey) }()
 
 	m := envCfg.models
 	cases := []caseConfig{
@@ -124,6 +134,13 @@ func run() error {
 		{name: "nonexistent-upstream-model", requestModel: m["chainSrc"], pluginRules: m["chainSrc"] + "=>definitely-not-a-real-upstream-model", wantSuccess: false},
 		{name: "wrong-api-key", requestModel: m["chainMid"], useWrongKey: true, wantSuccess: false},
 		{name: "streaming", requestModel: m["chainSrc"], pluginRules: m["chainSrc"] + "=>" + m["chainMid"] + ";" + m["chainMid"] + "=>" + m["chainDst"], stream: true, wantSuccess: true, wantOriginalModel: m["chainSrc"], forbidModel: m["chainDst"]},
+		// key binding: keytest-src is not a real upstream model; only the bound key's
+		// rule (keytest-src=>passthrough) makes the request succeed. Verifies the
+		// two-layer chain (top-level empty -> key layer maps).
+		{name: "key-binding-chain", requestModel: m["keyTest"], keyBinding: m["keyTest"] + "=>" + m["passthrough"], wantSuccess: true, wantOriginalModel: m["keyTest"]},
+		// thinking-effort suffix: rule rewrites model(max)=>model(high); CPA strips
+		// the (high) suffix when calling upstream. Verifies suffix participates in DSL.
+		{name: "thinking-effort-suffix", requestModel: m["effortSrc"], pluginRules: m["effortSrc"] + "=>" + m["effortDst"], wantSuccess: true, wantOriginalModel: m["effortSrc"]},
 	}
 	for _, tc := range cases {
 		if err := runCase(envCfg, tc); err != nil {
@@ -151,6 +168,13 @@ func runCase(env smokeEnv, tc caseConfig) error {
 	}
 	defer func() { _ = clearRules(env) }()
 
+	if tc.keyBinding != "" {
+		if err := putKey(env, env.clientKey, tc.keyBinding); err != nil {
+			return err
+		}
+		defer func() { _ = deleteKey(env, env.clientKey) }()
+	}
+
 	key := env.clientKey
 	if tc.useWrongKey {
 		key = env.wrongKey
@@ -161,33 +185,11 @@ func runCase(env smokeEnv, tc caseConfig) error {
 	return runJSONCase(env, tc, key)
 }
 
-// putRules injects pluginRules into the openai ruleset segment; returns the HTTP status.
+// --- rules API ---
+
 func putRules(env smokeEnv, openaiRules string) (int, []byte, error) {
-	body := map[string]string{
-		"global": "",
-		"claude": "",
-		"codex":  "",
-		"openai": openaiRules,
-	}
-	raw, err := json.Marshal(body)
-	if err != nil {
-		return 0, nil, err
-	}
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-	req, err := http.NewRequestWithContext(ctx, http.MethodPut, env.baseURL+rulesEndpoint, bytes.NewReader(raw))
-	if err != nil {
-		return 0, nil, err
-	}
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", "Bearer "+env.mgmtKey)
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return 0, nil, fmt.Errorf("put rules: %w", err)
-	}
-	defer resp.Body.Close()
-	respBody, _ := io.ReadAll(resp.Body)
-	return resp.StatusCode, respBody, nil
+	body := map[string]string{"global": "", "claude": "", "codex": "", "openai": openaiRules}
+	return doManage(env, http.MethodPut, rulesEndpoint, nil, body)
 }
 
 func putRules2xx(env smokeEnv, openaiRules string) error {
@@ -201,8 +203,73 @@ func putRules2xx(env smokeEnv, openaiRules string) error {
 	return nil
 }
 
-func clearRules(env smokeEnv) error {
-	return putRules2xx(env, "")
+func clearRules(env smokeEnv) error { return putRules2xx(env, "") }
+
+// --- key binding API ---
+
+func putKey(env smokeEnv, apiKey, openaiRules string) error {
+	body := map[string]any{
+		"key":     apiKey,
+		"alias":   "",
+		"enabled": true,
+		"rules":   map[string]string{"global": "", "claude": "", "codex": "", "openai": openaiRules},
+	}
+	status, respBody, err := doManage(env, http.MethodPost, keysEndpoint, nil, body)
+	if err != nil {
+		return err
+	}
+	if status/100 != 2 {
+		return fmt.Errorf("put key status=%d body=%s", status, respBody)
+	}
+	return nil
+}
+
+func deleteKey(env smokeEnv, apiKey string) error {
+	status, _, err := doManage(env, http.MethodDelete, keysEndpoint, url.Values{"key": {apiKey}}, nil)
+	if err != nil {
+		return err
+	}
+	if status/100 != 2 {
+		// best-effort cleanup; ignore not-found
+		if status != http.StatusNotFound {
+			return fmt.Errorf("delete key status=%d", status)
+		}
+	}
+	return nil
+}
+
+// --- shared ---
+
+func doManage(env smokeEnv, method, path string, query url.Values, body any) (int, []byte, error) {
+	var reader io.Reader
+	if body != nil {
+		raw, err := json.Marshal(body)
+		if err != nil {
+			return 0, nil, err
+		}
+		reader = bytes.NewReader(raw)
+	}
+	full := env.baseURL + path
+	if len(query) > 0 {
+		full += "?" + query.Encode()
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	req, err := http.NewRequestWithContext(ctx, method, full, reader)
+	if err != nil {
+		return 0, nil, err
+	}
+	if body != nil {
+		req.Header.Set("Content-Type", "application/json")
+	}
+	req.Header.Set("Authorization", "Bearer "+env.mgmtKey)
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return 0, nil, fmt.Errorf("%s %s: %w", method, path, err)
+	}
+	defer resp.Body.Close()
+	respBody, _ := io.ReadAll(resp.Body)
+	return resp.StatusCode, respBody, nil
 }
 
 func waitReady(env smokeEnv) error {
