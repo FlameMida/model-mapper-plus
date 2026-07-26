@@ -1,0 +1,9 @@
+/* Page background follows the Semi theme token so dark mode paints a dark
+   page. Semi only flips component tokens (Card/Layout/...), not body/html bg,
+   so without this the dark components float on a transparent->white page. */
+html, body, #root {
+  margin: 0;
+  background-color: var(--semi-color-bg-0);
+  color: var(--semi-color-text-0);
+  min-height: 100vh;
+}
