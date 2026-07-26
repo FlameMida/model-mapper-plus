@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { Tabs, TabPane, Input, Button, Select, Typography } from '@douyinfe/semi-ui'
 import { IconArrowUp, IconArrowDown, IconDelete, IconPlus } from '@douyinfe/semi-icons'
 import { RuleSet } from '../api'
@@ -52,11 +52,40 @@ function EntryRow({ entry, onUpdate, onMove, onDelete }: {
   )
 }
 
+// 从 RuleSet 派生按段的 Entry[] 草稿。空 placeholder 行仅存活于草稿（DSL 字符串无法表达空 find/replace）。
+function deriveDraft(value: RuleSet): Record<SegmentKey, Entry[]> {
+  return {
+    global: splitEntries(value.global),
+    claude: splitEntries(value.claude),
+    codex: splitEntries(value.codex),
+    openai: splitEntries(value.openai),
+  }
+}
+
 export default function RuleSetEditor({ value, onChange }: Props) {
   const [active, setActive] = useState<SegmentKey>('global')
-  const entries = splitEntries(value[active])
+  const [draft, setDraft] = useState<Record<SegmentKey, Entry[]>>(() => deriveDraft(value))
+  // 追踪本组件最后 emit 的 value，用于区分「本组件编辑回写」与「外部 value 变化（切 key / 保存重载）」：
+  // 前者保留本地草稿（含空行），后者重置草稿为外部值。
+  const emitted = useRef<RuleSet>(value)
 
-  const update = (next: Entry[]) => onChange({ ...value, [active]: joinEntries(next) })
+  if (value !== emitted.current) {
+    emitted.current = value
+    setDraft(deriveDraft(value))
+  }
+
+  const entries = draft[active]
+
+  const update = (next: Entry[]) => {
+    setDraft((d) => ({ ...d, [active]: next }))
+    const joined = joinEntries(next)
+    // 序列化结果相对当前 value 未变（如新增的空行被过滤）时无需 emit，避免产生新引用触发上面的外部重置分支。
+    if (joined !== value[active]) {
+      const nextValue = { ...value, [active]: joined }
+      emitted.current = nextValue
+      onChange(nextValue)
+    }
+  }
 
   return (
     <div>
