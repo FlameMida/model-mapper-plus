@@ -16,30 +16,34 @@ import (
 )
 
 // smoke-local exercises the model-mapper-plus plugin against an ALREADY
-// RUNNING CPA instance (typically the docker-compose one). It injects each
-// case's rules / key bindings via the plugin's own management API, sends a
-// chat request, and asserts the rewrite result.
+// RUNNING CPA instance. It injects each case's rules / key bindings via the
+// plugin's own management API (into a chosen ruleset segment), sends a chat
+// request, and asserts the rewrite result.
 //
 // Required env:
 //
-//	CPA_SMOKE_MGMT_KEY   management key (remote-management.secret-key plaintext) for PUT/POST /rules,/keys
-//	CPA_SMOKE_CLIENT_KEY a valid client api-key for /v1/chat/completions (also used as the bound key in key-chain cases)
+//	CPA_SMOKE_MGMT_KEY   management key (plaintext) for the management API
+//	CPA_SMOKE_CLIENT_KEY a valid client api-key for /v1/chat/completions (also the bound key)
 //
-// Optional env (defaults shown):
+// Optional env (defaults shown) — set the MODEL_* to models your upstream serves:
 //
 //	CPA_SMOKE_BASE_URL=http://127.0.0.1:8317
 //	CPA_SMOKE_WRONG_KEY=wrong-local-smoke-key
-//	CPA_SMOKE_MODEL_PASSTHROUGH=deepseek-v4-flash   # a model your upstream actually serves
+//	CPA_SMOKE_MODEL_PASSTHROUGH=deepseek-v4-flash
 //	CPA_SMOKE_MODEL_CHAIN_SRC=deepseek-v4-pro
 //	CPA_SMOKE_MODEL_CHAIN_MID=deepseek-v4-flash
 //	CPA_SMOKE_MODEL_CHAIN_DST=gpt-5.4-mini
-//	CPA_SMOKE_MODEL_KEY_TEST=keytest-src            # fake name only resolvable via a key binding
-//	CPA_SMOKE_MODEL_EFFORT_SRC=glm-5.2(max)         # model with thinking-effort suffix
+//	CPA_SMOKE_MODEL_KEY_TEST=keytest-src      # fake name only resolvable via rules
+//	CPA_SMOKE_MODEL_KEY_MID=keytest-mid
+//	CPA_SMOKE_MODEL_KEY_WILD=keytest-wild     # fake name matched by wildcard
+//	CPA_SMOKE_MODEL_EFFORT_SRC=glm-5.2(max)
 //	CPA_SMOKE_MODEL_EFFORT_DST=glm-5.2(high)
+//	CPA_SMOKE_MODEL_EFFORT_MID=glm-5.2(medium)
 
 const (
 	defaultBaseURL  = "http://127.0.0.1:8317"
 	defaultWrongKey = "wrong-local-smoke-key"
+	defaultSegment  = "openai" // /v1/chat/completions maps to the openai segment
 	rulesEndpoint   = "/v0/management/plugins/model-mapper-plus/rules"
 	keysEndpoint    = "/v0/management/plugins/model-mapper-plus/keys"
 )
@@ -54,8 +58,10 @@ type smokeEnv struct {
 
 type caseConfig struct {
 	name              string
-	pluginRules       string // injected into the openai ruleset segment
-	keyBinding        string // if set, bind clientKey with this openai ruleset for the case
+	pluginRules       string // injected into the top-level ruleset segment
+	topSegment        string // ruleset segment for pluginRules (default openai)
+	keyBinding        string // if set, bind clientKey with this rule
+	keySegment        string // ruleset segment for the key binding (default openai)
 	requestModel      string
 	useWrongKey       bool
 	stream            bool
@@ -91,6 +97,13 @@ func mustEnv(key string) (string, error) {
 	return "", fmt.Errorf("%s is required", key)
 }
 
+func seg(s string) string {
+	if s = strings.TrimSpace(s); s == "" {
+		return defaultSegment
+	}
+	return s
+}
+
 func run() error {
 	mgmtKey, err := mustEnv("CPA_SMOKE_MGMT_KEY")
 	if err != nil {
@@ -111,20 +124,21 @@ func run() error {
 			"chainMid":    env("CPA_SMOKE_MODEL_CHAIN_MID", "deepseek-v4-flash"),
 			"chainDst":    env("CPA_SMOKE_MODEL_CHAIN_DST", "gpt-5.4-mini"),
 			"keyTest":     env("CPA_SMOKE_MODEL_KEY_TEST", "keytest-src"),
+			"keyMid":      env("CPA_SMOKE_MODEL_KEY_MID", "keytest-mid"),
+			"keyWild":     env("CPA_SMOKE_MODEL_KEY_WILD", "keytest-wild"),
 			"effortSrc":   env("CPA_SMOKE_MODEL_EFFORT_SRC", "glm-5.2(max)"),
 			"effortDst":   env("CPA_SMOKE_MODEL_EFFORT_DST", "glm-5.2(high)"),
 			"effortMid":   env("CPA_SMOKE_MODEL_EFFORT_MID", "glm-5.2(medium)"),
-			"keyMid":      env("CPA_SMOKE_MODEL_KEY_MID", "keytest-mid"),
 		},
 	}
 
 	if err := waitReady(envCfg); err != nil {
 		return err
 	}
-	if err := clearRules(envCfg); err != nil {
+	if err := clearAllRules(envCfg); err != nil {
 		return fmt.Errorf("clear rules: %w", err)
 	}
-	defer func() { _ = clearRules(envCfg) }()
+	defer func() { _ = clearAllRules(envCfg) }()
 	defer func() { _ = deleteKey(envCfg, envCfg.clientKey) }()
 
 	m := envCfg.models
@@ -136,25 +150,23 @@ func run() error {
 		{name: "nonexistent-upstream-model", requestModel: m["chainSrc"], pluginRules: m["chainSrc"] + "=>definitely-not-a-real-upstream-model", wantSuccess: false},
 		{name: "wrong-api-key", requestModel: m["chainMid"], useWrongKey: true, wantSuccess: false},
 		{name: "streaming", requestModel: m["chainSrc"], pluginRules: m["chainSrc"] + "=>" + m["chainMid"] + ";" + m["chainMid"] + "=>" + m["chainDst"], stream: true, wantSuccess: true, wantOriginalModel: m["chainSrc"], forbidModel: m["chainDst"]},
-		// key binding: keytest-src is not a real upstream model; only the bound key's
-		// rule (keytest-src=>passthrough) makes the request succeed. Verifies the
-		// two-layer chain (top-level empty -> key layer maps).
+
+		// key binding (key layer alone)
 		{name: "key-binding-chain", requestModel: m["keyTest"], keyBinding: m["keyTest"] + "=>" + m["passthrough"], wantSuccess: true, wantOriginalModel: m["keyTest"]},
-		// thinking-effort suffix: rule rewrites model(max)=>model(high); CPA strips
-		// the (high) suffix when calling upstream. Verifies suffix participates in DSL.
+		// thinking-effort suffix in DSL
 		{name: "thinking-effort-suffix", requestModel: m["effortSrc"], pluginRules: m["effortSrc"] + "=>" + m["effortDst"], wantSuccess: true, wantOriginalModel: m["effortSrc"]},
-		// top + key relay (both layers non-empty): top maps keyTest=>keyMid (both
-		// fake), key maps keyMid=>passthrough. Only the two-layer chain reaches a
-		// real upstream model; without the key layer the request dies at keyMid.
+
+		// top + key coexistence
 		{name: "top-key-relay", requestModel: m["keyTest"], pluginRules: m["keyTest"] + "=>" + m["keyMid"], keyBinding: m["keyMid"] + "=>" + m["passthrough"], wantSuccess: true, wantOriginalModel: m["keyTest"]},
-		// key overrides top to net-zero: top passthrough=>keyTest (fake), key
-		// keyTest=>passthrough (revert). Net == original -> plugin does not take
-		// over -> CPA default serves passthrough. Without the key layer, the top
-		// rule alone would route to the fake keyTest and fail upstream.
 		{name: "key-overrides-top-netzero", requestModel: m["passthrough"], pluginRules: m["passthrough"] + "=>" + m["keyTest"], keyBinding: m["keyTest"] + "=>" + m["passthrough"], wantSuccess: true, wantOriginalModel: m["passthrough"]},
-		// effort suffix + key relay: top (max)=>(high), key (high)=>(medium). Both
-		// layers rewrite the suffix; CPA strips the final (medium) upstream.
 		{name: "effort-suffix-key-relay", requestModel: m["effortSrc"], pluginRules: m["effortSrc"] + "=>" + m["effortDst"], keyBinding: m["effortDst"] + "=>" + m["effortMid"], wantSuccess: true, wantOriginalModel: m["effortSrc"]},
+
+		// segment selection: endpoint empty -> fall back to global
+		{name: "top-global-segment-fallback", requestModel: m["keyTest"], pluginRules: m["keyTest"] + "=>" + m["passthrough"], topSegment: "global", wantSuccess: true, wantOriginalModel: m["keyTest"]},
+		{name: "key-global-segment-fallback", requestModel: m["keyTest"], keyBinding: m["keyTest"] + "=>" + m["passthrough"], keySegment: "global", wantSuccess: true, wantOriginalModel: m["keyTest"]},
+
+		// wildcard capture: keytest-* matches keytest-wild
+		{name: "wildcard-capture", requestModel: m["keyWild"], pluginRules: "keytest-*=>" + m["passthrough"], wantSuccess: true, wantOriginalModel: m["keyWild"]},
 	}
 	for _, tc := range cases {
 		if err := runCase(envCfg, tc); err != nil {
@@ -167,7 +179,7 @@ func run() error {
 
 func runCase(env smokeEnv, tc caseConfig) error {
 	if tc.wantRulesReject {
-		status, _, err := putRules(env, tc.pluginRules)
+		status, _, err := putRulesAt(env, seg(tc.topSegment), tc.pluginRules)
 		if err != nil {
 			return err
 		}
@@ -177,13 +189,13 @@ func runCase(env smokeEnv, tc caseConfig) error {
 		return nil
 	}
 
-	if err := putRules2xx(env, tc.pluginRules); err != nil {
+	if err := putRulesAt2xx(env, seg(tc.topSegment), tc.pluginRules); err != nil {
 		return err
 	}
-	defer func() { _ = clearRules(env) }()
+	defer func() { _ = clearAllRules(env) }()
 
 	if tc.keyBinding != "" {
-		if err := putKey(env, env.clientKey, tc.keyBinding); err != nil {
+		if err := putKeyAt(env, env.clientKey, seg(tc.keySegment), tc.keyBinding); err != nil {
 			return err
 		}
 		defer func() { _ = deleteKey(env, env.clientKey) }()
@@ -201,39 +213,50 @@ func runCase(env smokeEnv, tc caseConfig) error {
 
 // --- rules API ---
 
-func putRules(env smokeEnv, openaiRules string) (int, []byte, error) {
-	body := map[string]string{"global": "", "claude": "", "codex": "", "openai": openaiRules}
+func emptyRuleSet() map[string]string {
+	return map[string]string{"global": "", "claude": "", "codex": "", "openai": ""}
+}
+
+func putRulesAt(env smokeEnv, segment, rules string) (int, []byte, error) {
+	body := emptyRuleSet()
+	body[segment] = rules
 	return doManage(env, http.MethodPut, rulesEndpoint, nil, body)
 }
 
-func putRules2xx(env smokeEnv, openaiRules string) error {
-	status, respBody, err := putRules(env, openaiRules)
+func putRulesAt2xx(env smokeEnv, segment, rules string) error {
+	status, respBody, err := putRulesAt(env, segment, rules)
 	if err != nil {
 		return err
 	}
 	if status/100 != 2 {
-		return fmt.Errorf("put rules status=%d body=%s", status, respBody)
+		return fmt.Errorf("put rules (%s) status=%d body=%s", segment, status, respBody)
 	}
 	return nil
 }
 
-func clearRules(env smokeEnv) error { return putRules2xx(env, "") }
+func clearAllRules(env smokeEnv) error {
+	status, respBody, err := doManage(env, http.MethodPut, rulesEndpoint, nil, emptyRuleSet())
+	if err != nil {
+		return err
+	}
+	if status/100 != 2 {
+		return fmt.Errorf("clear rules status=%d body=%s", status, respBody)
+	}
+	return nil
+}
 
 // --- key binding API ---
 
-func putKey(env smokeEnv, apiKey, openaiRules string) error {
-	body := map[string]any{
-		"key":     apiKey,
-		"alias":   "",
-		"enabled": true,
-		"rules":   map[string]string{"global": "", "claude": "", "codex": "", "openai": openaiRules},
-	}
+func putKeyAt(env smokeEnv, apiKey, segment, rules string) error {
+	rs := emptyRuleSet()
+	rs[segment] = rules
+	body := map[string]any{"key": apiKey, "alias": "", "enabled": true, "rules": rs}
 	status, respBody, err := doManage(env, http.MethodPost, keysEndpoint, nil, body)
 	if err != nil {
 		return err
 	}
 	if status/100 != 2 {
-		return fmt.Errorf("put key status=%d body=%s", status, respBody)
+		return fmt.Errorf("put key (%s) status=%d body=%s", segment, status, respBody)
 	}
 	return nil
 }
@@ -243,11 +266,8 @@ func deleteKey(env smokeEnv, apiKey string) error {
 	if err != nil {
 		return err
 	}
-	if status/100 != 2 {
-		// best-effort cleanup; ignore not-found
-		if status != http.StatusNotFound {
-			return fmt.Errorf("delete key status=%d", status)
-		}
+	if status/100 != 2 && status != http.StatusNotFound {
+		return fmt.Errorf("delete key status=%d", status)
 	}
 	return nil
 }
