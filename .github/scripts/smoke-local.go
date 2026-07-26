@@ -63,6 +63,7 @@ type caseConfig struct {
 	keyBinding        string // if set, bind clientKey with this rule
 	keySegment        string // ruleset segment for the key binding (default openai)
 	requestModel      string
+	format            string // "openai" (default) or "claude"
 	useWrongKey       bool
 	stream            bool
 	wantSuccess       bool
@@ -167,6 +168,10 @@ func run() error {
 
 		// wildcard capture: keytest-* matches keytest-wild
 		{name: "wildcard-capture", requestModel: m["keyWild"], pluginRules: "keytest-*=>" + m["passthrough"], wantSuccess: true, wantOriginalModel: m["keyWild"]},
+		// $1 backref: cap-<model> strips the cap- prefix via * capture + $1 reference
+		{name: "capture-backref", requestModel: "cap-" + m["passthrough"], pluginRules: "cap-*=>$1", wantSuccess: true, wantOriginalModel: "cap-" + m["passthrough"]},
+		// claude endpoint segment: request via /v1/messages selects the claude segment
+		{name: "claude-segment", requestModel: m["keyTest"], pluginRules: m["keyTest"] + "=>" + m["passthrough"], topSegment: "claude", format: "claude", wantSuccess: true, wantOriginalModel: m["keyTest"]},
 	}
 	for _, tc := range cases {
 		if err := runCase(envCfg, tc); err != nil {
@@ -336,7 +341,14 @@ func getModels(env smokeEnv) (int, []byte, error) {
 }
 
 func runJSONCase(env smokeEnv, tc caseConfig, apiKey string) error {
-	status, body, err := sendChatRequest(env, tc.requestModel, apiKey, false)
+	var status int
+	var body []byte
+	var err error
+	if tc.format == "claude" {
+		status, body, err = sendClaudeRequest(env, tc.requestModel, apiKey, false)
+	} else {
+		status, body, err = sendChatRequest(env, tc.requestModel, apiKey, false)
+	}
 	if err != nil {
 		return err
 	}
@@ -413,6 +425,35 @@ func runStreamCase(env smokeEnv, tc caseConfig, apiKey string) error {
 		return fmt.Errorf("missing data: [DONE] in body=%s", body)
 	}
 	return nil
+}
+
+func sendClaudeRequest(env smokeEnv, model, apiKey string, stream bool) (int, []byte, error) {
+	payload := map[string]any{
+		"model":      model,
+		"messages":   []map[string]string{{"role": "user", "content": "say ok"}},
+		"max_tokens": 16,
+		"stream":     stream,
+	}
+	raw, err := json.Marshal(payload)
+	if err != nil {
+		return 0, nil, err
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
+	defer cancel()
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, env.baseURL+"/v1/messages", bytes.NewReader(raw))
+	if err != nil {
+		return 0, nil, err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+apiKey)
+	req.Header.Set("anthropic-version", "2023-06-01")
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return 0, nil, fmt.Errorf("send claude request: %w", err)
+	}
+	defer resp.Body.Close()
+	body, err := io.ReadAll(resp.Body)
+	return resp.StatusCode, body, err
 }
 
 func sendChatRequest(env smokeEnv, model, apiKey string, stream bool) (int, []byte, error) {
