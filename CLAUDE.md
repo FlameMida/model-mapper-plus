@@ -56,6 +56,13 @@ Release zip files are named `model-mapper-plus_<version>_<goos>_<goarch>.zip`, c
 
 The GitHub Actions workflow runs tests/vet on PRs, builds all release platforms on non-PR events, and publishes only for `v*` tags. Global workflow permissions are `contents: read`; only the release job uses `contents: write`.
 
+## Reference projects
+
+两个本机参考仓库，改 SDK 契约、management/state/web UI 实现前应先查对：
+
+- **`/Users/flame/cpa-plugin-key-policy`** — 同生态的 c-shared 插件。本插件的 web 管理界面（`management.register`/`management.handle` + `go:embed` 单文件 UI + session/panelAuth/themeSync）、`state_file` 原子写与 YAML-seed 真相源不变量、CPA management 路由分发模式，均参照其实现。
+- **`/Users/flame/CLIProxyAPI`** — 宿主主程序。本插件依赖的 SDK（`sdk/pluginapi`、`sdk/pluginabi`）的契约、`ModelRouteRequest`/`ExecutorRequest`/`ManagementRequest` 的字段填充、`plugins.dir` 解析（`internal/config/plugin_path.go`）、`ServeManagementHTTP` 转发路径与 Windows shadow 拷贝（`internal/pluginhost/loader_windows.go`）都在这里。改 ABI/路由/host 交互前必读。
+
 ## Local state and documentation
 
 Live smoke creates ignored local state under `.test-cpa/`; builds create ignored artifacts under `dist/`. Do not treat either directory as source.
