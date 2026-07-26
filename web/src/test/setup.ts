@@ -7,6 +7,15 @@ afterEach(() => {
   cleanup()
 })
 
+// jsdom 不实现 ResizeObserver；Semi UI 的 Nav/Layout/Table 等组件依赖它做尺寸观测，
+// 缺失会在 mount 时抛 ReferenceError。补一个空实现（组件测试不校验尺寸观测行为）。
+class ResizeObserverStub {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+}
+globalThis.ResizeObserver = ResizeObserverStub as unknown as typeof ResizeObserver
+
 // jsdom 不实现 canvas；Semi UI 的 lottie 动画（Loading/Spin）调用 canvas 2d context，
 // 默认 getContext 返回 null 导致 lottie 报错。用 Proxy stub 一个吸收任意属性/方法的 context。
 HTMLCanvasElement.prototype.getContext = function () {

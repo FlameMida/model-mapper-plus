@@ -21,6 +21,7 @@ export interface StateResponse {
   updated_at?: string
   persisted: boolean
   state_file?: string
+  plugin_version?: string
 }
 
 export interface PreviewRequest {

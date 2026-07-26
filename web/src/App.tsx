@@ -74,6 +74,7 @@ export default function App() {
                     ? `state 已保存 ${state.updated_at ?? ''}`
                     : '当前为 YAML 配置（首次保存后接管）'}
                   {state.state_file ? ` · ${state.state_file}` : ''}
+                  {state.plugin_version ? ` · v${state.plugin_version}` : ''}
                 </Typography.Text>
               )}
             </>
