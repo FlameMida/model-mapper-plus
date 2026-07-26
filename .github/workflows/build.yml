@@ -110,7 +110,7 @@ jobs:
           if [[ "${GITHUB_REF_TYPE}" == "tag" && "${GITHUB_REF_NAME}" == v* ]]; then
             VERSION="${GITHUB_REF_NAME#v}"
           else
-            VERSION="0.0.0-dev"
+            VERSION="0.0.0-dev.$(git rev-parse --short HEAD)"
           fi
           echo "VERSION=${VERSION}" >> "${GITHUB_ENV}"
           echo "version=${VERSION}" >> "${GITHUB_OUTPUT}"
@@ -163,7 +163,7 @@ jobs:
           if [[ "${GITHUB_REF_TYPE}" == "tag" && "${GITHUB_REF_NAME}" == v* ]]; then
             VERSION="${GITHUB_REF_NAME#v}"
           else
-            VERSION="0.0.0-dev"
+            VERSION="0.0.0-dev.$(git rev-parse --short HEAD)"
           fi
           echo "VERSION=${VERSION}" >> "${GITHUB_ENV}"
           echo "version=${VERSION}" >> "${GITHUB_OUTPUT}"
@@ -179,7 +179,7 @@ jobs:
           packages: .
           targets: windows-arm64
           out-dir: dist/windows_arm64
-          output: ${{ env.PLUGIN_NAME }}.dll
+          output: ${{ env.PLUGIN_NAME }}-v${{ env.VERSION }}.dll
           flags: -ldflags=-s -w
           x-flags: main.pluginVersion=${{ steps.release_metadata.outputs.version }}
 
@@ -188,7 +188,7 @@ jobs:
           set -euo pipefail
           rm -f go-cross-bin.h "dist/windows_arm64/${PLUGIN_NAME}.h"
           go run ./.github/scripts/package-release.go \
-            -library "dist/windows_arm64/${PLUGIN_NAME}.dll" \
+            -library "dist/windows_arm64/${PLUGIN_NAME}-v${VERSION}.dll" \
             -archive "dist/${ARCHIVE_NAME}" \
             -checksum "dist/${ARCHIVE_NAME}.sha256"
 
@@ -236,7 +236,7 @@ jobs:
           if [[ "${GITHUB_REF_TYPE}" == "tag" && "${GITHUB_REF_NAME}" == v* ]]; then
             VERSION="${GITHUB_REF_NAME#v}"
           else
-            VERSION="0.0.0-dev"
+            VERSION="0.0.0-dev.$(git rev-parse --short HEAD)"
           fi
           echo "VERSION=${VERSION}" >> "${GITHUB_ENV}"
           echo "version=${VERSION}" >> "${GITHUB_OUTPUT}"
@@ -252,7 +252,7 @@ jobs:
           packages: .
           targets: freebsd-amd64
           out-dir: dist/freebsd_amd64
-          output: ${{ env.PLUGIN_NAME }}.so
+          output: ${{ env.PLUGIN_NAME }}-v${{ env.VERSION }}.so
           flags: -ldflags=-s -w
           x-flags: main.pluginVersion=${{ steps.release_metadata.outputs.version }}
 
@@ -261,7 +261,7 @@ jobs:
           set -euo pipefail
           rm -f go-cross-bin.h "dist/freebsd_amd64/${PLUGIN_NAME}.h"
           go run ./.github/scripts/package-release.go \
-            -library "dist/freebsd_amd64/${PLUGIN_NAME}.so" \
+            -library "dist/freebsd_amd64/${PLUGIN_NAME}-v${VERSION}.so" \
             -archive "dist/${ARCHIVE_NAME}" \
             -checksum "dist/${ARCHIVE_NAME}.sha256"
 
