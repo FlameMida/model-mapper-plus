@@ -14,7 +14,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Build Linux amd64 plugin from Windows with Zig: `make build-linux-amd64 LINUX_AMD64_CC="zig cc -target x86_64-linux-gnu"`
 - Build/package one platform: `make package VERSION=0.1.2 GOOS=windows GOARCH=amd64`
 - Package already-built artifacts into `dist/release/`: `make package VERSION=0.1.2`
-- Run live local smoke: set `CPA_SMOKE_API_KEY` and `CPA_SMOKE_CPA_BIN`, then `make smoke-local`
+- Run live local smoke (against a running CPA): set `CPA_SMOKE_MGMT_KEY` and `CPA_SMOKE_CLIENT_KEY`, then `make smoke-local`
+- Dev loop on a mac host with a docker CPA: `make dev-so` cross-compiles a linux/amd64 `.so` (via `zig`, `brew install zig`) with a fresh UI and copies it to `CPA_PLUGINS_DIR` (default `/Users/flame/CLIProxyAPI/plugins`); `make dev-ui` runs the vite dev server on :5173 proxying `/v0/management` to `CPA_HOST` (default `http://127.0.0.1:8317`). Override `ZIG`, `CPA_PLUGINS_DIR`, `CPA_HOST` as needed.
 - Clean build output: `make clean`
 
 Do not run `go test ./.github/scripts`; that directory contains multiple `package main` scripts and will collide on duplicate `main`/`run` symbols. Test script files explicitly as shown above.

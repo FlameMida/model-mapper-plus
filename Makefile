@@ -12,7 +12,16 @@ LINUX_AMD64_OUT := $(DIST_DIR)/linux_amd64/$(PLUGIN_NAME).so
 LINUX_AMD64_CC ?=
 LINUX_AMD64_CC_BIN := $(firstword $(LINUX_AMD64_CC))
 
-.PHONY: test vet web-build build-platform-go build-platform build-windows-amd64 build-linux-amd64 build-linux-amd64-go build package-platform package install-local install-linux-amd64 smoke-local clean
+# --- dev helpers (mac host + docker CPA) ---
+# ZIG: cross C compiler for linux/amd64 .so (brew install zig). Override if zig is elsewhere.
+ZIG ?= zig
+# CPA_PLUGINS_DIR: host path mounted into your docker CPA as its plugins dir.
+# Defaults to the author's docker layout; override for your own.
+CPA_PLUGINS_DIR ?= /Users/flame/CLIProxyAPI/plugins
+# CPA host:port the vite dev server proxies API calls to.
+CPA_HOST ?= http://127.0.0.1:8317
+
+.PHONY: test vet web-build build-platform-go build-platform build-windows-amd64 build-linux-amd64 build-linux-amd64-go build package-platform package install-local install-linux-amd64 smoke-local dev-so dev-ui clean
 
 test:
 	$(GO) test ./...
@@ -85,8 +94,20 @@ install-linux-amd64: build-linux-amd64
 	mkdir -p "$(CPA_PLUGINS_DIR)"
 	cp $(LINUX_AMD64_OUT) "$(CPA_PLUGINS_DIR)/$(PLUGIN_NAME).so"
 
-smoke-local: build-windows-amd64
+smoke-local:
 	$(GO) run .github/scripts/smoke-local.go
+
+# dev-so: cross-compile linux/amd64 .so via zig (with fresh UI) and copy it
+# into your docker CPA's mounted plugins dir, then the host hot-reloads it.
+dev-so: web-build
+	@$(MAKE) --no-print-directory build-platform-go GOOS=linux GOARCH=amd64 GO="$(GO)" DIST_DIR="$(DIST_DIR)" PLUGIN_NAME="$(PLUGIN_NAME)" BUILD_CC="$(ZIG) cc -target x86_64-linux-gnu" LDFLAGS="$(LDFLAGS)" VERSION_LDFLAGS=""
+	@mkdir -p "$(CPA_PLUGINS_DIR)/linux/amd64"
+	cp $(DIST_DIR)/linux_amd64/$(PLUGIN_NAME).so "$(CPA_PLUGINS_DIR)/linux/amd64/$(PLUGIN_NAME).so"
+	@echo ">> deployed $(PLUGIN_NAME).so -> $(CPA_PLUGINS_DIR)/linux/amd64/ (restart/reload your CPA to pick it up)"
+
+# dev-ui: vite dev server on :5173, proxying /v0/management to your CPA.
+dev-ui:
+	cd web && CPA_DEV_CPA_HOST="$(CPA_HOST)" npm run dev
 
 clean:
 	rm -rf $(DIST_DIR)

@@ -10,6 +10,12 @@ const root = path.dirname(fileURLToPath(import.meta.url))
 export default defineConfig({
   plugins: [react(), viteSingleFile()],
   base: process.env.VITE_HOSTED === '1' ? '/v0/resource/plugins/model-mapper-plus/' : '/',
+  // dev server (make dev-ui): proxy plugin API + management calls to the running CPA.
+  server: {
+    proxy: {
+      '/v0/management': process.env.CPA_DEV_CPA_HOST || 'http://127.0.0.1:8317',
+    },
+  },
   resolve: {
     // semi.min.css is not listed in package "exports"; alias so Vite 8 can resolve it.
     alias: {
