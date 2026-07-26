@@ -122,11 +122,8 @@ export default function KeysPanel({ state, onSaved }: Props) {
               placeholder="选择或输入 API key"
               value={editing.key || undefined}
               onChange={(v) => setEditing({ ...editing, key: String(v) })}
-            >
-              {cpaKeys.map((k) => (
-                <Select.Option key={k} value={k}>{maskKey(k)}</Select.Option>
-              ))}
-            </Select>
+              optionList={cpaKeys.map((k) => ({ value: k, label: maskKey(k) }))}
+            />
             <Input placeholder="别名（可选）" value={editing.alias}
               onChange={(v) => setEditing({ ...editing, alias: v })} />
             <div>

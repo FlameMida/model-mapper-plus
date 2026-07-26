@@ -31,10 +31,10 @@ export default function PreviewPanel() {
   return (
     <Card title="规则试跑（不落盘、不发上游；引擎与正式路由相同，含 enabled 开关）" style={{ margin: 16 }}>
       <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}>
-        <Select style={{ width: 260 }} filter allowCreate placeholder="Key（可选，模拟 key 维度）"
-          value={key || undefined} onChange={(v) => setKey(String(v))} showClear>
-          {cpaKeys.map((k) => <Select.Option key={k} value={k}>{k.slice(0, 6)}…{k.slice(-4)}</Select.Option>)}
-        </Select>
+        <Select style={{ width: 260 }} filter placeholder="Key（可选，模拟 key 维度）"
+          value={key || undefined} onChange={(v) => setKey(String(v))} showClear
+          optionList={cpaKeys.map((k) => ({ value: k, label: `${k.slice(0, 6)}…${k.slice(-4)}` }))}
+        />
         <Select style={{ width: 280 }} value={format} onChange={(v) => setFormat(String(v))}>
           {FORMATS.map((f) => <Select.Option key={f.value} value={f.value}>{f.label}</Select.Option>)}
         </Select>
