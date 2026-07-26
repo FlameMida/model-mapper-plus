@@ -130,6 +130,10 @@ func run() error {
 	if err := clearAllRules(envCfg); err != nil {
 		return fmt.Errorf("clear rules: %w", err)
 	}
+	// Clear any key bindings left by a previously interrupted run so they
+	// cannot satisfy a wantSuccess case without the plugin actually running.
+	_ = deleteKey(envCfg, envCfg.clientKey)
+	_ = deleteKey(envCfg, envCfg.clientKey2)
 	defer func() { _ = clearAllRules(envCfg) }()
 	defer func() { _ = deleteKey(envCfg, envCfg.clientKey) }()
 	defer func() { _ = deleteKey(envCfg, envCfg.clientKey2) }()
@@ -137,19 +141,19 @@ func run() error {
 	m := envCfg.models
 	cases := []caseConfig{
 		{name: "no-rules", requestModel: m["passthrough"], wantSuccess: true, wantOriginalModel: m["passthrough"]},
-		{name: "openai-dedicated-chain", requestModel: m["chainSrc"], pluginRules: m["chainSrc"] + "=>" + m["chainMid"] + ";" + m["chainMid"] + "=>" + m["chainDst"], wantSuccess: true, wantOriginalModel: m["chainSrc"], forbidModel: m["chainDst"]},
+		{name: "openai-dedicated-chain", requestModel: m["keyTest"], pluginRules: m["keyTest"] + "=>" + m["chainMid"] + ";" + m["chainMid"] + "=>" + m["chainDst"], wantSuccess: true, wantOriginalModel: m["keyTest"], forbidModel: m["chainDst"]},
 		{name: "unmatched-model", requestModel: m["passthrough"], pluginRules: m["chainSrc"] + "=>" + m["chainDst"], wantSuccess: true, wantOriginalModel: m["passthrough"]},
 		{name: "bad-rules", pluginRules: "bad rule", wantRulesReject: true},
 		{name: "nonexistent-upstream-model", requestModel: m["chainSrc"], pluginRules: m["chainSrc"] + "=>definitely-not-a-real-upstream-model", wantSuccess: false},
 		{name: "wrong-api-key", requestModel: m["chainMid"], useWrongKey: true, wantSuccess: false},
-		{name: "streaming", requestModel: m["chainSrc"], pluginRules: m["chainSrc"] + "=>" + m["chainMid"] + ";" + m["chainMid"] + "=>" + m["chainDst"], stream: true, wantSuccess: true, wantOriginalModel: m["chainSrc"], forbidModel: m["chainDst"]},
+		{name: "streaming", requestModel: m["keyTest"], pluginRules: m["keyTest"] + "=>" + m["chainMid"] + ";" + m["chainMid"] + "=>" + m["chainDst"], stream: true, wantSuccess: true, wantOriginalModel: m["keyTest"], forbidModel: m["chainDst"]},
 
 		{name: "key-binding-chain", requestModel: m["keyTest"], keyBinding: m["keyTest"] + "=>" + m["passthrough"], wantSuccess: true, wantOriginalModel: m["keyTest"]},
-		{name: "thinking-effort-suffix", requestModel: m["effortSrc"], pluginRules: m["effortSrc"] + "=>" + m["effortDst"], wantSuccess: true, wantOriginalModel: m["effortSrc"]},
+		{name: "thinking-effort-suffix", requestModel: m["keyTest"] + "(max)", pluginRules: m["keyTest"] + "(max)" + "=>" + m["effortDst"], wantSuccess: true, wantOriginalModel: m["keyTest"] + "(max)"},
 
 		{name: "top-key-relay", requestModel: m["keyTest"], pluginRules: m["keyTest"] + "=>" + m["keyMid"], keyBinding: m["keyMid"] + "=>" + m["passthrough"], wantSuccess: true, wantOriginalModel: m["keyTest"]},
 		{name: "key-overrides-top-netzero", requestModel: m["passthrough"], pluginRules: m["passthrough"] + "=>" + m["keyTest"], keyBinding: m["keyTest"] + "=>" + m["passthrough"], wantSuccess: true, wantOriginalModel: m["passthrough"]},
-		{name: "effort-suffix-key-relay", requestModel: m["effortSrc"], pluginRules: m["effortSrc"] + "=>" + m["effortDst"], keyBinding: m["effortDst"] + "=>" + m["effortMid"], wantSuccess: true, wantOriginalModel: m["effortSrc"]},
+		{name: "effort-suffix-key-relay", requestModel: m["keyTest"] + "(max)", pluginRules: m["keyTest"] + "(max)" + "=>" + m["effortDst"], keyBinding: m["effortDst"] + "=>" + m["effortMid"], wantSuccess: true, wantOriginalModel: m["keyTest"] + "(max)"},
 
 		{name: "top-global-segment-fallback", requestModel: m["keyTest"], pluginRules: m["keyTest"] + "=>" + m["passthrough"], topSegment: "global", wantSuccess: true, wantOriginalModel: m["keyTest"]},
 		{name: "key-global-segment-fallback", requestModel: m["keyTest"], keyBinding: m["keyTest"] + "=>" + m["passthrough"], keySegment: "global", wantSuccess: true, wantOriginalModel: m["keyTest"]},
@@ -168,7 +172,7 @@ func run() error {
 		// and keyTest reaches upstream as-is (fake name) -> failure.
 		{name: "key-disabled-skips-key-layer", requestModel: m["keyTest"], keyBinding: m["keyTest"] + "=>" + m["passthrough"], keyDisabled: true, wantSuccess: false},
 
-		{name: "claude-stream", requestModel: m["chainSrc"], pluginRules: m["chainSrc"] + "=>" + m["chainMid"] + ";" + m["chainMid"] + "=>" + m["chainDst"], topSegment: "claude", format: "claude", stream: true, wantSuccess: true, wantOriginalModel: m["chainSrc"], forbidModel: m["chainDst"]},
+		{name: "claude-stream", requestModel: m["keyTest"], pluginRules: m["keyTest"] + "=>" + m["chainMid"] + ";" + m["chainMid"] + "=>" + m["chainDst"], topSegment: "claude", format: "claude", stream: true, wantSuccess: true, wantOriginalModel: m["keyTest"], forbidModel: m["chainDst"]},
 	}
 	for _, tc := range cases {
 		if err := runCase(envCfg, tc); err != nil {
@@ -201,9 +205,11 @@ func runMultiKeyCase(env smokeEnv) error {
 	if err := putKeyAt(env, env.clientKey, "openai", m["keyTest"]+"=>"+m["passthrough"], true); err != nil {
 		return err
 	}
+	defer func() { _ = deleteKey(env, env.clientKey) }()
 	if err := putKeyAt(env, env.clientKey2, "openai", m["keyTest"]+"=>"+m["keyMid"], true); err != nil {
 		return err
 	}
+	defer func() { _ = deleteKey(env, env.clientKey2) }()
 	// key1 -> success
 	st1, body1, err := sendChatRequest(env, m["keyTest"], env.clientKey, false)
 	if err != nil {

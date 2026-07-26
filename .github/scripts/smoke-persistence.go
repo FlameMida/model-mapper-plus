@@ -92,8 +92,14 @@ func run() (retErr error) {
 	}
 
 	defer func() {
-		// best-effort cleanup so we don't leave a fake-name rule behind
-		_ = clearRules(e)
+		// best-effort cleanup; retry because CPA may still be restarting.
+		for i := 0; i < 3; i++ {
+			if err := clearRules(e); err == nil {
+				return
+			}
+			fmt.Fprintln(os.Stderr, ">> cleanup clearRules failed, retrying...")
+			time.Sleep(2 * time.Second)
+		}
 	}()
 
 	fmt.Println(">> waiting for CPA ready (before)...")
