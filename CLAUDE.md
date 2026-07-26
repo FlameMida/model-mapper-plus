@@ -51,7 +51,7 @@ Prerequisites on the CPA side (its `config.yaml`): `plugins.enabled: true`, a `p
 
 ### Gotchas
 
-- `state_file` defaults next to the loaded `.so` (in-container: `plugins/linux/amd64/model-mapper-plus-state.json`). If that dir is mounted read-only, saves 500 — set an explicit writable `state_file` in the plugin config.
+- `state_file` defaults to `model-mapper-plus-state.json` resolved against the CPA process working directory (same as key-policy; the plugin cannot read `plugins.dir`). In docker that is usually `/app/`. If cwd is read-only, set an explicit writable absolute `state_file` in the plugin config.
 - Success-case smoke (`openai-dedicated-chain`, `streaming`) requires the chain-end model to be actually servable by your upstream; override `CPA_SMOKE_MODEL_*` to match.
 - `make dev-ui` serves the real React app but the `.so` still embeds the **last built** UI — re-run `make dev-so` before relying on the embedded page.
 

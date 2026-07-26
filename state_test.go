@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
-	"runtime"
 	"strings"
 	"testing"
 )
@@ -113,68 +112,35 @@ func TestValidateState(t *testing.T) {
 	}
 }
 
+// Scenario: 默认路径基于进程 cwd（与 key-policy ResolveStatePath 对齐）
 func TestResolveStatePathDefaultAndAbs(t *testing.T) {
-	// Force a known self-library path so the default is next to the "plugin".
-	pluginDir := t.TempDir()
-	selfLibraryPathForTest = filepath.Join(pluginDir, "model-mapper-plus.so")
-	t.Cleanup(func() { selfLibraryPathForTest = "" })
-
+	wd, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
 	abs, err := ResolveStatePath("")
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !filepath.IsAbs(abs) {
-		t.Fatalf("want absolute path, got %q", abs)
+	if want := filepath.Join(wd, defaultStateFile); abs != want {
+		t.Fatalf("ResolveStatePath(\"\") = %q, want %q (cwd-based)", abs, want)
 	}
-	if filepath.Base(abs) != defaultStateFile {
-		t.Fatalf("base = %q, want %q", filepath.Base(abs), defaultStateFile)
-	}
-	if filepath.Dir(abs) != pluginDir {
-		t.Fatalf("dir = %q, want plugin dir %q", filepath.Dir(abs), pluginDir)
-	}
-
-	custom := filepath.Join(t.TempDir(), "sub", "custom.json")
-	got, err := ResolveStatePath(custom)
+	// explicit relative name resolves against cwd too
+	got, err := ResolveStatePath("sub/state.json")
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !filepath.IsAbs(got) || filepath.Base(got) != "custom.json" {
-		t.Fatalf("got %q", got)
+	if want := filepath.Join(wd, "sub", "state.json"); got != want {
+		t.Fatalf("got %q, want %q", got, want)
 	}
-}
-
-func TestResolveStatePathSkipsWindowsShadowDir(t *testing.T) {
-	shadow := filepath.Join(os.TempDir(), "cliproxy-pluginhost", "pid-12345")
-	selfLibraryPathForTest = filepath.Join(shadow, "model-mapper-plus.dll")
-	t.Cleanup(func() { selfLibraryPathForTest = "" })
-
-	abs, err := ResolveStatePath("")
+	// absolute passthrough (cleaned)
+	absIn := filepath.Join(wd, "abs.json")
+	got, err = ResolveStatePath(absIn)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if filepath.Dir(abs) == shadow {
-		t.Fatalf("must not place state next to shadow copy: %q", abs)
-	}
-	if filepath.Base(abs) != defaultStateFile {
-		t.Fatalf("base = %q", filepath.Base(abs))
-	}
-	// Prefer <exe>/plugins/<goos>/<goarch>/ when shadow is skipped.
-	if !strings.Contains(abs, filepath.Join("plugins", runtime.GOOS, runtime.GOARCH)) {
-		// May fall back to cwd if Executable fails in tests — still must not be shadow.
-		t.Logf("resolved (non-shadow) path: %s", abs)
-	}
-}
-
-func TestIsPluginShadowDir(t *testing.T) {
-	marker := filepath.Join(os.TempDir(), "cliproxy-pluginhost")
-	if !isPluginShadowDir(marker) {
-		t.Fatal("expected marker itself to match")
-	}
-	if !isPluginShadowDir(filepath.Join(marker, "pid-1")) {
-		t.Fatal("expected nested shadow dir to match")
-	}
-	if isPluginShadowDir(filepath.Join(os.TempDir(), "other")) {
-		t.Fatal("unrelated temp subdir must not match")
+	if got != absIn {
+		t.Fatalf("absolute not preserved: got %q", got)
 	}
 }
 

@@ -114,7 +114,7 @@ model-mapper-plus 现状仅有 YAML 单行配置的四段规则，无 key 维度
 
 ### Requirement: state_file 真相源与 YAML seed
 
-state_file 路径 SHALL 经 `ResolveStatePath` 规范化为绝对路径：配置为空时默认文件名为 `model-mapper-plus-state.json`，目录优先为本插件已加载动态库（`.so`/`.dll`）所在目录（与库同目录）；若该目录为 CPA Windows shadow 临时目录（`$TMP/cliproxy-pluginhost/...`）则改用 `<dir(os.Executable())>/plugins/<goos>/<goarch>/`；再失败则回退进程工作目录。相对非空路径仍相对 cwd 解析。state_file 存在且合法时 SHALL 作为顶层规则四段与 key 绑定的唯一真相源；不存在时 SHALL 以 YAML 规则字段为运行值，并于首次经 management API 保存时创建 state_file（纳入当时 YAML 值，并在需要时创建父目录 mode 0700）。`enabled` 开关 SHALL 只来自 YAML，不进 state_file。`GET /state` SHALL 返回规范化后的 `state_file` 绝对路径供 UI 展示。
+state_file 路径 SHALL 经 `ResolveStatePath` 规范化为绝对路径（对齐 key-policy）：配置为空时默认文件名 `model-mapper-plus-state.json`；默认文件名与相对路径均相对 **CPA 进程工作目录** 解析（插件无法读取 CPA 的 `plugins.dir`，故不追逐 `.so` 位置）；绝对路径原样清理返回。state_file 存在且合法时 SHALL 作为顶层规则四段与 key 绑定的唯一真相源；不存在时 SHALL 以 YAML 规则字段为运行值，并于首次经 management API 保存时创建 state_file（纳入当时 YAML 值，并在需要时创建父目录 mode 0700）。`enabled` 开关 SHALL 只来自 YAML，不进 state_file。`GET /state` SHALL 返回规范化后的 `state_file` 绝对路径供 UI 展示。
 
 #### Scenario: seed 仅一次
 
@@ -122,17 +122,11 @@ state_file 路径 SHALL 经 `ResolveStatePath` 规范化为绝对路径：配置
 - **WHEN** 插件加载后经 UI 保存一次 key 绑定
 - **THEN** 绝对路径上的 state_file 创建且其 `rules.global` 为 R1；此后修改 YAML `global_rules` 不再影响运行值
 
-#### Scenario: 默认路径与插件库同目录
+#### Scenario: 默认路径基于进程工作目录
 
-- **GIVEN** 配置未写 `state_file`，且能解析本插件库路径为 `/opt/cpa/plugins/linux/amd64/model-mapper-plus.so`
+- **GIVEN** 配置未写 `state_file`，CPA 进程工作目录为 `/app`
 - **WHEN** 解析状态路径
-- **THEN** 得到 `/opt/cpa/plugins/linux/amd64/model-mapper-plus-state.json`
-
-#### Scenario: Windows shadow 目录不落盘 state
-
-- **GIVEN** 本插件库路径落在 `$TMP/cliproxy-pluginhost/...` 下
-- **WHEN** 解析默认状态路径
-- **THEN** 不得使用该 shadow 目录，改用 `<exe>/plugins/<goos>/<goarch>/model-mapper-plus-state.json` 或文档约定的后续回退
+- **THEN** 得到 `/app/model-mapper-plus-state.json`
 
 ### Requirement: state_file 损坏回退
 

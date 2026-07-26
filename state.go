@@ -18,15 +18,15 @@ const (
 
 // ResolveStatePath returns an absolute path for the plugin state file.
 //
-// Empty input uses defaultStatePath(): prefer the directory of this plugin's
-// loaded .so/.dll (same folder as the binary), then
-// <dir(executable)>/plugins/<goos>/<goarch>/, then process cwd.
-// Non-empty relative paths are resolved against the process working directory.
-// Absolute paths are cleaned and returned as-is.
+// Mirrors key-policy's ResolveStatePath: empty input uses defaultStateFile;
+// relative paths (including the default) are resolved against the CPA process
+// working directory; absolute paths are cleaned as-is. The plugin cannot read
+// CPA's plugins.dir, so it does not chase the .so location — set an explicit
+// absolute state_file when you need a specific directory.
 func ResolveStatePath(path string) (string, error) {
 	path = strings.TrimSpace(path)
 	if path == "" {
-		return defaultStatePath()
+		path = defaultStateFile
 	}
 	if filepath.IsAbs(path) {
 		return filepath.Clean(path), nil
