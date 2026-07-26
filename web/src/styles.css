@@ -1,9 +1,23 @@
-/* Page background follows the Semi theme token so dark mode paints a dark
-   page. Semi only flips component tokens (Card/Layout/...), not body/html bg,
-   so without this the dark components float on a transparent->white page. */
+/* Page background follows the CPA panel's three themes. Semi only flips its
+   own component tokens per body[theme-mode], not the page bg, so we mirror
+   the panel's page colors ourselves:
+     - no data-theme  -> "paper" greige (panel default light)
+     - data-theme=white -> clean neutral white-grey
+     - data-theme=dark  -> Semi dark bg token (body theme-mode=dark set by themeSync)
+*/
 html, body, #root {
   margin: 0;
-  background-color: var(--semi-color-bg-0);
-  color: var(--semi-color-text-0);
   min-height: 100vh;
+  color: var(--semi-color-text-0);
+}
+
+/* default: CPA "paper" greige */
+body {
+  background-color: #faf9f5;
+}
+html[data-theme="white"] body {
+  background-color: #f5f5f5;
+}
+html[data-theme="dark"] body {
+  background-color: var(--semi-color-bg-0);
 }
