@@ -113,6 +113,8 @@ func run() error {
 			"keyTest":     env("CPA_SMOKE_MODEL_KEY_TEST", "keytest-src"),
 			"effortSrc":   env("CPA_SMOKE_MODEL_EFFORT_SRC", "glm-5.2(max)"),
 			"effortDst":   env("CPA_SMOKE_MODEL_EFFORT_DST", "glm-5.2(high)"),
+			"effortMid":   env("CPA_SMOKE_MODEL_EFFORT_MID", "glm-5.2(medium)"),
+			"keyMid":      env("CPA_SMOKE_MODEL_KEY_MID", "keytest-mid"),
 		},
 	}
 
@@ -141,6 +143,18 @@ func run() error {
 		// thinking-effort suffix: rule rewrites model(max)=>model(high); CPA strips
 		// the (high) suffix when calling upstream. Verifies suffix participates in DSL.
 		{name: "thinking-effort-suffix", requestModel: m["effortSrc"], pluginRules: m["effortSrc"] + "=>" + m["effortDst"], wantSuccess: true, wantOriginalModel: m["effortSrc"]},
+		// top + key relay (both layers non-empty): top maps keyTest=>keyMid (both
+		// fake), key maps keyMid=>passthrough. Only the two-layer chain reaches a
+		// real upstream model; without the key layer the request dies at keyMid.
+		{name: "top-key-relay", requestModel: m["keyTest"], pluginRules: m["keyTest"] + "=>" + m["keyMid"], keyBinding: m["keyMid"] + "=>" + m["passthrough"], wantSuccess: true, wantOriginalModel: m["keyTest"]},
+		// key overrides top to net-zero: top passthrough=>keyTest (fake), key
+		// keyTest=>passthrough (revert). Net == original -> plugin does not take
+		// over -> CPA default serves passthrough. Without the key layer, the top
+		// rule alone would route to the fake keyTest and fail upstream.
+		{name: "key-overrides-top-netzero", requestModel: m["passthrough"], pluginRules: m["passthrough"] + "=>" + m["keyTest"], keyBinding: m["keyTest"] + "=>" + m["passthrough"], wantSuccess: true, wantOriginalModel: m["passthrough"]},
+		// effort suffix + key relay: top (max)=>(high), key (high)=>(medium). Both
+		// layers rewrite the suffix; CPA strips the final (medium) upstream.
+		{name: "effort-suffix-key-relay", requestModel: m["effortSrc"], pluginRules: m["effortSrc"] + "=>" + m["effortDst"], keyBinding: m["effortDst"] + "=>" + m["effortMid"], wantSuccess: true, wantOriginalModel: m["effortSrc"]},
 	}
 	for _, tc := range cases {
 		if err := runCase(envCfg, tc); err != nil {
