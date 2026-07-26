@@ -17,33 +17,25 @@ import (
 
 // smoke-local exercises the model-mapper-plus plugin against an ALREADY
 // RUNNING CPA instance. It injects each case's rules / key bindings via the
-// plugin's own management API (into a chosen ruleset segment), sends a chat
-// request, and asserts the rewrite result.
+// plugin's own management API (into a chosen ruleset segment), sends a
+// request in a chosen format (openai/claude/codex), and asserts the rewrite.
 //
 // Required env:
 //
-//	CPA_SMOKE_MGMT_KEY   management key (plaintext) for the management API
-//	CPA_SMOKE_CLIENT_KEY a valid client api-key for /v1/chat/completions (also the bound key)
+//	CPA_SMOKE_MGMT_KEY   management key (plaintext)
+//	CPA_SMOKE_CLIENT_KEY a valid client api-key (also the bound key)
 //
-// Optional env (defaults shown) — set the MODEL_* to models your upstream serves:
+// Optional env:
 //
+//	CPA_SMOKE_CLIENT_KEY_2    second client key (enables multi-key-isolation)
 //	CPA_SMOKE_BASE_URL=http://127.0.0.1:8317
 //	CPA_SMOKE_WRONG_KEY=wrong-local-smoke-key
-//	CPA_SMOKE_MODEL_PASSTHROUGH=deepseek-v4-flash
-//	CPA_SMOKE_MODEL_CHAIN_SRC=deepseek-v4-pro
-//	CPA_SMOKE_MODEL_CHAIN_MID=deepseek-v4-flash
-//	CPA_SMOKE_MODEL_CHAIN_DST=gpt-5.4-mini
-//	CPA_SMOKE_MODEL_KEY_TEST=keytest-src      # fake name only resolvable via rules
-//	CPA_SMOKE_MODEL_KEY_MID=keytest-mid
-//	CPA_SMOKE_MODEL_KEY_WILD=keytest-wild     # fake name matched by wildcard
-//	CPA_SMOKE_MODEL_EFFORT_SRC=glm-5.2(max)
-//	CPA_SMOKE_MODEL_EFFORT_DST=glm-5.2(high)
-//	CPA_SMOKE_MODEL_EFFORT_MID=glm-5.2(medium)
+//	CPA_SMOKE_MODEL_*         see defaults below
 
 const (
 	defaultBaseURL  = "http://127.0.0.1:8317"
 	defaultWrongKey = "wrong-local-smoke-key"
-	defaultSegment  = "openai" // /v1/chat/completions maps to the openai segment
+	defaultSegment  = "openai"
 	rulesEndpoint   = "/v0/management/plugins/model-mapper-plus/rules"
 	keysEndpoint    = "/v0/management/plugins/model-mapper-plus/keys"
 )
@@ -52,29 +44,26 @@ type smokeEnv struct {
 	baseURL   string
 	mgmtKey   string
 	clientKey string
+	clientKey2 string
 	wrongKey  string
 	models    map[string]string
 }
 
 type caseConfig struct {
 	name              string
-	pluginRules       string // injected into the top-level ruleset segment
-	topSegment        string // ruleset segment for pluginRules (default openai)
-	keyBinding        string // if set, bind clientKey with this rule
-	keySegment        string // ruleset segment for the key binding (default openai)
+	pluginRules       string
+	topSegment        string
+	keyBinding        string
+	keySegment        string
+	keyDisabled       bool // bind clientKey but with enabled=false
 	requestModel      string
-	format            string // "openai" (default) or "claude"
+	format            string // "openai" (default), "claude", "codex"
 	useWrongKey       bool
 	stream            bool
 	wantSuccess       bool
 	wantOriginalModel string
 	forbidModel       string
-	wantRulesReject   bool // expect PUT /rules to return 4xx (e.g. bad rules)
-}
-
-type openAIResponse struct {
-	Model string          `json:"model"`
-	Error json.RawMessage `json:"error"`
+	wantRulesReject   bool
 }
 
 func main() {
@@ -115,10 +104,11 @@ func run() error {
 		return err
 	}
 	envCfg := smokeEnv{
-		baseURL:   env("CPA_SMOKE_BASE_URL", defaultBaseURL),
-		mgmtKey:   mgmtKey,
-		clientKey: clientKey,
-		wrongKey:  env("CPA_SMOKE_WRONG_KEY", defaultWrongKey),
+		baseURL:    env("CPA_SMOKE_BASE_URL", defaultBaseURL),
+		mgmtKey:    mgmtKey,
+		clientKey:  clientKey,
+		clientKey2: strings.TrimSpace(os.Getenv("CPA_SMOKE_CLIENT_KEY_2")),
+		wrongKey:   env("CPA_SMOKE_WRONG_KEY", defaultWrongKey),
 		models: map[string]string{
 			"passthrough": env("CPA_SMOKE_MODEL_PASSTHROUGH", "deepseek-v4-flash"),
 			"chainSrc":    env("CPA_SMOKE_MODEL_CHAIN_SRC", "deepseek-v4-pro"),
@@ -141,6 +131,7 @@ func run() error {
 	}
 	defer func() { _ = clearAllRules(envCfg) }()
 	defer func() { _ = deleteKey(envCfg, envCfg.clientKey) }()
+	defer func() { _ = deleteKey(envCfg, envCfg.clientKey2) }()
 
 	m := envCfg.models
 	cases := []caseConfig{
@@ -152,32 +143,80 @@ func run() error {
 		{name: "wrong-api-key", requestModel: m["chainMid"], useWrongKey: true, wantSuccess: false},
 		{name: "streaming", requestModel: m["chainSrc"], pluginRules: m["chainSrc"] + "=>" + m["chainMid"] + ";" + m["chainMid"] + "=>" + m["chainDst"], stream: true, wantSuccess: true, wantOriginalModel: m["chainSrc"], forbidModel: m["chainDst"]},
 
-		// key binding (key layer alone)
 		{name: "key-binding-chain", requestModel: m["keyTest"], keyBinding: m["keyTest"] + "=>" + m["passthrough"], wantSuccess: true, wantOriginalModel: m["keyTest"]},
-		// thinking-effort suffix in DSL
 		{name: "thinking-effort-suffix", requestModel: m["effortSrc"], pluginRules: m["effortSrc"] + "=>" + m["effortDst"], wantSuccess: true, wantOriginalModel: m["effortSrc"]},
 
-		// top + key coexistence
 		{name: "top-key-relay", requestModel: m["keyTest"], pluginRules: m["keyTest"] + "=>" + m["keyMid"], keyBinding: m["keyMid"] + "=>" + m["passthrough"], wantSuccess: true, wantOriginalModel: m["keyTest"]},
 		{name: "key-overrides-top-netzero", requestModel: m["passthrough"], pluginRules: m["passthrough"] + "=>" + m["keyTest"], keyBinding: m["keyTest"] + "=>" + m["passthrough"], wantSuccess: true, wantOriginalModel: m["passthrough"]},
 		{name: "effort-suffix-key-relay", requestModel: m["effortSrc"], pluginRules: m["effortSrc"] + "=>" + m["effortDst"], keyBinding: m["effortDst"] + "=>" + m["effortMid"], wantSuccess: true, wantOriginalModel: m["effortSrc"]},
 
-		// segment selection: endpoint empty -> fall back to global
 		{name: "top-global-segment-fallback", requestModel: m["keyTest"], pluginRules: m["keyTest"] + "=>" + m["passthrough"], topSegment: "global", wantSuccess: true, wantOriginalModel: m["keyTest"]},
 		{name: "key-global-segment-fallback", requestModel: m["keyTest"], keyBinding: m["keyTest"] + "=>" + m["passthrough"], keySegment: "global", wantSuccess: true, wantOriginalModel: m["keyTest"]},
 
-		// wildcard capture: keytest-* matches keytest-wild
 		{name: "wildcard-capture", requestModel: m["keyWild"], pluginRules: "keytest-*=>" + m["passthrough"], wantSuccess: true, wantOriginalModel: m["keyWild"]},
-		// $1 backref: cap-<model> strips the cap- prefix via * capture + $1 reference
 		{name: "capture-backref", requestModel: "cap-" + m["passthrough"], pluginRules: "cap-*=>$1", wantSuccess: true, wantOriginalModel: "cap-" + m["passthrough"]},
-		// claude endpoint segment: request via /v1/messages selects the claude segment
+
 		{name: "claude-segment", requestModel: m["keyTest"], pluginRules: m["keyTest"] + "=>" + m["passthrough"], topSegment: "claude", format: "claude", wantSuccess: true, wantOriginalModel: m["keyTest"]},
+		// codex-segment (/v1/responses) omitted: z.ai's anthropic endpoint rejects
+		// CPA's responses->anthropic translation ("messages parameter is illegal"),
+		// so the upstream cannot serve it even though the plugin's codex-segment
+		// routing works. claude-segment already proves endpoint->segment routing.
+
+		// disabled binding is skipped: top-level empty, bound rule would map
+		// keyTest=>passthrough, but enabled=false so the key layer does not run
+		// and keyTest reaches upstream as-is (fake name) -> failure.
+		{name: "key-disabled-skips-key-layer", requestModel: m["keyTest"], keyBinding: m["keyTest"] + "=>" + m["passthrough"], keyDisabled: true, wantSuccess: false},
+
+		{name: "claude-stream", requestModel: m["chainSrc"], pluginRules: m["chainSrc"] + "=>" + m["chainMid"] + ";" + m["chainMid"] + "=>" + m["chainDst"], topSegment: "claude", format: "claude", stream: true, wantSuccess: true, wantOriginalModel: m["chainSrc"], forbidModel: m["chainDst"]},
 	}
 	for _, tc := range cases {
 		if err := runCase(envCfg, tc); err != nil {
 			return fmt.Errorf("%s: %w", tc.name, err)
 		}
 		fmt.Printf("ok: %s\n", tc.name)
+	}
+
+	if envCfg.clientKey2 == "" {
+		fmt.Println("skip: multi-key-isolation (set CPA_SMOKE_CLIENT_KEY_2 to enable)")
+	} else if err := runMultiKeyCase(envCfg); err != nil {
+		return fmt.Errorf("multi-key-isolation: %w", err)
+	} else {
+		fmt.Println("ok: multi-key-isolation")
+	}
+	return nil
+}
+
+// runMultiKeyCase: bind clientKey -> passthrough, clientKey2 -> fake keyMid.
+// A request for keyTest with clientKey must succeed (its binding maps to a real
+// model); with clientKey2 it must fail (its binding maps to a fake name).
+// Proves two bindings coexist and are selected by the inbound key independently.
+func runMultiKeyCase(env smokeEnv) error {
+	m := env.models
+	if err := putKeyAt(env, env.clientKey, "openai", m["keyTest"]+"=>"+m["passthrough"], true); err != nil {
+		return err
+	}
+	if err := putKeyAt(env, env.clientKey2, "openai", m["keyTest"]+"=>"+m["keyMid"], true); err != nil {
+		return err
+	}
+	// key1 -> success
+	st1, body1, err := sendChatRequest(env, m["keyTest"], env.clientKey, false)
+	if err != nil {
+		return err
+	}
+	if st1/100 != 2 {
+		return fmt.Errorf("key1 want success, got status=%d body=%s", st1, body1)
+	}
+	var p1 openAIResponse
+	if err := json.Unmarshal(body1, &p1); err != nil || p1.Model != m["keyTest"] {
+		return fmt.Errorf("key1 want model %q, body=%s", m["keyTest"], body1)
+	}
+	// key2 -> failure (maps to fake keyMid)
+	st2, _, err := sendChatRequest(env, m["keyTest"], env.clientKey2, false)
+	if err != nil {
+		return err
+	}
+	if st2/100 == 2 {
+		return fmt.Errorf("key2 want failure (mapped to fake), got status=%d", st2)
 	}
 	return nil
 }
@@ -200,7 +239,7 @@ func runCase(env smokeEnv, tc caseConfig) error {
 	defer func() { _ = clearAllRules(env) }()
 
 	if tc.keyBinding != "" {
-		if err := putKeyAt(env, env.clientKey, seg(tc.keySegment), tc.keyBinding); err != nil {
+		if err := putKeyAt(env, env.clientKey, seg(tc.keySegment), tc.keyBinding, !tc.keyDisabled); err != nil {
 			return err
 		}
 		defer func() { _ = deleteKey(env, env.clientKey) }()
@@ -252,10 +291,10 @@ func clearAllRules(env smokeEnv) error {
 
 // --- key binding API ---
 
-func putKeyAt(env smokeEnv, apiKey, segment, rules string) error {
+func putKeyAt(env smokeEnv, apiKey, segment, rules string, enabled bool) error {
 	rs := emptyRuleSet()
 	rs[segment] = rules
-	body := map[string]any{"key": apiKey, "alias": "", "enabled": true, "rules": rs}
+	body := map[string]any{"key": apiKey, "alias": "", "enabled": enabled, "rules": rs}
 	status, respBody, err := doManage(env, http.MethodPost, keysEndpoint, nil, body)
 	if err != nil {
 		return err
@@ -267,6 +306,9 @@ func putKeyAt(env smokeEnv, apiKey, segment, rules string) error {
 }
 
 func deleteKey(env smokeEnv, apiKey string) error {
+	if apiKey == "" {
+		return nil
+	}
 	status, _, err := doManage(env, http.MethodDelete, keysEndpoint, url.Values{"key": {apiKey}}, nil)
 	if err != nil {
 		return err
@@ -277,7 +319,7 @@ func deleteKey(env smokeEnv, apiKey string) error {
 	return nil
 }
 
-// --- shared ---
+// --- shared management ---
 
 func doManage(env smokeEnv, method, path string, query url.Values, body any) (int, []byte, error) {
 	var reader io.Reader
@@ -311,6 +353,8 @@ func doManage(env smokeEnv, method, path string, query url.Values, body any) (in
 	return resp.StatusCode, respBody, nil
 }
 
+// --- readiness ---
+
 func waitReady(env smokeEnv) error {
 	deadline := time.Now().Add(30 * time.Second)
 	for time.Now().Before(deadline) {
@@ -340,15 +384,100 @@ func getModels(env smokeEnv) (int, []byte, error) {
 	return resp.StatusCode, body, err
 }
 
-func runJSONCase(env smokeEnv, tc caseConfig, apiKey string) error {
-	var status int
-	var body []byte
-	var err error
-	if tc.format == "claude" {
-		status, body, err = sendClaudeRequest(env, tc.requestModel, apiKey, false)
-	} else {
-		status, body, err = sendChatRequest(env, tc.requestModel, apiKey, false)
+// --- request senders ---
+
+func sendRequest(env smokeEnv, tc caseConfig, apiKey string, stream bool) (int, []byte, error) {
+	switch tc.format {
+	case "claude":
+		return sendClaudeRequest(env, tc.requestModel, apiKey, stream)
+	case "codex":
+		return sendCodexRequest(env, tc.requestModel, apiKey, stream)
+	default:
+		return sendChatRequest(env, tc.requestModel, apiKey, stream)
 	}
+}
+
+func sendChatRequest(env smokeEnv, model, apiKey string, stream bool) (int, []byte, error) {
+	payload := map[string]any{
+		"model":    model,
+		"messages": []map[string]string{{"role": "user", "content": "say ok"}},
+		"stream":   stream,
+	}
+	return sendJSON(env, http.MethodPost, "/v1/chat/completions", apiKey, payload, nil)
+}
+
+func sendClaudeRequest(env smokeEnv, model, apiKey string, stream bool) (int, []byte, error) {
+	payload := map[string]any{
+		"model":      model,
+		"messages":   []map[string]string{{"role": "user", "content": "say ok"}},
+		"max_tokens": 16,
+		"stream":     stream,
+	}
+	extra := map[string]string{"anthropic-version": "2023-06-01"}
+	return sendJSON(env, http.MethodPost, "/v1/messages", apiKey, payload, extra)
+}
+
+func sendCodexRequest(env smokeEnv, model, apiKey string, stream bool) (int, []byte, error) {
+	payload := map[string]any{
+		"model":  model,
+		"input":  "say ok",
+		"stream": stream,
+	}
+	return sendJSON(env, http.MethodPost, "/v1/responses", apiKey, payload, nil)
+}
+
+func sendJSON(env smokeEnv, method, path, apiKey string, payload any, extra map[string]string) (int, []byte, error) {
+	raw, err := json.Marshal(payload)
+	if err != nil {
+		return 0, nil, err
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
+	defer cancel()
+	req, err := http.NewRequestWithContext(ctx, method, env.baseURL+path, bytes.NewReader(raw))
+	if err != nil {
+		return 0, nil, err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+apiKey)
+	for k, v := range extra {
+		req.Header.Set(k, v)
+	}
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return 0, nil, fmt.Errorf("send %s: %w", path, err)
+	}
+	defer resp.Body.Close()
+	body, err := io.ReadAll(resp.Body)
+	return resp.StatusCode, body, err
+}
+
+// --- assertions ---
+
+type openAIResponse struct {
+	Model string          `json:"model"`
+	Error json.RawMessage `json:"error"`
+}
+
+// streamModel extracts the model name from a SSE data payload across formats:
+// openai exposes top-level .model; claude exposes .message.model.
+func streamModel(payload string) string {
+	var op struct {
+		Model string `json:"model"`
+	}
+	if json.Unmarshal([]byte(payload), &op) == nil && op.Model != "" {
+		return op.Model
+	}
+	var cl struct {
+		Message struct {
+			Model string `json:"model"`
+		} `json:"message"`
+	}
+	json.Unmarshal([]byte(payload), &cl)
+	return cl.Message.Model
+}
+
+func runJSONCase(env smokeEnv, tc caseConfig, apiKey string) error {
+	status, body, err := sendRequest(env, tc, apiKey, false)
 	if err != nil {
 		return err
 	}
@@ -384,7 +513,7 @@ func runJSONCase(env smokeEnv, tc caseConfig, apiKey string) error {
 }
 
 func runStreamCase(env smokeEnv, tc caseConfig, apiKey string) error {
-	status, body, err := sendChatRequest(env, tc.requestModel, apiKey, true)
+	status, body, err := sendRequest(env, tc, apiKey, true)
 	if err != nil {
 		return err
 	}
@@ -404,81 +533,31 @@ func runStreamCase(env smokeEnv, tc caseConfig, apiKey string) error {
 			sawDone = true
 			continue
 		}
-		var parsed openAIResponse
-		if err := json.Unmarshal([]byte(payload), &parsed); err != nil {
+		// claude/anthropic streams end with a message_stop event, not [DONE].
+		var typed struct{ Type string `json:"type"` }
+		if json.Unmarshal([]byte(payload), &typed) == nil && typed.Type == "message_stop" {
+			sawDone = true
 			continue
 		}
-		if parsed.Model == tc.wantOriginalModel {
+		model := streamModel(payload)
+		if model == "" {
+			continue
+		}
+		if tc.wantOriginalModel != "" && model == tc.wantOriginalModel {
 			sawOriginal = true
 		}
-		if tc.forbidModel != "" && parsed.Model == tc.forbidModel {
+		if tc.forbidModel != "" && model == tc.forbidModel {
 			return fmt.Errorf("forbid streamed model %q in payload=%s", tc.forbidModel, payload)
 		}
 	}
 	if err := scanner.Err(); err != nil {
 		return fmt.Errorf("scan stream: %w", err)
 	}
-	if !sawOriginal {
+	if tc.wantOriginalModel != "" && !sawOriginal {
 		return fmt.Errorf("missing original streamed model %q in body=%s", tc.wantOriginalModel, body)
 	}
 	if !sawDone {
 		return fmt.Errorf("missing data: [DONE] in body=%s", body)
 	}
 	return nil
-}
-
-func sendClaudeRequest(env smokeEnv, model, apiKey string, stream bool) (int, []byte, error) {
-	payload := map[string]any{
-		"model":      model,
-		"messages":   []map[string]string{{"role": "user", "content": "say ok"}},
-		"max_tokens": 16,
-		"stream":     stream,
-	}
-	raw, err := json.Marshal(payload)
-	if err != nil {
-		return 0, nil, err
-	}
-	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
-	defer cancel()
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, env.baseURL+"/v1/messages", bytes.NewReader(raw))
-	if err != nil {
-		return 0, nil, err
-	}
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", "Bearer "+apiKey)
-	req.Header.Set("anthropic-version", "2023-06-01")
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return 0, nil, fmt.Errorf("send claude request: %w", err)
-	}
-	defer resp.Body.Close()
-	body, err := io.ReadAll(resp.Body)
-	return resp.StatusCode, body, err
-}
-
-func sendChatRequest(env smokeEnv, model, apiKey string, stream bool) (int, []byte, error) {
-	payload := map[string]any{
-		"model":    model,
-		"messages": []map[string]string{{"role": "user", "content": "say ok"}},
-		"stream":   stream,
-	}
-	raw, err := json.Marshal(payload)
-	if err != nil {
-		return 0, nil, err
-	}
-	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
-	defer cancel()
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, env.baseURL+"/v1/chat/completions", bytes.NewReader(raw))
-	if err != nil {
-		return 0, nil, err
-	}
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", "Bearer "+apiKey)
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return 0, nil, fmt.Errorf("send request: %w", err)
-	}
-	defer resp.Body.Close()
-	body, err := io.ReadAll(resp.Body)
-	return resp.StatusCode, body, err
 }
