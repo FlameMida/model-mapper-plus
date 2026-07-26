@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/router-for-me/CLIProxyAPI/v7/sdk/pluginapi"
@@ -177,5 +178,40 @@ func TestManagementRecoversFromCorruptState(t *testing.T) {
 	}
 	if _, err := readStateFile(statePath); err != nil {
 		t.Fatalf("state not repaired: %v", err)
+	}
+}
+
+// Scenario: /state 返回插件版本且不持久化
+func TestManagementGetStateIncludesPluginVersion(t *testing.T) {
+	setupManagementTest(t, Config{Enabled: true})
+	resp := managementGetState()
+	if resp.StatusCode != http.StatusOK {
+		t.Fatalf("status = %d", resp.StatusCode)
+	}
+	var body struct {
+		PluginVersion string `json:"plugin_version"`
+	}
+	decodeBody(t, resp, &body)
+	if body.PluginVersion != pluginVersion {
+		t.Fatalf("plugin_version = %q, want %q", body.PluginVersion, pluginVersion)
+	}
+	if body.PluginVersion == "" {
+		t.Fatal("plugin_version must be non-empty (CPA rejects empty Version)")
+	}
+}
+
+// Scenario: plugin_version 不写 state_file（仅响应层）
+func TestStateFileExcludesPluginVersion(t *testing.T) {
+	statePath := setupManagementTest(t, Config{Enabled: true, GlobalRules: "a=>b"})
+	managementPostKey(pluginapi.ManagementRequest{
+		Method: http.MethodPost,
+		Body:   []byte(`{"key":"sk-a","enabled":true,"rules":{"global":"x=>y"}}`),
+	})
+	raw, err := os.ReadFile(statePath)
+	if err != nil {
+		t.Fatalf("state file not created: %v", err)
+	}
+	if strings.Contains(string(raw), "plugin_version") {
+		t.Fatalf("state_file must not contain plugin_version: %s", raw)
 	}
 }

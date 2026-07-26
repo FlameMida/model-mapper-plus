@@ -80,12 +80,13 @@ func managementError(status int, msg string) pluginapi.ManagementResponse {
 }
 
 type stateResponse struct {
-	Version     int          `json:"version"`
-	Rules       RuleSet      `json:"rules"`
-	KeyBindings []KeyBinding `json:"key_bindings"`
-	UpdatedAt   string       `json:"updated_at,omitempty"`
-	Persisted   bool         `json:"persisted"`
-	StateFile   string       `json:"state_file"`
+	Version       int          `json:"version"`
+	Rules         RuleSet      `json:"rules"`
+	KeyBindings   []KeyBinding `json:"key_bindings"`
+	UpdatedAt     string       `json:"updated_at,omitempty"`
+	Persisted     bool         `json:"persisted"`
+	StateFile     string       `json:"state_file"`
+	PluginVersion string       `json:"plugin_version"`
 }
 
 func managementGetState() pluginapi.ManagementResponse {
@@ -96,7 +97,8 @@ func managementGetState() pluginapi.ManagementResponse {
 	return managementJSON(http.StatusOK, stateResponse{
 		Version: stateVersion, Rules: st.Rules,
 		KeyBindings: st.KeyBindings, UpdatedAt: st.UpdatedAt, Persisted: persisted,
-		StateFile: stateFilePath(),
+		StateFile:     stateFilePath(),
+		PluginVersion: pluginVersion,
 	})
 }
 

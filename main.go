@@ -18,7 +18,7 @@ import (
 
 func main() {}
 
-var pluginVersion = "0.0.0-dev"
+var pluginVersion = "0.0.0-dev.unbuilt"
 
 type sseRewriter struct {
 	originalModel string
