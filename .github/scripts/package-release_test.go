@@ -41,6 +41,19 @@ func TestArtifactSpecsCoverFullPlatformMatrix(t *testing.T) {
 	}
 }
 
+func TestBinaryPathVersioned(t *testing.T) {
+	a := artifactSpec{osName: "linux", arch: "amd64"}
+	got := a.binaryPath("dist", "1.2.3")
+	want := filepath.Join("dist", "linux_amd64", "model-mapper-plus-v1.2.3.so")
+	if got != want {
+		t.Fatalf("binaryPath = %s, want %s", got, want)
+	}
+	w := artifactSpec{osName: "windows", arch: "arm64"}
+	if got := w.binaryPath("dist", "0.0.0-dev.abc1"); got != filepath.Join("dist", "windows_arm64", "model-mapper-plus-v0.0.0-dev.abc1.dll") {
+		t.Fatalf("windows binaryPath = %s", got)
+	}
+}
+
 func TestPackageLibraryWritesRootLibraryEntryAndChecksum(t *testing.T) {
 	dir := t.TempDir()
 	libraryPath := filepath.Join(dir, "model-mapper-plus.so")
@@ -114,10 +127,10 @@ func TestPackageExistingArtifactsUsesSha256sumFormat(t *testing.T) {
 	if err := os.MkdirAll(windowsDir, 0o755); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(filepath.Join(linuxDir, "model-mapper-plus.so"), []byte("linux"), 0o644); err != nil {
+	if err := os.WriteFile(filepath.Join(linuxDir, "model-mapper-plus-v0.1.0.so"), []byte("linux"), 0o644); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(filepath.Join(windowsDir, "model-mapper-plus.dll"), []byte("windows"), 0o644); err != nil {
+	if err := os.WriteFile(filepath.Join(windowsDir, "model-mapper-plus-v0.1.0.dll"), []byte("windows"), 0o644); err != nil {
 		t.Fatal(err)
 	}
 

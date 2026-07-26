@@ -60,7 +60,7 @@ func packageExistingArtifacts(version, distDir, outDir string) error {
 
 	zipPaths := make([]string, 0, len(artifactSpecs()))
 	for _, artifact := range artifactSpecs() {
-		binaryPath := artifact.binaryPath(distDir)
+		binaryPath := artifact.binaryPath(distDir, version)
 		if _, err := os.Stat(binaryPath); err != nil {
 			if os.IsNotExist(err) {
 				continue
@@ -92,8 +92,9 @@ func artifactSpecs() []artifactSpec {
 	}
 }
 
-func (a artifactSpec) binaryPath(distDir string) string {
-	return filepath.Join(distDir, a.osName+"_"+a.arch, pluginName+libraryExtension(a.osName))
+func (a artifactSpec) binaryPath(distDir, version string) string {
+	return filepath.Join(distDir, a.osName+"_"+a.arch,
+		fmt.Sprintf("%s-v%s%s", pluginName, version, libraryExtension(a.osName)))
 }
 
 func libraryExtension(osName string) string {

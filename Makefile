@@ -24,8 +24,8 @@ VERSION_LDFLAGS := -X main.pluginVersion=$(PLUGIN_VERSION)
 
 print-version:
 	@echo "$(PLUGIN_VERSION)"
-WINDOWS_AMD64_OUT := $(DIST_DIR)/windows_amd64/$(PLUGIN_NAME).dll
-LINUX_AMD64_OUT := $(DIST_DIR)/linux_amd64/$(PLUGIN_NAME).so
+WINDOWS_AMD64_OUT := $(DIST_DIR)/windows_amd64/$(PLUGIN_NAME)-v$(PLUGIN_VERSION).dll
+LINUX_AMD64_OUT := $(DIST_DIR)/linux_amd64/$(PLUGIN_NAME)-v$(PLUGIN_VERSION).so
 LINUX_AMD64_CC ?=
 LINUX_AMD64_CC_BIN := $(firstword $(LINUX_AMD64_CC))
 
@@ -56,7 +56,7 @@ vet:
 build-platform-go:
 	@if [ -z "$(GOOS)" ] || [ -z "$(GOARCH)" ]; then echo "GOOS and GOARCH are required"; exit 1; fi
 	@case "$(GOOS)" in windows) ext=".dll" ;; darwin) ext=".dylib" ;; *) ext=".so" ;; esac; \
-	out="$(DIST_DIR)/$(GOOS)_$(GOARCH)/$(PLUGIN_NAME)$$ext"; \
+	out="$(DIST_DIR)/$(GOOS)_$(GOARCH)/$(PLUGIN_NAME)-v$(PLUGIN_VERSION)$$ext"; \
 	mkdir -p "$$(dirname "$$out")"; \
 	if [ -n "$(BUILD_CC)" ]; then export CC="$(BUILD_CC)"; fi; \
 	CGO_ENABLED=1 GOOS="$(GOOS)" GOARCH="$(GOARCH)" $(GO) build -trimpath -buildmode=c-shared -ldflags='$(LDFLAGS) $(VERSION_LDFLAGS)' -o "$$out" .
@@ -90,7 +90,7 @@ build-linux-amd64-go:
 package-platform: build-platform
 	@if [ -z "$(VERSION)" ]; then echo "VERSION is required"; exit 1; fi
 	@case "$(GOOS)" in windows) ext=".dll" ;; darwin) ext=".dylib" ;; *) ext=".so" ;; esac; \
-	library="$(DIST_DIR)/$(GOOS)_$(GOARCH)/$(PLUGIN_NAME)$$ext"; \
+	library="$(DIST_DIR)/$(GOOS)_$(GOARCH)/$(PLUGIN_NAME)-v$(PLUGIN_VERSION)$$ext"; \
 	archive="$(DIST_DIR)/$(PLUGIN_NAME)_$(VERSION)_$(GOOS)_$(GOARCH).zip"; \
 	GOOS= GOARCH= CGO_ENABLED= $(GO) run .github/scripts/package-release.go -library "$$library" -archive "$$archive" -checksum "$$archive.sha256"
 
