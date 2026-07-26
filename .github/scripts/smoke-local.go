@@ -38,6 +38,7 @@ const (
 	defaultSegment  = "openai"
 	rulesEndpoint   = "/v0/management/plugins/model-mapper-plus/rules"
 	keysEndpoint    = "/v0/management/plugins/model-mapper-plus/keys"
+	previewEndpoint = "/v0/management/plugins/model-mapper-plus/preview"
 )
 
 type smokeEnv struct {
@@ -176,6 +177,11 @@ func run() error {
 		fmt.Printf("ok: %s\n", tc.name)
 	}
 
+	if err := runPreviewConsistency(envCfg); err != nil {
+		return fmt.Errorf("preview-api-consistency: %w", err)
+	}
+	fmt.Println("ok: preview-api-consistency")
+
 	if envCfg.clientKey2 == "" {
 		fmt.Println("skip: multi-key-isolation (set CPA_SMOKE_CLIENT_KEY_2 to enable)")
 	} else if err := runMultiKeyCase(envCfg); err != nil {
@@ -217,6 +223,55 @@ func runMultiKeyCase(env smokeEnv) error {
 	}
 	if st2/100 == 2 {
 		return fmt.Errorf("key2 want failure (mapped to fake), got status=%d", st2)
+	}
+	return nil
+}
+
+type previewResult struct {
+	M1     string `json:"m1"`
+	M2     string `json:"m2"`
+	Routed bool   `json:"routed"`
+	Final  string `json:"final"`
+}
+
+func preview(env smokeEnv, apiKey, format, model string) (previewResult, error) {
+	var pr previewResult
+	body := map[string]string{"key": apiKey, "format": format, "model": model}
+	status, respBody, err := doManage(env, http.MethodPost, previewEndpoint, nil, body)
+	if err != nil {
+		return pr, err
+	}
+	if status/100 != 2 {
+		return pr, fmt.Errorf("preview status=%d body=%s", status, respBody)
+	}
+	if err := json.Unmarshal(respBody, &pr); err != nil {
+		return pr, fmt.Errorf("decode preview: %w", err)
+	}
+	return pr, nil
+}
+
+// runPreviewConsistency: the dry-run /preview must agree with a real request.
+// Top-level rule keyTest=>passthrough; preview must say routed+final=passthrough
+// and a real request for the fake keyTest must actually succeed.
+func runPreviewConsistency(env smokeEnv) error {
+	m := env.models
+	if err := putRulesAt2xx(env, "openai", m["keyTest"]+"=>"+m["passthrough"]); err != nil {
+		return err
+	}
+	defer func() { _ = clearAllRules(env) }()
+	pr, err := preview(env, "", "openai", m["keyTest"])
+	if err != nil {
+		return err
+	}
+	if !pr.Routed || pr.Final != m["passthrough"] {
+		return fmt.Errorf("preview mismatch: want routed+final=%s, got %+v", m["passthrough"], pr)
+	}
+	st, _, err := sendChatRequest(env, m["keyTest"], env.clientKey, false)
+	if err != nil {
+		return err
+	}
+	if st/100 != 2 {
+		return fmt.Errorf("preview said routed but real request failed: status=%d", st)
 	}
 	return nil
 }

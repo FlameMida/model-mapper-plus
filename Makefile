@@ -21,7 +21,7 @@ CPA_PLUGINS_DIR ?= /Users/flame/CLIProxyAPI/plugins
 # CPA host:port the vite dev server proxies API calls to.
 CPA_HOST ?= http://127.0.0.1:8317
 
-.PHONY: test vet web-build build-platform-go build-platform build-windows-amd64 build-linux-amd64 build-linux-amd64-go build package-platform package install-local install-linux-amd64 smoke-local dev-so dev-ui clean
+.PHONY: test vet web-build build-platform-go build-platform build-windows-amd64 build-linux-amd64 build-linux-amd64-go build package-platform package install-local install-linux-amd64 smoke-local smoke-persistence dev-so dev-ui clean
 
 test:
 	$(GO) test ./...
@@ -97,6 +97,12 @@ install-linux-amd64: build-linux-amd64
 smoke-local:
 	@if [ -f .env ]; then set -a; . ./.env; set +a; fi; \
 	$(GO) run .github/scripts/smoke-local.go
+
+# smoke-persistence: rules saved to state_file must survive a CPA restart.
+# Requires CPA_SMOKE_RESTART_CMD in .env.
+smoke-persistence:
+	@if [ -f .env ]; then set -a; . ./.env; set +a; fi; \
+	$(GO) run .github/scripts/smoke-persistence.go
 
 # dev-so: cross-compile linux/amd64 .so via zig (with fresh UI) and copy it
 # into your docker CPA's mounted plugins dir, then the host hot-reloads it.
