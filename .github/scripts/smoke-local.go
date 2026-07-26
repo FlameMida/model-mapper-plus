@@ -118,7 +118,6 @@ func run() error {
 			"keyTest":     env("CPA_SMOKE_MODEL_KEY_TEST", "keytest-src"),
 			"keyMid":      env("CPA_SMOKE_MODEL_KEY_MID", "keytest-mid"),
 			"keyWild":     env("CPA_SMOKE_MODEL_KEY_WILD", "keytest-wild"),
-			"effortSrc":   env("CPA_SMOKE_MODEL_EFFORT_SRC", "glm-5.2(max)"),
 			"effortDst":   env("CPA_SMOKE_MODEL_EFFORT_DST", "glm-5.2(high)"),
 			"effortMid":   env("CPA_SMOKE_MODEL_EFFORT_MID", "glm-5.2(medium)"),
 		},
