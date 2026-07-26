@@ -3,7 +3,7 @@
 spec_dev:
   version: 1
   feature: plugin-version
-  status: draft
+  status: active
   covers:
     - "Makefile"
     - "main.go"
