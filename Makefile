@@ -6,7 +6,24 @@ GOARCH ?=
 BUILD_CC ?=
 VERSION ?=
 LDFLAGS ?= -s -w
-VERSION_LDFLAGS := $(if $(VERSION),-X main.pluginVersion=$(VERSION),)
+# 版本号单一来源：VERSION 强制覆盖 > HEAD 精确 tag > dev SHA；VERSION 与 tag 均去 v 前缀
+# （CPA 拒绝以 v 开头的 Version）。始终非空（CPA validPlugin 强制）。
+HEAD_TAG  := $(shell git describe --tags --exact-match HEAD 2>/dev/null | head -1)
+GIT_SHORT := $(shell git rev-parse --short HEAD 2>/dev/null)
+GIT_DIRTY := $(shell [ -z "$$(git status --porcelain 2>/dev/null)" ] || echo ".dirty")
+ifneq ($(VERSION),)
+  PLUGIN_VERSION := $(patsubst v%,%,$(VERSION))
+else ifneq ($(HEAD_TAG),)
+  PLUGIN_VERSION := $(patsubst v%,%,$(HEAD_TAG))
+else ifneq ($(GIT_SHORT),)
+  PLUGIN_VERSION := 0.0.0-dev.$(GIT_SHORT)$(GIT_DIRTY)
+else
+  PLUGIN_VERSION := 0.0.0-dev.unknown
+endif
+VERSION_LDFLAGS := -X main.pluginVersion=$(PLUGIN_VERSION)
+
+print-version:
+	@echo "$(PLUGIN_VERSION)"
 WINDOWS_AMD64_OUT := $(DIST_DIR)/windows_amd64/$(PLUGIN_NAME).dll
 LINUX_AMD64_OUT := $(DIST_DIR)/linux_amd64/$(PLUGIN_NAME).so
 LINUX_AMD64_CC ?=
@@ -21,7 +38,7 @@ CPA_PLUGINS_DIR ?= /Users/flame/CLIProxyAPI/plugins
 # CPA host:port the vite dev server proxies API calls to.
 CPA_HOST ?= http://127.0.0.1:8317
 
-.PHONY: test vet web-build build-platform-go build-platform build-windows-amd64 build-linux-amd64 build-linux-amd64-go build package-platform package install-local install-linux-amd64 smoke-local smoke-persistence dev-so dev-ui clean
+.PHONY: test vet web-build build-platform-go build-platform build-windows-amd64 build-linux-amd64 build-linux-amd64-go build package-platform package install-local install-linux-amd64 smoke-local smoke-persistence dev-so dev-ui clean print-version
 
 test:
 	$(GO) test ./...
