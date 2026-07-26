@@ -178,25 +178,27 @@ Linux amd64 CPA:
 
 ## Smoke test
 
-Live smoke uses only local ignored state under `.test-cpa/`.
+Live smoke runs against an **already running CPA** (e.g. your docker-compose instance with the plugin loaded). It injects each case's rules via the plugin's own management API (`PUT /v0/management/plugins/model-mapper-plus/rules`) and asserts the rewrite result on `/v1/chat/completions`.
 
 Required environment variables:
 
-- `CPA_SMOKE_API_KEY`
-- `CPA_SMOKE_CPA_BIN`
+- `CPA_SMOKE_MGMT_KEY` — CPA management key (`remote-management.secret-key`), used for `PUT /rules`
+- `CPA_SMOKE_CLIENT_KEY` — a valid client api-key for `/v1/chat/completions`
 
-Optional:
+Optional (defaults shown):
 
-- `CPA_SMOKE_BASE_URL` defaults to `https://a3.awsl.app/v1`
-- `CPA_SMOKE_PORT` defaults to `18080`
+- `CPA_SMOKE_BASE_URL` defaults to `http://127.0.0.1:8317`
+- `CPA_SMOKE_WRONG_KEY` defaults to `wrong-local-smoke-key`
+- `CPA_SMOKE_MODEL_PASSTHROUGH` defaults to `deepseek-v4-flash` — a model your upstream actually serves
+- `CPA_SMOKE_MODEL_CHAIN_SRC` / `_CHAIN_MID` / `_CHAIN_DST` default to `deepseek-v4-pro` / `deepseek-v4-flash` / `gpt-5.4-mini` — set these to models your docker CPA can serve so the success cases pass
 
-Run:
+Run (no `.test-cpa/` state is created anymore):
 
-```powershell
-make smoke-local
+```bash
+CPA_SMOKE_MGMT_KEY=... CPA_SMOKE_CLIENT_KEY=... make smoke-local
 ```
 
-Do not commit `.test-cpa/`, `.env`, generated config, logs, or `dist/` artifacts.
+Open the admin UI at `http://127.0.0.1:8317/v0/resource/plugins/model-mapper-plus/index.html` (sign in with the management key).
 
 ## License
 

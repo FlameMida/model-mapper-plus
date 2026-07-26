@@ -10,56 +10,58 @@ import (
 	"io"
 	"net/http"
 	"os"
-	"os/exec"
-	"path/filepath"
-	"strconv"
 	"strings"
-	"syscall"
 	"time"
 )
 
+// smoke-local exercises the model-mapper-plus plugin against an ALREADY
+// RUNNING CPA instance (typically the docker-compose one). It injects each
+// case's rules via the plugin's own management API (PUT /rules), sends a chat
+// request, and asserts the rewrite result.
+//
+// Required env:
+//
+//	CPA_SMOKE_MGMT_KEY   management key (remote-management.secret-key) for PUT /rules
+//	CPA_SMOKE_CLIENT_KEY a valid client api-key for /v1/chat/completions
+//
+// Optional env (defaults shown):
+//
+//	CPA_SMOKE_BASE_URL=http://127.0.0.1:8317
+//	CPA_SMOKE_WRONG_KEY=wrong-local-smoke-key
+//	CPA_SMOKE_MODEL_PASSTHROUGH=deepseek-v4-flash   # a model your upstream actually serves
+//	CPA_SMOKE_MODEL_CHAIN_SRC=deepseek-v4-pro       # chain start (client-visible)
+//	CPA_SMOKE_MODEL_CHAIN_MID=deepseek-v4-flash     # chain middle
+//	CPA_SMOKE_MODEL_CHAIN_DST=gpt-5.4-mini          # chain end (must be servable for success cases)
+
 const (
-	defaultBaseURL = "https://a3.awsl.app/v1"
-	defaultPort    = 18080
-	localAPIKey    = "local-smoke-key"
-	wrongAPIKey    = "wrong-local-smoke-key"
+	defaultBaseURL  = "http://127.0.0.1:8317"
+	defaultWrongKey = "wrong-local-smoke-key"
+	rulesEndpoint   = "/v0/management/plugins/model-mapper-plus/rules"
 )
 
 type smokeEnv struct {
-	repoRoot string
-	baseURL  string
-	apiKey   string
-	cpaBin   string
-	port     int
-	dir      string
-	config   string
-	plugin   string
-	logsDir  string
-	logFile  string
+	baseURL   string
+	mgmtKey   string
+	clientKey string
+	wrongKey  string
+	models    map[string]string
 }
 
 type caseConfig struct {
-	name               string
-	pluginRules        string
-	requestModel       string
-	requestAPIKey      string
-	stream             bool
-	wantSuccess        bool
-	wantOriginalModel  string
-	forbidModel        string
-	allowStartFailure  bool
-	allowConfigFailure bool
+	name             string
+	pluginRules      string // injected into the openai ruleset segment
+	requestModel     string
+	useWrongKey      bool
+	stream           bool
+	wantSuccess      bool
+	wantOriginalModel string
+	forbidModel      string
+	wantRulesReject  bool // expect PUT /rules to return 4xx (e.g. bad rules)
 }
 
 type openAIResponse struct {
 	Model string          `json:"model"`
 	Error json.RawMessage `json:"error"`
-}
-
-type cpaProcess struct {
-	cmd      *exec.Cmd
-	logFile  *os.File
-	waitDone chan error
 }
 
 func main() {
@@ -69,61 +71,62 @@ func main() {
 	}
 }
 
+func env(key, def string) string {
+	if v := strings.TrimSpace(os.Getenv(key)); v != "" {
+		return v
+	}
+	return def
+}
+
+func mustEnv(key string) (string, error) {
+	if v := strings.TrimSpace(os.Getenv(key)); v != "" {
+		return v, nil
+	}
+	return "", fmt.Errorf("%s is required", key)
+}
+
 func run() error {
-	apiKey := strings.TrimSpace(os.Getenv("CPA_SMOKE_API_KEY"))
-	if apiKey == "" {
-		return errors.New("CPA_SMOKE_API_KEY is required for live smoke")
-	}
-	cpaBin := strings.TrimSpace(os.Getenv("CPA_SMOKE_CPA_BIN"))
-	if cpaBin == "" {
-		return errors.New("CPA_SMOKE_CPA_BIN is required for live smoke")
-	}
-	baseURL := strings.TrimSpace(os.Getenv("CPA_SMOKE_BASE_URL"))
-	if baseURL == "" {
-		baseURL = defaultBaseURL
-	}
-	port := defaultPort
-	if raw := strings.TrimSpace(os.Getenv("CPA_SMOKE_PORT")); raw != "" {
-		parsed, err := strconv.Atoi(raw)
-		if err != nil || parsed <= 0 {
-			return fmt.Errorf("invalid CPA_SMOKE_PORT %q", raw)
-		}
-		port = parsed
-	}
-	repoRoot, err := os.Getwd()
+	mgmtKey, err := mustEnv("CPA_SMOKE_MGMT_KEY")
 	if err != nil {
-		return fmt.Errorf("get working directory: %w", err)
-	}
-	env := smokeEnv{
-		repoRoot: repoRoot,
-		baseURL:  strings.TrimRight(baseURL, "/"),
-		apiKey:   apiKey,
-		cpaBin:   cpaBin,
-		port:     port,
-		dir:      filepath.Join(repoRoot, ".test-cpa"),
-	}
-	env.config = filepath.Join(env.dir, "config.yaml")
-	env.plugin = filepath.Join(env.dir, "plugins", "windows", "amd64", "model-mapper-plus.dll")
-	env.logsDir = filepath.Join(env.dir, "logs")
-	env.logFile = filepath.Join(env.logsDir, "cpa.log")
-	if err := prepareDirs(env); err != nil {
 		return err
 	}
-	if err := copyFile(filepath.Join(repoRoot, "dist", "windows_amd64", "model-mapper-plus.dll"), env.plugin); err != nil {
+	clientKey, err := mustEnv("CPA_SMOKE_CLIENT_KEY")
+	if err != nil {
 		return err
+	}
+	envCfg := smokeEnv{
+		baseURL:   env("CPA_SMOKE_BASE_URL", defaultBaseURL),
+		mgmtKey:   mgmtKey,
+		clientKey: clientKey,
+		wrongKey:  env("CPA_SMOKE_WRONG_KEY", defaultWrongKey),
+		models: map[string]string{
+			"passthrough": env("CPA_SMOKE_MODEL_PASSTHROUGH", "deepseek-v4-flash"),
+			"chainSrc":    env("CPA_SMOKE_MODEL_CHAIN_SRC", "deepseek-v4-pro"),
+			"chainMid":    env("CPA_SMOKE_MODEL_CHAIN_MID", "deepseek-v4-flash"),
+			"chainDst":    env("CPA_SMOKE_MODEL_CHAIN_DST", "gpt-5.4-mini"),
+		},
 	}
 
+	if err := waitReady(envCfg); err != nil {
+		return err
+	}
+	// Start from a clean ruleset so a previous run cannot leak state.
+	if err := clearRules(envCfg); err != nil {
+		return fmt.Errorf("clear rules: %w", err)
+	}
+
+	m := envCfg.models
 	cases := []caseConfig{
-		{name: "no-rules", requestModel: "client-visible-no-rules", requestAPIKey: localAPIKey, wantSuccess: true, forbidModel: "client-visible-no-rules"},
-		{name: "openai-dedicated-chain", requestModel: "deepseek-v4-pro", requestAPIKey: localAPIKey, pluginRules: "deepseek-v4-pro=>deepseek-v4-flash;deepseek-v4-flash=>gpt-5.4-mini", wantSuccess: true, wantOriginalModel: "deepseek-v4-pro", forbidModel: "gpt-5.4-mini"},
-		{name: "unmatched-model", requestModel: "client-visible-unmatched", requestAPIKey: localAPIKey, pluginRules: "deepseek-v4-pro=>gpt-5.4-mini", wantSuccess: true, forbidModel: "client-visible-unmatched"},
-		{name: "bad-rules", requestModel: "deepseek-v4-pro", requestAPIKey: localAPIKey, pluginRules: "bad rule", wantSuccess: false, allowStartFailure: true, allowConfigFailure: true},
-		{name: "nonexistent-upstream-model", requestModel: "deepseek-v4-pro", requestAPIKey: localAPIKey, pluginRules: "deepseek-v4-pro=>definitely-not-a-real-upstream-model", wantSuccess: false},
-		{name: "wrong-api-key", requestModel: "deepseek-v4-flash", requestAPIKey: wrongAPIKey, wantSuccess: false},
-		{name: "streaming", requestModel: "deepseek-v4-pro", requestAPIKey: localAPIKey, pluginRules: "deepseek-v4-pro=>deepseek-v4-flash;deepseek-v4-flash=>gpt-5.4-mini", stream: true, wantSuccess: true, wantOriginalModel: "deepseek-v4-pro", forbidModel: "gpt-5.4-mini"},
+		{name: "no-rules", requestModel: m["passthrough"], wantSuccess: true, wantOriginalModel: m["passthrough"]},
+		{name: "openai-dedicated-chain", requestModel: m["chainSrc"], pluginRules: m["chainSrc"] + "=>" + m["chainMid"] + ";" + m["chainMid"] + "=>" + m["chainDst"], wantSuccess: true, wantOriginalModel: m["chainSrc"], forbidModel: m["chainDst"]},
+		{name: "unmatched-model", requestModel: m["passthrough"], pluginRules: m["chainSrc"] + "=>" + m["chainDst"], wantSuccess: true, wantOriginalModel: m["passthrough"]},
+		{name: "bad-rules", pluginRules: "bad rule", wantRulesReject: true},
+		{name: "nonexistent-upstream-model", requestModel: m["chainSrc"], pluginRules: m["chainSrc"] + "=>definitely-not-a-real-upstream-model", wantSuccess: false},
+		{name: "wrong-api-key", requestModel: m["chainMid"], useWrongKey: true, wantSuccess: false},
+		{name: "streaming", requestModel: m["chainSrc"], pluginRules: m["chainSrc"] + "=>" + m["chainMid"] + ";" + m["chainMid"] + "=>" + m["chainDst"], stream: true, wantSuccess: true, wantOriginalModel: m["chainSrc"], forbidModel: m["chainDst"]},
 	}
 	for _, tc := range cases {
-		if err := runCase(env, tc); err != nil {
+		if err := runCase(envCfg, tc); err != nil {
 			return fmt.Errorf("%s: %w", tc.name, err)
 		}
 		fmt.Printf("ok: %s\n", tc.name)
@@ -131,185 +134,117 @@ func run() error {
 	return nil
 }
 
-func prepareDirs(env smokeEnv) error {
-	for _, dir := range []string{
-		filepath.Join(env.dir, "plugins", "windows", "amd64"),
-		env.logsDir,
-		filepath.Join(env.dir, "tmp"),
-	} {
-		if err := os.MkdirAll(dir, 0o755); err != nil {
-			return fmt.Errorf("mkdir %s: %w", dir, err)
+func runCase(env smokeEnv, tc caseConfig) error {
+	if tc.wantRulesReject {
+		status, _, err := putRules(env, tc.pluginRules)
+		if err != nil {
+			return err
 		}
+		if status/100 == 2 {
+			return fmt.Errorf("want rules rejected (4xx), got status=%d", status)
+		}
+		return nil
+	}
+
+	if err := putRules2xx(env, tc.pluginRules); err != nil {
+		return err
+	}
+	defer func() { _ = clearRules(env) }()
+
+	key := env.clientKey
+	if tc.useWrongKey {
+		key = env.wrongKey
+	}
+	if tc.stream {
+		return runStreamCase(env, tc, key)
+	}
+	return runJSONCase(env, tc, key)
+}
+
+// putRules injects pluginRules into the openai ruleset segment; returns the HTTP status.
+func putRules(env smokeEnv, openaiRules string) (int, []byte, error) {
+	body := map[string]string{
+		"global": "",
+		"claude": "",
+		"codex":  "",
+		"openai": openaiRules,
+	}
+	raw, err := json.Marshal(body)
+	if err != nil {
+		return 0, nil, err
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	req, err := http.NewRequestWithContext(ctx, http.MethodPut, env.baseURL+rulesEndpoint, bytes.NewReader(raw))
+	if err != nil {
+		return 0, nil, err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+env.mgmtKey)
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return 0, nil, fmt.Errorf("put rules: %w", err)
+	}
+	defer resp.Body.Close()
+	respBody, _ := io.ReadAll(resp.Body)
+	return resp.StatusCode, respBody, nil
+}
+
+func putRules2xx(env smokeEnv, openaiRules string) error {
+	status, respBody, err := putRules(env, openaiRules)
+	if err != nil {
+		return err
+	}
+	if status/100 != 2 {
+		return fmt.Errorf("put rules status=%d body=%s", status, respBody)
 	}
 	return nil
 }
 
-func runCase(env smokeEnv, tc caseConfig) error {
-	if err := os.WriteFile(env.config, []byte(buildConfig(env, tc.pluginRules)), 0o600); err != nil {
-		return fmt.Errorf("write config: %w", err)
-	}
-	proc, err := startCPA(env)
-	if err != nil {
-		if tc.allowStartFailure {
-			return nil
-		}
-		return err
-	}
-	defer stopCPA(proc)
-	if err := waitReady(env.port, localAPIKey); err != nil {
-		return err
-	}
-	if tc.stream {
-		return runStreamCase(env.port, tc)
-	}
-	return runJSONCase(env.port, tc)
+func clearRules(env smokeEnv) error {
+	return putRules2xx(env, "")
 }
 
-func buildConfig(env smokeEnv, pluginRules string) string {
-	var b strings.Builder
-	// ponytail: upstream/CLIProxyAPI config.example.yaml is read from the module cache, so keep this generator to the fields this smoke needs.
-	fmt.Fprintf(&b, "host: 127.0.0.1\n")
-	fmt.Fprintf(&b, "port: %d\n", env.port)
-	b.WriteString("auth-dir: ./tmp/auth\n")
-	b.WriteString("api-keys:\n")
-	fmt.Fprintf(&b, "  - %q\n", localAPIKey)
-	b.WriteString("debug: false\n")
-	b.WriteString("usage-statistics-enabled: false\n")
-	b.WriteString("openai-compatibility:\n")
-	b.WriteString("  - name: upstream\n")
-	fmt.Fprintf(&b, "    base-url: %q\n", env.baseURL)
-	b.WriteString("    api-key-entries:\n")
-	fmt.Fprintf(&b, "      - api-key: %q\n", env.apiKey)
-	b.WriteString("    models:\n")
-	b.WriteString("      - name: deepseek-v4-flash\n")
-	b.WriteString("        alias: deepseek-v4-flash\n")
-	b.WriteString("      - name: deepseek-v4-flash\n")
-	b.WriteString("        alias: client-visible-no-rules\n")
-	b.WriteString("      - name: deepseek-v4-flash\n")
-	b.WriteString("        alias: client-visible-unmatched\n")
-	b.WriteString("      - name: gpt-5.4-mini\n")
-	b.WriteString("        alias: gpt-5.4-mini\n")
-	b.WriteString("plugins:\n")
-	b.WriteString("  enabled: true\n")
-	b.WriteString("  dir: ./plugins\n")
-	b.WriteString("  configs:\n")
-	b.WriteString("    model-mapper-plus:\n")
-	b.WriteString("      enabled: true\n")
-	b.WriteString("      priority: 1\n")
-	fmt.Fprintf(&b, "      global_rules: %q\n", "")
-	fmt.Fprintf(&b, "      claude_messages_rules: %q\n", "")
-	fmt.Fprintf(&b, "      codex_responses_rules: %q\n", "")
-	fmt.Fprintf(&b, "      openai_completions_rules: %q\n", pluginRules)
-	return b.String()
-}
-
-func startCPA(env smokeEnv) (*cpaProcess, error) {
-	logFile, err := os.Create(env.logFile)
-	if err != nil {
-		return nil, fmt.Errorf("create log file: %w", err)
-	}
-	cmd := exec.Command(env.cpaBin, "--config", "config.yaml", "--no-browser")
-	cmd.Dir = env.dir
-	cmd.Stdout = logFile
-	cmd.Stderr = logFile
-	if err := cmd.Start(); err != nil {
-		_ = logFile.Close()
-		return nil, fmt.Errorf("start CPA: %w", err)
-	}
-	proc := &cpaProcess{cmd: cmd, logFile: logFile, waitDone: make(chan error, 1)}
-	go func() {
-		proc.waitDone <- cmd.Wait()
-		close(proc.waitDone)
-	}()
-	select {
-	case err := <-proc.waitDone:
-		return nil, earlyExitError(env.logFile, err)
-	case <-time.After(300 * time.Millisecond):
-		return proc, nil
-	}
-}
-
-func stopCPA(proc *cpaProcess) {
-	if proc == nil || proc.cmd == nil || proc.cmd.Process == nil {
-		return
-	}
-	defer func() {
-		if proc.logFile != nil {
-			_ = proc.logFile.Close()
-		}
-	}()
-	_ = proc.cmd.Process.Signal(os.Interrupt)
-	select {
-	case <-proc.waitDone:
-		return
-	case <-time.After(2 * time.Second):
-	}
-	_ = proc.cmd.Process.Signal(syscall.SIGTERM)
-	select {
-	case <-proc.waitDone:
-		return
-	case <-time.After(2 * time.Second):
-	}
-	_ = proc.cmd.Process.Kill()
-	<-proc.waitDone
-}
-
-func earlyExitError(logPath string, waitErr error) error {
-	body, readErr := os.ReadFile(logPath)
-	if readErr != nil {
-		return fmt.Errorf("CPA exited early: %w", waitErr)
-	}
-	trimmed := strings.TrimSpace(string(body))
-	if trimmed == "" {
-		return fmt.Errorf("CPA exited early: %w", waitErr)
-	}
-	return fmt.Errorf("CPA exited early: %s", trimmed)
-}
-
-func waitReady(port int, apiKey string) error {
+func waitReady(env smokeEnv) error {
 	deadline := time.Now().Add(30 * time.Second)
 	for time.Now().Before(deadline) {
-		status, _, err := getModels(port, apiKey)
+		status, _, err := getModels(env)
 		if err == nil && status/100 == 2 {
 			return nil
 		}
 		time.Sleep(250 * time.Millisecond)
 	}
-	return errors.New("CPA readiness timeout")
+	return errors.New("CPA readiness timeout (is it running at " + env.baseURL + "?)")
 }
 
-func getModels(port int, apiKey string) (int, []byte, error) {
+func getModels(env smokeEnv) (int, []byte, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	url := fmt.Sprintf("http://127.0.0.1:%d/v1/models", port)
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, env.baseURL+"/v1/models", nil)
 	if err != nil {
-		return 0, nil, fmt.Errorf("build models request: %w", err)
+		return 0, nil, err
 	}
-	req.Header.Set("Authorization", "Bearer "+apiKey)
+	req.Header.Set("Authorization", "Bearer "+env.clientKey)
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		return 0, nil, fmt.Errorf("send models request: %w", err)
+		return 0, nil, err
 	}
 	defer resp.Body.Close()
 	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return 0, nil, fmt.Errorf("read models response: %w", err)
-	}
-	return resp.StatusCode, body, nil
+	return resp.StatusCode, body, err
 }
 
-func runJSONCase(port int, tc caseConfig) error {
-	status, body, err := sendChatRequest(port, tc.requestModel, tc.requestAPIKey, false)
+func runJSONCase(env smokeEnv, tc caseConfig, apiKey string) error {
+	status, body, err := sendChatRequest(env, tc.requestModel, apiKey, false)
 	if err != nil {
 		return err
 	}
 	var parsed openAIResponse
 	if err := json.Unmarshal(body, &parsed); err != nil {
-		if tc.allowConfigFailure && status/100 != 2 {
+		if !tc.wantSuccess && status/100 != 2 {
 			return nil
 		}
-		return fmt.Errorf("decode response: %w", err)
+		return fmt.Errorf("decode response: %w (body=%s)", err, body)
 	}
 	if tc.wantSuccess {
 		if status/100 != 2 || len(parsed.Error) != 0 {
@@ -335,8 +270,8 @@ func runJSONCase(port int, tc caseConfig) error {
 	return fmt.Errorf("expected failure, got status=%d body=%s", status, body)
 }
 
-func runStreamCase(port int, tc caseConfig) error {
-	status, body, err := sendChatRequest(port, tc.requestModel, tc.requestAPIKey, true)
+func runStreamCase(env smokeEnv, tc caseConfig, apiKey string) error {
+	status, body, err := sendChatRequest(env, tc.requestModel, apiKey, true)
 	if err != nil {
 		return err
 	}
@@ -379,7 +314,7 @@ func runStreamCase(port int, tc caseConfig) error {
 	return nil
 }
 
-func sendChatRequest(port int, model string, apiKey string, stream bool) (int, []byte, error) {
+func sendChatRequest(env smokeEnv, model, apiKey string, stream bool) (int, []byte, error) {
 	payload := map[string]any{
 		"model":    model,
 		"messages": []map[string]string{{"role": "user", "content": "say ok"}},
@@ -387,14 +322,13 @@ func sendChatRequest(port int, model string, apiKey string, stream bool) (int, [
 	}
 	raw, err := json.Marshal(payload)
 	if err != nil {
-		return 0, nil, fmt.Errorf("marshal request: %w", err)
+		return 0, nil, err
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
 	defer cancel()
-	url := fmt.Sprintf("http://127.0.0.1:%d/v1/chat/completions", port)
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(raw))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, env.baseURL+"/v1/chat/completions", bytes.NewReader(raw))
 	if err != nil {
-		return 0, nil, fmt.Errorf("build request: %w", err)
+		return 0, nil, err
 	}
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", "Bearer "+apiKey)
@@ -404,28 +338,5 @@ func sendChatRequest(port int, model string, apiKey string, stream bool) (int, [
 	}
 	defer resp.Body.Close()
 	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return 0, nil, fmt.Errorf("read response: %w", err)
-	}
-	return resp.StatusCode, body, nil
-}
-
-func copyFile(src, dst string) error {
-	in, err := os.Open(src)
-	if err != nil {
-		return fmt.Errorf("open %s: %w", src, err)
-	}
-	defer in.Close()
-	out, err := os.Create(dst)
-	if err != nil {
-		return fmt.Errorf("create %s: %w", dst, err)
-	}
-	defer func() { _ = out.Close() }()
-	if _, err := io.Copy(out, in); err != nil {
-		return fmt.Errorf("copy %s to %s: %w", src, dst, err)
-	}
-	if err := out.Close(); err != nil {
-		return fmt.Errorf("close %s: %w", dst, err)
-	}
-	return nil
+	return resp.StatusCode, body, err
 }
