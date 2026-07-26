@@ -198,6 +198,8 @@ Run (no `.test-cpa/` state is created anymore):
 CPA_SMOKE_MGMT_KEY=... CPA_SMOKE_CLIENT_KEY=... make smoke-local
 ```
 
+Or persist them: copy `.env.example` to `.env`, fill in the keys (and override the `CPA_SMOKE_MODEL_*` defaults to models your upstream serves), then just `make smoke-local` — it auto-loads `.env`. `.env` is gitignored.
+
 Open the admin UI at `http://127.0.0.1:8317/v0/resource/plugins/model-mapper-plus/index.html` (sign in with the management key).
 
 ## License

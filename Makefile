@@ -95,6 +95,7 @@ install-linux-amd64: build-linux-amd64
 	cp $(LINUX_AMD64_OUT) "$(CPA_PLUGINS_DIR)/$(PLUGIN_NAME).so"
 
 smoke-local:
+	@if [ -f .env ]; then set -a; . ./.env; set +a; fi; \
 	$(GO) run .github/scripts/smoke-local.go
 
 # dev-so: cross-compile linux/amd64 .so via zig (with fresh UI) and copy it
