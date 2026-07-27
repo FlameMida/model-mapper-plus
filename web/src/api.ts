@@ -41,6 +41,38 @@ export interface PreviewResponse {
 
 const PLUGIN_BASE = '/v0/management/plugins/model-mapper-plus'
 
+// CPA 宿主对所有插件 management 响应统一跑 html.EscapeString
+// （internal/pluginhost/management.go → htmlsanitize.JSONBody），JSON 里每个字符串
+// 值的 & ' < > " 都被换成 HTML 实体。规则 DSL 的分隔符 `=>` 因此变成 `=&gt;`，
+// splitEntries 匹配不到就整条丢弃 —— 表现为「保存后规则不回显」，且下次保存会把
+// 磁盘上正确的规则一并清空。宿主的转义是它的 XSS 防护、插件侧无法关闭，只能在这里
+// 对称还原。请求方向不受影响（宿主不处理请求体），故只解码、不编码。
+const HTML_ENTITIES: Record<string, string> = {
+  '&amp;': '&',
+  '&#39;': "'",
+  '&lt;': '<',
+  '&gt;': '>',
+  '&#34;': '"',
+}
+
+// 单次扫描替换，保证只解一层：原文里字面量的 `&gt;` 被宿主转义成 `&amp;gt;`，
+// 还原到 `&gt;` 即停，不会继续解成 `>`。
+function unescapeHTML(value: string): string {
+  return value.replace(/&(?:amp|lt|gt|#39|#34);/g, (m) => HTML_ENTITIES[m])
+}
+
+// 只还原值；对象的 key 不动（宿主的 JSONValue 同样只处理 value）。
+function unescapeDeep(value: unknown): unknown {
+  if (typeof value === 'string') return unescapeHTML(value)
+  if (Array.isArray(value)) return value.map((item) => unescapeDeep(item))
+  if (value !== null && typeof value === 'object') {
+    const out: Record<string, unknown> = {}
+    for (const [k, v] of Object.entries(value)) out[k] = unescapeDeep(v)
+    return out
+  }
+  return value
+}
+
 async function call<T>(method: string, path: string, body?: unknown): Promise<T> {
   const resp = await fetch(PLUGIN_BASE + path, {
     method,
@@ -59,11 +91,11 @@ async function call<T>(method: string, path: string, body?: unknown): Promise<T>
     let msg = `HTTP ${resp.status}`
     try {
       const parsed = JSON.parse(text)
-      if (parsed && typeof parsed.error === 'string') msg = parsed.error
+      if (parsed && typeof parsed.error === 'string') msg = unescapeHTML(parsed.error)
     } catch { /* keep default */ }
     throw new Error(msg)
   }
-  return JSON.parse(text) as T
+  return unescapeDeep(JSON.parse(text)) as T
 }
 
 export const api = {
