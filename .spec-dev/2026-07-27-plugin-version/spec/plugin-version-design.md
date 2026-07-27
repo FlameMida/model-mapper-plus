@@ -4,6 +4,7 @@ spec_dev:
   version: 1
   feature: plugin-version
   status: active
+  sync_commit: c830aa458fe206464d1ba6d3643f70ab9c0ffeb4
   covers:
     - "Makefile"
     - "main.go"
