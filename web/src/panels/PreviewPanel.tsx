@@ -2,6 +2,12 @@ import { useEffect, useState } from 'react'
 import { Button, Card, Input, Select, Tag, Toast, Typography, Descriptions } from '@douyinfe/semi-ui'
 import { api, PreviewResponse, listCpaApiKeys } from '../api'
 
+// 与 KeysPanel 一致：短 key 不掩码，避免 slice(0,6)/slice(-4) 重叠出更长的串。
+function maskKey(key: string): string {
+  if (key.length <= 10) return key
+  return `${key.slice(0, 6)}…${key.slice(-4)}`
+}
+
 const FORMATS = [
   { value: 'claude', label: 'claude（/v1/messages）' },
   { value: 'openai', label: 'openai（chat completions）' },
@@ -33,7 +39,7 @@ export default function PreviewPanel() {
       <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}>
         <Select style={{ width: 260 }} filter placeholder="Key（可选，模拟 key 维度）"
           value={key || undefined} onChange={(v) => setKey(String(v))} showClear
-          optionList={cpaKeys.map((k) => ({ value: k, label: `${k.slice(0, 6)}…${k.slice(-4)}` }))}
+          optionList={cpaKeys.map((k) => ({ value: k, label: maskKey(k) }))}
         />
         <Select style={{ width: 280 }} value={format} onChange={(v) => setFormat(String(v))}>
           {FORMATS.map((f) => <Select.Option key={f.value} value={f.value}>{f.label}</Select.Option>)}

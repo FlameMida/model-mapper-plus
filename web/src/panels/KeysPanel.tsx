@@ -25,6 +25,29 @@ interface Props {
   onSaved: (s: StateResponse) => void
 }
 
+/**
+ * 保存一条绑定时要执行的动作。
+ *
+ * 编辑态改了 key 属于「重命名」：postKey 按新 key upsert，旧绑定不会被动过，
+ * 只调 postKey 会留下两条同时生效的绑定，所以要显式删掉旧的。
+ */
+export interface KeySavePlan {
+  /** 落库的绑定（key 已 trim）。 */
+  binding: KeyBinding
+  /** 需要删除的旧 key；空串表示无需删除。 */
+  deleteKey: string
+}
+
+export function planKeySave(originalKey: string, editing: KeyBinding): KeySavePlan | null {
+  const key = editing.key.trim()
+  if (!key) return null
+  const previous = originalKey.trim()
+  return {
+    binding: { ...editing, key },
+    deleteKey: previous && previous !== key ? previous : '',
+  }
+}
+
 export default function KeysPanel({ state, onSaved }: Props) {
   const [cpaKeys, setCpaKeys] = useState<string[]>([])
   const [editing, setEditing] = useState<KeyBinding | null>(null)
@@ -40,9 +63,20 @@ export default function KeysPanel({ state, onSaved }: Props) {
 
   const save = () => {
     if (!editing) return
+    const plan = planKeySave(originalKey, editing)
+    if (!plan) {
+      Toast.error('请选择或输入 API key')
+      return
+    }
     setSaving(true)
-    api.postKey(editing)
-      .then((s) => { onSaved(s); setEditing(null); setOriginalKey(''); Toast.success('绑定已保存') })
+    api.postKey(plan.binding)
+      .then((s) => (plan.deleteKey ? api.deleteKey(plan.deleteKey) : Promise.resolve(s)))
+      .then((s) => {
+        onSaved(s)
+        setEditing(null)
+        setOriginalKey('')
+        Toast.success(plan.deleteKey ? '绑定已重命名并保存' : '绑定已保存')
+      })
       .catch((e: Error) => Toast.error(e.message))
       .finally(() => setSaving(false))
   }

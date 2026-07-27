@@ -22,6 +22,8 @@ export interface StateResponse {
   persisted: boolean
   state_file?: string
   plugin_version?: string
+  /** 存在时表示磁盘上的 state_file 被拒收、当前回退到 YAML 种子。 */
+  load_error?: string
 }
 
 export interface PreviewRequest {

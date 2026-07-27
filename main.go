@@ -1,35 +1,55 @@
 package main
 
 import (
-	"bufio"
 	"bytes"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
+	"os"
 	"strings"
 	"sync"
 	"unicode"
 
 	pluginabi "github.com/router-for-me/CLIProxyAPI/v7/sdk/pluginabi"
 	pluginapi "github.com/router-for-me/CLIProxyAPI/v7/sdk/pluginapi"
+	"gopkg.in/yaml.v3"
 )
 
 func main() {}
+
+// logger writes to stderr, which the CPA host inherits. Without it every
+// config/state/routing failure in this plugin is silent (audit finding #9).
+var logger = slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: slog.LevelInfo})).
+	With("plugin", "model-mapper-plus")
 
 var pluginVersion = "0.0.0-dev.unbuilt"
 
 type sseRewriter struct {
 	originalModel string
 	buf           []byte
+	// overflowed marks that buf exceeded maxSSEBufferBytes and was released
+	// unrewritten; further bytes stream through untouched rather than growing
+	// the buffer without bound.
+	overflowed bool
 }
+
+// maxSSEBufferBytes caps how much of a single unterminated SSE event we hold.
+// An upstream that never emits a blank line would otherwise grow buf forever.
+const maxSSEBufferBytes = 8 << 20
 
 type streamChunkRewriter struct {
 	originalModel     string
 	frameRawJSONAsSSE bool
 	sse               *sseRewriter
 	pending           []byte
+	// sseMode latches once the stream is known to be SSE. Classification is
+	// per-chunk but the SSE buffer is stateful, so a mid-event chunk that does
+	// not itself look like SSE must still be appended to the buffer instead of
+	// bypassing it (which reordered and un-rewrote output).
+	sseMode bool
 }
 
 func newSSERewriter(originalModel string) *sseRewriter {
@@ -44,6 +64,9 @@ func newStreamChunkRewriter(originalModel string) *streamChunkRewriter {
 }
 
 func (r *sseRewriter) Write(p []byte) ([][]byte, error) {
+	if r.overflowed {
+		return [][]byte{append([]byte(nil), p...)}, nil
+	}
 	if sseNeedsLineBreak(r.buf, p) {
 		r.buf = append(r.buf, '\n')
 	}
@@ -60,10 +83,31 @@ func (r *sseRewriter) Write(p []byte) ([][]byte, error) {
 		if err != nil {
 			return nil, err
 		}
-		out = append(out, rewritten...)
-		out = append(out, r.delimiterBytes(n))
+		// One emit per event, not per line: each emit is a full C-ABI round
+		// trip, and a long stream otherwise costs 3+ crossings per event.
+		out = append(out, joinChunks(rewritten, r.delimiterBytes(n)))
+	}
+	if len(r.buf) > maxSSEBufferBytes {
+		logger.Warn("sse buffer exceeded cap, passing through unrewritten",
+			"bytes", len(r.buf), "cap", maxSSEBufferBytes)
+		r.overflowed = true
+		out = append(out, append([]byte(nil), r.buf...))
+		r.buf = nil
 	}
 	return out, nil
+}
+
+// joinChunks concatenates rewritten lines plus the event delimiter into one buffer.
+func joinChunks(parts [][]byte, delim []byte) []byte {
+	size := len(delim)
+	for _, part := range parts {
+		size += len(part)
+	}
+	out := make([]byte, 0, size)
+	for _, part := range parts {
+		out = append(out, part...)
+	}
+	return append(out, delim...)
 }
 
 func (r *sseRewriter) Flush() ([][]byte, error) {
@@ -72,6 +116,9 @@ func (r *sseRewriter) Flush() ([][]byte, error) {
 	}
 	event := append([]byte(nil), r.buf...)
 	r.buf = nil
+	if r.overflowed {
+		return [][]byte{event}, nil
+	}
 	return r.rewriteEvent(event)
 }
 
@@ -158,7 +205,16 @@ func (r *streamChunkRewriter) Write(p []byte) ([][]byte, error) {
 		p = append([]byte(nil), r.pending...)
 		r.pending = nil
 	}
+	// Once SSE, always SSE — and while the SSE buffer still holds a partial
+	// event, every subsequent byte belongs to it. Re-classifying per chunk let
+	// a mid-event fragment bypass the buffer, emitting it ahead of the lines
+	// already buffered and skipping model restoration on both.
+	if r.sseMode || len(r.sse.buf) > 0 {
+		r.sseMode = true
+		return r.sse.Write(p)
+	}
 	if isSSEChunk(p) {
+		r.sseMode = true
 		return r.sse.Write(p)
 	}
 	if isIncompleteSSEPrefix(p) {
@@ -357,6 +413,9 @@ type stateHolder struct {
 	src       ruleSource
 	persisted bool
 	state     State
+	// loadError records why a present state_file could not be used, so the
+	// fallback to the YAML seed is visible in GET /state instead of silent.
+	loadError string
 }
 
 func loadedRuleSource() ruleSource {
@@ -371,6 +430,13 @@ func loadedStateSnapshot() (State, bool) {
 	return cloneState(loadedHolder.state), loadedHolder.persisted
 }
 
+// loadedStateLoadError reports why the on-disk state_file was rejected, if any.
+func loadedStateLoadError() string {
+	loadedStateMu.RLock()
+	defer loadedStateMu.RUnlock()
+	return loadedHolder.loadError
+}
+
 func keyBindingExists(key string) bool {
 	loadedStateMu.RLock()
 	defer loadedStateMu.RUnlock()
@@ -383,21 +449,35 @@ func keyBindingExists(key string) bool {
 }
 
 // resolveState loads state_file when present and valid; otherwise falls back
-// to a YAML-seed state without creating the file (ADR-0001).
+// to a YAML-seed state without creating the file (ADR-0001). A state file that
+// exists but fails validation is renamed aside before the fallback, so the next
+// management save cannot silently overwrite (and destroy) its key bindings.
 func resolveState(cfg Config) stateHolder {
+	seedHolder := func(loadErr string) stateHolder {
+		seed := seedStateFromConfig(cfg)
+		return stateHolder{src: ruleSourceFromState(seed), state: seed, loadError: loadErr}
+	}
 	path, err := ResolveStatePath(cfg.StateFile)
 	if err != nil {
-		seed := seedStateFromConfig(cfg)
-		return stateHolder{src: ruleSourceFromState(seed), state: seed}
+		return seedHolder(fmt.Sprintf("resolve state path: %v", err))
 	}
-	if st, err := readStateFile(path); err == nil {
-		if err := validateState(st); err == nil {
+	st, err := readStateFile(path)
+	if err == nil {
+		if err = validateState(st); err == nil {
 			return stateHolder{src: ruleSourceFromState(st), persisted: true, state: st}
 		}
-		// Invalid DSL in state_file: fall back to YAML seed (M1).
+		// Invalid content: preserve the file so its key bindings stay recoverable.
+		quarantine := path + ".corrupt"
+		if renameErr := os.Rename(path, quarantine); renameErr == nil {
+			return seedHolder(fmt.Sprintf("%v (moved aside to %s)", err, quarantine))
+		}
+		return seedHolder(err.Error())
 	}
-	seed := seedStateFromConfig(cfg)
-	return stateHolder{src: ruleSourceFromState(seed), state: seed}
+	if os.IsNotExist(err) {
+		// First run: YAML seed is the source of truth until the first save.
+		return seedHolder("")
+	}
+	return seedHolder(err.Error())
 }
 
 func stateFilePathFrom(cfg Config) string {
@@ -429,8 +509,10 @@ func applyStateUpdate(mutate func(*State) error) error {
 		return err
 	}
 	if err := atomicWriteState(path, st); err != nil {
+		logger.Error("state persist failed", "state_file", path, "err", err)
 		return &statePersistError{err: err}
 	}
+	// A successful write clears any prior load error: disk is authoritative again.
 	loadedHolder = stateHolder{src: ruleSourceFromState(st), persisted: true, state: st}
 	return nil
 }
@@ -459,16 +541,32 @@ func handlePluginRegister(raw []byte) ([]byte, error) {
 func handlePluginReconfigure(raw []byte) ([]byte, error) {
 	cfgRaw, _, err := decodeLifecycleConfig(raw)
 	if err != nil {
+		logger.Error("reconfigure: decode lifecycle config failed", "err", err)
 		return nil, err
 	}
 	cfg, err := decodeConfig(cfgRaw)
 	if err != nil {
+		logger.Error("reconfigure: invalid plugin config", "err", err)
 		return nil, err
 	}
-	setLoadedConfigForTest(cfg)
+	// Resolve (and read from disk) outside every lock: doing it under the state
+	// write lock blocked all readers, and the previous two-step swap left a
+	// window where loadedHolder held a seed-only state with no key bindings —
+	// concurrent routes lost the key layer and a concurrent save persisted the
+	// empty bindings to disk.
+	holder := resolveState(cfg)
+	if holder.loadError != "" {
+		logger.Warn("reconfigure: state file unusable, falling back to YAML seed",
+			"state_file", stateFilePathFrom(cfg), "err", holder.loadError)
+	}
+	loadedConfigMu.Lock()
+	loadedCfg = cfg
+	loadedConfigMu.Unlock()
 	loadedStateMu.Lock()
-	loadedHolder = resolveState(cfg)
+	loadedHolder = holder
 	loadedStateMu.Unlock()
+	logger.Info("reconfigure applied", "enabled", cfg.Enabled,
+		"persisted", holder.persisted, "key_bindings", len(holder.state.KeyBindings))
 	return json.Marshal(pluginRegistration())
 }
 
@@ -490,9 +588,11 @@ func selectRules(cfg Config, format string) (string, bool) {
 
 // apiKeyFromHeaders extracts the client API key from inbound headers:
 // "Authorization: Bearer <key>" wins, then "x-api-key" (ADR key extraction).
+// The auth-scheme match is case-insensitive per RFC 7235 §2.1 — a client
+// sending "bearer sk-…" must still reach its key binding.
 func apiKeyFromHeaders(h http.Header) string {
 	if auth := strings.TrimSpace(h.Get("Authorization")); auth != "" {
-		if token, ok := strings.CutPrefix(auth, "Bearer "); ok {
+		if scheme, token, ok := strings.Cut(auth, " "); ok && strings.EqualFold(scheme, "Bearer") {
 			if token = strings.TrimSpace(token); token != "" {
 				return token
 			}
@@ -625,22 +725,42 @@ func handleExecutorExecuteStream(raw []byte, call hostCaller) ([]byte, error) {
 
 func startExecutorStream(req executorRPCRequest, call hostCaller, closeStream func(string, string) error) ([]byte, error) {
 	go func() {
+		// This goroutine has no caller to recover for it; an unrecovered panic
+		// here would abort the whole CPA process.
+		defer func() {
+			if r := recover(); r != nil {
+				logger.Error("stream forward panic recovered", "panic", r, "model", req.Model)
+				_ = closeStream(req.StreamID, fmt.Sprintf("plugin panic recovered: %v", r))
+			}
+		}()
 		if err := runStreamForward(req, call); err != nil {
+			logger.Error("stream forward failed", "model", req.Model, "err", err)
 			_ = closeStream(req.StreamID, err.Error())
 		}
 	}()
 	return json.Marshal(map[string]any{"headers": http.Header{"Content-Type": []string{"text/event-stream"}}})
 }
 
-func runStreamForward(req executorRPCRequest, call hostCaller) error {
-	decision, err := routeModel(loadedConfig(), loadedRuleSource(), req.SourceFormat, req.Model, apiKeyFromHeaders(req.Headers))
+// upstreamModelFor resolves the outbound model for an executor call. Routing is
+// re-evaluated at execution time, so a rules edit between route and execute can
+// make the decision unhandled; that must degrade to passing the client's model
+// through, not fail an in-flight request.
+func upstreamModelFor(sourceFormat, model string, headers http.Header) (upstream, original string) {
+	decision, err := routeModel(loadedConfig(), loadedRuleSource(), sourceFormat, model, apiKeyFromHeaders(headers))
 	if err != nil {
-		return fmt.Errorf("route stream: %w", err)
+		logger.Warn("route failed at execute time, passing model through", "model", model, "err", err)
+		return model, model
 	}
 	if !decision.Handled {
-		return fmt.Errorf("route stream: unhandled model route for %q", req.Model)
+		logger.Info("route no longer maps this model, passing through", "model", model)
+		return model, model
 	}
-	body, _, err := rewriteRequestModel(req.OriginalRequest, decision.UpstreamModel)
+	return decision.UpstreamModel, decision.OriginalModel
+}
+
+func runStreamForward(req executorRPCRequest, call hostCaller) error {
+	upstreamModel, originalModel := upstreamModelFor(req.SourceFormat, req.Model, req.Headers)
+	body, _, err := rewriteRequestModel(req.OriginalRequest, upstreamModel)
 	if err != nil {
 		return fmt.Errorf("rewrite stream request: %w", err)
 	}
@@ -648,7 +768,7 @@ func runStreamForward(req executorRPCRequest, call hostCaller) error {
 		HostModelExecutionRequest: pluginapi.HostModelExecutionRequest{
 			EntryProtocol: req.SourceFormat,
 			ExitProtocol:  req.Format,
-			Model:         decision.UpstreamModel,
+			Model:         upstreamModel,
 			Stream:        true,
 			Body:          body,
 			Headers:       req.Headers,
@@ -692,7 +812,7 @@ func runStreamForward(req executorRPCRequest, call hostCaller) error {
 		}{StreamID: req.StreamID, Payload: payload})
 		return err
 	}
-	rewriter := newStreamChunkRewriter(decision.OriginalModel)
+	rewriter := newStreamChunkRewriter(originalModel)
 	rewriter.frameRawJSONAsSSE = strings.Contains(strings.ToLower(hostResp.Headers.Get("Content-Type")), "text/event-stream")
 	for {
 		readRaw, err := call(pluginabi.MethodHostModelStreamRead, pluginapi.HostModelStreamReadRequest{StreamID: hostStreamID})
@@ -765,14 +885,8 @@ func handleExecutorExecute(raw []byte, call hostCaller) ([]byte, error) {
 	if err := json.Unmarshal(raw, &req); err != nil {
 		return nil, err
 	}
-	decision, err := routeModel(loadedConfig(), loadedRuleSource(), req.SourceFormat, req.Model, apiKeyFromHeaders(req.Headers))
-	if err != nil {
-		return nil, err
-	}
-	if !decision.Handled {
-		return nil, fmt.Errorf("unhandled model route for %q", req.Model)
-	}
-	body, _, err := rewriteRequestModel(req.OriginalRequest, decision.UpstreamModel)
+	upstreamModel, originalModel := upstreamModelFor(req.SourceFormat, req.Model, req.Headers)
+	body, _, err := rewriteRequestModel(req.OriginalRequest, upstreamModel)
 	if err != nil {
 		return nil, err
 	}
@@ -780,7 +894,7 @@ func handleExecutorExecute(raw []byte, call hostCaller) ([]byte, error) {
 		HostModelExecutionRequest: pluginapi.HostModelExecutionRequest{
 			EntryProtocol: req.SourceFormat,
 			ExitProtocol:  req.Format,
-			Model:         decision.UpstreamModel,
+			Model:         upstreamModel,
 			Stream:        false,
 			Body:          body,
 			Headers:       req.Headers,
@@ -799,7 +913,7 @@ func handleExecutorExecute(raw []byte, call hostCaller) ([]byte, error) {
 	if hostResp.StatusCode >= 400 {
 		return nil, fmt.Errorf("host.model.execute status %d: %s", hostResp.StatusCode, string(hostResp.Body))
 	}
-	payload, _, err := restoreResponseModel(hostResp.Body, decision.OriginalModel)
+	payload, _, err := restoreResponseModel(hostResp.Body, originalModel)
 	if err != nil {
 		return nil, err
 	}
@@ -835,7 +949,25 @@ func errorEnvelope(code, message string) []byte {
 	return raw
 }
 
+// safeCall keeps a plugin-side panic from taking down the whole CPA process:
+// this is a c-shared library loaded in-process, so an unrecovered panic is a
+// host crash, not a failed request (mirrors key-policy's safePluginCall).
+func safeCall(call func() ([]byte, error)) (response []byte, err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			logger.Error("plugin panic recovered", "panic", r)
+			response = nil
+			err = fmt.Errorf("plugin panic recovered: %v", r)
+		}
+	}()
+	return call()
+}
+
 func handleMethod(method string, request []byte) ([]byte, error) {
+	return safeCall(func() ([]byte, error) { return dispatchMethod(method, request) })
+}
+
+func dispatchMethod(method string, request []byte) ([]byte, error) {
 	switch method {
 	case pluginabi.MethodPluginRegister:
 		return wrapEnvelope(handlePluginRegister(request))
@@ -860,6 +992,18 @@ func handleMethod(method string, request []byte) ([]byte, error) {
 	}
 }
 
+// lifecycleConfigYAML mirrors Config for YAML decoding. Pointer fields
+// distinguish "key absent" from "key present with a zero value", so an omitted
+// `enabled` keeps defaultConfig()'s true while `enabled: false` disables.
+type lifecycleConfigYAML struct {
+	Enabled                *bool   `yaml:"enabled"`
+	GlobalRules            *string `yaml:"global_rules"`
+	ClaudeMessagesRules    *string `yaml:"claude_messages_rules"`
+	CodexResponsesRules    *string `yaml:"codex_responses_rules"`
+	OpenAICompletionsRules *string `yaml:"openai_completions_rules"`
+	StateFile              *string `yaml:"state_file"`
+}
+
 func decodeLifecycleConfig(raw []byte) (json.RawMessage, bool, error) {
 	trimmed := bytes.TrimSpace(raw)
 	if len(trimmed) == 0 {
@@ -868,60 +1012,44 @@ func decodeLifecycleConfig(raw []byte) (json.RawMessage, bool, error) {
 	var lifecycle struct {
 		ConfigYAML string `json:"config_yaml"`
 	}
-	if err := json.Unmarshal(trimmed, &lifecycle); err == nil && lifecycle.ConfigYAML != "" {
-		decoded, err := base64.StdEncoding.DecodeString(lifecycle.ConfigYAML)
-		if err != nil {
-			return nil, true, err
-		}
-		cfg := defaultConfig()
-		scanner := bufio.NewScanner(bytes.NewReader(decoded))
-		for scanner.Scan() {
-			line := strings.TrimSpace(scanner.Text())
-			if line == "" || strings.HasPrefix(line, "#") {
-				continue
-			}
-			key, value, ok := strings.Cut(line, ":")
-			if !ok {
-				continue
-			}
-			key = strings.TrimSpace(key)
-			value = unquoteYAMLScalar(strings.TrimSpace(value))
-			switch key {
-			case "enabled":
-				cfg.Enabled = strings.EqualFold(value, "true")
-			case "global_rules":
-				cfg.GlobalRules = value
-			case "claude_messages_rules":
-				cfg.ClaudeMessagesRules = value
-			case "codex_responses_rules":
-				cfg.CodexResponsesRules = value
-			case "openai_completions_rules":
-				cfg.OpenAICompletionsRules = value
-			case "state_file":
-				cfg.StateFile = value
-			}
-		}
-		if err := scanner.Err(); err != nil {
-			return nil, true, err
-		}
-		cfgRaw, err := json.Marshal(cfg)
-		if err != nil {
-			return nil, true, err
-		}
-		return cfgRaw, true, nil
+	if err := json.Unmarshal(trimmed, &lifecycle); err != nil || lifecycle.ConfigYAML == "" {
+		return append(json.RawMessage(nil), trimmed...), false, nil
 	}
-	return append(json.RawMessage(nil), trimmed...), false, nil
-}
-
-func unquoteYAMLScalar(value string) string {
-	if len(value) < 2 {
-		return value
+	decoded, err := base64.StdEncoding.DecodeString(lifecycle.ConfigYAML)
+	if err != nil {
+		return nil, true, err
 	}
-	quote := value[0]
-	if (quote != '"' && quote != '\'') || value[len(value)-1] != quote {
-		return value
+	// Parse with a real YAML parser. The host re-marshals the user's config node
+	// and preserves comments and nesting, so a hand-rolled line scanner
+	// misreads "enabled: true # note" and nested keys like store.enabled.
+	var doc lifecycleConfigYAML
+	if err := yaml.Unmarshal(decoded, &doc); err != nil {
+		return nil, true, fmt.Errorf("parse plugin config yaml: %w", err)
 	}
-	return value[1 : len(value)-1]
+	cfg := defaultConfig()
+	if doc.Enabled != nil {
+		cfg.Enabled = *doc.Enabled
+	}
+	if doc.GlobalRules != nil {
+		cfg.GlobalRules = *doc.GlobalRules
+	}
+	if doc.ClaudeMessagesRules != nil {
+		cfg.ClaudeMessagesRules = *doc.ClaudeMessagesRules
+	}
+	if doc.CodexResponsesRules != nil {
+		cfg.CodexResponsesRules = *doc.CodexResponsesRules
+	}
+	if doc.OpenAICompletionsRules != nil {
+		cfg.OpenAICompletionsRules = *doc.OpenAICompletionsRules
+	}
+	if doc.StateFile != nil {
+		cfg.StateFile = *doc.StateFile
+	}
+	cfgRaw, err := json.Marshal(cfg)
+	if err != nil {
+		return nil, true, err
+	}
+	return cfgRaw, true, nil
 }
 
 func callHost(method string, payload any) (json.RawMessage, error) {
@@ -1041,6 +1169,11 @@ func parseRules(raw string) ([]rule, error) {
 	for _, r := range raw {
 		if unicode.IsSpace(r) || r == '"' || r == '\'' {
 			return nil, fmt.Errorf("invalid character")
+		}
+		// Control characters usually mean a YAML double-quoted scalar ate the
+		// escape (e.g. "\a" became BEL). Say so instead of "invalid rule".
+		if r < 0x20 || r == 0x7f {
+			return nil, fmt.Errorf("invalid control character %#U (use single quotes in YAML so \\a and \\A stay literal)", r)
 		}
 	}
 
@@ -1191,12 +1324,26 @@ func parseReplace(s string, captures int) ([]token, error) {
 	for i := 0; i < len(s); i++ {
 		c := s[i]
 		if c == '\\' {
-			if i+2 < len(s) && s[i+1] == '=' && s[i+2] == '>' {
-				lit.WriteString("=>")
-				i += 2
-				continue
+			if i+1 >= len(s) {
+				return nil, fmt.Errorf("dangling escape")
 			}
-			return nil, fmt.Errorf("invalid escape")
+			// Accept the same escapes parseFind does, so a literal ';', '\',
+			// '$' or '*' can be produced on the replacement side too.
+			switch n := s[i+1]; n {
+			case ';', '\\', '$', '*':
+				lit.WriteByte(n)
+				i++
+			case '=':
+				if i+2 < len(s) && s[i+2] == '>' {
+					lit.WriteString("=>")
+					i += 2
+				} else {
+					return nil, fmt.Errorf("invalid escape")
+				}
+			default:
+				return nil, fmt.Errorf("invalid escape")
+			}
+			continue
 		}
 		if c != '$' {
 			lit.WriteByte(c)
@@ -1248,51 +1395,100 @@ func applyRules(model string, rules []rule) (string, bool, error) {
 		if r.caseOperation != caseOperationNone {
 			current = applyASCIIModelCase(current, r.caseOperation)
 			matchedAny = true
-		} else {
-			captures, ok := matchTokens(current, r.patternTokens)
-			if !ok {
-				continue
-			}
-			current = buildReplacement(r.replacementTokens, captures)
-			matchedAny = true
+			continue
 		}
-		if current == "" {
-			return "", true, fmt.Errorf("empty mapped model")
+		captures, ok := matchTokens(current, r.patternTokens)
+		if !ok {
+			continue
 		}
+		next := buildReplacement(r.replacementTokens, captures)
+		if next == "" {
+			// An all-empty capture would blank the model name. Skip the entry
+			// and keep going instead of failing the whole request.
+			logger.Warn("rule produced an empty model name, entry skipped", "model", current)
+			continue
+		}
+		current = next
+		matchedAny = true
 	}
 	return current, matchedAny, nil
 }
 
+// matchTokens matches s against tokens, backtracking over capture boundaries.
+//
+// A capture is bounded by the next literal token; candidate end positions are
+// the successive occurrences of that literal, tried nearest-first. Trying the
+// nearest occurrence first preserves the result of every pattern that already
+// matched, while the retry on later occurrences fixes patterns that used to
+// fail outright when the literal repeats — `*-turbo` now matches
+// `gpt-turbo-turbo` (capturing `gpt-turbo`) instead of not matching at all.
+//
+// Failed (tokenIndex, pos) pairs are memoized, which bounds the search to
+// O(len(tokens)*len(s)) instead of the exponential blowup naive backtracking
+// would allow on patterns with several captures.
+//
+// Adjacent captures (`a**b`) stay as before: the first one takes everything up
+// to the literal and the second one captures the empty string.
 func matchTokens(s string, tokens []token) ([]string, bool) {
-	captures := make([]string, 0, len(tokens))
-	pos := 0
-	for i, tok := range tokens {
-		if tok.literal != "" {
-			if !strings.HasPrefix(s[pos:], tok.literal) {
-				return nil, false
-			}
-			pos += len(tok.literal)
-			continue
+	m := &tokenMatcher{s: s, tokens: tokens, failed: make(map[int]bool)}
+	return m.match(0, 0, nil)
+}
+
+type tokenMatcher struct {
+	s      string
+	tokens []token
+	failed map[int]bool
+}
+
+func (m *tokenMatcher) match(ti, pos int, captures []string) ([]string, bool) {
+	if ti == len(m.tokens) {
+		if pos == len(m.s) {
+			return captures, true
 		}
-		nextLit := ""
-		for j := i + 1; j < len(tokens); j++ {
-			if tokens[j].literal != "" {
-				nextLit = tokens[j].literal
-				break
-			}
-		}
-		end := len(s)
-		if nextLit != "" {
-			idx := strings.Index(s[pos:], nextLit)
-			if idx < 0 {
-				return nil, false
-			}
-			end = pos + idx
-		}
-		captures = append(captures, s[pos:end])
-		pos = end
+		return nil, false
 	}
-	return captures, pos == len(s)
+	memoKey := ti*(len(m.s)+1) + pos
+	if m.failed[memoKey] {
+		return nil, false
+	}
+	if out, ok := m.matchToken(ti, pos, captures); ok {
+		return out, true
+	}
+	m.failed[memoKey] = true
+	return nil, false
+}
+
+func (m *tokenMatcher) matchToken(ti, pos int, captures []string) ([]string, bool) {
+	tok := m.tokens[ti]
+	if tok.literal != "" {
+		if !strings.HasPrefix(m.s[pos:], tok.literal) {
+			return nil, false
+		}
+		return m.match(ti+1, pos+len(tok.literal), captures)
+	}
+	nextLit := ""
+	for _, next := range m.tokens[ti+1:] {
+		if next.literal != "" {
+			nextLit = next.literal
+			break
+		}
+	}
+	if nextLit == "" {
+		// Trailing capture: it must swallow the rest of the input.
+		return m.match(ti+1, len(m.s), append(captures, m.s[pos:]))
+	}
+	for end := pos; end+len(nextLit) <= len(m.s); end++ {
+		idx := strings.Index(m.s[end:], nextLit)
+		if idx < 0 {
+			break
+		}
+		end += idx
+		next := append(append([]string(nil), captures...), m.s[pos:end])
+		if out, ok := m.match(ti+1, end, next); ok {
+			return out, true
+		}
+	}
+	return nil, false
 }
 
 func buildReplacement(tokens []token, captures []string) string {

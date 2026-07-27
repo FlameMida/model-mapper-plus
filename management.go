@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	"strings"
 
@@ -42,8 +43,10 @@ func handleManagement(raw []byte) ([]byte, error) {
 
 func dispatchManagement(req pluginapi.ManagementRequest) pluginapi.ManagementResponse {
 	path := strings.TrimRight(req.Path, "/")
-	// Browser resource GETs arrive through the same method without management auth.
-	if req.Method == http.MethodGet && strings.HasPrefix(path, resourcePrefix) {
+	// Browser resource GETs arrive through the same method without management
+	// auth. Match the registered resource exactly rather than by prefix, so
+	// unknown paths get a 404 instead of a 200 page.
+	if req.Method == http.MethodGet && (path == resourcePrefix || path == resourcePrefix+"/index.html") {
 		return serveIndexHTML()
 	}
 	switch {
@@ -87,6 +90,9 @@ type stateResponse struct {
 	Persisted     bool         `json:"persisted"`
 	StateFile     string       `json:"state_file"`
 	PluginVersion string       `json:"plugin_version"`
+	// LoadError surfaces a rejected state_file so the fallback to the YAML
+	// seed is visible in the UI instead of silently dropping key bindings.
+	LoadError string `json:"load_error,omitempty"`
 }
 
 func managementGetState() pluginapi.ManagementResponse {
@@ -94,11 +100,16 @@ func managementGetState() pluginapi.ManagementResponse {
 	if st.KeyBindings == nil {
 		st.KeyBindings = []KeyBinding{}
 	}
+	version := st.Version
+	if version == 0 {
+		version = stateVersion
+	}
 	return managementJSON(http.StatusOK, stateResponse{
-		Version: stateVersion, Rules: st.Rules,
+		Version: version, Rules: st.Rules,
 		KeyBindings: st.KeyBindings, UpdatedAt: st.UpdatedAt, Persisted: persisted,
 		StateFile:     stateFilePath(),
 		PluginVersion: pluginVersion,
+		LoadError:     loadedStateLoadError(),
 	})
 }
 
@@ -106,17 +117,19 @@ func managementStateError(err error) pluginapi.ManagementResponse {
 	if err == nil {
 		return managementError(http.StatusInternalServerError, "unknown state error")
 	}
+	// Type check first: persistence errors ("rename …: invalid argument",
+	// "invalid cross-device link") contain substrings the validation
+	// heuristic below matches, and were being reported as 400 Bad Request.
+	var persistErr *statePersistError
+	if errors.As(err, &persistErr) {
+		return managementError(http.StatusInternalServerError, err.Error())
+	}
 	// Validation / user-input failures are 400; persistence failures are 500 (spec).
 	msg := err.Error()
 	if strings.Contains(msg, "rules.") || strings.Contains(msg, "key_bindings") ||
 		strings.Contains(msg, "key is required") || strings.Contains(msg, "duplicate key") ||
 		strings.Contains(msg, "invalid ") {
 		return managementError(http.StatusBadRequest, msg)
-	}
-	// parseRules errors bubble as validateState "rules.global: ..." already covered;
-	// anything else (disk, rename, fsync) is a server fault.
-	if _, ok := err.(*statePersistError); ok {
-		return managementError(http.StatusInternalServerError, msg)
 	}
 	// Default: treat as validation (applyStateUpdate mutate/validate path).
 	return managementError(http.StatusBadRequest, msg)
@@ -142,6 +155,10 @@ func managementPostKey(req pluginapi.ManagementRequest) pluginapi.ManagementResp
 	if err := json.Unmarshal(req.Body, &binding); err != nil {
 		return managementError(http.StatusBadRequest, "invalid key binding payload: "+err.Error())
 	}
+	// Store the trimmed key: validateState dedupes on the trimmed form and
+	// keyFromRequest looks up by it, so an untrimmed key would be writable but
+	// impossible to PATCH or DELETE afterwards.
+	binding.Key = strings.TrimSpace(binding.Key)
 	err := applyStateUpdate(func(st *State) error {
 		for i, b := range st.KeyBindings {
 			if b.Key == binding.Key {

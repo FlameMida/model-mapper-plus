@@ -34,6 +34,8 @@ The plugin serves an admin page at `http://<cpa-host>:<api-port>/v0/resource/plu
 
 After the first save, rules and key bindings live in `state_file`. When unset, the default basename is `model-mapper-plus-state.json`, resolved against the CPA process working directory (same as key-policy; the plugin cannot read CPA's `plugins.dir`). Parent dirs are created as needed (mode 0700); the file is mode 0600. Once present, the state file is the single source of truth and the YAML rule fields no longer take effect (`enabled` still comes from YAML only). Delete the state file to fall back to YAML configuration. Set an explicit absolute `state_file` in config when you want a specific directory (e.g. a writable volume). The admin UI follows the CPA panel light/dark theme when embedded.
 
+If an existing state file cannot be parsed or fails validation, it is renamed to `<state_file>.corrupt` and the plugin falls back to the YAML seed. The reason is logged and returned as `load_error` from `GET .../state`, and the admin UI shows a banner — the quarantined file keeps its key bindings recoverable instead of being overwritten by the next save.
+
 ## Key bindings and thinking-effort control
 
 A key binding runs one more structurally identical rule set on top of the top-level output for requests carrying that client key (endpoint segment wins; the binding's global segment is the fallback). Thinking effort is expressed directly through model-name suffixes, for example `claude-opus-4-5(max)=>claude-opus-4-5(high)` — CPA resolves the suffix and it overrides effort fields in the request body. Note that `*` captures swallow the suffix too (`claude-*` captures `opus-4-5(max)`).
@@ -45,14 +47,15 @@ Each ruleset is a `;`-separated ordered list of entries. An entry is either a `f
 - Mappings remain case-sensitive and apply to the complete current model name; later mappings see the value produced by every earlier entry.
 - `\a` changes only `A` through `Z` to `a` through `z`; `\A` changes only `a` through `z` to `A` through `Z`. Non-ASCII bytes, digits, punctuation, and separators are unchanged.
 - Case operations must be complete standalone entries. They are not additional backslash escapes for `find` or `replace`.
-- In `find`, `*` captures zero or more characters, including `/`, and captures are numbered from left to right. Wildcard matching does not backtrack: each capture stops at the first occurrence of the next literal. `$` is literal.
+- In `find`, `*` captures zero or more characters, including `/`, and captures are numbered from left to right. Each capture stops at the first occurrence of the next literal, and backtracks to a later occurrence when the rest of the pattern does not fit — `*-pro` matches `vendor-pro-pro`, capturing `vendor-pro`. Two adjacent `*` are allowed but degenerate: the first takes everything up to the next literal and the second captures the empty string. `$` is literal.
 - In `replace`, `$1`, `$2`, and later numbers reuse captures. `*` is literal.
 - Characters such as `@`, `/`, `[`, `]`, parentheses, dots, hyphens, and underscores are literal and need no escaping.
 - Entries are order-sensitive: the selected ruleset runs left to right exactly once, and later entries see the model produced by earlier entries.
 - Put more specific wildcard rules before broader fallback rules.
-- In `find`, `\` escapes `*`, `;`, `$`, `\`, or `=>`; escaping `$` is accepted but unnecessary. In `replace`, `\=>` is the only backslash escape. Literal `\`, `;`, and `$` cannot be written directly in a replacement, but captures can carry them into the output.
+- `\` escapes `*`, `;`, `$`, `\`, or `=>` on both sides of a mapping; escaping `$` in `find` is accepted but unnecessary.
+- An entry whose captures would collapse the model name to the empty string is skipped, leaving the previous value in place.
 
-YAML may single-quote the whole rule value. The outer quotes are removed before rule parsing and preserve backslashes; quote characters inside the decoded value remain invalid:
+YAML may single-quote the whole rule value; single quotes preserve backslashes, so `\a` and `\A` survive as case operations. Do **not** use double quotes for values containing backslashes — YAML reads `"\a"` as the BEL control character, and the plugin rejects it with a message pointing back here. Quote characters inside the decoded value remain invalid:
 
 ```yaml
 global_rules: '@cf/zai-org/glm-4.7-flash=>glm-4.7-flash;deepseek-v4-pro[1m]=>deepseek-v4-pro'

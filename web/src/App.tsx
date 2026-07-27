@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react'
-import { Layout, Nav, Button, Tag, Typography, Card, Input, Toast } from '@douyinfe/semi-ui'
+import { useEffect, useRef, useState } from 'react'
+import { Layout, Nav, Button, Tag, Typography, Card, Input, Toast, Banner } from '@douyinfe/semi-ui'
 import { api, StateResponse } from './api'
 import { hasKey, setKey, onAuthChange } from './session'
 import { readPanelAuth } from './panelAuth'
@@ -14,6 +14,9 @@ export default function App() {
   const [state, setState] = useState<StateResponse | null>(null)
   const [inputKey, setInputKey] = useState('')
   const [tab, setTab] = useState('rules')
+  // 面板 key 只自动尝试一次。否则 401 → clearKey → authed=false → 再次读到同一个
+  // 失效 key → 重新登录 → 401……形成无限重试，用户也回不到登录表单。
+  const panelAuthTried = useRef(false)
 
   useEffect(() => {
     return onAuthChange((ok) => {
@@ -26,7 +29,8 @@ export default function App() {
   }, [])
 
   useEffect(() => {
-    if (!authed) {
+    if (!authed && !panelAuthTried.current) {
+      panelAuthTried.current = true
       const panel = readPanelAuth()
       if (panel) {
         setKey(panel.managementKey)
@@ -41,6 +45,13 @@ export default function App() {
     }
   }, [authed])
 
+  const login = () => {
+    const key = inputKey.trim()
+    if (!key) return
+    setKey(key)
+    setAuthed(true)
+  }
+
   if (!authed) {
     return (
       <Layout style={{ minHeight: '100vh' }}>
@@ -51,10 +62,10 @@ export default function App() {
               placeholder="CPA management key"
               value={inputKey}
               onChange={setInputKey}
-              onEnterPress={() => { setKey(inputKey); setAuthed(true) }}
+              onEnterPress={login}
             />
             <Button theme="solid" style={{ marginTop: 12 }} block
-              onClick={() => { setKey(inputKey); setAuthed(true) }}>登录</Button>
+              disabled={!inputKey.trim()} onClick={login}>登录</Button>
           </Card>
         </Content>
       </Layout>
@@ -82,6 +93,19 @@ export default function App() {
         />
       </Header>
       <Content>
+        {state?.load_error && (
+          <Banner type="danger" style={{ margin: 16 }}
+            title="state_file 未被采用，当前回退到 YAML 配置"
+            description={
+              <span>
+                {state.load_error}
+                <br />
+                原文件已重命名为 <Typography.Text code>{state.state_file}.corrupt</Typography.Text>，
+                其中的 key 绑定仍可人工恢复。此处保存将写入新的 state_file。
+              </span>
+            }
+          />
+        )}
         <Nav mode="horizontal" selectedKey={tab} style={{ marginBottom: 8 }}
           onSelect={(data) => setTab(String(data.itemKey))}
           items={[

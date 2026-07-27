@@ -196,9 +196,6 @@ func TestParseRulesRejectsInvalidRules(t *testing.T) {
 		`a=>x$1`,
 		`a*=>x$2`,
 		`a\/b=>x`,
-		`a=>\\`,
-		`a=>\;`,
-		`a=>\$`,
 		`\x`,
 		`\a=>x`,
 		`\A=>x`,
@@ -259,7 +256,9 @@ func TestApplyRulesCharacterSemantics(t *testing.T) {
 		{name: "requires matching suffix", raw: `gpt-5.5=>mapped`, model: `gpt-5.5(high)`, want: `gpt-5.5(high)`},
 		{name: "wildcard crosses slash", raw: `@cf/*=>mapped-$1`, model: `@cf/zai-org/glm-4.7-flash`, want: `mapped-zai-org/glm-4.7-flash`, wantMatched: true},
 		{name: "wildcard captures empty text", raw: `@cf/*=>mapped-$1`, model: `@cf/`, want: `mapped-`, wantMatched: true},
-		{name: "wildcard does not backtrack", raw: `*-pro=>mapped`, model: `vendor-pro-pro`, want: `vendor-pro-pro`},
+		{name: "wildcard backtracks to a later literal occurrence", raw: `*-pro=>mapped`, model: `vendor-pro-pro`, want: `mapped`, wantMatched: true},
+		{name: "wildcard backtracking keeps the nearest match when it succeeds", raw: `*-pro=>[$1]`, model: `vendor-pro`, want: `[vendor]`, wantMatched: true},
+		{name: "wildcard backtracking captures up to the last viable literal", raw: `*-pro=>[$1]`, model: `vendor-pro-pro`, want: `[vendor-pro]`, wantMatched: true},
 		{name: "multiple captures are numbered left to right", raw: `a*bc*=>x$2y$1`, model: `aONEbcTWO`, want: `xTWOyONE`, wantMatched: true},
 		{name: "find dollar and replacement star are literal", raw: `price$=>literal*`, model: `price$`, want: `literal*`, wantMatched: true},
 		{name: "escaped find dollar is literal", raw: `price\$=>mapped`, model: `price$`, want: `mapped`, wantMatched: true},
@@ -269,6 +268,10 @@ func TestApplyRulesCharacterSemantics(t *testing.T) {
 		{name: "escaped find separator is literal", raw: `a\=>b=>mapped`, model: `a=>b`, want: `mapped`, wantMatched: true},
 		{name: "find literal backslash", raw: `vendor\\model=>mapped`, model: `vendor\model`, want: `mapped`, wantMatched: true},
 		{name: "replace literal separator", raw: `source=>target\=>alias`, model: `source`, want: `target=>alias`, wantMatched: true},
+		{name: "replace escaped semicolon is literal", raw: `a=>b\;c`, model: `a`, want: `b;c`, wantMatched: true},
+		{name: "replace escaped backslash is literal", raw: `a=>b\\c`, model: `a`, want: `b\c`, wantMatched: true},
+		{name: "replace escaped dollar is literal", raw: `a=>b\$c`, model: `a`, want: `b$c`, wantMatched: true},
+		{name: "replace escaped star is literal", raw: `a=>b\*c`, model: `a`, want: `b*c`, wantMatched: true},
 		{name: "capture carries replacement punctuation", raw: `*=>copy-$1`, model: `price$;vendor\model`, want: `copy-price$;vendor\model`, wantMatched: true},
 		{name: "lowercase ASCII letters only", raw: `\a`, model: `AbC-Z_19/éΩ中`, want: `abc-z_19/éΩ中`, wantMatched: true},
 		{name: "uppercase ASCII letters only", raw: `\A`, model: `aBc-z_19/éω中`, want: `ABC-Z_19/éω中`, wantMatched: true},
@@ -296,15 +299,29 @@ func TestApplyRulesCharacterSemantics(t *testing.T) {
 	}
 }
 
-func TestApplyRulesCaseOperationRejectsEmptyModel(t *testing.T) {
+// A case operation on an empty model leaves it empty. That is the caller's
+// input, not a rule-produced blank, so applyRules reports it without error and
+// routeModel treats the unchanged model as "not handled" (passthrough).
+func TestApplyRulesCaseOperationOnEmptyModelPassesThrough(t *testing.T) {
 	for _, raw := range []string{`\a`, `\A`} {
 		t.Run(raw, func(t *testing.T) {
 			mapped, matched, err := applyRules("", mustParseRules(t, raw))
-			if err == nil || err.Error() != "empty mapped model" {
-				t.Fatalf("mapped=%q matched=%v err=%v, want empty mapped model", mapped, matched, err)
+			if err != nil {
+				t.Fatalf("applyRules error = %v, want nil", err)
+			}
+			if mapped != "" {
+				t.Fatalf("mapped=%q, want empty", mapped)
 			}
 			if !matched {
 				t.Fatalf("matched=false, want true for executed operation")
+			}
+			decision, err := routeModel(
+				Config{Enabled: true}, ruleSource{Rules: RuleSet{Global: raw}}, "openai", "", "")
+			if err != nil {
+				t.Fatalf("routeModel error = %v", err)
+			}
+			if decision.Handled {
+				t.Fatalf("decision=%+v, want not handled for an empty model", decision)
 			}
 		})
 	}
