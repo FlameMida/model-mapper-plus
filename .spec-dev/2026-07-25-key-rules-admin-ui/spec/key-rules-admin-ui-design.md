@@ -114,7 +114,7 @@ model-mapper-plus 现状仅有 YAML 单行配置的四段规则，无 key 维度
 
 ### Requirement: state_file 真相源与 YAML seed
 
-state_file 路径 SHALL 经 `ResolveStatePath` 规范化为绝对路径（对齐 key-policy）：配置为空时默认文件名 `model-mapper-plus-state.json`；默认文件名与相对路径均相对 **CPA 进程工作目录** 解析（插件无法读取 CPA 的 `plugins.dir`，故不追逐 `.so` 位置）；绝对路径原样清理返回。state_file 存在且合法时 SHALL 作为顶层规则四段与 key 绑定的唯一真相源；不存在时 SHALL 以 YAML 规则字段为运行值，并于首次经 management API 保存时创建 state_file（纳入当时 YAML 值，并在需要时创建父目录 mode 0700）。`enabled` 开关 SHALL 只来自 YAML，不进 state_file。`GET /state` SHALL 返回规范化后的 `state_file` 绝对路径供 UI 展示。
+state_file 路径 SHALL 经 `ResolveStatePath` 规范化为绝对路径（对齐 key-policy）：配置为空时默认文件名 `model-mapper-plus-state.json`；默认文件名与相对路径均相对 **CPA 进程工作目录** 解析（插件无法读取 CPA 的 `plugins.dir`，故不追逐 `.so` 位置）；绝对路径原样清理返回。state_file 存在且合法时 SHALL 作为顶层规则四段与 key 绑定的唯一真相源；不存在时 SHALL 以 YAML 规则字段为运行值，并于首次经 management API 保存时创建 state_file（纳入当时 YAML 值，并在需要时创建父目录 mode 0700）。reconfigure 把 state_file 换到一个不存在的新路径、且当前已有持久化数据时，SHALL 把当前数据（规则四段 + key 绑定）迁移到新路径（创建文件、mode 0600、原子写）后即以新路径为真相源——避免用户换路径时规则与 key 绑定看起来「丢失」；首次运行（无持久化数据）换到不存在的新路径仍回退 YAML seed、不创建文件。`enabled` 开关 SHALL 只来自 YAML，不进 state_file。`GET /state` SHALL 返回规范化后的 `state_file` 绝对路径供 UI 展示。
 
 #### Scenario: seed 仅一次
 
@@ -127,6 +127,18 @@ state_file 路径 SHALL 经 `ResolveStatePath` 规范化为绝对路径（对齐
 - **GIVEN** 配置未写 `state_file`，CPA 进程工作目录为 `/app`
 - **WHEN** 解析状态路径
 - **THEN** 得到 `/app/model-mapper-plus-state.json`
+
+#### Scenario: 换路径迁移持久化数据
+
+- **GIVEN** state_file=A（存在，含规则与 key 绑定）已加载为真相源
+- **WHEN** reconfigure 把 state_file 改为一个不存在的新路径 B
+- **THEN** B 被创建且内容为 A 的规则四段与 key 绑定；运行值取自 B，`persisted=true`，`GET /state` 的 `state_file` 为 B
+
+#### Scenario: 首次运行换路径不迁移
+
+- **GIVEN** 无持久化数据（首次运行，state_file 为默认且不存在）
+- **WHEN** reconfigure 把 state_file 改为一个不存在的新路径
+- **THEN** 不创建文件，回退 YAML seed，`persisted=false`
 
 ### Requirement: state_file 损坏回退
 

@@ -557,7 +557,30 @@ func handlePluginReconfigure(raw []byte) ([]byte, error) {
 	// window where loadedHolder held a seed-only state with no key bindings —
 	// concurrent routes lost the key layer and a concurrent save persisted the
 	// empty bindings to disk.
+	// Snapshot the previously loaded state before resolving the new path. A
+	// path change to a nonexistent file migrates the current data instead of
+	// dropping it (ADR-0001 refinement: first run, which has no persisted
+	// data, still falls back to the YAML seed and creates nothing).
+	oldState, oldPersisted := loadedStateSnapshot()
+
 	holder := resolveState(cfg)
+
+	// state_file switched to a path that does not exist yet, but we already
+	// have persisted data on the old path: write the current data to the new
+	// path so reconfiguring to a new location does not look like the rules and
+	// key bindings vanished. A corrupt new path (loadError != "") keeps the
+	// quarantine-and-seed path; only the "does not exist" case migrates.
+	if !holder.persisted && holder.loadError == "" && oldPersisted {
+		newPath := stateFilePathFrom(cfg)
+		if err := atomicWriteState(newPath, oldState); err != nil {
+			logger.Warn("reconfigure: migrate state to new path failed",
+				"to", newPath, "err", err)
+		} else {
+			logger.Info("reconfigure: migrated persisted state to new state_file", "to", newPath)
+			holder = resolveState(cfg) // re-resolve; the new path now exists
+		}
+	}
+
 	if holder.loadError != "" {
 		logger.Warn("reconfigure: state file unusable, falling back to YAML seed",
 			"state_file", stateFilePathFrom(cfg), "err", holder.loadError)
