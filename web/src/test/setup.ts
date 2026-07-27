@@ -1,3 +1,6 @@
+// 与生产入口 main.tsx 一致：注入 Semi 的 React 19 createRoot 适配，否则
+// Modal.confirm / Toast 等命令式 API 在 jsdom 下同样静默失效（删除绑定等用例会假红）。
+import '@douyinfe/semi-ui/react19-adapter'
 import '@testing-library/jest-dom/vitest'
 import { afterEach } from 'vitest'
 import { cleanup } from '@testing-library/react'

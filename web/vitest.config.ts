@@ -7,5 +7,12 @@ export default defineConfig({
   test: {
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],
+    server: {
+      deps: {
+        // Semi 的 CJS 构建里有 require("...icons.css")，不 inline 时 vitest 把 css 当 JS
+        // 解析（报 Unexpected token）。整条链交给 Vite 转换才能正确处理 css。
+        inline: ['@douyinfe/semi-ui', '@douyinfe/semi-icons', '@douyinfe/semi-foundation'],
+      },
+    },
   },
 })
