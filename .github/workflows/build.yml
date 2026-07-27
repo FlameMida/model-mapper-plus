@@ -69,9 +69,6 @@ jobs:
           - goos: darwin
             goarch: arm64
             runner: macos-15
-          - goos: windows
-            goarch: amd64
-            runner: windows-2025
     defaults:
       run:
         shell: bash
@@ -91,36 +88,6 @@ jobs:
           node-version: 22
           cache: npm
           cache-dependency-path: web/package-lock.json
-
-      - name: Set up MinGW
-        id: mingw
-        if: runner.os == 'Windows'
-        uses: msys2/setup-msys2@v2
-        with:
-          msystem: MINGW64
-          path-type: inherit
-          update: true
-          install: >-
-            mingw-w64-x86_64-gcc
-            make
-
-      # The windows runner image also ships a separate toolchain at C:\mingw64.
-      # Its ld cannot parse the .def file Go emits for -buildmode=c-shared
-      # ("export_file.def:1: syntax error"), so whichever gcc PATH happens to
-      # resolve first decides whether the build works. Pin CC to the msys2 gcc
-      # installed above and fail loudly if it is missing.
-      - name: Pin MinGW toolchain
-        if: runner.os == 'Windows'
-        run: |
-          set -euo pipefail
-          msys2_root="$(printf '%s' '${{ steps.mingw.outputs.msys2-location }}' | tr '\\' '/')"
-          gcc="${msys2_root}/mingw64/bin/gcc.exe"
-          if [ ! -x "${gcc}" ]; then
-            echo "msys2 gcc not found at ${gcc}" >&2
-            exit 1
-          fi
-          "${gcc}" --version | head -n 1
-          echo "BUILD_CC=${gcc}" >> "${GITHUB_ENV}"
 
       - name: Resolve release metadata
         id: release_metadata
@@ -147,11 +114,21 @@ jobs:
             dist/${{ env.ARCHIVE_NAME }}.sha256
           if-no-files-found: error
 
-  build-windows-arm64:
-    name: Build windows/arm64
+  # Both Windows targets cross-compile from ubuntu. The native windows runner's
+  # GNU ld intermittently rejects the .def file Go emits for -buildmode=c-shared
+  # ("export_file.def:1: syntax error"); the same commit that built there one day
+  # failed the next with an unchanged runner image and unchanged msys2 packages,
+  # while this cross path kept working. Keep both arches on the path that is
+  # reproducible.
+  build-windows:
+    name: Build windows/${{ matrix.goarch }}
     if: github.event_name != 'pull_request'
     needs: test
     runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: true
+      matrix:
+        goarch: [amd64, arm64]
     defaults:
       run:
         shell: bash
@@ -186,9 +163,9 @@ jobs:
           fi
           echo "VERSION=${VERSION}" >> "${GITHUB_ENV}"
           echo "version=${VERSION}" >> "${GITHUB_OUTPUT}"
-          echo "ARCHIVE_NAME=${PLUGIN_NAME}_${VERSION}_windows_arm64.zip" >> "${GITHUB_ENV}"
+          echo "ARCHIVE_NAME=${PLUGIN_NAME}_${VERSION}_windows_${{ matrix.goarch }}.zip" >> "${GITHUB_ENV}"
 
-      - name: Build Windows ARM64 shared library
+      - name: Build Windows shared library
         timeout-minutes: 45
         uses: go-cross/cgo-actions@v1
         env:
@@ -196,8 +173,8 @@ jobs:
         with:
           dir: .
           packages: .
-          targets: windows-arm64
-          out-dir: dist/windows_arm64
+          targets: windows-${{ matrix.goarch }}
+          out-dir: dist/windows_${{ matrix.goarch }}
           output: ${{ env.PLUGIN_NAME }}-v${{ env.VERSION }}.dll
           flags: -ldflags=-s -w
           x-flags: main.pluginVersion=${{ steps.release_metadata.outputs.version }}
@@ -205,9 +182,9 @@ jobs:
       - name: Package plugin
         run: |
           set -euo pipefail
-          rm -f go-cross-bin.h "dist/windows_arm64/${PLUGIN_NAME}.h"
+          rm -f go-cross-bin.h "dist/windows_${{ matrix.goarch }}/${PLUGIN_NAME}.h"
           go run ./.github/scripts/package-release.go \
-            -library "dist/windows_arm64/${PLUGIN_NAME}-v${VERSION}.dll" \
+            -library "dist/windows_${{ matrix.goarch }}/${PLUGIN_NAME}-v${VERSION}.dll" \
             -archive "dist/${ARCHIVE_NAME}" \
             -checksum "dist/${ARCHIVE_NAME}.sha256"
 
@@ -298,7 +275,7 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/v')
     needs:
       - build
-      - build-windows-arm64
+      - build-windows
       - build-freebsd
     runs-on: ubuntu-24.04
     permissions:
