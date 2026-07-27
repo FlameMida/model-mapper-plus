@@ -93,6 +93,7 @@ jobs:
           cache-dependency-path: web/package-lock.json
 
       - name: Set up MinGW
+        id: mingw
         if: runner.os == 'Windows'
         uses: msys2/setup-msys2@v2
         with:
@@ -102,6 +103,24 @@ jobs:
           install: >-
             mingw-w64-x86_64-gcc
             make
+
+      # The windows runner image also ships a separate toolchain at C:\mingw64.
+      # Its ld cannot parse the .def file Go emits for -buildmode=c-shared
+      # ("export_file.def:1: syntax error"), so whichever gcc PATH happens to
+      # resolve first decides whether the build works. Pin CC to the msys2 gcc
+      # installed above and fail loudly if it is missing.
+      - name: Pin MinGW toolchain
+        if: runner.os == 'Windows'
+        run: |
+          set -euo pipefail
+          msys2_root="$(printf '%s' '${{ steps.mingw.outputs.msys2-location }}' | tr '\\' '/')"
+          gcc="${msys2_root}/mingw64/bin/gcc.exe"
+          if [ ! -x "${gcc}" ]; then
+            echo "msys2 gcc not found at ${gcc}" >&2
+            exit 1
+          fi
+          "${gcc}" --version | head -n 1
+          echo "BUILD_CC=${gcc}" >> "${GITHUB_ENV}"
 
       - name: Resolve release metadata
         id: release_metadata
