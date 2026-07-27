@@ -26,7 +26,9 @@ tail -2 "$LOG"
 [ ! -e "$TMPDIR_CPA/linux/amd64/model-mapper-plus-v1.2.3.so" ] || fail "stale release not cleaned"
 # 部署的固定名 .so 内嵌注入的 dev SHA 版本（0.0.0-dev.<hex>）
 # 注：源码字面量 "0.0.0-dev.unbuilt" 永在 .so（Go rodata，-X 只改变量指向不改字面量），
-# 故用 hex 后缀区分"已注入"（git short SHA 以 hex 开头）vs 默认 unbuilt（u 开头）
-strings "$TMPDIR_CPA/linux/amd64/model-mapper-plus.so" | grep -qE '0\.0\.0-dev\.[0-9a-f]' || fail "dev-so did not inject SHA version"
+# 故用 hex 后缀区分"已注入"（git short SHA 以 hex 开头）vs 默认 unbuilt（u 开头）。
+# 用变量捕获 + grep -E（读全部输入），避免 pipefail 下 grep -q 早退致 strings SIGPIPE 误判。
+injected=$(strings "$TMPDIR_CPA/linux/amd64/model-mapper-plus.so" | grep -E '0\.0\.0-dev\.[0-9a-f]' || true)
+[ -n "$injected" ] || fail "dev-so did not inject SHA version"
 
 echo "dev-so checks passed"
