@@ -126,7 +126,7 @@ jobs:
     needs: test
     runs-on: ubuntu-24.04
     strategy:
-      fail-fast: true
+      fail-fast: false
       matrix:
         goarch: [amd64, arm64]
     defaults:
@@ -168,15 +168,17 @@ jobs:
       - name: Build Windows shared library
         timeout-minutes: 45
         uses: go-cross/cgo-actions@v1
-        env:
-          GOFLAGS: -trimpath -buildmode=c-shared
         with:
           dir: .
           packages: .
           targets: windows-${{ matrix.goarch }}
           out-dir: dist/windows_${{ matrix.goarch }}
           output: ${{ env.PLUGIN_NAME }}-v${{ env.VERSION }}.dll
-          flags: -ldflags=-s -w
+          # Build flags belong here, not in a step-level GOFLAGS: the windows-amd64
+          # backend shells out to `go install github.com/crazy-max/xgo@latest`, and
+          # an inherited -buildmode=c-shared makes that fail with
+          # "no install location for directory ... outside GOPATH".
+          flags: -trimpath -buildmode=c-shared -ldflags=-s -w
           x-flags: main.pluginVersion=${{ steps.release_metadata.outputs.version }}
 
       - name: Package plugin
