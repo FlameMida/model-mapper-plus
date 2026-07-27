@@ -39,7 +39,9 @@ func TestPluginRegistrationMetadataAndConfigFields(t *testing.T) {
 	if !reflect.DeepEqual(reg.Capabilities.ExecutorOutputFormats, []string{"openai", "claude", "openai-response"}) {
 		t.Fatalf("executor output formats=%v", reg.Capabilities.ExecutorOutputFormats)
 	}
-	wantFields := []string{"enabled", "global_rules", "claude_messages_rules", "codex_responses_rules", "openai_completions_rules", "state_file"}
+	// 规则四段由插件自己的管理页维护，不再向 CPA 声明；YAML 里的 *_rules 仍可读
+	// （decodeConfig/decodeLifecycleConfig 保持兼容），只是不在 CPA 插件配置页出现。
+	wantFields := []string{"enabled", "state_file"}
 	got := make([]string, 0, len(reg.Metadata.ConfigFields))
 	for _, field := range reg.Metadata.ConfigFields {
 		got = append(got, field.Name)
@@ -49,6 +51,24 @@ func TestPluginRegistrationMetadataAndConfigFields(t *testing.T) {
 	}
 	if !reflect.DeepEqual(got, wantFields) {
 		t.Fatalf("config fields=%v, want %v", got, wantFields)
+	}
+}
+
+// CPA 把 Metadata 渲染到插件配置页时对 Name/Type/EnumValues/Description 逐个跑
+// htmlsanitize.String（= html.EscapeString，internal/api/handlers/management/plugins.go
+// 的 pluginConfigFields）。声明面里出现 & ' < > " 会在页面上显示成 &lt; &gt; 之类的
+// 实体乱码，且插件侧无法关闭宿主的转义 —— 只能在文案里回避这五个字符。
+func TestPluginRegistrationMetadataAvoidsHostEscapedChars(t *testing.T) {
+	const escaped = `&'<>"`
+	reg := pluginRegistration()
+	for _, field := range reg.Metadata.ConfigFields {
+		if strings.ContainsAny(field.Name, escaped) {
+			t.Fatalf("config field name %q contains a character the host HTML-escapes", field.Name)
+		}
+		if strings.ContainsAny(field.Description, escaped) {
+			t.Fatalf("config field %q description contains a character the host HTML-escapes: %q",
+				field.Name, field.Description)
+		}
 	}
 }
 

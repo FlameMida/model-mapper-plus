@@ -24,6 +24,8 @@ plugins:
 
 The plugin's own `enabled` field defaults to `true`. Empty rule fields mean the request is skipped and CPA behaves normally.
 
+Only `enabled` and `state_file` are declared to CPA (`Metadata.ConfigFields`), so those are the two fields the CPA plugin config page renders. The four `*_rules` keys above are still read from YAML as the first-run seed — they are just managed in the plugin's own admin page instead of being duplicated in CPA's UI.
+
 ## Web admin UI
 
 The plugin serves an admin page at `http://<cpa-host>:<api-port>/v0/resource/plugins/model-mapper-plus/index.html`, signed in with the CPA management key. It has three panels:

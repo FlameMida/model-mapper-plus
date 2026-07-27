@@ -220,13 +220,13 @@ handleModelRoute SHALL 以 `SourceFormat`、`RequestedModel`、`Headers` 为输�
 
 ### Requirement: 插件注册能力（改：新增 ManagementAPI 与 state_file 配置项）
 
-pluginRegistration SHALL 在 `model_router`、`executor`、`executor.execute_stream` 之外声明 ManagementAPI 能力；`Metadata.ConfigFields` 增加 `state_file` 路径字段（默认 `model-mapper-plus-state.json`）。
+pluginRegistration SHALL 在 `model_router`、`executor`、`executor.execute_stream` 之外声明 ManagementAPI 能力；`Metadata.ConfigFields` SHALL 只声明 `enabled` 与 `state_file`（默认 `model-mapper-plus-state.json`）两项——规则四段改由插件自己的管理页维护，不在 CPA 插件配置页重复暴露，但 YAML 侧仍按上文 seed 语义读取（`decodeConfig`/`decodeLifecycleConfig` 保持兼容，既有配置不失效）。ConfigFields 的 `Name` 与 `Description` SHALL 不含 `& ' < > "`：CPA 渲染插件元数据时逐字段跑 `html.EscapeString`，这五个字符会成为实体乱码且插件侧无法关闭。
 
 #### Scenario: 注册包含 management 声明
 
 - **GIVEN** 插件初始化
 - **WHEN** CPA 查询注册信息
-- **THEN** 能力列表含 ManagementAPI，ConfigFields 含 state_file
+- **THEN** 能力列表含 ManagementAPI，ConfigFields 恰为 `enabled` 与 `state_file`，且两者文案均不含被宿主转义的字符
 
 ## REMOVED Requirements
 

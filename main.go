@@ -359,13 +359,16 @@ func pluginRegistration() registration {
 			Version:          pluginVersion,
 			Author:           "FlameMida",
 			GitHubRepository: "https://github.com/FlameMida/cpa-model-mapper-plus",
+			// 只声明宿主配置页真正需要露出的两个字段。规则四段（global_rules /
+			// claude_messages_rules / codex_responses_rules / openai_completions_rules）
+			// 仍能从 YAML 读入作为首次 seed，但由插件自己的管理页维护，不在 CPA 页面重复暴露。
+			//
+			// 文案里不要出现 & ' < > "：CPA 渲染插件元数据时对 Name/Type/EnumValues/
+			// Description 逐个跑 html.EscapeString（pluginConfigFields），这五个字符会变成
+			// &lt; &gt; 之类的实体、在配置页上显示为乱码，且插件侧无法关闭宿主的转义。
 			ConfigFields: []pluginapi.ConfigField{
 				{Name: "enabled", Type: pluginapi.ConfigFieldTypeBoolean, Description: "Enable model request mapping."},
-				{Name: "global_rules", Type: pluginapi.ConfigFieldTypeString, Description: "Fallback rules used when an endpoint-specific ruleset is empty."},
-				{Name: "claude_messages_rules", Type: pluginapi.ConfigFieldTypeString, Description: "Rules for Claude Messages-compatible requests."},
-				{Name: "codex_responses_rules", Type: pluginapi.ConfigFieldTypeString, Description: "Rules for OpenAI Responses/Codex-compatible requests."},
-				{Name: "openai_completions_rules", Type: pluginapi.ConfigFieldTypeString, Description: "Rules for OpenAI Completions and Chat Completions requests."},
-				{Name: "state_file", Type: pluginapi.ConfigFieldTypeString, Description: "Path to the JSON state file (rules + key bindings). Empty defaults to model-mapper-plus-state.json next to this plugin library (or <exe>/plugins/<goos>/<goarch>/)."},
+				{Name: "state_file", Type: pluginapi.ConfigFieldTypeString, Description: "Path to the JSON state file holding mapping rules and key bindings. Relative paths resolve against the CPA process working directory; leave empty to use model-mapper-plus-state.json there. Edit the rules themselves in the Model Mapper Plus admin page."},
 			},
 		},
 		Capabilities: registrationCapabilities{
