@@ -69,6 +69,9 @@ jobs:
           - goos: darwin
             goarch: arm64
             runner: macos-15
+          - goos: windows
+            goarch: amd64
+            runner: windows-2025
     defaults:
       run:
         shell: bash
@@ -88,6 +91,17 @@ jobs:
           node-version: 22
           cache: npm
           cache-dependency-path: web/package-lock.json
+
+      - name: Set up MinGW
+        if: runner.os == 'Windows'
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          path-type: inherit
+          update: true
+          install: >-
+            mingw-w64-x86_64-gcc
+            make
 
       - name: Resolve release metadata
         id: release_metadata
@@ -114,21 +128,11 @@ jobs:
             dist/${{ env.ARCHIVE_NAME }}.sha256
           if-no-files-found: error
 
-  # Both Windows targets cross-compile from ubuntu. The native windows runner's
-  # GNU ld intermittently rejects the .def file Go emits for -buildmode=c-shared
-  # ("export_file.def:1: syntax error"); the same commit that built there one day
-  # failed the next with an unchanged runner image and unchanged msys2 packages,
-  # while this cross path kept working. Keep both arches on the path that is
-  # reproducible.
-  build-windows:
-    name: Build windows/${{ matrix.goarch }}
+  build-windows-arm64:
+    name: Build windows/arm64
     if: github.event_name != 'pull_request'
     needs: test
     runs-on: ubuntu-24.04
-    strategy:
-      fail-fast: false
-      matrix:
-        goarch: [amd64, arm64]
     defaults:
       run:
         shell: bash
@@ -163,30 +167,32 @@ jobs:
           fi
           echo "VERSION=${VERSION}" >> "${GITHUB_ENV}"
           echo "version=${VERSION}" >> "${GITHUB_OUTPUT}"
-          echo "ARCHIVE_NAME=${PLUGIN_NAME}_${VERSION}_windows_${{ matrix.goarch }}.zip" >> "${GITHUB_ENV}"
+          echo "ARCHIVE_NAME=${PLUGIN_NAME}_${VERSION}_windows_arm64.zip" >> "${GITHUB_ENV}"
 
-      - name: Build Windows shared library
+      - name: Build Windows ARM64 shared library
         timeout-minutes: 45
         uses: go-cross/cgo-actions@v1
+        env:
+          GOFLAGS: -trimpath -buildmode=c-shared
         with:
           dir: .
           packages: .
-          targets: windows-${{ matrix.goarch }}
-          out-dir: dist/windows_${{ matrix.goarch }}
-          output: ${{ env.PLUGIN_NAME }}-v${{ env.VERSION }}.dll
-          # Build flags belong here, not in a step-level GOFLAGS: the windows-amd64
-          # backend shells out to `go install github.com/crazy-max/xgo@latest`, and
-          # an inherited -buildmode=c-shared makes that fail with
-          # "no install location for directory ... outside GOPATH".
-          flags: -trimpath -buildmode=c-shared -ldflags=-s -w
+          targets: windows-arm64
+          out-dir: dist/windows_arm64
+          # Plain name: a versioned one would put extra dots in the .def LIBRARY
+          # directive Go emits for c-shared on Windows (golang/go#78238).
+          output: ${{ env.PLUGIN_NAME }}.dll
+          flags: -ldflags=-s -w
           x-flags: main.pluginVersion=${{ steps.release_metadata.outputs.version }}
 
       - name: Package plugin
         run: |
           set -euo pipefail
-          rm -f go-cross-bin.h "dist/windows_${{ matrix.goarch }}/${PLUGIN_NAME}.h"
+          rm -f go-cross-bin.h "dist/windows_arm64/${PLUGIN_NAME}.h"
+          mv -f "dist/windows_arm64/${PLUGIN_NAME}.dll" \
+                "dist/windows_arm64/${PLUGIN_NAME}-v${VERSION}.dll"
           go run ./.github/scripts/package-release.go \
-            -library "dist/windows_${{ matrix.goarch }}/${PLUGIN_NAME}-v${VERSION}.dll" \
+            -library "dist/windows_arm64/${PLUGIN_NAME}-v${VERSION}.dll" \
             -archive "dist/${ARCHIVE_NAME}" \
             -checksum "dist/${ARCHIVE_NAME}.sha256"
 
@@ -277,7 +283,7 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/v')
     needs:
       - build
-      - build-windows
+      - build-windows-arm64
       - build-freebsd
     runs-on: ubuntu-24.04
     permissions:

@@ -61,13 +61,24 @@ vet:
 
 # Compile the c-shared library only (assumes web/dist/index.html is already current).
 # Prefer build-platform / package-platform, which force web-build first.
+#
+# Go 1.26 writes the output basename into the LIBRARY directive of the
+# export_file.def it generates for -buildmode=c-shared on Windows, and GNU ld
+# rejects the extra dots a version string adds ("export_file.def:1: syntax
+# error"; golang/go#78238). Build under the plain plugin name — the same shape
+# key-policy ships — then rename to the versioned artifact name. The DLL's
+# internal name is irrelevant to CPA, which loads plugins by path.
 build-platform-go:
 	@if [ -z "$(GOOS)" ] || [ -z "$(GOARCH)" ]; then echo "GOOS and GOARCH are required"; exit 1; fi
 	@case "$(GOOS)" in windows) ext=".dll" ;; darwin) ext=".dylib" ;; *) ext=".so" ;; esac; \
-	out="$(DIST_DIR)/$(GOOS)_$(GOARCH)/$(PLUGIN_NAME)-v$(PLUGIN_VERSION)$$ext"; \
-	mkdir -p "$$(dirname "$$out")"; \
+	dir="$(DIST_DIR)/$(GOOS)_$(GOARCH)"; \
+	out="$$dir/$(PLUGIN_NAME)-v$(PLUGIN_VERSION)$$ext"; \
+	staged="$$dir/$(PLUGIN_NAME)$$ext"; \
+	mkdir -p "$$dir"; \
 	if [ -n "$(BUILD_CC)" ]; then export CC="$(BUILD_CC)"; fi; \
-	CGO_ENABLED=1 GOOS="$(GOOS)" GOARCH="$(GOARCH)" $(GO) build -trimpath -buildmode=c-shared -ldflags='$(LDFLAGS) $(VERSION_LDFLAGS)' -o "$$out" .
+	CGO_ENABLED=1 GOOS="$(GOOS)" GOARCH="$(GOARCH)" $(GO) build -trimpath -buildmode=c-shared -ldflags='$(LDFLAGS) $(VERSION_LDFLAGS)' -o "$$staged" .; \
+	rm -f "$$dir/$(PLUGIN_NAME).h"; \
+	mv -f "$$staged" "$$out"
 
 # Public single-platform build: always rebuild the embedded admin UI first.
 build-platform: web-build
