@@ -8,6 +8,8 @@ VERSION ?=
 LDFLAGS ?= -s -w
 # 版本号单一来源：VERSION 强制覆盖 > HEAD 精确 tag > dev SHA；VERSION 与 tag 均去 v 前缀
 # （CPA 拒绝以 v 开头的 Version）。始终非空（CPA validPlugin 强制）。
+# 注意：PLUGIN_VERSION 在顶层求值一次，递归 make 须显式传入（命令行覆盖子 make 重算），
+# 否则 web-build 改 tracked 文件致工作区 dirty 后子 make 重算会与父值不一致。
 HEAD_TAG  := $(shell git describe --tags --exact-match HEAD 2>/dev/null | head -1)
 GIT_SHORT := $(shell git rev-parse --short HEAD 2>/dev/null)
 GIT_DIRTY := $(shell [ -z "$$(git status --porcelain 2>/dev/null)" ] || echo ".dirty")
@@ -21,9 +23,6 @@ else
   PLUGIN_VERSION := 0.0.0-dev.unknown
 endif
 VERSION_LDFLAGS := -X main.pluginVersion=$(PLUGIN_VERSION)
-
-print-version:
-	@echo "$(PLUGIN_VERSION)"
 WINDOWS_AMD64_OUT := $(DIST_DIR)/windows_amd64/$(PLUGIN_NAME)-v$(PLUGIN_VERSION).dll
 LINUX_AMD64_OUT := $(DIST_DIR)/linux_amd64/$(PLUGIN_NAME)-v$(PLUGIN_VERSION).so
 LINUX_AMD64_CC ?=
@@ -38,10 +37,19 @@ CPA_PLUGINS_DIR ?= /Users/flame/CLIProxyAPI/plugins
 # CPA host:port the vite dev server proxies API calls to.
 CPA_HOST ?= http://127.0.0.1:8317
 
-.PHONY: test vet web-build build-platform-go build-platform build-windows-amd64 build-linux-amd64 build-linux-amd64-go build package-platform package install-local install-linux-amd64 smoke-local smoke-persistence dev-so dev-ui clean print-version
+.PHONY: test test-scripts vet web-build build-platform-go build-platform build-windows-amd64 build-linux-amd64 build-linux-amd64-go build package-platform package install-local install-linux-amd64 smoke-local smoke-persistence dev-so dev-ui clean print-version
 
 test:
 	$(GO) test ./...
+
+# 版本计算与 CI yaml 的结构断言（dev-so 需 zig，单独跑，不在此自动执行）。
+test-scripts:
+	@bash scripts/test-version.sh
+	@bash scripts/test-ci-yaml.sh
+
+# 打印当前 PLUGIN_VERSION（调试与脚本用）。
+print-version:
+	@echo "$(PLUGIN_VERSION)"
 
 # Build the single-file admin UI into web/dist/index.html (embedded by go:embed).
 # Every plugin library build depends on this so the .so/.dll always carries a fresh UI.
@@ -65,27 +73,27 @@ build-platform-go:
 build-platform: web-build
 	@$(MAKE) --no-print-directory build-platform-go \
 		GOOS="$(GOOS)" GOARCH="$(GOARCH)" GO="$(GO)" DIST_DIR="$(DIST_DIR)" \
-		PLUGIN_NAME="$(PLUGIN_NAME)" BUILD_CC="$(BUILD_CC)" \
+		PLUGIN_NAME="$(PLUGIN_NAME)" BUILD_CC="$(BUILD_CC)" PLUGIN_VERSION="$(PLUGIN_VERSION)" \
 		LDFLAGS="$(LDFLAGS)" VERSION_LDFLAGS="$(VERSION_LDFLAGS)"
 
 build-windows-amd64:
-	$(MAKE) --no-print-directory build-platform GOOS=windows GOARCH=amd64 GO="$(GO)" DIST_DIR="$(DIST_DIR)" PLUGIN_NAME="$(PLUGIN_NAME)"
+	$(MAKE) --no-print-directory build-platform GOOS=windows GOARCH=amd64 GO="$(GO)" DIST_DIR="$(DIST_DIR)" PLUGIN_NAME="$(PLUGIN_NAME)" PLUGIN_VERSION="$(PLUGIN_VERSION)"
 
 build-linux-amd64:
 	@if [ -z "$(LINUX_AMD64_CC)" ]; then echo "LINUX_AMD64_CC is required for linux amd64 cgo cross-compile on Windows"; exit 1; fi
 	@if ! command -v "$(LINUX_AMD64_CC_BIN)" >/dev/null 2>&1; then echo "Linux amd64 cross compiler not found: $(LINUX_AMD64_CC)"; exit 1; fi
-	$(MAKE) --no-print-directory build-platform GOOS=linux GOARCH=amd64 GO="$(GO)" DIST_DIR="$(DIST_DIR)" PLUGIN_NAME="$(PLUGIN_NAME)" BUILD_CC="$(LINUX_AMD64_CC)"
+	$(MAKE) --no-print-directory build-platform GOOS=linux GOARCH=amd64 GO="$(GO)" DIST_DIR="$(DIST_DIR)" PLUGIN_NAME="$(PLUGIN_NAME)" PLUGIN_VERSION="$(PLUGIN_VERSION)" BUILD_CC="$(LINUX_AMD64_CC)"
 
 # Multi-platform local build: web-build once, then compile each platform.
 # linux amd64 still requires LINUX_AMD64_CC (same as before).
 build: web-build
-	@$(MAKE) --no-print-directory build-platform-go GOOS=windows GOARCH=amd64 GO="$(GO)" DIST_DIR="$(DIST_DIR)" PLUGIN_NAME="$(PLUGIN_NAME)"
-	@$(MAKE) --no-print-directory build-linux-amd64-go GO="$(GO)" DIST_DIR="$(DIST_DIR)" PLUGIN_NAME="$(PLUGIN_NAME)" BUILD_CC="$(LINUX_AMD64_CC)"
+	@$(MAKE) --no-print-directory build-platform-go GOOS=windows GOARCH=amd64 GO="$(GO)" DIST_DIR="$(DIST_DIR)" PLUGIN_NAME="$(PLUGIN_NAME)" PLUGIN_VERSION="$(PLUGIN_VERSION)"
+	@$(MAKE) --no-print-directory build-linux-amd64-go GO="$(GO)" DIST_DIR="$(DIST_DIR)" PLUGIN_NAME="$(PLUGIN_NAME)" PLUGIN_VERSION="$(PLUGIN_VERSION)" BUILD_CC="$(LINUX_AMD64_CC)"
 
 build-linux-amd64-go:
 	@if [ -z "$(LINUX_AMD64_CC)" ]; then echo "LINUX_AMD64_CC is required for linux amd64 cgo cross-compile on Windows"; exit 1; fi
 	@if ! command -v "$(LINUX_AMD64_CC_BIN)" >/dev/null 2>&1; then echo "Linux amd64 cross compiler not found: $(LINUX_AMD64_CC)"; exit 1; fi
-	@$(MAKE) --no-print-directory build-platform-go GOOS=linux GOARCH=amd64 GO="$(GO)" DIST_DIR="$(DIST_DIR)" PLUGIN_NAME="$(PLUGIN_NAME)" BUILD_CC="$(LINUX_AMD64_CC)"
+	@$(MAKE) --no-print-directory build-platform-go GOOS=linux GOARCH=amd64 GO="$(GO)" DIST_DIR="$(DIST_DIR)" PLUGIN_NAME="$(PLUGIN_NAME)" PLUGIN_VERSION="$(PLUGIN_VERSION)" BUILD_CC="$(LINUX_AMD64_CC)"
 
 package-platform: build-platform
 	@if [ -z "$(VERSION)" ]; then echo "VERSION is required"; exit 1; fi
@@ -96,7 +104,7 @@ package-platform: build-platform
 
 package:
 	@if [ -n "$(GOOS)" ] || [ -n "$(GOARCH)" ]; then \
-		$(MAKE) --no-print-directory package-platform VERSION="$(VERSION)" GOOS="$(GOOS)" GOARCH="$(GOARCH)" GO="$(GO)" DIST_DIR="$(DIST_DIR)" PLUGIN_NAME="$(PLUGIN_NAME)" BUILD_CC="$(BUILD_CC)" LDFLAGS="$(LDFLAGS)" VERSION_LDFLAGS="$(VERSION_LDFLAGS)"; \
+		$(MAKE) --no-print-directory package-platform VERSION="$(VERSION)" GOOS="$(GOOS)" GOARCH="$(GOARCH)" GO="$(GO)" DIST_DIR="$(DIST_DIR)" PLUGIN_NAME="$(PLUGIN_NAME)" PLUGIN_VERSION="$(PLUGIN_VERSION)" BUILD_CC="$(BUILD_CC)" LDFLAGS="$(LDFLAGS)" VERSION_LDFLAGS="$(VERSION_LDFLAGS)"; \
 	else \
 		$(GO) run .github/scripts/package-release.go -version "$(VERSION)" -dist "$(DIST_DIR)" -out "$(DIST_DIR)/release"; \
 	fi
@@ -121,10 +129,11 @@ smoke-persistence:
 	@if [ -f .env ]; then set -a; . ./.env; set +a; fi; \
 	$(GO) run .github/scripts/smoke-persistence.go
 
-# dev-so: cross-compile linux/amd64 .so via zig (with fresh UI) and copy it
-# into your docker CPA's mounted plugins dir, then the host hot-reloads it.
+# dev-so: cross-compile linux/amd64 .so via zig (with fresh UI + dev SHA version)
+# and copy it as the FIXED name model-mapper-plus.so into your docker CPA's plugins
+# dir (cp 覆盖，热重载友好）。部署前清理该 ID 的 release 残留（避免 CPA cleanup 冲突）。
 dev-so: web-build
-	@$(MAKE) --no-print-directory build-platform-go GOOS=linux GOARCH=amd64 GO="$(GO)" DIST_DIR="$(DIST_DIR)" PLUGIN_NAME="$(PLUGIN_NAME)" BUILD_CC="$(ZIG) cc -target x86_64-linux-gnu" LDFLAGS="$(LDFLAGS)" VERSION_LDFLAGS="$(VERSION_LDFLAGS)"
+	@$(MAKE) --no-print-directory build-platform-go GOOS=linux GOARCH=amd64 GO="$(GO)" DIST_DIR="$(DIST_DIR)" PLUGIN_NAME="$(PLUGIN_NAME)" PLUGIN_VERSION="$(PLUGIN_VERSION)" BUILD_CC="$(ZIG) cc -target x86_64-linux-gnu" LDFLAGS="$(LDFLAGS)" VERSION_LDFLAGS="$(VERSION_LDFLAGS)"
 	@mkdir -p "$(CPA_PLUGINS_DIR)/linux/amd64"
 	@rm -f "$(CPA_PLUGINS_DIR)/linux/amd64/$(PLUGIN_NAME)-v"*.so
 	cp $(DIST_DIR)/linux_amd64/$(PLUGIN_NAME)-v$(PLUGIN_VERSION).so "$(CPA_PLUGINS_DIR)/linux/amd64/$(PLUGIN_NAME).so"

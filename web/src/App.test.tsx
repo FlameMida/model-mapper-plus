@@ -24,39 +24,40 @@ vi.mock('./panels/KeysPanel', () => ({ default: () => null }))
 vi.mock('./panels/PreviewPanel', () => ({ default: () => null }))
 
 import App from './App'
-import { api } from './api'
+import { api, StateResponse } from './api'
 
 describe('App 版本展示', () => {
   beforeEach(() => { vi.clearAllMocks() })
 
   // Scenario: 前端展示版本号
   it('/state 返回 plugin_version 时 footer 显示 v<version>', async () => {
-    ;(api.getState as ReturnType<typeof vi.fn>).mockResolvedValue({
+    vi.mocked(api.getState).mockResolvedValue({
       version: 1,
       rules: { global: '', claude: '', codex: '', openai: '' },
       key_bindings: [],
       persisted: true,
       state_file: '/tmp/s.json',
       plugin_version: '0.0.0-dev.abc1234',
-    })
+    } satisfies StateResponse)
     render(<App />)
-    await waitFor(() => {
-      expect(screen.getByText(/v0\.0\.0-dev\.abc1234/)).toBeInTheDocument()
-    })
+    // 正向守卫：state 已加载（"已连接" Tag 出现），再断言版本段——避免 state=null 时空过
+    await waitFor(() => expect(screen.getByText(/已连接/)).toBeInTheDocument())
+    expect(screen.getByText(/v0\.0\.0-dev\.abc1234/)).toBeInTheDocument()
   })
 
   // Scenario: 旧 .so 无该字段时前端容错
   it('旧 .so 无 plugin_version 时不显示版本段且不报错', async () => {
-    ;(api.getState as ReturnType<typeof vi.fn>).mockResolvedValue({
+    vi.mocked(api.getState).mockResolvedValue({
       version: 1,
       rules: { global: '', claude: '', codex: '', openai: '' },
       key_bindings: [],
       persisted: true,
       state_file: '/tmp/s.json',
-    })
+    } satisfies StateResponse)
     render(<App />)
-    await waitFor(() => {
-      expect(screen.queryByText(/v0\.0\.0/)).not.toBeInTheDocument()
-    })
+    // 正向守卫：state 已加载（footer 整块渲染），排除 state=null 的假阳性
+    await waitFor(() => expect(screen.getByText(/已连接/)).toBeInTheDocument())
+    // 锁定展示契约：" · v<数字>" 即版本段；此处应缺失（容错不显示）
+    expect(screen.queryByText(/ · v\d/)).not.toBeInTheDocument()
   })
 })

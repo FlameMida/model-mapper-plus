@@ -1,18 +1,24 @@
 #!/usr/bin/env bash
 # 验证 dev-so：注入 dev SHA 版本 + 固定名部署 + 清理 release 残留。
-set -eu
+set -euo pipefail
 cd "$(dirname "$0")/.."
-command -v zig >/dev/null 2>&1 || { echo "SKIP: zig not installed"; exit 0; }
+# zig 缺失用 skip 码 80（区别于真正通过 0 / 失败 1），CI 可据此区分。
+command -v zig >/dev/null 2>&1 || { echo "SKIP: zig not installed"; exit 80; }
 fail() { echo "FAIL: $*" >&2; exit 1; }
 
 TMPDIR_CPA=$(mktemp -d)
-trap 'rm -rf "$TMPDIR_CPA"' EXIT
+LOG=$(mktemp)
+trap 'rm -rf "$TMPDIR_CPA" "$LOG"' EXIT
 
 # 预置旧 release 残留（验证部署前清理）
 mkdir -p "$TMPDIR_CPA/linux/amd64"
 touch "$TMPDIR_CPA/linux/amd64/model-mapper-plus-v1.2.3.so"
 
-make dev-so CPA_PLUGINS_DIR="$TMPDIR_CPA" 2>&1 | tail -2
+if ! make dev-so CPA_PLUGINS_DIR="$TMPDIR_CPA" > "$LOG" 2>&1; then
+  tail -20 "$LOG"
+  fail "make dev-so failed"
+fi
+tail -2 "$LOG"
 
 # 部署名固定（覆写式）
 [ -f "$TMPDIR_CPA/linux/amd64/model-mapper-plus.so" ] || fail "fixed deploy name missing"

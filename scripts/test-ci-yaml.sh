@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # 断言 build.yml 已注入 dev SHA 计算与版本化 output/library 路径
 # （CI 难本地全跑，用结构断言 grep -F 字面匹配）。
-set -eu
+set -euo pipefail
 cd "$(dirname "$0")/.."
 f=.github/workflows/build.yml
 fail() { echo "FAIL: $*" >&2; exit 1; }
