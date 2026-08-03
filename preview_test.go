@@ -61,6 +61,34 @@ func TestManagementPreviewEndpoint(t *testing.T) {
 	}
 }
 
+func TestManagementPreviewKeyGlobalWildcardMatchesGPT56Variants(t *testing.T) {
+	setupManagementTest(t, Config{Enabled: true})
+	keyResp := managementPostKey(pluginapi.ManagementRequest{
+		Method: http.MethodPost,
+		Body:   []byte(`{"key":"sk-k","enabled":true,"rules":{"global":"gpt-5.6-*=>glm-5.2"}}`),
+	})
+	if keyResp.StatusCode != http.StatusOK {
+		t.Fatalf("save key binding: status = %d body = %s", keyResp.StatusCode, keyResp.Body)
+	}
+
+	for _, model := range []string{"gpt-5.6-sol", "gpt-5.6-terra", "gpt-5.6-luna"} {
+		t.Run(model, func(t *testing.T) {
+			resp := managementPreview(pluginapi.ManagementRequest{
+				Method: http.MethodPost,
+				Body:   []byte(`{"key":"sk-k","format":"openai-response","model":"` + model + `"}`),
+			})
+			if resp.StatusCode != http.StatusOK {
+				t.Fatalf("status = %d body = %s", resp.StatusCode, resp.Body)
+			}
+			var body previewResponse
+			decodeBody(t, resp, &body)
+			if body.M1 != model || body.M2 != "glm-5.2" || !body.Routed || body.Final != "glm-5.2" {
+				t.Fatalf("got %+v", body)
+			}
+		})
+	}
+}
+
 func TestPreviewRespectsDisabledPlugin(t *testing.T) {
 	setupManagementTest(t, Config{Enabled: false, ClaudeMessagesRules: `a=>b`})
 	resp := managementPreview(pluginapi.ManagementRequest{
