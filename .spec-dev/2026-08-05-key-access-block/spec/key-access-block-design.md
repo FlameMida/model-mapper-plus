@@ -5,15 +5,24 @@ spec_dev:
   feature: key-access-block
   status: active
   covers:
+    - "go.mod"
+    - "go.sum"
     - "main.go"
     - "main_test.go"
+    - "intercept_block_test.go"
     - "state.go"
     - "state_test.go"
     - "management.go"
     - "management_test.go"
+    - "management_api_test.go"
     - "keybinding_test.go"
     - "web/src/panels/KeysPanel.tsx"
+    - "web/src/panels/KeysPanel.test.tsx"
+    - "web/src/panels/KeysPanel.blocked.test.tsx"
+    - "web/src/panels/KeysPanel.delete.test.tsx"
     - "web/src/api.ts"
+    - "web/src/api.test.ts"
+    - "web/dist/index.html"
   sync_commit: null
 ---
 
@@ -23,7 +32,7 @@ spec_dev:
 
 指定 Key 绑定面板已有「启用」开关，但仅控制是否应用该 key 的**追加规则集**，无法禁止该 key 继续调用。运维需要在本插件内对已登记 binding 的 key 做访问门禁，并对客户端返回英文「额度已用尽」风格错误（对齐 CPA 403 → `insufficient_quota`）。
 
-**成功标准 / Success criteria**：管理员可在新建/编辑窗与列表用 Switch 设置 `blocked`；`blocked=true` 的 key 在插件启用时被 `request.intercept_before` 短路拒绝，HTTP 403，body 为固定 OpenAI 形 JSON（message 英文额度用尽）；既有 `enabled` 规则语义与单测行为不变。
+**成功标准 / Success criteria**：管理员可在新建/编辑窗与列表用 Switch 设置 `blocked`；`blocked=true` 的 key 在插件启用时被 `request.intercept_before` 短路拒绝，HTTP 403，body 为固定 OpenAI 形 JSON（message 英文额度用尽）；既有 `enabled` 规则语义与单测行为不变；插件使用 CLIProxyAPI SDK `v7.2.119` 构建，部署的 CPA 宿主版本不低于 `v7.2.103`。
 
 ## 非目标
 
@@ -46,7 +55,8 @@ spec_dev:
 - 管理 API：`management.go`（POST/PATCH/列表读写 `blocked`）
 - 前端：`web/src/panels/KeysPanel.tsx`、`web/src/api.ts`
 - 测试：`main_test.go` / `state_test.go` / `management_test.go` / 既有 `keybinding_test.go` 回归
-- SDK 契约：沿用已有 `pluginapi` RequestInterceptor / `pluginabi.MethodRequestInterceptBefore`，无新依赖
+- SDK 契约：现有 CLIProxyAPI 依赖升级并固定为 `v7.2.119`；使用 `pluginapi.RequestInterceptResponse.Terminate/StatusCode/ResponseBody` 与 `pluginabi.MethodRequestInterceptBefore`
+- 宿主兼容性：CPA runtime SHALL 为 `v7.2.103` 或更高；插件升级后注册 RPC `SchemaVersion=2`（native `ABIVersion` 仍为 1），更早宿主最多支持 schema 1，无法加载该插件，也不具备 Terminate direct-response 契约
 
 ## 已确认的关键决策
 
@@ -58,6 +68,7 @@ spec_dev:
 - 门禁查找不依赖规则 `enabled`：`blocked=true` 即使 `enabled=false` 也拒绝
 - 作用域：仅 state 内存在且 `blocked=true` 的 binding；删除 binding 即解除本插件禁用
 - Preview dry-run：本特性不强制改 preview；运行时拒绝优先（YAGNI）
+- 版本前提：构建 SDK 固定 `v7.2.119`；运行时 CPA 最低 `v7.2.103`；不新增第三方依赖
 
 ## ADDED Requirements
 
@@ -90,6 +101,8 @@ spec_dev:
   }
 }
 ```
+
+该行为依赖 CLIProxyAPI `v7.2.103` 首次提供的 request-interceptor termination wire contract 与注册 RPC schema 2；插件 SHALL 使用 `v7.2.119` SDK 构建（`ABIVersion=1`、`SchemaVersion=2`），部署检查 SHALL 拒绝把本特性认定为已验收，若 CPA 宿主版本低于 `v7.2.103` 或无法确认版本。
 
 #### Scenario: blocked key 被 403 拒绝且文案固定
 
@@ -153,6 +166,12 @@ Keys 面板的新建/编辑窗与列表 SHALL 提供与「启用（规则）」�
 - **WHEN** 打开「禁止访问」Switch 并保存
 - **THEN** 后续 GET 该 binding 的 `blocked` 为 `true`，且 UI 不再与「启用规则」共用同一控件语义
 
+#### Scenario: 列表可直接切换禁止访问
+
+- **GIVEN** Keys 列表显示 binding `sk-a`，其 `blocked=false`
+- **WHEN** 管理员打开该行「禁止访问」Switch
+- **THEN** UI PATCH `sk-a` 的 payload 为 `{"blocked": true}`，且列表 Switch 有区别于「启用规则」的可访问名称
+
 ## MODIFIED Requirements
 
 ### Requirement: 规则启用语义保持不变（明确与 blocked 正交）
@@ -212,7 +231,8 @@ type KeyBinding struct {
 **能力注册**
 
 - 声明 RequestInterceptor 能力
-- `dispatchMethod` 处理 `request.intercept_before`；`request.intercept_after` 若 ABI/注册要求实现则空放行（不重复门禁）
+- `dispatchMethod` 同时处理 `request.intercept_before` 与 `request.intercept_after`；注册 RequestInterceptor 后宿主会调用两者，after 必须空放行（不重复门禁）
+- `go.mod` 固定 `github.com/router-for-me/CLIProxyAPI/v7 v7.2.119`；插件注册使用 `ABIVersion=1`、`SchemaVersion=2`；CPA runtime 最低 `v7.2.103`
 
 **Management**
 
@@ -246,12 +266,16 @@ code    = "insufficient_quota"
 | PATCH 解禁后放行 | unit | 任务内 TDD | 测试通过 |
 | 新建直接 blocked | unit | 任务内 TDD | 测试通过 |
 | 仅关闭规则不拒绝（回归） | unit | 任务内 TDD / 既有用例 | 测试通过 |
-| UI 禁止访问 Switch 与类型 | unit（前端若有）/ 手工 | 任务内或验收 | 构建通过 + 手工确认 |
-| `make test` + `make web-build` | integration | 验收任务 | 命令成功 |
+| UI 编辑窗禁止访问 Switch 与保存 payload | unit | 任务内 TDD（Vitest + Testing Library） | 测试通过 |
+| UI 列表禁止访问 Switch 与 PATCH payload | unit | 任务内 TDD（Vitest + Testing Library） | 测试通过 |
+| CPA runtime 版本不低于 `v7.2.103` | compatibility | 验收任务 | `X-CPA-VERSION` 可解析且版本满足下限 |
+| live CPA blocked key 返回固定 403 且不触达上游 | e2e | 验收任务 | HTTP 403 + body 字节一致；无 live CPA 时明确 DEFERRED |
+| `make test` + `npm test` + `npm run typecheck` + `make web-build` | integration | 验收任务 | 全部命令 exit 0 |
 
 ## 风险与边缘情况
 
 - **多插件顺序**：客户端可能先看到其它插件的 401/拒绝，而非本 403 文案
+- **旧宿主不兼容**：CPA `< v7.2.103` 仅支持注册 RPC schema 1，而插件升级后声明 schema 2，插件注册会被拒绝；即便绕过注册兼容检查，旧 wire contract 也不支持 Terminate direct-response 字段
 - **产品语义**：对外伪装为额度用尽，非真实计费；UI 文案用「禁止访问」，对外 message 用额度句
 - **作用域**：只能禁本插件已登记 binding 的 key
 - **key 比较**：与既有 binding 查找一致使用常量时间比较，避免密钥时序泄漏
