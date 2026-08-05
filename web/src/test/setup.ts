@@ -19,6 +19,12 @@ class ResizeObserverStub {
 }
 globalThis.ResizeObserver = ResizeObserverStub as unknown as typeof ResizeObserver
 
+// jsdom 不实现 Range 几何 API；Semi Typography 判断省略文本是否需要 Tooltip 时
+// 会调用 getBoundingClientRect。组件测试不验证真实布局，返回零尺寸 DOMRect 即可。
+if (typeof Range.prototype.getBoundingClientRect !== 'function') {
+  Range.prototype.getBoundingClientRect = () => new DOMRect(0, 0, 0, 0)
+}
+
 // jsdom 不实现 canvas；Semi UI 的 lottie 动画（Loading/Spin）调用 canvas 2d context，
 // 默认 getContext 返回 null 导致 lottie 报错。用 Proxy stub 一个吸收任意属性/方法的 context。
 HTMLCanvasElement.prototype.getContext = function () {
