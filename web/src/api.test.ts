@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
-import { api } from './api'
+import { api, StateResponse } from './api'
 
 /**
  * CPA 宿主对插件 management 响应统一跑 html.EscapeString
@@ -17,7 +17,7 @@ function stubFetch(payload: unknown, status = 200): void {
   })))
 }
 
-const BASE_STATE = {
+const BASE_STATE: StateResponse = {
   version: 1,
   rules: { global: '', claude: '', codex: '', openai: '' },
   key_bindings: [],
@@ -79,6 +79,7 @@ describe('api：还原 CPA 宿主的 HTML 实体转义', () => {
           key: 'sk-1',
           alias: 'Tom &amp; Jerry',
           enabled: true,
+          blocked: false,
           rules: { global: 'k-src=&gt;k-dst', claude: '', codex: '', openai: '' },
         },
       ],
@@ -95,7 +96,7 @@ describe('api：还原 CPA 宿主的 HTML 实体转义', () => {
       ...BASE_STATE,
       version: 1,
       persisted: true,
-      key_bindings: [{ key: 'sk-1', alias: '', enabled: false, rules: { global: '', claude: '', codex: '', openai: '' } }],
+      key_bindings: [{ key: 'sk-1', alias: '', enabled: false, blocked: false, rules: { global: '', claude: '', codex: '', openai: '' } }],
     })
 
     const state = await api.getState()

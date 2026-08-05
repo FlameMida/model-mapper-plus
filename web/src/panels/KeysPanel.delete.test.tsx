@@ -21,6 +21,7 @@ const BINDING: KeyBinding = {
   key: 'sk-del-me',
   alias: '删除测试',
   enabled: true,
+  blocked: false,
   rules: { ...EMPTY_RULES },
 }
 

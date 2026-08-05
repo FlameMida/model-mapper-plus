@@ -83,12 +83,12 @@ export default function KeysPanel({ state, onSaved }: Props) {
 
   const openCreate = () => {
     setOriginalKey('')
-    setEditing({ key: '', alias: '', enabled: true, rules: EMPTY_RULES })
+    setEditing({ key: '', alias: '', enabled: true, blocked: false, rules: EMPTY_RULES })
   }
 
   const openEdit = (b: KeyBinding) => {
     setOriginalKey(b.key)
-    setEditing({ ...b, rules: { ...b.rules } })
+    setEditing({ ...b, blocked: !!b.blocked, rules: { ...b.rules } })
   }
 
   const closeEdit = () => {
@@ -102,6 +102,10 @@ export default function KeysPanel({ state, onSaved }: Props) {
 
   const toggleEnabled = (b: KeyBinding, enabled: boolean) => {
     api.patchKey(b.key, { enabled }).then(onSaved).catch((e: Error) => Toast.error(e.message))
+  }
+
+  const toggleBlocked = (b: KeyBinding, blocked: boolean) => {
+    api.patchKey(b.key, { blocked }).then(onSaved).catch((e: Error) => Toast.error(e.message))
   }
 
   const remove = (b: KeyBinding) => {
@@ -126,7 +130,28 @@ export default function KeysPanel({ state, onSaved }: Props) {
           { title: 'API Key', dataIndex: 'key', render: (k: string) => <Typography.Text code>{maskKey(k)}</Typography.Text> },
           { title: '别名', dataIndex: 'alias' },
           { title: '追加规则', dataIndex: 'rules', render: (_: unknown, b: KeyBinding) => ruleSummary(b) },
-          { title: '启用', dataIndex: 'enabled', render: (on: boolean, b: KeyBinding) => <Switch checked={on} onChange={(v) => toggleEnabled(b, v)} /> },
+          {
+            title: '启用规则',
+            dataIndex: 'enabled',
+            render: (on: boolean, b: KeyBinding) => (
+              <Switch
+                aria-label={`启用规则：${b.alias || maskKey(b.key)}`}
+                checked={on}
+                onChange={(v) => toggleEnabled(b, v)}
+              />
+            ),
+          },
+          {
+            title: '禁止访问',
+            dataIndex: 'blocked',
+            render: (blocked: boolean, b: KeyBinding) => (
+              <Switch
+                aria-label={`禁止访问：${b.alias || maskKey(b.key)}`}
+                checked={!!blocked}
+                onChange={(v) => toggleBlocked(b, v)}
+              />
+            ),
+          },
           { title: '', dataIndex: 'ops', render: (_: unknown, b: KeyBinding) => (
             <>
               <Button size="small" onClick={() => openEdit(b)}>编辑</Button>{' '}
@@ -166,10 +191,25 @@ export default function KeysPanel({ state, onSaved }: Props) {
               </Typography.Text>
               <RuleSetEditor value={editing.rules} onChange={(r) => setEditing({ ...editing, rules: r })} />
             </div>
-            <div>
-              <Switch checked={editing.enabled} onChange={(v) => setEditing({ ...editing, enabled: v })} /> 启用
+            <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
+              <span>
+                <Switch
+                  aria-label="编辑绑定：启用规则"
+                  checked={editing.enabled}
+                  onChange={(v) => setEditing({ ...editing, enabled: v })}
+                />{' '}
+                启用规则
+              </span>
+              <span>
+                <Switch
+                  aria-label="编辑绑定：禁止访问"
+                  checked={!!editing.blocked}
+                  onChange={(v) => setEditing({ ...editing, blocked: v })}
+                />{' '}
+                禁止访问
+              </span>
               {isKeyCollision && (
-                <Tag color="orange" style={{ marginLeft: 8 }}>同 key 已存在，保存将覆盖</Tag>
+                <Tag color="orange">同 key 已存在，保存将覆盖</Tag>
               )}
             </div>
           </div>

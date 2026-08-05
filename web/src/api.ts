@@ -11,6 +11,7 @@ export interface KeyBinding {
   key: string
   alias: string
   enabled: boolean
+  blocked: boolean
   rules: RuleSet
 }
 
@@ -102,7 +103,7 @@ export const api = {
   getState: () => call<StateResponse>('GET', '/state'),
   putRules: (rules: RuleSet) => call<StateResponse>('PUT', '/rules', rules),
   postKey: (binding: KeyBinding) => call<StateResponse>('POST', '/keys', binding),
-  patchKey: (key: string, patch: Partial<Pick<KeyBinding, 'alias' | 'enabled' | 'rules'>>) =>
+  patchKey: (key: string, patch: Partial<Pick<KeyBinding, 'alias' | 'enabled' | 'blocked' | 'rules'>>) =>
     call<StateResponse>('PATCH', `/keys?key=${encodeURIComponent(key)}`, patch),
   deleteKey: (key: string) => call<StateResponse>('DELETE', `/keys?key=${encodeURIComponent(key)}`),
   preview: (req: PreviewRequest) => call<PreviewResponse>('POST', '/preview', req),

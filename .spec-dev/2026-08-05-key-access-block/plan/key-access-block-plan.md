@@ -711,7 +711,7 @@ git commit -m "feat(T3): 在请求前拦截标记为 blocked 的 key"
 - 产出：`KeyBinding.blocked: boolean`；`patchKey` 可传 `blocked`
 - 产出：编辑窗 Switch accessible name `编辑绑定：禁止访问`；列表 Switch 使用 `禁止访问：alias`
 
-- [ ] **步骤 1：写失败交互测试并补 typed fixtures**
+- [x] **步骤 1：写失败交互测试并补 typed fixtures**
 
 创建 `web/src/panels/KeysPanel.blocked.test.tsx`：
 
@@ -800,7 +800,7 @@ describe('KeysPanel：禁止访问', () => {
 2. `web/src/panels/KeysPanel.delete.test.tsx` 的 `BINDING` 增加 `blocked: false`。
 3. `web/src/api.test.ts` 把 import 改为 `import { api, StateResponse } from './api'`，把 `BASE_STATE` 声明为 `const BASE_STATE: StateResponse = { ... }`，并为两个 `key_bindings` fixture 增加 `blocked: false`。
 
-- [ ] **步骤 2：运行测试确认失败**
+- [x] **步骤 2：运行测试确认失败**
 
 ```bash
 npm --prefix web test -- src/panels/KeysPanel.blocked.test.tsx src/panels/KeysPanel.test.tsx src/panels/KeysPanel.delete.test.tsx src/api.test.ts
@@ -809,7 +809,7 @@ npm --prefix web run typecheck
 
 预期：FAIL；TypeScript 报 `blocked` 不属于现有 `KeyBinding`，或交互测试找不到带独立 accessible name 的 Switch。任务 0 已保证无 `Range.getBoundingClientRect` 基线异常；该异常若再次出现，停止并按基线问题处理。
 
-- [ ] **步骤 3：写最小实现**
+- [x] **步骤 3：写最小实现**
 
 **`web/src/api.ts`**
 
@@ -905,7 +905,7 @@ setEditing({ ...b, blocked: !!b.blocked, rules: { ...b.rules } })
 
 `save` 与 `planKeySave` 已提交完整 `KeyBinding`，不增加第二套 payload 组装逻辑。
 
-- [ ] **步骤 4：运行确认通过**
+- [x] **步骤 4：运行确认通过**
 
 ```bash
 npm --prefix web test -- src/panels/KeysPanel.blocked.test.tsx src/panels/KeysPanel.test.tsx src/panels/KeysPanel.delete.test.tsx src/api.test.ts
@@ -917,7 +917,7 @@ go test ./...
 
 预期：全部 exit 0；新文件 2 个交互用例 PASS；`web/dist/index.html` 更新并包含「禁止访问」文案。
 
-- [ ] **步骤 5：提交**
+- [x] **步骤 5：提交**
 
 ```bash
 git add web/src/api.ts web/src/api.test.ts \

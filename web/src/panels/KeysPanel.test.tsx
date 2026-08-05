@@ -6,6 +6,7 @@ const binding = (key: string): KeyBinding => ({
   key,
   alias: '别名',
   enabled: true,
+  blocked: false,
   rules: { global: 'a=>b', claude: '', codex: '', openai: '' },
 })
 
@@ -39,9 +40,10 @@ describe('审计 #12：编辑时改 key 应为重命名而非新增', () => {
   })
 
   it('保留除 key 外的其余字段', () => {
-    const plan = planKeySave('sk-old', { ...binding('sk-new'), alias: 'X', enabled: false })
+    const plan = planKeySave('sk-old', { ...binding('sk-new'), alias: 'X', enabled: false, blocked: true })
     expect(plan?.binding.alias).toBe('X')
     expect(plan?.binding.enabled).toBe(false)
+    expect(plan?.binding.blocked).toBe(true)
     expect(plan?.binding.rules.global).toBe('a=>b')
   })
 })
