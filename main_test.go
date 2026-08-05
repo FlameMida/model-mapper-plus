@@ -30,6 +30,12 @@ func TestPluginRegistrationMetadataAndConfigFields(t *testing.T) {
 	if !reg.Capabilities.ModelRouter || !reg.Capabilities.Executor {
 		t.Fatalf("capabilities=%#v, want model router and executor", reg.Capabilities)
 	}
+	if !reg.Capabilities.RequestInterceptor {
+		t.Fatalf("capabilities=%#v, want request_interceptor=true", reg.Capabilities)
+	}
+	if pluginabi.ABIVersion != 1 || reg.SchemaVersion != 2 {
+		t.Fatalf("ABI/schema = %d/%d, want 1/2", pluginabi.ABIVersion, reg.SchemaVersion)
+	}
 	if reg.Capabilities.ExecutorModelScope != string(pluginapi.ExecutorModelScopeStatic) {
 		t.Fatalf("executor scope=%q", reg.Capabilities.ExecutorModelScope)
 	}

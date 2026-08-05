@@ -361,7 +361,7 @@ git commit -m "feat(T2): 管理 API 支持 blocked 读写与解禁"
   - `dispatchMethod` 处理 `pluginabi.MethodRequestInterceptBefore` / `After`
   - SDK native `ABIVersion=1`、注册 RPC `SchemaVersion=2`
 
-- [ ] **步骤 1：写失败测试**
+- [x] **步骤 1：写失败测试**
 
 **A.** 扩展 `main_test.go` 的 `TestPluginRegistrationMetadataAndConfigFields`：在既有 capability 断言后增加：
 
@@ -593,7 +593,7 @@ func TestManagementPostBlockedKeyImmediatelyRejects(t *testing.T) {
 
 固定 body 测试使用独立的 `wantBlockedResponseBody` 字面量，禁止引用生产常量，避免实现与断言同时改错。
 
-- [ ] **步骤 2：在旧 SDK 上运行，确认契约红灯**
+- [x] **步骤 2：在旧 SDK 上运行，确认契约红灯**
 
 ```bash
 go list -m -f '{{.Version}}' github.com/router-for-me/CLIProxyAPI/v7
@@ -602,7 +602,7 @@ go test . -run 'TestPluginRegistrationMetadataAndConfigFields|TestInterceptBlock
 
 预期：第一条输出 `v7.2.48`；测试编译 FAIL，至少包含旧 SDK 不认识 `RequestID`、`Terminate`、`StatusCode`、`ResponseHeaders` 或 `ResponseBody` 的错误。这一步证明只写实现而不升级 SDK 无法满足契约。
 
-- [ ] **步骤 3：升级并固定 SDK，再确认实现仍为红灯**
+- [x] **步骤 3：升级并固定 SDK，再确认实现仍为红灯**
 
 ```bash
 go get github.com/router-for-me/CLIProxyAPI/v7@v7.2.119
@@ -613,7 +613,7 @@ go test . -run 'TestPluginRegistrationMetadataAndConfigFields|TestInterceptBlock
 
 预期：版本断言通过；测试仍 FAIL，因为 `registrationCapabilities.RequestInterceptor` 尚不存在，或 method dispatch 返回 `unknown_method`。`go.mod` 中必须是直接依赖 `v7.2.119`。
 
-- [ ] **步骤 4：写最小实现**
+- [x] **步骤 4：写最小实现**
 
 **1）** `registrationCapabilities` 增加字段：
 
@@ -674,7 +674,7 @@ func handleRequestInterceptAfter(raw []byte) ([]byte, error) {
 
 确认 `net/http` 已在 `main.go` import（executor 路径已用 status，通常已有）。
 
-- [ ] **步骤 5：运行测试确认通过**
+- [x] **步骤 5：运行测试确认通过**
 
 ```bash
 go test . -run 'TestPluginRegistrationMetadataAndConfigFields|TestIntercept|TestManagementUnblock|TestManagementPostBlockedKeyImmediatelyRejects' -v
@@ -684,7 +684,7 @@ go mod verify
 
 预期：全部 PASS；fixed body 与测试中的独立 JSON 字面量逐字节一致；`go mod verify` 输出 `all modules verified`。
 
-- [ ] **步骤 6：提交**
+- [x] **步骤 6：提交**
 
 ```bash
 git add go.mod go.sum main.go main_test.go intercept_block_test.go

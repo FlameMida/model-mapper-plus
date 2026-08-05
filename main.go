@@ -349,6 +349,7 @@ type registrationCapabilities struct {
 	ExecutorInputFormats  []string `json:"executor_input_formats"`
 	ExecutorOutputFormats []string `json:"executor_output_formats"`
 	ManagementAPI         bool     `json:"management_api"`
+	RequestInterceptor    bool     `json:"request_interceptor"`
 }
 
 func pluginRegistration() registration {
@@ -378,6 +379,7 @@ func pluginRegistration() registration {
 			ExecutorInputFormats:  []string{"openai", "claude", "openai-response"},
 			ExecutorOutputFormats: []string{"openai", "claude", "openai-response"},
 			ManagementAPI:         true,
+			RequestInterceptor:    true,
 		},
 	}
 }
@@ -625,6 +627,34 @@ func apiKeyFromHeaders(h http.Header) string {
 		}
 	}
 	return strings.TrimSpace(h.Get("x-api-key"))
+}
+
+const blockedQuotaExhaustedBody = `{"error":{"message":"Your quota has been exhausted.","type":"permission_error","code":"insufficient_quota"}}`
+
+func handleRequestInterceptBefore(raw []byte) ([]byte, error) {
+	var req pluginapi.RequestInterceptRequest
+	if err := json.Unmarshal(raw, &req); err != nil {
+		return nil, err
+	}
+	if !loadedConfig().Enabled {
+		return json.Marshal(pluginapi.RequestInterceptResponse{})
+	}
+	apiKey := apiKeyFromHeaders(req.Headers)
+	if _, blocked := findBlockedKeyBinding(loadedRuleSource().KeyBindings, apiKey); blocked {
+		return json.Marshal(pluginapi.RequestInterceptResponse{
+			Terminate:       true,
+			StatusCode:      http.StatusForbidden,
+			ResponseHeaders: http.Header{"Content-Type": {"application/json"}},
+			ResponseBody:    []byte(blockedQuotaExhaustedBody),
+		})
+	}
+	return json.Marshal(pluginapi.RequestInterceptResponse{})
+}
+
+func handleRequestInterceptAfter(raw []byte) ([]byte, error) {
+	// Required by RequestInterceptor capability; access gate runs only before auth.
+	_ = raw
+	return json.Marshal(pluginapi.RequestInterceptResponse{})
 }
 
 func selectRulesFrom(rs RuleSet, format string) (string, bool) {
@@ -1001,6 +1031,10 @@ func dispatchMethod(method string, request []byte) ([]byte, error) {
 		return wrapEnvelope(handlePluginReconfigure(request))
 	case pluginabi.MethodModelRoute:
 		return wrapEnvelope(handleModelRoute(request))
+	case pluginabi.MethodRequestInterceptBefore:
+		return wrapEnvelope(handleRequestInterceptBefore(request))
+	case pluginabi.MethodRequestInterceptAfter:
+		return wrapEnvelope(handleRequestInterceptAfter(request))
 	case pluginabi.MethodExecutorIdentifier:
 		return wrapEnvelope(handleExecutorIdentifier())
 	case pluginabi.MethodExecutorExecute:
