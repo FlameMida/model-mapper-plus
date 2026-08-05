@@ -159,3 +159,45 @@ func TestAtomicWriteStateCreatesParentDir(t *testing.T) {
 		t.Fatalf("got %+v", got)
 	}
 }
+
+// Scenario: 旧 state 加载后 blocked 为 false。
+func TestOldStateWithoutBlockedDefaultsFalseAndStillRoutesEnabledBinding(t *testing.T) {
+	raw := []byte(`{"version":1,"rules":{},"key_bindings":[{"key":"sk-a","enabled":true,"rules":{"global":"a=>b"}}]}`)
+	var st State
+	if err := json.Unmarshal(raw, &st); err != nil {
+		t.Fatalf("unmarshal old state: %v", err)
+	}
+	if len(st.KeyBindings) != 1 {
+		t.Fatalf("bindings = %d, want 1", len(st.KeyBindings))
+	}
+	if st.KeyBindings[0].Blocked {
+		t.Fatal("missing blocked field must decode as false")
+	}
+	decision, err := routeModel(testConfig(), ruleSourceFromState(st), "openai", "a", "sk-a")
+	if err != nil {
+		t.Fatalf("routeModel: %v", err)
+	}
+	if !decision.Handled || decision.UpstreamModel != "b" {
+		t.Fatalf("old enabled binding no longer routes: %+v", decision)
+	}
+}
+
+func TestFindBlockedKeyBindingIgnoresEnabled(t *testing.T) {
+	bindings := []KeyBinding{
+		{Key: "sk-blocked-rules-off", Enabled: false, Blocked: true},
+		{Key: "sk-allowed", Enabled: true, Blocked: false},
+	}
+	got, ok := findBlockedKeyBinding(bindings, "sk-blocked-rules-off")
+	if !ok || got.Key != "sk-blocked-rules-off" {
+		t.Fatalf("blocked binding must match with enabled=false: got=%+v ok=%v", got, ok)
+	}
+	if _, ok := findBlockedKeyBinding(bindings, "sk-allowed"); ok {
+		t.Fatal("blocked=false must not match")
+	}
+	if _, ok := findBlockedKeyBinding(bindings, ""); ok {
+		t.Fatal("empty api key must not match")
+	}
+	if _, ok := findBlockedKeyBinding(bindings, "sk-missing"); ok {
+		t.Fatal("unknown api key must not match")
+	}
+}

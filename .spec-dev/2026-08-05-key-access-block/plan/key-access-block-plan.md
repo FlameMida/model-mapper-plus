@@ -50,12 +50,12 @@
 
 ### 任务 0：建立隔离工作区
 
-- [ ] **步骤 1：检测已有隔离**
+- [x] **步骤 1：检测已有隔离**
 
 运行：`git rev-parse --git-dir` 与 `git rev-parse --git-common-dir`  
 两者不同、且 `git rev-parse --show-superproject-working-tree` 无输出（排除 submodule）→ 已在隔离工作区，跳过本任务。
 
-- [ ] **步骤 2：建立 worktree**
+- [x] **步骤 2：建立 worktree**
 
 Codex 无原生 worktree 工具时使用手工路径。先确认 `.worktrees/` 已被忽略：
 
@@ -70,7 +70,7 @@ git worktree add .worktrees/plan/2026-08-05-key-access-block -b plan/2026-08-05-
 cd .worktrees/plan/2026-08-05-key-access-block
 ```
 
-- [ ] **步骤 3：安装依赖并验证基线**
+- [x] **步骤 3：安装依赖并验证基线**
 
 ```bash
 go mod download
@@ -100,7 +100,7 @@ npm --prefix web test
 - 产出：`KeyBinding.Blocked bool`，JSON 字段名为 `blocked`
 - 产出：`findBlockedKeyBinding(bindings []KeyBinding, apiKey string) (KeyBinding, bool)`；空 key 不命中，只要求 key 常量时间相等且 `Blocked=true`
 
-- [ ] **步骤 1：写失败测试**
+- [x] **步骤 1：写失败测试**
 
 在 `state_test.go` 追加：
 
@@ -157,7 +157,7 @@ KeyBindings: []KeyBinding{{
 }},
 ```
 
-- [ ] **步骤 2：运行测试确认失败**
+- [x] **步骤 2：运行测试确认失败**
 
 ```bash
 go test . -run 'TestOldStateWithoutBlockedDefaultsFalseAndStillRoutesEnabledBinding|TestFindBlockedKeyBindingIgnoresEnabled|TestRouteModelBindingDisabled' -v
@@ -165,7 +165,7 @@ go test . -run 'TestOldStateWithoutBlockedDefaultsFalseAndStillRoutesEnabledBind
 
 预期：FAIL，编译错误包含 `KeyBinding.Blocked undefined` 或 `undefined: findBlockedKeyBinding`。
 
-- [ ] **步骤 3：写最小实现**
+- [x] **步骤 3：写最小实现**
 
 把 `state.go` 的 `KeyBinding` 改为：
 
@@ -198,7 +198,7 @@ func findBlockedKeyBinding(bindings []KeyBinding, apiKey string) (KeyBinding, bo
 }
 ```
 
-- [ ] **步骤 4：运行测试确认通过**
+- [x] **步骤 4：运行测试确认通过**
 
 ```bash
 go test . -run 'TestOldStateWithoutBlockedDefaultsFalseAndStillRoutesEnabledBinding|TestFindBlockedKeyBindingIgnoresEnabled|TestRouteModelBindingDisabled' -v
@@ -207,7 +207,7 @@ go test ./...
 
 预期：全部 PASS；旧 state 中的 enabled binding 仍把 `a` 路由为 `b`，仅关闭规则仍保持既有顶层结果。
 
-- [ ] **步骤 5：提交**
+- [x] **步骤 5：提交**
 
 ```bash
 git add state.go state_test.go keybinding_test.go

@@ -51,6 +51,7 @@ type KeyBinding struct {
 	Key     string  `json:"key"`
 	Alias   string  `json:"alias"`
 	Enabled bool    `json:"enabled"`
+	Blocked bool    `json:"blocked"`
 	Rules   RuleSet `json:"rules"`
 }
 
@@ -175,6 +176,21 @@ func findKeyBinding(bindings []KeyBinding, apiKey string) (KeyBinding, bool) {
 	}
 	for _, b := range bindings {
 		if b.Enabled && subtle.ConstantTimeCompare([]byte(b.Key), []byte(apiKey)) == 1 {
+			return b, true
+		}
+	}
+	return KeyBinding{}, false
+}
+
+// findBlockedKeyBinding returns a blocked binding for apiKey using the same
+// constant-time key comparison as findKeyBinding. Enabled is intentionally
+// ignored because rule application and access denial are orthogonal.
+func findBlockedKeyBinding(bindings []KeyBinding, apiKey string) (KeyBinding, bool) {
+	if apiKey == "" {
+		return KeyBinding{}, false
+	}
+	for _, b := range bindings {
+		if b.Blocked && subtle.ConstantTimeCompare([]byte(b.Key), []byte(apiKey)) == 1 {
 			return b, true
 		}
 	}

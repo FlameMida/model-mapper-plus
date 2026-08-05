@@ -93,7 +93,7 @@ func TestRouteModelBindingDisabled(t *testing.T) {
 	src := ruleSource{
 		Rules: RuleSet{Claude: `a=>b`},
 		KeyBindings: []KeyBinding{{
-			Key: "sk-k", Enabled: false,
+			Key: "sk-k", Enabled: false, Blocked: false,
 			Rules: RuleSet{Global: `b=>c`},
 		}},
 	}
