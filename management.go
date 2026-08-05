@@ -195,6 +195,7 @@ func managementPatchKey(req pluginapi.ManagementRequest) pluginapi.ManagementRes
 	var patch struct {
 		Alias   *string  `json:"alias"`
 		Enabled *bool    `json:"enabled"`
+		Blocked *bool    `json:"blocked"`
 		Rules   *RuleSet `json:"rules"`
 	}
 	if err := json.Unmarshal(req.Body, &patch); err != nil {
@@ -214,6 +215,9 @@ func managementPatchKey(req pluginapi.ManagementRequest) pluginapi.ManagementRes
 			}
 			if patch.Enabled != nil {
 				st.KeyBindings[i].Enabled = *patch.Enabled
+			}
+			if patch.Blocked != nil {
+				st.KeyBindings[i].Blocked = *patch.Blocked
 			}
 			if patch.Rules != nil {
 				st.KeyBindings[i].Rules = *patch.Rules

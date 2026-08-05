@@ -215,3 +215,56 @@ func TestStateFileExcludesPluginVersion(t *testing.T) {
 		t.Fatalf("state_file must not contain plugin_version: %s", raw)
 	}
 }
+
+// Scenario: blocked 经管理 API 写入后可再读出。
+func TestManagementPostKeyPersistsBlockedAndGetStateReadsIt(t *testing.T) {
+	setupManagementTest(t, Config{Enabled: true})
+	post := managementPostKey(pluginapi.ManagementRequest{
+		Method: http.MethodPost,
+		Body:   []byte(`{"key":"sk-a","alias":"A","enabled":true,"blocked":true,"rules":{"global":"x=>y"}}`),
+	})
+	if post.StatusCode != http.StatusOK {
+		t.Fatalf("POST status=%d body=%s", post.StatusCode, post.Body)
+	}
+	get := managementGetState()
+	if get.StatusCode != http.StatusOK {
+		t.Fatalf("GET status=%d body=%s", get.StatusCode, get.Body)
+	}
+	var body stateResponse
+	decodeBody(t, get, &body)
+	if len(body.KeyBindings) != 1 || body.KeyBindings[0].Key != "sk-a" {
+		t.Fatalf("GET key_bindings=%+v", body.KeyBindings)
+	}
+	if !body.KeyBindings[0].Blocked {
+		t.Fatalf("GET did not read back blocked=true: %+v", body.KeyBindings[0])
+	}
+}
+
+func TestManagementPatchKeyUnblocksWithoutClobberingEnabled(t *testing.T) {
+	setupManagementTest(t, Config{Enabled: true})
+	seed := managementPostKey(pluginapi.ManagementRequest{
+		Method: http.MethodPost,
+		Body:   []byte(`{"key":"sk-a","alias":"A","enabled":true,"blocked":true,"rules":{"global":"x=>y"}}`),
+	})
+	if seed.StatusCode != http.StatusOK {
+		t.Fatalf("seed status=%d body=%s", seed.StatusCode, seed.Body)
+	}
+	patch := managementPatchKey(pluginapi.ManagementRequest{
+		Method: http.MethodPatch,
+		Query:  url.Values{"key": {"sk-a"}},
+		Body:   []byte(`{"blocked":false}`),
+	})
+	if patch.StatusCode != http.StatusOK {
+		t.Fatalf("PATCH status=%d body=%s", patch.StatusCode, patch.Body)
+	}
+	get := managementGetState()
+	var body stateResponse
+	decodeBody(t, get, &body)
+	got := body.KeyBindings[0]
+	if got.Blocked {
+		t.Fatalf("blocked=%v, want false after PATCH", got.Blocked)
+	}
+	if !got.Enabled || got.Alias != "A" || got.Rules.Global != "x=>y" {
+		t.Fatalf("PATCH blocked clobbered another field: %+v", got)
+	}
+}

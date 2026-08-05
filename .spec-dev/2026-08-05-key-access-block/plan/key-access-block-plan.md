@@ -230,7 +230,7 @@ git commit -m "feat(T1): 持久化 blocked 并保持规则启用语义"
 - 产出：POST body 与 GET `stateResponse.KeyBindings` 通过完整 `KeyBinding` 传递 `blocked`
 - 产出：PATCH body 支持 `Blocked *bool`，`false` 必须与“字段缺省”区分
 
-- [ ] **步骤 1：写失败测试**
+- [x] **步骤 1：写失败测试**
 
 在 `management_api_test.go` 追加：
 
@@ -291,7 +291,7 @@ func TestManagementPatchKeyUnblocksWithoutClobberingEnabled(t *testing.T) {
 
 现有 imports 已包含 `net/http`、`net/url` 与 `pluginapi`，无需新增测试依赖。
 
-- [ ] **步骤 2：运行测试确认失败**
+- [x] **步骤 2：运行测试确认失败**
 
 ```bash
 go test . -run 'TestManagementPostKeyPersistsBlockedAndGetStateReadsIt|TestManagementPatchKeyUnblocksWithoutClobberingEnabled' -v
@@ -299,7 +299,7 @@ go test . -run 'TestManagementPostKeyPersistsBlockedAndGetStateReadsIt|TestManag
 
 预期：POST/GET 用例因任务 1 的完整 `KeyBinding` 可能已经 PASS；PATCH 用例必须 FAIL，表现为 `blocked` 仍为 true。至少一个失败即为本任务红灯。
 
-- [ ] **步骤 3：写最小实现**
+- [x] **步骤 3：写最小实现**
 
 把 `management.go` 中 `managementPatchKey` 的 patch 结构改为：
 
@@ -322,7 +322,7 @@ if patch.Blocked != nil {
 
 POST 与 GET 已直接使用 `KeyBinding`，不增加平行 DTO。
 
-- [ ] **步骤 4：运行测试确认通过**
+- [x] **步骤 4：运行测试确认通过**
 
 ```bash
 go test . -run 'TestManagementPostKeyPersistsBlockedAndGetStateReadsIt|TestManagementPatchKeyUnblocksWithoutClobberingEnabled|TestManagementPatchKey|TestManagementPostKeyUpsert' -v
@@ -331,7 +331,7 @@ go test ./...
 
 预期：全部 PASS；POST 后实际调用 `managementGetState()` 可回读 true，PATCH false 可解禁且不覆盖 enabled、alias、rules。
 
-- [ ] **步骤 5：提交**
+- [x] **步骤 5：提交**
 
 ```bash
 git add management.go management_api_test.go
