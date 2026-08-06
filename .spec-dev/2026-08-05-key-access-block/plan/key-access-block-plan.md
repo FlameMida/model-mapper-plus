@@ -4,24 +4,25 @@
 >
 > **偏差处理**：执行中发现计划与现实不符——小偏差（路径笔误、明显遗漏但意图清楚）就地修正并在提交信息中注明；接口、数据结构等契约级偏差停下向计划作者确认，不猜着改。
 
-**目标**：为 Key 绑定新增与 `enabled` 正交的 `blocked` 访问门禁；插件启用时在 `request.intercept_before` 对 blocked key 返回固定 HTTP 403 JSON，管理 API 与 Admin UI 均可设置和解除。
+**目标**：为 Key 绑定新增与 `enabled` 正交的 `blocked` 访问门禁；在 Home 关闭、且由标准 `BaseAPIHandler` 执行的 OpenAI/Claude/Responses **HTTP/SSE（非 WebSocket upgrade）**请求中，插件启用时在 `request.intercept_before` 对 blocked key 返回固定 HTTP 403 JSON，管理 API 与 Admin UI 均可设置和解除。固定 SDK 的纯 `model.route` 回调可先执行，但 blocked 请求不得进入 executor、认证选择/执行或上游。
 
 **Spec**：`.spec-dev/2026-08-05-key-access-block/spec/key-access-block-design.md`
 
-**架构**：`KeyBinding.Blocked` 负责持久化，`findBlockedKeyBinding` 只按 key 与 blocked 状态查找；`request.intercept_before` 在模型路由与上游执行前终止命中请求，`request.intercept_after` 固定空放行。Management POST/PATCH/GET 传递 `blocked`，KeysPanel 的编辑窗和列表分别提供具有独立可访问名称的「禁止访问」Switch。
+**架构**：`KeyBinding.Blocked` 负责持久化，`findBlockedKeyBinding` 只按 key 与 blocked 状态查找；在 Home 关闭的标准 `BaseAPIHandler` HTTP/SSE 路径，CLIProxyAPI `v7.2.119` 可先运行纯 `model.route`，随后 `request.intercept_before` 终止命中请求并阻止 executor、认证选择/执行与上游，`request.intercept_after` 固定空放行。Management POST/PATCH/GET 传递 `blocked`，KeysPanel 的编辑窗和列表分别提供具有独立可访问名称的「禁止访问」Switch。Home 的 self-executor route、`/v1/alpha/search` 与 `/backend-api/codex/alpha/search`（Codex direct alias）不在插件门禁范围内；带 `Upgrade: websocket` 的 `GET /v1/responses` 和 `GET /backend-api/codex/responses` 只有完成 WebSocket 本地处理、通过路由与执行前置检查并实际到达 `applyRequestInterceptorsBeforeAuth` 的消息可在 AuthManager/executor 前拦截，错误以 WebSocket `type:"error"` 事件承载。首个 `response.create` 且 `generate:false` 的本地 synthetic prewarm、校验、provider 解析及其他 hook 前早退分支不经过该 hook；所有 WebSocket 分支都不属于固定 HTTP 403 契约。
 
 **技术栈**：Go 1.26、CLIProxyAPI SDK `v7.2.119`（native `ABIVersion=1`、RPC `SchemaVersion=2`）、React 19、Semi Design、Vitest、Testing Library、Vite。
 
 ## 全局约束
 
-- `go.mod` 必须精确固定 `github.com/router-for-me/CLIProxyAPI/v7 v7.2.119`；这是升级现有依赖，不新增第三方依赖。
+- `go.mod` 必须精确固定 `github.com/router-for-me/CLIProxyAPI/v7 v7.2.119`；这是升级现有 SDK。host lifecycle test 为真实 Gin request context 直接引用 SDK 已有的 Gin 传递模块；它只参与测试，不新增插件运行时或业务第三方依赖。
 - 部署的 CPA runtime 必须不低于 `v7.2.103`；低于该版本或无法从 management response 的 `X-CPA-VERSION` 确认版本时，不得把本特性标为验收通过或发布就绪。
 - SDK 升级后 native `ABIVersion` 仍为 `1`，插件注册 RPC `SchemaVersion` 必须为 `2`。
 - 固定响应状态为 `403`；响应 body 必须逐字节等于 `{"error":{"message":"Your quota has been exhausted.","type":"permission_error","code":"insufficient_quota"}}`。
 - `enabled` 只控制 key 层追加规则；门禁查找不得调用 `findKeyBinding`，且不得要求 `Enabled=true`。
 - `Config.Enabled == false`、无客户端 key、无 binding、`Blocked=false` 均不得 Terminate。
 - Bearer key 优先于 `x-api-key`；只有 Bearer 不可用时才回退 `x-api-key`。
-- 门禁只在 `request.intercept_before` 执行；`request.intercept_after` 必须返回空响应，`model.route` 与 executor 不承担拒绝逻辑。
+- CLIProxyAPI `v7.2.119` 的 `model.route` 在 `request.intercept_before` 前运行；允许它作为纯规则计算回调，但门禁只在 `request.intercept_before` 执行，`request.intercept_after` 必须返回空响应，`model.route` 与 executor 不承担拒绝逻辑。
+- 在 Home 关闭且宿主实际进入标准 `BaseAPIHandler` **HTTP/SSE（非 WebSocket upgrade）**before-interceptor 的范围内，blocked 命中后必须返回固定 403，且不得进入插件 executor、认证选择/执行或上游；不再要求跳过已经发生的纯 `model.route` 回调。Home 的 self-executor route 会先由宿主返回 503，`/v1/alpha/search` 与 `/backend-api/codex/alpha/search`（Codex direct alias）不经过该 hook，均是已确认的非目标。带 `Upgrade: websocket` 的两个 Responses `GET` 路径会先升级连接；只有完成 WebSocket 本地处理、通过路由与执行前置检查并实际到达 `applyRequestInterceptorsBeforeAuth` 的消息才会在 AuthManager/executor 前调用 hook，并以 WebSocket `type:"error"` 承载 Terminate。首个 `response.create` 且 `generate:false` 的本地 synthetic prewarm、校验、provider 解析及其他 hook 前早退分支不经过该 hook；所有 WebSocket 分支都不承诺固定 HTTP 403/body。
 - 前端仓库已经配置 Vitest 与 Testing Library；UI 任务必须先写交互失败测试，不得以构建或手工检查替代。
 - 每个实施任务遵循 TDD：失败测试 → 确认红灯 → 最小实现 → 确认绿灯 → 提交。
 
@@ -39,6 +40,7 @@
 | `main.go` | 修改 | capability、before/after handler、固定 body、method dispatch |
 | `main_test.go` | 修改 | RequestInterceptor capability 与 RPC schema 断言 |
 | `intercept_block_test.go` | 创建 | 门禁、header 优先级、放行、解禁和 after 空放行测试 |
+| `host_lifecycle_test.go` | 创建 | 真实 SDK Home 关闭的 `BaseAPIHandler` HTTP/SSE 非流式与流式：真实 Gin 头传递，验证 self-executor / provider 分支的固定 403 与执行不可达 |
 | `web/src/api.ts` / `web/src/api.test.ts` | 修改 | `blocked` 类型、PATCH 类型和 typed fixtures |
 | `web/src/panels/KeysPanel.tsx` | 修改 | 新建/编辑默认值、编辑窗与列表 Switch、PATCH |
 | `web/src/panels/KeysPanel.test.tsx` | 修改 | `planKeySave` 保留 blocked |
@@ -941,11 +943,12 @@ git commit -m "feat(T4): 管理页支持设置和解除 key 访问禁用"
 | Scenario / 检查项 | 维度 | 执行方式 | 目标 | 阈值/预期 | 验收证据 |
 |-------------------|------|---------|------|----------|---------|
 | SDK pin 与 ABI/schema | compatibility | 验收任务 | 本 checkout | 模块版本精确为 `v7.2.119`；`ABIVersion=1`、`SchemaVersion=2` 测试通过 | 命令输出 |
+| blocked 宿主生命周期 | integration | 验收任务 | Home 关闭的真实 SDK `BaseAPIHandler` HTTP/SSE（非流式与流式） | `model.route` 后接 `request.intercept_before`；固定 403；self-executor / provider 分支均不执行 | `host_lifecycle_test.go` 输出 |
 | CPA runtime 版本 | compatibility | 验收任务 | live CPA management state endpoint | `X-CPA-VERSION` 可解析且 `>=v7.2.103` | response headers + 版本比较输出 |
-| live CPA blocked key 固定拒绝 | e2e | 验收任务 | `POST /v1/responses` | 专用 key 返回 403；body 字节精确一致 | status/body + 清理记录 |
+| live CPA blocked key 固定拒绝 | e2e | 验收任务 | 非 WebSocket 的 `POST /v1/responses` | 专用 key 返回 403；body 字节精确一致；不以 `GET` WebSocket upgrade 验收 | status/body + 清理记录 |
 | 全量 Go/前端/构建 | integration | 验收任务 | 本 checkout | `make test`、typecheck、Vitest、`make web-build` 全部 exit 0 | 命令输出 |
 
-- [ ] **步骤 1：验证 SDK pin 与完整本地套件**
+- [x] **步骤 1：验证 SDK pin 与完整本地套件**
 
 ```bash
 test "$(go list -m -f '{{.Version}}' github.com/router-for-me/CLIProxyAPI/v7)" = "v7.2.119"
@@ -991,7 +994,9 @@ console.log(`CPA runtime accepted: v${raw}`)
 
 预期：版本可解析且比较通过。header 缺失、`dev` 等不可解析值、或版本低于 `v7.2.103` 均为验收失败，不得猜测版本。
 
-- [ ] **步骤 3：用专用 key 做 live `/v1/responses` 拒绝与清理**
+- [ ] **步骤 3：用专用 key 做 Home 关闭的 live HTTP/SSE `POST /v1/responses` 拒绝与清理**
+
+此插件范围不覆盖 Home 的 self-executor route、`/v1/alpha/search` 或 `/backend-api/codex/alpha/search`（Codex direct alias）；固定 HTTP 403 也不覆盖带 `Upgrade: websocket` 的 `GET /v1/responses` 或 `GET /backend-api/codex/responses`。只有完成 WebSocket 本地处理、通过路由与执行前置检查并实际到达 `applyRequestInterceptorsBeforeAuth` 的 WebSocket 消息可在 AuthManager/executor 前被 hook 拒绝，且宿主把结果写为 `type:"error"`；首个 `response.create` 且 `generate:false` 的本地 synthetic prewarm、校验、provider 解析及其他 hook 前早退分支不经过该 hook。任何 WebSocket 结果都不能用来验证 HTTP status/body。创建测试 binding 前，须确认目标 CPA 的 **POST** `/v1/responses` 会走 Home 关闭的标准 `BaseAPIHandler` HTTP/SSE 路径。若无法确认，步骤 2-3 一并标记 `DEFERRED`，不得以 Home 下的 503 或 WebSocket error event 代替固定 403 验收。
 
 先确认插件 state 不含同名 binding，防止覆盖真实数据：
 
@@ -1056,9 +1061,9 @@ if ((body.key_bindings || []).some((b) => b.key === process.argv[2])) {
 ' "$CPA_E2E_TMP/state-after-cleanup.json" "$CPA_BLOCKED_TEST_KEY"
 ```
 
-步骤 2 与步骤 3 必须在同一个 shell session 中依次运行，使环境变量和 cleanup trap 持续有效。预期：`/v1/responses` 精确返回 403 与固定 body；清理后的 GET state 证明专用 binding 已删除。因为拒绝发生在 `request.intercept_before`，该请求不进入模型路由、插件 executor 或上游。
+步骤 2 与步骤 3 必须在同一个 shell session 中依次运行，使环境变量和 cleanup trap 持续有效。预期：在已确认 Home 关闭的 HTTP/SSE **POST** `/v1/responses` 路径上精确返回 403 与固定 body；清理后的 GET state 证明专用 binding 已删除。固定 SDK 可在 before-interceptor 前运行纯 `model.route`；本地 `host_lifecycle_test.go` 负责证明 Terminate 不会进入插件 executor 或认证执行，live HTTP 结果本身不得被误解为 route 回调计数证据。`GET` WebSocket upgrade 的 `type:"error"` 不是本步骤的替代验收。
 
-- [ ] **步骤 4：记录验收结论**
+- [x] **步骤 4：记录验收结论**
 
 将命令、exit code、headers、status/body 对比与 cleanup 结果写入 `.spec-dev/2026-08-05-key-access-block/acceptance/`。没有可用 live CPA 时，步骤 2-3 标记为 `DEFERRED`；整体最多为 `DEFERRED/PARTIAL`，不得标为 `PASS`、发布就绪或部署就绪。本地 unit/integration 通过不能替代宿主版本与 live direct-response 验证。
 
@@ -1131,7 +1136,7 @@ git commit -m "chore(spec): sync_commit 锚定 ${SYNC:0:7}"
 | 列表直接切换 blocked | T4 `列表禁止访问 Switch 直接 PATCH blocked=true` |
 | 仅关闭规则不拒绝且 key 层规则不应用 | T1 既有 `TestRouteModelBindingDisabled` |
 | SDK `v7.2.119` 与 CPA `>=v7.2.103` | T3 pin + T5 compatibility |
-| live CPA 固定 403/body 与 binding 清理 | T5 E2E |
+| Home 关闭的 live CPA HTTP/SSE `POST /v1/responses` 固定 403/body 与 binding 清理 | T5 E2E |
 | 全量 Go、Vitest、typecheck、bundle | T0、T4、T5、T6 |
 
 ### 一致性与闭环
@@ -1141,4 +1146,4 @@ git commit -m "chore(spec): sync_commit 锚定 ${SYNC:0:7}"
 - 方法一致性：`findBlockedKeyBinding` 只由 before handler 使用；before/after method 均在 `dispatchMethod` 注册。
 - 契约一致性：SDK pin `v7.2.119`、native ABI 1、RPC schema 2、宿主下限 `v7.2.103` 在 spec、ADR、任务 3 与验收任务一致。
 - 固定响应测试使用独立 JSON 字面量，不引用生产 `blockedQuotaExhaustedBody`。
-- 生命周期闭环：任务 0 建立隔离并阻断红色基线；任务 5 保留 live 证据并清理专用 binding；任务 6 全量验证、合并、删除 worktree、锚定 `sync_commit`。
+- 生命周期闭环：任务 0 建立隔离并阻断红色基线；任务 5 保留 HTTP/SSE live 证据并清理专用 binding（WebSocket upgrade 仅对完成本地处理、通过路由与执行前置检查并到达 `applyRequestInterceptorsBeforeAuth` 的消息记录为 `type:"error"` 承载；其他 hook 前早退分支不经过门禁；均非固定 HTTP 验收）；任务 6 全量验证、合并、删除 worktree、锚定 `sync_commit`。

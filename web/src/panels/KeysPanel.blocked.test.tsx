@@ -38,6 +38,15 @@ afterEach(() => {
 })
 
 describe('KeysPanel：禁止访问', () => {
+  it('新增绑定默认不禁止访问', async () => {
+    const user = userEvent.setup()
+    render(<KeysPanel state={STATE} onSaved={vi.fn()} />)
+
+    await user.click(screen.getByRole('button', { name: /新增绑定/ }))
+
+    expect(await screen.findByRole('switch', { name: '编辑绑定：禁止访问' })).not.toBeChecked()
+  })
+
   it('编辑窗打开禁止访问并保存时 POST blocked=true', async () => {
     const user = userEvent.setup()
     vi.mocked(api.postKey).mockResolvedValue({
@@ -56,6 +65,30 @@ describe('KeysPanel：禁止访问', () => {
       expect(api.postKey).toHaveBeenCalledWith(expect.objectContaining({
         key: 'sk-block-test',
         blocked: true,
+      }))
+    })
+  })
+
+  it('编辑窗关闭禁止访问并保存时 POST blocked=false', async () => {
+    const user = userEvent.setup()
+    vi.mocked(api.postKey).mockResolvedValue({
+      ...STATE,
+      key_bindings: [{ ...BINDING, blocked: false }],
+    })
+    render(<KeysPanel state={{ ...STATE, key_bindings: [{ ...BINDING, blocked: true }] }} onSaved={vi.fn()} />)
+    await user.click(screen.getByRole('button', { name: '编辑' }))
+    const blockedSwitch = await screen.findByRole('switch', { name: '编辑绑定：禁止访问' })
+    expect(blockedSwitch).toBeChecked()
+    await user.click(blockedSwitch)
+
+    const dialog = screen.getByRole('dialog')
+    const okButton = dialog.querySelector('.semi-modal-footer .semi-button-primary') as HTMLButtonElement
+    await user.click(okButton)
+
+    await waitFor(() => {
+      expect(api.postKey).toHaveBeenCalledWith(expect.objectContaining({
+        key: 'sk-block-test',
+        blocked: false,
       }))
     })
   })

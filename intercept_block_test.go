@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/url"
+	"reflect"
 	"testing"
 
 	pluginabi "github.com/router-for-me/CLIProxyAPI/v7/sdk/pluginabi"
@@ -170,8 +171,8 @@ func TestInterceptAfterIsPassThrough(t *testing.T) {
 	if err := json.Unmarshal(env.Result, &resp); err != nil {
 		t.Fatal(err)
 	}
-	if resp.Terminate {
-		t.Fatal("after must never terminate for this feature")
+	if !reflect.DeepEqual(resp, pluginapi.RequestInterceptResponse{}) {
+		t.Fatalf("after response = %#v, want empty pass-through response", resp)
 	}
 }
 
@@ -208,5 +209,48 @@ func TestManagementPostBlockedKeyImmediatelyRejects(t *testing.T) {
 	if !resp.Terminate || resp.StatusCode != http.StatusForbidden ||
 		!bytes.Equal(resp.ResponseBody, []byte(wantBlockedResponseBody)) {
 		t.Fatalf("new blocked binding did not reject immediately: %+v", resp)
+	}
+}
+
+func TestManagementPostBlockedKeyStillRejectsAfterReconfigure(t *testing.T) {
+	statePath := setupManagementTest(t, Config{Enabled: true})
+	post := managementPostKey(pluginapi.ManagementRequest{
+		Method: http.MethodPost,
+		Body:   []byte(`{"key":"sk-reload","enabled":true,"blocked":true,"rules":{}}`),
+	})
+	if post.StatusCode != http.StatusOK {
+		t.Fatalf("POST status=%d body=%s", post.StatusCode, post.Body)
+	}
+
+	if _, err := handlePluginReconfigure(lifecycleRaw(t, "enabled: true\nstate_file: "+statePath+"\n")); err != nil {
+		t.Fatalf("reconfigure: %v", err)
+	}
+
+	resp := interceptBeforeRaw(t, http.Header{"Authorization": {"Bearer sk-reload"}})
+	if !resp.Terminate || resp.StatusCode != http.StatusForbidden ||
+		!bytes.Equal(resp.ResponseBody, []byte(wantBlockedResponseBody)) {
+		t.Fatalf("reloaded blocked binding did not reject: %+v", resp)
+	}
+}
+
+func TestManagementDeleteBlockedBindingAllowsInterceptPass(t *testing.T) {
+	setupBlockedInterceptTest(t, Config{Enabled: true}, []KeyBinding{{
+		Key:     "sk-delete",
+		Enabled: true,
+		Blocked: true,
+	}})
+	if resp := interceptBeforeRaw(t, http.Header{"Authorization": {"Bearer sk-delete"}}); !resp.Terminate {
+		t.Fatal("precondition: blocked binding should terminate")
+	}
+
+	deleted := managementDeleteKey(pluginapi.ManagementRequest{
+		Method: http.MethodDelete,
+		Query:  url.Values{"key": {"sk-delete"}},
+	})
+	if deleted.StatusCode != http.StatusOK {
+		t.Fatalf("DELETE status=%d body=%s", deleted.StatusCode, deleted.Body)
+	}
+	if resp := interceptBeforeRaw(t, http.Header{"Authorization": {"Bearer sk-delete"}}); resp.Terminate {
+		t.Fatalf("deleted binding must not terminate: %+v", resp)
 	}
 }

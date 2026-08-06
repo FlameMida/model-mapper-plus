@@ -1,0 +1,4 @@
+{
+  "findings": [],
+  "coverage_note": "复核已批准的 spec、ADR-0005、实施计划和实际 SDK 生命周期。文档现在明确 v7.2.119 可先调用纯 model.route，并把 HTTP/SSE 固定 403、executor/AuthManager/上游不可达作为不变量；host_lifecycle_test.go 在非流式与流式路径上落实该契约。GET /v1/responses 与 GET /backend-api/codex/responses 的 WebSocket upgrade 会先完成握手；只有完成本地处理、通过路由与执行前置检查并到达 applyRequestInterceptorsBeforeAuth 的消息才可由宿主把 Terminate 转成 type:error，synthetic prewarm、校验、provider 解析及其他 hook 前早退分支不经过 hook，故全部明确排除固定 HTTP status/body 契约。此前关于“不进入模型路由”的规范发现已通过用户批准的契约修订和回归测试处置。live runtime 版本与 HTTP/SSE cleanup 仍缺环境，已在验收报告中明确 DEFERRED。"
+}

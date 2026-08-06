@@ -1,0 +1,4 @@
+{
+  "findings": [],
+  "coverage_note": "复核批准后的契约和本轮新增测试/文档。固定 403 文案已一致限于 HTTP/SSE；GET /v1/responses 与 GET /backend-api/codex/responses 的 WebSocket upgrade 只有完成本地处理、通过路由与执行前置检查并到达 applyRequestInterceptorsBeforeAuth 的消息才会被前置拒绝并以 type:error 事件承载，synthetic prewarm、校验、provider 解析及其他 hook 前早退分支不经过 hook，未伪称为 HTTP DirectResponse。go mod tidy -diff、go mod verify、make test、make vet、npm --prefix web run typecheck、npm --prefix web test、make web-build 与 bundle diff 均通过；host 生命周期测试为调用真实 CLIProxyAPI SDK handler 所需的既有传递模块建立确定性 go.sum 记录，未新增插件运行时或业务依赖。新增 Go/React 回归的命名、隔离与可访问选择器均无质量问题。"
+}

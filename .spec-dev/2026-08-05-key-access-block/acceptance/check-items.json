@@ -1,0 +1,135 @@
+{
+  "items": [
+    {
+      "check": "旧 state 缺少 blocked 时默认为 false，且启用的 key 规则仍可路由",
+      "dimension": "unit",
+      "tier": "D",
+      "requirement_ref": "Key 绑定持久化访问禁用标志 / 旧 state 加载后 blocked 为 false",
+      "ops": "make test（覆盖 TestOldStateWithoutBlockedDefaultsFalseAndStillRoutesEnabledBinding）",
+      "result": "pass",
+      "evidence_ref": "2026-08-06 make test exit 0；state_test.go",
+      "notes": "直接反序列化旧 JSON，并验证原有 enabled binding 仍将 a 路由为 b。"
+    },
+    {
+      "check": "管理 API 的 POST、GET 与 PATCH 能读写 blocked，且 PATCH false 不覆盖其他字段",
+      "dimension": "unit",
+      "tier": "D",
+      "requirement_ref": "管理面可读写 blocked",
+      "ops": "make test（覆盖 TestManagementPostKeyPersistsBlockedAndGetStateReadsIt 与 TestManagementPatchKeyUnblocksWithoutClobberingEnabled）",
+      "result": "pass",
+      "evidence_ref": "2026-08-06 make test exit 0；management_api_test.go",
+      "notes": "POST 后 GET 回读 true；PATCH blocked=false 保持 enabled、alias 和 rules。"
+    },
+    {
+      "check": "HTTP/SSE 路径直接调用 request.intercept_before 时，blocked key 返回固定 403 JSON",
+      "dimension": "unit",
+      "tier": "D",
+      "requirement_ref": "访问禁用时短路拒绝请求 / blocked key 被 403 拒绝且文案固定",
+      "ops": "make test（覆盖 TestInterceptBlocksBlockedKeyWithFixedBody）",
+      "result": "pass",
+      "evidence_ref": "2026-08-06 make test exit 0；intercept_block_test.go",
+      "notes": "断言 HTTP/SSE DirectResponse 的 Terminate、403、application/json 与响应 body 的逐字节一致性；不把 WebSocket upgrade 伪称为 HTTP 响应。"
+    },
+    {
+      "check": "规则关闭仍拒绝；未 blocked、无 binding、插件关闭、无 key 头及 Bearer 优先级均正确放行或拒绝",
+      "dimension": "unit",
+      "tier": "D",
+      "requirement_ref": "访问禁用时短路拒绝请求 / 边界 Scenario",
+      "ops": "make test（覆盖 TestInterceptBlocksWhenRulesDisabled、PassWhenNotBlocked、PassWhenNoBinding、PassWhenPluginDisabled、PassWhenNoClientKey、BlocksViaXAPIKeyFallback、BearerTakesPriorityOverXAPIKey 与 AfterIsPassThrough）",
+      "result": "pass",
+      "evidence_ref": "2026-08-06 make test exit 0；intercept_block_test.go",
+      "notes": "门禁查询不依赖 enabled，且 after hook 始终空放行。"
+    },
+    {
+      "check": "PATCH blocked=false 后本插件的 before-interceptor 不再终止请求",
+      "dimension": "unit",
+      "tier": "D",
+      "requirement_ref": "管理面可读写 blocked / PATCH 解禁后请求放行",
+      "ops": "make test（覆盖 TestManagementUnblockAllowsInterceptPass）",
+      "result": "pass",
+      "evidence_ref": "2026-08-06 make test exit 0；intercept_block_test.go",
+      "notes": "同一测试先验证 blocked，再 PATCH false 并验证放行。"
+    },
+    {
+      "check": "POST 新建 blocked binding 后立即拒绝，并在 state reload/reconfigure 后继续拒绝",
+      "dimension": "unit",
+      "tier": "D",
+      "requirement_ref": "Key 绑定持久化访问禁用标志 / 管理面可读写 blocked",
+      "ops": "go test . -run 'TestManagementPostBlockedKeyImmediatelyRejects|TestManagementPostBlockedKeyStillRejectsAfterReconfigure' -v",
+      "result": "pass",
+      "evidence_ref": "2026-08-06 定向 Go 测试 exit 0；intercept_block_test.go",
+      "notes": "第二个用例经真实 lifecycle reconfigure 从 state_file 重新加载后验证固定 403。"
+    },
+    {
+      "check": "删除 blocked binding 后同一 key 立即由门禁放行",
+      "dimension": "unit",
+      "tier": "D",
+      "requirement_ref": "已确认关键决策 / 删除 binding 即解除本插件禁用",
+      "ops": "go test . -run TestManagementDeleteBlockedBindingAllowsInterceptPass -v",
+      "result": "pass",
+      "evidence_ref": "2026-08-06 定向 Go 测试 exit 0；intercept_block_test.go",
+      "notes": "先确认 Terminate，再 DELETE，最后确认 before-interceptor 不再 Terminate。"
+    },
+    {
+      "check": "enabled=false 且 blocked=false 不被当作访问拒绝，保留既有 key 规则语义",
+      "dimension": "unit",
+      "tier": "D",
+      "requirement_ref": "规则启用语义保持不变",
+      "ops": "make test（覆盖 TestRouteModelBindingDisabled 与 TestFindBlockedKeyBindingIgnoresEnabled）",
+      "result": "pass",
+      "evidence_ref": "2026-08-06 make test exit 0；keybinding_test.go、state_test.go",
+      "notes": "enabled 与 blocked 保持正交。"
+    },
+    {
+      "check": "Keys 管理页默认不禁止访问，且两个编辑方向和列表开关提交正确 payload",
+      "dimension": "unit",
+      "tier": "D",
+      "requirement_ref": "Admin UI 提供禁止访问开关",
+      "ops": "npm --prefix web test -- src/panels/KeysPanel.blocked.test.tsx；npm --prefix web test",
+      "result": "pass",
+      "evidence_ref": "2026-08-06 Vitest exit 0；KeysPanel.blocked.test.tsx 的新建默认 false、编辑 false→true、true→false 与列表 PATCH 用例",
+      "notes": "四个交互断言覆盖默认值与设置/解除两个方向，并保留独立 accessible name。"
+    },
+    {
+      "check": "Home 关闭的标准 BaseAPIHandler HTTP/SSE 路径允许纯 model.route，但在 before-interceptor 后阻止 executor、认证执行与上游",
+      "dimension": "integration",
+      "tier": "D",
+      "requirement_ref": "访问禁用时短路拒绝请求 / 宿主可先路由，但不得执行或访问上游",
+      "ops": "go test . -run 'TestBlockedKeyHost.*Lifecycle.*' -v",
+      "result": "pass",
+      "evidence_ref": "2026-08-06 定向 Go 测试 exit 0；host_lifecycle_test.go",
+      "notes": "真实 Gin 客户端头同时到达 route 与 interceptor；真实 SDK BaseAPIHandler 的 HTTP/SSE 非流式和流式 self-executor/provider 分支均断言 route→intercept 与固定 DirectResponse 403。provider 分支使用真实空 AuthManager，若未短路会得到认证错误。Home self-executor route、/v1/alpha/search 及 /backend-api/codex/alpha/search（Codex direct alias）明确不在此项范围；带 Upgrade: websocket 的 GET /v1/responses 与 /backend-api/codex/responses 只有完成本地处理、通过路由与执行前置检查并实际到达 applyRequestInterceptorsBeforeAuth 的消息可前置拦截，并只承诺 type:error WebSocket 事件。synthetic prewarm、校验、provider 解析及其他 hook 前早退分支不经过 hook；全部 WebSocket 分支非固定 HTTP 响应。"
+    },
+    {
+      "check": "SDK pin、native ABI 与注册 RPC schema 符合约束",
+      "dimension": "other",
+      "tier": "D",
+      "requirement_ref": "SDK 契约与部署前提",
+      "ops": "go list -m github.com/router-for-me/CLIProxyAPI/v7；go mod verify；make test",
+      "result": "pass",
+      "evidence_ref": "2026-08-06 输出 github.com/router-for-me/CLIProxyAPI/v7 v7.2.119、all modules verified；main_test.go",
+      "notes": "注册测试断言 ABIVersion=1、SchemaVersion=2 与 request_interceptor capability。"
+    },
+    {
+      "check": "Home 关闭的 live CPA 的 X-CPA-VERSION 满足最低版本，且 HTTP/SSE POST /v1/responses 返回固定 403 并清理测试 binding",
+      "dimension": "e2e",
+      "tier": "D",
+      "requirement_ref": "CPA runtime 版本与 Home 关闭的 live CPA HTTP/SSE blocked key 固定拒绝",
+      "ops": "计划任务 5 的 curl 版本检查、专用 key 创建、HTTP/SSE POST /v1/responses 请求和 DELETE cleanup",
+      "result": "unverified",
+      "evidence_ref": "CPA_BASE_URL、CPA_MANAGEMENT_KEY 在本次验收环境均 unset，故未向 live CPA 发出请求。",
+      "notes": "按计划保持 DEFERRED；本地测试不能替代真实 HTTP/SSE、宿主版本、Home 关闭确认和 cleanup 证据，且 GET WebSocket upgrade 的 type:error 不能替代固定 HTTP 403/body。"
+    },
+    {
+      "check": "全量 Go、前端类型检查、Vitest、web build 与 bundle 同步检查",
+      "dimension": "integration",
+      "tier": "D",
+      "requirement_ref": "全量 Go/前端/构建",
+      "ops": "go mod tidy -diff；go mod verify；make test；make vet；npm --prefix web run typecheck；npm --prefix web test；make web-build；git diff --exit-code -- web/dist/index.html",
+      "result": "pass",
+      "evidence_ref": "2026-08-06 全部 exit 0；web build 仅出现 Vite inlineDynamicImports 配置警告，无 bundle diff。",
+      "notes": "host lifecycle test 引入的 CLIProxyAPI SDK 传递模块已由 go mod tidy 锁定；未增加插件运行时或业务依赖。"
+    }
+  ],
+  "coverage_note": "本次按 spec 验收矩阵执行 unit、integration、compatibility 的本地确定性项；所有本地项均通过。live compatibility/e2e 因 CPA_BASE_URL 和 CPA_MANAGEMENT_KEY 未设置而明确 DEFERRED；即使环境可用，也必须先确认 POST /v1/responses 为 Home 关闭的标准 BaseAPIHandler HTTP/SSE 路径。Home self-executor route、/v1/alpha/search 及 /backend-api/codex/alpha/search（Codex direct alias）是用户确认的插件范围外路径。带 Upgrade: websocket 的 GET /v1/responses 与 GET /backend-api/codex/responses 只有完成本地处理、通过路由与执行前置检查并实际到达 applyRequestInterceptorsBeforeAuth 的消息可在执行前拒绝，宿主把该结果写为 type:error WebSocket 事件；synthetic prewarm、校验、provider 解析及其他 hook 前早退分支不经过 hook，所有 WebSocket 分支都不属于固定 HTTP 403/body 契约或本次 HTTP/SSE E2E。visual、a11y、perf-web、perf-api 不在本特性的矩阵中；环境检测也未发现可用浏览器、视觉基线或性能工具，因此未伪造执行。"
+}

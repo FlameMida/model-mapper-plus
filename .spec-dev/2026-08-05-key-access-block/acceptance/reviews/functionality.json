@@ -1,0 +1,4 @@
+{
+  "findings": [],
+  "coverage_note": "用户已确认的契约允许 CLIProxyAPI v7.2.119 在 request.intercept_before 前运行纯 model.route。复核 host_lifecycle_test.go 的真实 BaseAPIHandler HTTP/SSE 非流式和流式用例：两条路径均为 route→intercept，返回固定 DirectResponse 403，且 fake plugin executor 调用数为 0；因此此前把 route 回调本身列为 Bug 的发现已失效。GET /v1/responses 与 GET /backend-api/codex/responses 的 WebSocket upgrade 只有完成本地处理、通过路由与执行前置检查并到达 applyRequestInterceptorsBeforeAuth 的消息可在执行前拒绝，客户端接收 type:error 事件而非 HTTP 403/body；synthetic prewarm、校验、provider 解析及其他 hook 前早退分支不经过 hook，所有 WebSocket 分支均已从 fixed-HTTP 功能契约排除。新增的 POST→reconfigure、DELETE→放行与 UI 默认/true→false 回归均已通过。live CPA compatibility/e2e 未执行，保持 DEFERRED 而非功能缺陷。"
+}
