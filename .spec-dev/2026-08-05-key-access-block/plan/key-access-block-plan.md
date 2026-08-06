@@ -962,7 +962,7 @@ git diff --exit-code -- web/dist/index.html
 
 预期：全部 exit 0；最后一条证明 tracked bundle 与源码一致。
 
-- [ ] **步骤 2：从 live CPA response header 验证宿主版本**
+- [x] **步骤 2：从 live CPA response header 验证宿主版本**
 
 `CPA_BLOCKED_TEST_KEY` 是专用且不加入 CPA 主配置的测试 key：
 
@@ -994,9 +994,11 @@ console.log(`CPA runtime accepted: v${raw}`)
 
 预期：版本可解析且比较通过。header 缺失、`dev` 等不可解析值、或版本低于 `v7.2.103` 均为验收失败，不得猜测版本。
 
-- [ ] **步骤 3：用专用 key 做 Home 关闭的 live HTTP/SSE `POST /v1/responses` 拒绝与清理**
+- [x] **步骤 3：用可认证的 smoke client key 做 Home 关闭的 live HTTP/SSE `POST /v1/responses` 拒绝并恢复 binding**
 
 此插件范围不覆盖 Home 的 self-executor route、`/v1/alpha/search` 或 `/backend-api/codex/alpha/search`（Codex direct alias）；固定 HTTP 403 也不覆盖带 `Upgrade: websocket` 的 `GET /v1/responses` 或 `GET /backend-api/codex/responses`。只有完成 WebSocket 本地处理、通过路由与执行前置检查并实际到达 `applyRequestInterceptorsBeforeAuth` 的 WebSocket 消息可在 AuthManager/executor 前被 hook 拒绝，且宿主把结果写为 `type:"error"`；首个 `response.create` 且 `generate:false` 的本地 synthetic prewarm、校验、provider 解析及其他 hook 前早退分支不经过该 hook。任何 WebSocket 结果都不能用来验证 HTTP status/body。创建测试 binding 前，须确认目标 CPA 的 **POST** `/v1/responses` 会走 Home 关闭的标准 `BaseAPIHandler` HTTP/SSE 路径。若无法确认，步骤 2-3 一并标记 `DEFERRED`，不得以 Home 下的 503 或 WebSocket error event 代替固定 403 验收。
+
+**本次执行记录（2026-08-06）：**未配置到 CPA `api-keys` 的随机 key 会在插件 hook 前得到宿主 401，不能证明本特性。因此使用 `.env` 的已认证 `CPA_SMOKE_CLIENT_KEY`，只临时 PATCH 它现有 binding 的 `enabled=false, blocked=true`，回读后发送非 WebSocket `POST /v1/responses`，确认 403 与固定 body；随后 PATCH 恢复原 `enabled`/`blocked` 并由 GET state 确认。该方式不修改全局 rules 或其他 binding。
 
 先确认插件 state 不含同名 binding，防止覆盖真实数据：
 

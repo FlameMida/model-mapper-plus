@@ -115,10 +115,10 @@
       "dimension": "e2e",
       "tier": "D",
       "requirement_ref": "CPA runtime 版本与 Home 关闭的 live CPA HTTP/SSE blocked key 固定拒绝",
-      "ops": "计划任务 5 的 curl 版本检查、专用 key 创建、HTTP/SSE POST /v1/responses 请求和 DELETE cleanup",
-      "result": "unverified",
-      "evidence_ref": "CPA_BASE_URL、CPA_MANAGEMENT_KEY 在本次验收环境均 unset，故未向 live CPA 发出请求。",
-      "notes": "按计划保持 DEFERRED；本地测试不能替代真实 HTTP/SSE、宿主版本、Home 关闭确认和 cleanup 证据，且 GET WebSocket upgrade 的 type:error 不能替代固定 HTTP 403/body。"
+      "ops": "使用 .env 的 CPA_SMOKE_MGMT_KEY、CPA_SMOKE_CLIENT_KEY 与 CPA_SMOKE_BASE_URL：GET state header 版本检查；现有 smoke binding 临时 PATCH enabled=false/blocked=true；Bearer HTTP/SSE POST /v1/responses；PATCH 恢复并 GET state 复查",
+      "result": "pass",
+      "evidence_ref": "2026-08-06 本机 Docker CPA：GET state 200，X-CPA-VERSION=v7.2.119，版本下限比较通过；blocked=true 和 enabled=false 管理回读通过；POST /v1/responses 返回 403，JSON 与固定 body 精确匹配；原 binding 的 enabled/blocked 已恢复并由 GET state 确认。",
+      "notes": "为避免覆盖真实配置，未使用未注册的随机 key（它会在 hook 前得到宿主 401），而是短暂修改并恢复已有 smoke client binding。全局规则和其他 binding 未修改；不以 GET WebSocket upgrade 的 type:error 替代固定 HTTP 403/body。"
     },
     {
       "check": "全量 Go、前端类型检查、Vitest、web build 与 bundle 同步检查",
@@ -131,5 +131,5 @@
       "notes": "host lifecycle test 引入的 CLIProxyAPI SDK 传递模块已由 go mod tidy 锁定；未增加插件运行时或业务依赖。"
     }
   ],
-  "coverage_note": "本次按 spec 验收矩阵执行 unit、integration、compatibility 的本地确定性项；所有本地项均通过。live compatibility/e2e 因 CPA_BASE_URL 和 CPA_MANAGEMENT_KEY 未设置而明确 DEFERRED；即使环境可用，也必须先确认 POST /v1/responses 为 Home 关闭的标准 BaseAPIHandler HTTP/SSE 路径。Home self-executor route、/v1/alpha/search 及 /backend-api/codex/alpha/search（Codex direct alias）是用户确认的插件范围外路径。带 Upgrade: websocket 的 GET /v1/responses 与 GET /backend-api/codex/responses 只有完成本地处理、通过路由与执行前置检查并实际到达 applyRequestInterceptorsBeforeAuth 的消息可在执行前拒绝，宿主把该结果写为 type:error WebSocket 事件；synthetic prewarm、校验、provider 解析及其他 hook 前早退分支不经过 hook，所有 WebSocket 分支都不属于固定 HTTP 403/body 契约或本次 HTTP/SSE E2E。visual、a11y、perf-web、perf-api 不在本特性的矩阵中；环境检测也未发现可用浏览器、视觉基线或性能工具，因此未伪造执行。"
+  "coverage_note": "本次按 spec 验收矩阵执行 unit、integration、compatibility 与目标 live e2e 的确定性项；已执行项均通过。live 证据来自本机 Docker CPA：management state endpoint 的 X-CPA-VERSION=v7.2.119 满足下限；真实非 WebSocket POST /v1/responses 在已有 smoke client binding 被临时设为 enabled=false、blocked=true 后返回固定 403/body，随后原字段已恢复并复查。该 live 结果证明当前部署实例，不替代未来版本化发布验证。Home self-executor route、/v1/alpha/search 及 /backend-api/codex/alpha/search（Codex direct alias）是用户确认的插件范围外路径。带 Upgrade: websocket 的 GET /v1/responses 与 GET /backend-api/codex/responses 只有完成本地处理、通过路由与执行前置检查并实际到达 applyRequestInterceptorsBeforeAuth 的消息可在执行前拒绝，宿主把该结果写为 type:error WebSocket 事件；synthetic prewarm、校验、provider 解析及其他 hook 前早退分支不经过 hook，所有 WebSocket 分支都不属于固定 HTTP 403/body 契约或本次 HTTP/SSE E2E。visual、a11y、perf-web、perf-api 不在本特性的矩阵中；环境检测未发现可用浏览器、视觉基线或性能工具，故这些维度未被标记为通过。"
 }
