@@ -56,7 +56,7 @@ key 绑定目前只能追加模型映射规则和做访问禁用。需要两个�
 
 - 定向机制走纯 Scheduler 能力而非 `TargetKind=provider` 路由 —— Target 单值无法表达多供应商并集；scheduler 层天然拿到带 Provider 归属的候选列表（详见 `../../adr/0006-channel-targeting-via-scheduler-not-provider-route.md`）。
 - 开关粒度：每 key 一个渠道定向总开关 —— 配置保留不丢失，数据结构与 UI 都最简。
-- 多认证文件语义：候选池内正常调度（宿主内建策略挑一个）——与 CPA 现有调度习惯一致。
+- 多认证文件语义：插件自持计数器在池内轮转（round-robin，按 ID 确定性排序）——SDK 契约下 `DelegateBuiltin` 不受候选池约束（宿主在全量分片上重挑）、钉死单个 AuthID 又无轮转，插件侧轮转是同时保住「池隔离」与「多文件分摊」的唯一实现路径；计数器驻内存、重启归零可接受。
 - 选择粒度：供应商整选 + 认证文件单选可混选，取并集 —— 整选是动态语义（供应商新增文件自动入池），不做保存时展开。
 - 池空行为：报错不降级（503 `auth_not_found`）——保持「定向」承诺，绝不落到池外渠道。
 - 响应模型名：非流式还原 + 流式透传 —— 与 key-policy 先例一致，流式 SSE 改写风险高。
@@ -70,14 +70,14 @@ key 绑定目前只能追加模型映射规则和做访问禁用。需要两个�
 ## 取代与共存
 
 - [分面共存] `.spec-dev/2026-08-05-key-access-block/spec/key-access-block-design.md`：本特性扩展同一 `request.intercept_before` handler 但新增的是非终止改写分支，blocked 短路行为与其 Requirement（「访问禁用时短路拒绝请求」「管理面可读写 blocked」「Admin UI 提供禁止访问开关」）完全不变；两 spec covers 有交集（main.go / management.go / KeysPanel.tsx），改动时以本 spec 为同步锚点即可，无需 supersedes。
-- [分面共存] `.spec-dev/2026-07-25-key-rules-admin-ui/spec/key-rules-admin-ui-design.md`：「key 层接力执行」「路由判定链路」等映射行为不变（定向开启时仅整体跳过，不改变映射 DSL 语义）；编辑表单重构不改变其 RuleSetEditor 行为契约。
+- [分面共存] `.spec-dev/2026-07-25-key-rules-admin-ui/spec/key-rules-admin-ui-design.md`：「key 层接力执行」「路由判定链路」等映射行为不变（定向开启时仅整体跳过，不改变映射 DSL 语义）——其「key 层接力执行」SHALL 的无条件表述自本 spec 起收窄为「定向未开启时」；编辑表单重构不改变其 RuleSetEditor 行为契约。
 - [分面共存] `.spec-dev/2026-07-27-plugin-version/spec/plugin-version-design.md`：无行为相交（版本注入链路不动）。
 
 ## 行为规范（Requirements）
 
 ### Requirement: 渠道定向候选池过滤
 
-当某 key 的渠道定向开关开启时，该 key 发起的每个模型请求 SHALL 只能由候选池内的凭据执行：候选 = 所选供应商下宿主提供的全部可用认证记录，加上单独所选的认证记录，取并集。宿主在池内的最终挑选（轮询/优先级等）不受干预。
+当某 key 的渠道定向开关开启时，该 key 发起的每个模型请求 SHALL 只能由候选池内的凭据执行：候选 = 所选供应商下宿主提供的全部可用认证记录，加上单独所选的认证记录，取并集。池内多个凭据时插件按确定性顺序（ID 排序）轮转分配。
 
 #### Scenario: 单选认证文件命中
 
@@ -91,11 +91,11 @@ key 绑定目前只能追加模型映射规则和做访问禁用。需要两个�
 - **WHEN** 管理员向 CPA 新增一个 gemini 认证文件后 K 再发起请求
 - **THEN** 新文件无需修改绑定即参与 K 的候选池
 
-#### Scenario: 池内多凭据交给宿主策略
+#### Scenario: 池内多凭据轮转分摊
 
-- **GIVEN** 绑定 key K 定向开启，候选池含 3 个可用认证文件
+- **GIVEN** 绑定 key K 定向开启，候选池含同优先级的 3 个可用认证文件
 - **WHEN** K 连续发起多个请求
-- **THEN** 请求只落在这 3 个凭据上，具体分配遵循宿主当前调度策略（如轮询）
+- **THEN** 请求在这 3 个凭据间轮转分摊（每个都承担流量），且绝不落在池外凭据上
 
 #### Scenario: 无法识别上下文时 fail-open
 
@@ -105,13 +105,19 @@ key 绑定目前只能追加模型映射规则和做访问禁用。需要两个�
 
 ### Requirement: 定向池空时显式报错不降级
 
-定向开启且候选池内没有可用凭据时，请求 SHALL 以 503 状态与 `auth_not_found` 类错误失败，SHALL NOT 静默改用池外凭据。
+宿主征询插件调度且过滤后候选池为空时（如所选凭据均不可用、或目标供应商不在本次解析结果中），请求 SHALL 以 503 状态与 `auth_not_found` 类错误失败，SHALL NOT 静默改用池外凭据。池内凭据因冷却被宿主前置排除时，请求由宿主以 429 `model_cooldown` 应答——同样不降级到池外。
 
-#### Scenario: 全部冷却
+#### Scenario: 池内候选全部不可用
 
-- **GIVEN** 绑定 key K 定向开启，池内唯一认证文件处于冷却状态
+- **GIVEN** 绑定 key K 定向开启，宿主征询调度时 Candidates 中无任何属于 K 候选池的可用凭据
 - **WHEN** K 发起请求
-- **THEN** 请求失败，错误信息表明无符合条件的凭据（HTTP 503），且日志可见原因
+- **THEN** 请求失败（HTTP 503 auth_not_found），绝不使用池外凭据
+
+#### Scenario: 全部冷却走宿主原生应答
+
+- **GIVEN** 绑定 key K 定向开启，池内唯一认证文件处于冷却状态（宿主在调度前已将其从候选中排除）
+- **WHEN** K 发起请求
+- **THEN** 宿主以 429 `model_cooldown`（含 Retry-After）应答，不降级到池外凭据
 
 ### Requirement: 定向开启跳过规则映射
 
@@ -179,13 +185,19 @@ state 文件 SHALL 以增量方式承载新字段：`channel_target {enabled, su
 
 ### Requirement: 管理面读写与预览感知定向
 
-PATCH /keys SHALL 支持 channel_target 与 fast_allowed 字段的局部更新；POST /preview 在请求 key 定向开启时 SHALL 返回定向解析结果（enabled、resolved suppliers 与 auth_ids）及 mapping_skipped=true，且 m1/m2/final 显示原始模型名；定向未开启时 preview 输出结构向后兼容。
+PATCH /keys SHALL 支持 channel_target 与 fast_allowed 字段的局部更新；PATCH 请求体中 channel_target 为 null 或缺席 SHALL 不改动既有配置（清空语义由「关闭开关但保留配置」承担，不发明 null 清空）；POST /preview 在请求 key 定向开启时 SHALL 返回定向解析结果（enabled、resolved suppliers 与 auth_ids，即存储配置的原样回显）及 mapping_skipped=true，且 m1/m2/final 显示原始模型名；定向未开启时 preview 输出结构向后兼容。
 
 #### Scenario: PATCH 局部更新 fast_allowed
 
 - **GIVEN** 已存在绑定 K
 - **WHEN** PATCH {fast_allowed:false}
 - **THEN** 其余字段（rules 等）不变，fast_allowed=false 持久化
+
+#### Scenario: PATCH 更新渠道定向
+
+- **GIVEN** 已存在绑定 K（无渠道定向配置）
+- **WHEN** PATCH {channel_target:{enabled:true, suppliers:["gemini"], auth_ids:["f1"]}}
+- **THEN** 定向配置持久化；随后 PATCH {channel_target:{enabled:false, suppliers:["gemini"], auth_ids:["f1"]}} 后配置保留、仅开关关闭
 
 #### Scenario: preview 显示定向
 
@@ -227,7 +239,7 @@ PATCH /keys SHALL 支持 channel_target 与 fast_allowed 字段的局部更新�
 | Fast 覆盖 | `request.intercept_before`（已有） | 现有 handler 内追加非终止改写分支 |
 | 响应还原 | `response.intercept_after`（新注册） | `ResponseInterceptor` 能力 + 薄还原 |
 
-- `handleSchedulerPick`：过滤 → 空池报错 → 非空选最高优先级（同优先级最小 ID 保确定性）。Candidates 由宿主做过模型能力预过滤，插件不重复校验。
+- `handleSchedulerPick`：过滤（usable 状态 ∧ 池内归属）→ 空池报 503 → 非空按 ID 确定性排序后由插件自持计数器轮转选一个（round-robin；计数器驻内存，绑定池变化时归零）。不用 `DelegateBuiltin`——它在宿主全量凭据分片上重挑、会绕开候选池。Candidates 由宿主做过模型能力与可用性预过滤，插件的 usable 过滤是防御性冗余。
 - fast 剥离：blocked 检查之后追加；判定与改写仅在「绑定存在且 fast_allowed 显式 false」时发生（零开销路径）。
 - `handleResponseInterceptAfter`：Stream 直接透传；否则提取 key、确认定向开启后调 `rewriteModelFields(body, RequestedModel)`。
 - 客户端 key 识别统一走 `apiKeyFromHeaders`（Authorization Bearer / x-api-key），scheduler 从 `Options.Headers`、response 从 `RequestHeaders` 提取；提取失败一律 fail-open。
@@ -248,7 +260,7 @@ type KeyBinding struct {
 }
 ```
 
-定向请求路径：客户端 → routeModel 返回 Handled=false（跳过映射）→ 宿主按原始模型名解析 providers → conductor 调 scheduler.pick → 插件过滤候选（usable 状态 ∧ (Provider∈Suppliers ∨ ID∈AuthIDs)，Provider 大小写不敏感比较）→ 空→503 / 非空→AuthID。usable 排除表照抄 key-policy：disabled/error/expired/revoked/invalid/unavailable/cooldown/cooling_down/quota_exhausted/exhausted/blocked。
+定向请求路径：客户端 → routeModel 返回 Handled=false（跳过映射）→ 宿主按原始模型名解析 providers → conductor 调 scheduler.pick → 插件过滤候选（usable 状态 ∧ (Provider∈Suppliers ∨ ID∈AuthIDs)，Provider 大小写不敏感比较）→ 空→503 / 非空→插件轮转计数器选 AuthID。usable 排除表照抄 key-policy：disabled/error/expired/revoked/invalid/unavailable/cooldown/cooling_down/quota_exhausted/exhausted/blocked。注意宿主在调度前已按可用性与最高优先级层收窄 Candidates（`availableAuthsForSelector`），故「全部冷却」子情形由宿主以 429 原生应答、不经过插件。
 
 ### 关键接口
 
@@ -261,7 +273,8 @@ type KeyBinding struct {
 
 | 场景 | 行为 |
 |---|---|
-| 定向池内全部不可用 | 503 `auth_not_found`（ErrorEnvelope），绝不放行池外 |
+| 宿主征询调度时池内无可用候选 | 503 `auth_not_found`（ErrorEnvelope），绝不放行池外 |
+| 池内凭据全部冷却（宿主前置排除） | 宿主原生 429 `model_cooldown` + Retry-After，同样不降级 |
 | scheduler/response 回调拿不到 key | Handled=false / 原样返回（fail-open） |
 | 目标供应商不在本次解析结果 | 该部分候选缺席，等效池收窄；全空同上报错 |
 | auth-files 接口失败 | UI 错误提示+重试；已存配置仍可查看 |
@@ -273,9 +286,9 @@ type KeyBinding struct {
 |-------------------|------|---------|---------|
 | 单选认证文件命中 | unit | 任务内 TDD | 测试通过 |
 | 供应商整选动态入池 | unit | 任务内 TDD | 测试通过 |
-| 池内多凭据交给宿主策略 | unit | 任务内 TDD | 测试通过 |
+| 池内多凭据轮转分摊 | unit | 任务内 TDD | 测试通过 |
 | 无法识别上下文时 fail-open | unit | 任务内 TDD | 测试通过 |
-| 全部冷却 | unit | 任务内 TDD | 测试通过 |
+| 池内候选全部不可用 / 全部冷却走宿主原生应答 | unit | 任务内 TDD | 测试通过 |
 | 定向时模型名不被改写 | unit | 任务内 TDD | 测试通过 |
 | 非流式还原 / 流式透传 | unit | 任务内 TDD | 测试通过 |
 | 仅 body 带 speed / 仅 beta 头 / 默认放行 | unit | 任务内 TDD | 测试通过 |
@@ -283,14 +296,15 @@ type KeyBinding struct {
 | PATCH 局部更新 / preview 显示定向 | unit | 任务内 TDD | 测试通过 |
 | 双区块混选回显 / 总开关置灰 / 加载失败 | component (vitest) | 任务内 TDD | 测试通过 |
 | 定向请求实际落在目标认证文件 | e2e | 验收任务 (D) | smoke-local 通过（CPA 日志断言凭据） |
+| 池内凭据全冷却时收到 429 且不落池外 | e2e | 验收任务 (D) | smoke-local 通过 |
 | fast 关闭后上游收到普通请求 | e2e | 验收任务 (D) | smoke-local 通过 |
 | 定向 + fast 组合叠加 | e2e | 验收任务 (D) | smoke-local 通过 |
 | 编辑表单全流程人工审查 | visual | 验收任务 (D) | 截图/录屏归档 acceptance/ |
 
 ## 风险与边缘情况
 
-1. **Scheduler 单实例冲突**：宿主全局只认第一个声明 Scheduler 的插件；与 cpa-plugin-key-policy 同时启用时本插件的定向静默失效。spec 与 README 注明，不做运行时检测（已裁决接受）。
-2. **Headers 通路未实测**：scheduler.pick 经 `Options.Headers` 拿客户端 Authorization 头基于源码推断，实施第一个任务联调验证；不通则回设计评审升级方案。
+1. **Scheduler 单实例冲突**：宿主全局只认第一个声明 Scheduler 的插件；与 cpa-plugin-key-policy 同时启用时本插件的定向静默失效。spec 与 README 注明，不做运行时检测（已裁决接受）。另有一个全局副作用：宿主检测到插件 scheduler 后所有请求走 `pickNextLegacy` 慢路径（放弃内建 fast-path，语义不变）。
+2. **Headers 通路未实测**：scheduler.pick 经 `Options.Headers`、response.intercept_after 经 `RequestHeaders` 拿客户端 Authorization 头均基于源码推断（两处同源：`modelExecutionHeaders(ctx, …)`），实施第一个任务对两个钩子一并联调验证；不通则回设计评审升级方案。
 3. **供应商键大小写**：宿主侧 provider 键统一小写；存储保留宿主原值、匹配用 EqualFold。
 4. **count_tokens 路径**会过 intercept_before：fast 剥离对 count 请求同样生效（无害、语义一致）。
 5. **定向开启但模型名未被任何供应商注册**：宿主在 scheduler 之前即报 unknown model——这是正确行为（客户端请求了不存在的模型），spec 不额外兜底。
