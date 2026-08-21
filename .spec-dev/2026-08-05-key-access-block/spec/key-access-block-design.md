@@ -24,7 +24,7 @@ spec_dev:
     - "web/src/api.ts"
     - "web/src/api.test.ts"
     - "web/dist/index.html"
-  sync_commit: null
+  sync_commit: e0d7cfee9cf71d7cf23732e85c43bfa902d04c74
 ---
 
 # Key 访问禁用（blocked）设计
