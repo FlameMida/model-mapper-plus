@@ -3,7 +3,7 @@
 spec_dev:
   version: 1
   feature: channel-target-and-fast-control
-  status: draft
+  status: active
   covers:
     - "main.go"
     - "main_test.go"
