@@ -25,7 +25,7 @@ function normalizeBinding(binding: KeyBinding): KeyBinding {
 function channelTargetSummary(binding: KeyBinding): string {
   const target = binding.channel_target
   if (!target?.enabled) return '关闭'
-  return `${target.suppliers.length} 个供应商 · ${target.auth_ids.length} 个认证文件`
+  return `${target.suppliers?.length ?? 0} 个供应商 · ${target.auth_ids?.length ?? 0} 个认证文件`
 }
 
 function maskKey(key: string): string {

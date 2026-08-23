@@ -2486,7 +2486,7 @@ git commit -m "fix(T12): 统一 Fast 与门禁状态快照"
 - 消费：管理 API 因 Go `omitempty` 返回的 `channel_target={enabled:true}`、仅 suppliers 或仅 auth_ids 合法 wire 形状
 - 产出：`channelTargetSummary(binding: KeyBinding) string` 对缺失数组分别按 0 项计数
 
-- [ ] **步骤 1：写失败测试**
+- [x] **步骤 1：写失败测试**
 
 在 `KeysPanel.channel-target.test.tsx` 追加参数化用例：
 
@@ -2508,7 +2508,7 @@ git commit -m "fix(T12): 统一 Fast 与门禁状态快照"
   })
 ```
 
-- [ ] **步骤 2：运行测试确认失败**
+- [x] **步骤 2：运行测试确认失败**
 
 ```bash
 bun run --cwd web test -- src/panels/KeysPanel.channel-target.test.tsx
@@ -2516,7 +2516,7 @@ bun run --cwd web test -- src/panels/KeysPanel.channel-target.test.tsx
 
 预期：FAIL，渲染抛出 `Cannot read properties of undefined (reading 'length')`。
 
-- [ ] **步骤 3：写最小实现**
+- [x] **步骤 3：写最小实现**
 
 把 `KeysPanel.tsx` 的摘要 helper 改为：
 
@@ -2530,7 +2530,7 @@ function channelTargetSummary(binding: KeyBinding): string {
 
 不要用非空断言，也不要改变 `normalizeBinding` 已有的数组补齐逻辑。
 
-- [ ] **步骤 4：运行测试确认通过**
+- [x] **步骤 4：运行测试确认通过**
 
 ```bash
 bun run --cwd web test -- src/panels/KeysPanel.channel-target.test.tsx src/panels/KeysPanel.test.tsx
@@ -2539,7 +2539,7 @@ bun run --cwd web typecheck
 
 预期：全部 PASS；三种合法 wire 形状均能首次渲染，已有完整数组摘要不变。
 
-- [ ] **步骤 5：提交**
+- [x] **步骤 5：提交**
 
 ```bash
 git add web/src/panels/KeysPanel.tsx web/src/panels/KeysPanel.channel-target.test.tsx

@@ -37,6 +37,22 @@ afterEach(() => {
 })
 
 describe('KeysPanel：渠道定向与 Fast', () => {
+  it.each([
+    [{ enabled: true }, '0 个供应商 · 0 个认证文件'],
+    [{ enabled: true, suppliers: ['gemini'] }, '1 个供应商 · 0 个认证文件'],
+    [{ enabled: true, auth_ids: ['f1'] }, '0 个供应商 · 1 个认证文件'],
+  ])('合法缺失数组的表格回显：%j', (wireTarget, summary) => {
+    vi.mocked(listCpaAuthFiles).mockResolvedValue([])
+    const binding = {
+      ...BINDING,
+      channel_target: wireTarget as KeyBinding['channel_target'],
+    }
+    expect(() => render(
+      <KeysPanel state={{ ...STATE, key_bindings: [binding] }} onSaved={vi.fn()} />,
+    )).not.toThrow()
+    expect(screen.getByText(summary)).toBeInTheDocument()
+  })
+
   it('弹窗采用三页并回显 Fast', async () => {
     vi.mocked(listCpaAuthFiles).mockResolvedValue([
       { id: 'gemini-main', provider: 'gemini', status: 'active', disabled: false, label: 'Gemini Main' },
