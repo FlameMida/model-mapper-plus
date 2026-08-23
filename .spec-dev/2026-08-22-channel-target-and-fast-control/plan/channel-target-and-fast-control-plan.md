@@ -2827,7 +2827,7 @@ git commit -m "test(T15): 完成渠道定向修复复验"
 
 台账总则：**清理只遍历本台账、台账外一律不动**（可疑残留只报告不删）；共享缓存（`~/.cargo`、pnpm store、npm cache 等）默认保留，仅用户显式要求清理时才登记入账；台账限定持久资源（容器、测试库/表、临时目录、后台服务），worktree 内构建产物随 worktree 删除自然回收、不入账。
 
-- [ ] **步骤 1：全量验证（安全网）与归属裁决**
+- [x] **步骤 1：全量验证（安全网）与归属裁决**
 
 在 worktree 内运行：
 
@@ -2848,7 +2848,7 @@ test -z "$(git -C /Users/flame/CLIProxyAPI status --porcelain=v1)"
 - 失败测试在相关测试范围内 → 修复并复跑全绿后进入步骤 2。
 - 失败测试在范围之外 → 归属裁决：在主工作区的源分支检出上复跑该测试（主工作区有未提交改动 → 先询问用户）。源分支同样失败 → 报告“既有失败”，请用户裁决是否阻塞合并；源分支通过 → 判定为本次引入的回归，修复并复跑全绿。
 
-历史执行记录：除 `make test-scripts` 的 `FAIL: windows output not versioned` 外全部通过；该失败已在主工作区源分支复现并获用户裁决为本特性非阻塞。首次验收另有 5 项确认发现，待任务 11–15 修复/复验后重跑本步骤并更新记录。
+执行记录（2026-08-24）：修复与 T15 复验完成后再次执行完整安全网。`go test ./...`、`go test -race .`、`go vet ./...`、TypeScript typecheck、11 个前端测试文件 / 47 tests、生产 build、lockfile、diff 与 `/Users/flame/CLIProxyAPI` clean 检查全部通过；build 只有 `lottie-web` 既有 direct-eval warning。`make test-scripts` 仍只出现已在源分支复现并获用户裁决为非阻塞的 `FAIL: windows output not versioned`，无新增失败。
 
 - [x] **步骤 2：测试退役检查**
 
