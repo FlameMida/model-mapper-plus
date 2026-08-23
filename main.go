@@ -387,6 +387,7 @@ func pluginRegistration() registration {
 			ManagementAPI:         true,
 			RequestInterceptor:    true,
 			Scheduler:             true,
+			ResponseInterceptor:   true,
 		},
 	}
 }
@@ -823,6 +824,28 @@ func handleSchedulerPick(raw []byte) ([]byte, error) {
 	})
 }
 
+func handleResponseInterceptAfter(raw []byte) ([]byte, error) {
+	var req pluginapi.ResponseInterceptRequest
+	if err := json.Unmarshal(raw, &req); err != nil {
+		return nil, err
+	}
+	if !loadedConfig().Enabled || req.Stream || strings.TrimSpace(req.RequestedModel) == "" {
+		return json.Marshal(pluginapi.ResponseInterceptResponse{})
+	}
+	apiKey := apiKeyFromHeaders(req.RequestHeaders)
+	if _, targeted := findActiveChannelTarget(loadedRuleSource().KeyBindings, apiKey); !targeted {
+		return json.Marshal(pluginapi.ResponseInterceptResponse{})
+	}
+	body, changed, err := rewriteResponseModelFields(req.Body, req.RequestedModel)
+	if err != nil {
+		return nil, err
+	}
+	if !changed {
+		return json.Marshal(pluginapi.ResponseInterceptResponse{})
+	}
+	return json.Marshal(pluginapi.ResponseInterceptResponse{Body: body})
+}
+
 func selectRulesFrom(rs RuleSet, format string) (string, bool) {
 	switch format {
 	case "claude":
@@ -1221,6 +1244,8 @@ func dispatchMethod(method string, request []byte) ([]byte, error) {
 		return wrapEnvelope(handleRequestInterceptAfter(request))
 	case pluginabi.MethodSchedulerPick:
 		return wrapEnvelope(handleSchedulerPick(request))
+	case pluginabi.MethodResponseInterceptAfter:
+		return wrapEnvelope(handleResponseInterceptAfter(request))
 	case pluginabi.MethodExecutorIdentifier:
 		return wrapEnvelope(handleExecutorIdentifier())
 	case pluginabi.MethodExecutorExecute:

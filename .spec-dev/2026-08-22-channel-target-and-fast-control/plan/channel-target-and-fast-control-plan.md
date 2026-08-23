@@ -1068,7 +1068,7 @@ git commit -m "feat(T4): 按 key 剥离 Claude Fast 标记"
 - 产出：`handleResponseInterceptAfter(raw []byte) ([]byte, error)`
 - 产出：注册 JSON `capabilities.response_interceptor=true`，dispatch 支持 `pluginabi.MethodResponseInterceptAfter`
 
-- [ ] **步骤 1：写失败测试**
+- [x] **步骤 1：写失败测试**
 
 在 `main_test.go` 追加：
 
@@ -1158,7 +1158,7 @@ func TestChannelTargetResponseIntercept(t *testing.T) {
 	}
 ```
 
-- [ ] **步骤 2：运行测试确认失败**
+- [x] **步骤 2：运行测试确认失败**
 
 ```bash
 go test . -run 'TestChannelTargetResponseIntercept|TestPluginRegistration' -v
@@ -1166,7 +1166,7 @@ go test . -run 'TestChannelTargetResponseIntercept|TestPluginRegistration' -v
 
 预期：FAIL；注册字段仍为 false，或 dispatch 返回 `unknown_method`。
 
-- [ ] **步骤 3：写最小实现**
+- [x] **步骤 3：写最小实现**
 
 在 `pluginRegistration().Capabilities` 中加入：
 
@@ -1209,7 +1209,7 @@ func handleResponseInterceptAfter(raw []byte) ([]byte, error) {
 
 不要注册 `pluginabi.MethodResponseInterceptStreamChunk`，也不要声明 `response_stream_interceptor`。
 
-- [ ] **步骤 4：运行测试确认通过**
+- [x] **步骤 4：运行测试确认通过**
 
 ```bash
 gofmt -w main.go main_test.go
@@ -1218,7 +1218,7 @@ go test . -run 'TestChannelTargetResponseIntercept|TestPluginRegistration|TestRe
 
 预期：PASS；非流式六个允许字段按已有 helper 还原，流式与非定向返回空差量。
 
-- [ ] **步骤 5：提交**
+- [x] **步骤 5：提交**
 
 ```bash
 git add main.go main_test.go
