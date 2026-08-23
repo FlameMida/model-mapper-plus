@@ -1240,7 +1240,7 @@ git commit -m "feat(T5): 还原定向非流式响应模型名"
 - 产出：PATCH 可选字段 `ChannelTarget *ChannelTarget`、`FastAllowed *bool`
 - 产出：`previewResponse.ChannelTarget *channelTargetPreview`、`MappingSkipped bool`
 
-- [ ] **步骤 1：写失败测试**
+- [x] **步骤 1：写失败测试**
 
 在 `management_test.go` imports 增加 `os`、`net/url`，并追加：
 
@@ -1339,7 +1339,7 @@ func TestManagementChannelTargetAndFast(t *testing.T) {
 }
 ```
 
-- [ ] **步骤 2：运行测试确认失败**
+- [x] **步骤 2：运行测试确认失败**
 
 ```bash
 go test . -run TestManagementChannelTargetAndFast -v
@@ -1347,7 +1347,7 @@ go test . -run TestManagementChannelTargetAndFast -v
 
 预期：FAIL；PATCH 忽略新字段，preview 仍返回映射后的模型，或 `previewResponse.MappingSkipped` 尚不存在。
 
-- [ ] **步骤 3：写最小实现**
+- [x] **步骤 3：写最小实现**
 
 把 `managementPatchKey` 的 patch 结构与赋值扩展为：
 
@@ -1417,7 +1417,7 @@ type previewResponse struct {
 
 未定向时继续返回旧四字段，两个新字段因 `omitempty` 不出现。
 
-- [ ] **步骤 4：运行测试确认通过**
+- [x] **步骤 4：运行测试确认通过**
 
 ```bash
 gofmt -w management.go management_test.go
@@ -1426,7 +1426,7 @@ go test . -run 'TestManagementChannelTargetAndFast|TestManagementPatchKey|TestMa
 
 预期：PASS；`channel_target:null` 保留旧配置，未定向 preview 的 JSON 结构不增加新字段。
 
-- [ ] **步骤 5：提交**
+- [x] **步骤 5：提交**
 
 ```bash
 git add management.go management_test.go
