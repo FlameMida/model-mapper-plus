@@ -343,7 +343,7 @@ git commit -m "feat(T1): 持久化渠道定向与 Fast 配置"
 - 消费：任务 1 的 `findActiveChannelTarget(bindings, apiKey)`
 - 产出：`routeModel(...)` 在插件启用且 key 定向开启时返回零值 `routeDecision{}`，即 `Handled=false`
 
-- [ ] **步骤 1：写失败测试**
+- [x] **步骤 1：写失败测试**
 
 在 `main_test.go` 追加：
 
@@ -374,7 +374,7 @@ func TestRouteModelChannelTarget(t *testing.T) {
 }
 ```
 
-- [ ] **步骤 2：运行测试确认失败**
+- [x] **步骤 2：运行测试确认失败**
 
 ```bash
 go test . -run TestRouteModelChannelTarget -v
@@ -382,7 +382,7 @@ go test . -run TestRouteModelChannelTarget -v
 
 预期：FAIL，定向 key 仍得到 `Handled=true`、`UpstreamModel=model-p`。
 
-- [ ] **步骤 3：写最小实现**
+- [x] **步骤 3：写最小实现**
 
 在 `main.go` 的 `routeModel` 中，`Config.Enabled` 检查之后、应用顶层规则之前插入：
 
@@ -426,7 +426,7 @@ func routeModel(cfg Config, src ruleSource, format, model, apiKey string) (route
 }
 ```
 
-- [ ] **步骤 4：运行测试确认通过**
+- [x] **步骤 4：运行测试确认通过**
 
 ```bash
 gofmt -w main.go main_test.go
@@ -435,7 +435,7 @@ go test . -run 'TestRouteModelChannelTarget|TestRouteModel|TestHandleModelRoute'
 
 预期：PASS；定向 key 不被映射，非定向既有测试继续通过。
 
-- [ ] **步骤 5：提交**
+- [x] **步骤 5：提交**
 
 ```bash
 git add main.go main_test.go

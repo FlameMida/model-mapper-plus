@@ -718,6 +718,9 @@ func routeModel(cfg Config, src ruleSource, format, model, apiKey string) (route
 	if !cfg.Enabled {
 		return routeDecision{}, nil
 	}
+	if _, targeted := findActiveChannelTarget(src.KeyBindings, apiKey); targeted {
+		return routeDecision{}, nil
+	}
 	current := model
 	mapped, matched, err := applyRuleSet(src.Rules, format, current)
 	if err != nil {

@@ -1386,3 +1386,28 @@ func TestHandleMethodCountTokensUnsupportedWithoutPanic(t *testing.T) {
 		t.Fatalf("count tokens envelope=%#v", env)
 	}
 }
+
+func TestRouteModelChannelTarget(t *testing.T) {
+	t.Run("定向时模型名不被改写", func(t *testing.T) {
+		src := ruleSource{
+			Rules: RuleSet{Global: "model-m=>model-n"},
+			KeyBindings: []KeyBinding{{
+				Key: "sk-k", Enabled: true,
+				Rules:         RuleSet{Global: "model-n=>model-p"},
+				ChannelTarget: &ChannelTarget{Enabled: true, Suppliers: []string{"gemini"}},
+			}},
+		}
+		decision, err := routeModel(Config{Enabled: true}, src, "openai", "model-m", "sk-k")
+		if err != nil {
+			t.Fatalf("routeModel: %v", err)
+		}
+		if decision.Handled || decision.UpstreamModel != "" {
+			t.Fatalf("targeted decision = %+v, want unhandled original model", decision)
+		}
+
+		untargeted, err := routeModel(Config{Enabled: true}, src, "openai", "model-m", "sk-other")
+		if err != nil || !untargeted.Handled || untargeted.UpstreamModel != "model-n" {
+			t.Fatalf("untargeted mapping regression: decision=%+v err=%v", untargeted, err)
+		}
+	})
+}
