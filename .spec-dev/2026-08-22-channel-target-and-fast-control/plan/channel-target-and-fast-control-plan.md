@@ -2211,6 +2211,8 @@ git commit -m "feat(T9): 重构 Key 表单并展示定向与 Fast"
 
 > 本任务由 executing-plans 收尾审查阶段触发 acceptance-qa 按下表执行，
 > 不参与逐任务连续执行；报告与证据落盘特性目录 `acceptance/` 子目录。
+>
+> **2026-08-23 执行结果**：已执行，总结论 FAIL（阻塞合并）。详见 `acceptance/acceptance-summary.md`。
 
 | Scenario / 检查项 | 维度 | 执行方式 | 目标 | 阈值/预期 | 验收证据 |
 |-------------------|------|---------|------|----------|---------|
@@ -2229,6 +2231,10 @@ git commit -m "feat(T9): 重构 Key 表单并展示定向与 Fast"
 **资源台账**（清理依据；写计划时预登记已知资源，执行中创建即追加；行格式 `- [ ] <类型>: <标识> —— <清理命令>`）：
 
 - [ ] worktree: `.worktrees/plan/2026-08-22-channel-target-and-fast-control` —— `git worktree remove .worktrees/plan/2026-08-22-channel-target-and-fast-control && git branch -d plan/2026-08-22-channel-target-and-fast-control`
+- [ ] 审查临时目录: `/tmp/cpa-channel-review.966s5j` —— `rm -rf /tmp/cpa-channel-review.966s5j`
+- [x] 验收临时目录: `/tmp/cpa-channel-target-acceptance.20260823` —— 已删除（含凭据副本与原始日志）
+- [x] 验收容器: `cpa-channel-target-acceptance` —— 已执行 `docker rm -f cpa-channel-target-acceptance`
+- [x] 视觉验收 Chrome: `--user-data-dir=/tmp/cpa-channel-target-acceptance.20260823/chrome-profile` —— 进程已终止，复查无残留
 
 台账总则：**清理只遍历本台账、台账外一律不动**（可疑残留只报告不删）；共享缓存（`~/.cargo`、pnpm store、npm cache 等）默认保留，仅用户显式要求清理时才登记入账；台账限定持久资源（容器、测试库/表、临时目录、后台服务），worktree 内构建产物随 worktree 删除自然回收、不入账。
 
@@ -2251,13 +2257,19 @@ git diff --check
 - 失败测试在相关测试范围内 → 修复并复跑全绿后进入步骤 2。
 - 失败测试在范围之外 → 归属裁决：在主工作区的源分支检出上复跑该测试（主工作区有未提交改动 → 先询问用户）。源分支同样失败 → 报告“既有失败”，请用户裁决是否阻塞合并；源分支通过 → 判定为本次引入的回归，修复并复跑全绿。
 
-- [ ] **步骤 2：测试退役检查**
+执行记录：除 `make test-scripts` 的 `FAIL: windows output not versioned` 外全部通过；该失败已在主工作区源分支复现，属既有失败。另有 5 项已确认审查发现，故步骤 1 保持未勾选，等待用户裁决。
+
+- [x] **步骤 2：测试退役检查**
 
 扫描 `state_test.go`、`main_test.go`、`scheduler_test.go`、`fast_strip_test.go`、`management_test.go`、`web/src/api.test.ts`、`web/src/components/ChannelTargetEditor.test.tsx`、`web/src/panels/KeysPanel*.test.tsx`：仅当测试名对不上任何 active spec 的现行 Scenario，且对应 Requirement 已 REMOVED、带 `Superseded` 标注或所属 spec 已 superseded 时才列为候选。候选非空先征询用户；用户未确认不删除。无候选则记录“无孤儿测试”。
 
-- [ ] **步骤 3：取代回写**
+执行记录：无孤儿测试。
+
+- [x] **步骤 3：取代回写**
 
 本 spec 的 `supersedes: []`，声明“无取代回写”后跳过。
+
+执行记录：无取代回写。
 
 - [ ] **步骤 4：合并回来源分支**
 

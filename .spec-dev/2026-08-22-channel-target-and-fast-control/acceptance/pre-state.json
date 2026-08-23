@@ -1,0 +1,7 @@
+{
+  "environment": "isolated cpa-channel-target-acceptance container",
+  "binding_existed": false,
+  "binding": null,
+  "restored": true,
+  "restoration": "DELETE completed with HTTP 200; post-check found zero matching bindings"
+}
