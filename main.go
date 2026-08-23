@@ -704,7 +704,7 @@ func handleModelRoute(raw []byte) ([]byte, error) {
 	if err := json.Unmarshal(raw, &req); err != nil {
 		return nil, err
 	}
-	decision, err := routeModel(loadedConfig(), loadedRuleSource(), req.SourceFormat, req.RequestedModel, apiKeyFromHeaders(req.Headers))
+	decision, err := routeModelForRequest(loadedConfig(), loadedRuleSource(), req.SourceFormat, req.RequestedModel, apiKeyFromHeaders(req.Headers), req.Body)
 	if err != nil {
 		return nil, err
 	}
@@ -739,6 +739,52 @@ func routeModel(cfg Config, src ruleSource, format, model, apiKey string) (route
 		return routeDecision{}, nil
 	}
 	return routeDecision{Handled: true, OriginalModel: model, UpstreamModel: current}, nil
+}
+
+// routeModelForRequest makes the discrete reasoning effort in a Codex Responses
+// body visible to the suffix-based mapping DSL. An explicit model suffix keeps
+// CPA's normal priority over body fields. If the effort-qualified model does not
+// match, retry the original model so existing mappings continue to work.
+func routeModelForRequest(cfg Config, src ruleSource, format, model, apiKey string, body []byte) (routeDecision, error) {
+	effort := codexReasoningEffort(format, model, body)
+	if effort != "" {
+		qualifiedModel := model + "(" + effort + ")"
+		decision, err := routeModel(cfg, src, format, qualifiedModel, apiKey)
+		if err != nil {
+			return routeDecision{}, err
+		}
+		if decision.Handled {
+			decision.OriginalModel = model
+			return decision, nil
+		}
+	}
+	return routeModel(cfg, src, format, model, apiKey)
+}
+
+func codexReasoningEffort(format, model string, body []byte) string {
+	if format != "openai-response" || hasModelSuffix(model) || len(body) == 0 {
+		return ""
+	}
+	var payload struct {
+		Reasoning struct {
+			Effort string `json:"effort"`
+		} `json:"reasoning"`
+	}
+	if err := json.Unmarshal(body, &payload); err != nil {
+		return ""
+	}
+	effort := strings.ToLower(strings.TrimSpace(payload.Reasoning.Effort))
+	switch effort {
+	case "none", "auto", "minimal", "low", "medium", "high", "xhigh", "max":
+		return effort
+	default:
+		return ""
+	}
+}
+
+func hasModelSuffix(model string) bool {
+	open := strings.LastIndexByte(model, '(')
+	return open > 0 && strings.HasSuffix(model, ")") && strings.TrimSpace(model[open+1:len(model)-1]) != ""
 }
 
 func rewriteRequestModel(body []byte, upstreamModel string) ([]byte, bool, error) {
@@ -802,7 +848,11 @@ func startExecutorStream(req executorRPCRequest, call hostCaller, closeStream fu
 // make the decision unhandled; that must degrade to passing the client's model
 // through, not fail an in-flight request.
 func upstreamModelFor(sourceFormat, model string, headers http.Header) (upstream, original string) {
-	decision, err := routeModel(loadedConfig(), loadedRuleSource(), sourceFormat, model, apiKeyFromHeaders(headers))
+	return upstreamModelForRequest(sourceFormat, model, headers, nil)
+}
+
+func upstreamModelForRequest(sourceFormat, model string, headers http.Header, body []byte) (upstream, original string) {
+	decision, err := routeModelForRequest(loadedConfig(), loadedRuleSource(), sourceFormat, model, apiKeyFromHeaders(headers), body)
 	if err != nil {
 		logger.Warn("route failed at execute time, passing model through", "model", model, "err", err)
 		return model, model
@@ -815,7 +865,7 @@ func upstreamModelFor(sourceFormat, model string, headers http.Header) (upstream
 }
 
 func runStreamForward(req executorRPCRequest, call hostCaller) error {
-	upstreamModel, originalModel := upstreamModelFor(req.SourceFormat, req.Model, req.Headers)
+	upstreamModel, originalModel := upstreamModelForRequest(req.SourceFormat, req.Model, req.Headers, req.OriginalRequest)
 	body, _, err := rewriteRequestModel(req.OriginalRequest, upstreamModel)
 	if err != nil {
 		return fmt.Errorf("rewrite stream request: %w", err)
@@ -941,7 +991,7 @@ func handleExecutorExecute(raw []byte, call hostCaller) ([]byte, error) {
 	if err := json.Unmarshal(raw, &req); err != nil {
 		return nil, err
 	}
-	upstreamModel, originalModel := upstreamModelFor(req.SourceFormat, req.Model, req.Headers)
+	upstreamModel, originalModel := upstreamModelForRequest(req.SourceFormat, req.Model, req.Headers, req.OriginalRequest)
 	body, _, err := rewriteRequestModel(req.OriginalRequest, upstreamModel)
 	if err != nil {
 		return nil, err

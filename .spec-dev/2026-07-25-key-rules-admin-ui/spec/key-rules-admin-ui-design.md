@@ -222,13 +222,25 @@ web UI SHALL 以顶部横向导航提供三板块：规则管理（四段有序�
 
 ### Requirement: 路由判定链路（改：单层规则 → 两层接力）
 
-handleModelRoute SHALL 以 `SourceFormat`、`RequestedModel`、`Headers` 为输入：先执行顶层规则集得 M₁，再对启用绑定的 key 接力 key 层得 M₂；仅当 M₂ ≠ RequestedModel 时返回 `Handled=true`、`TargetKind=self`。
+handleModelRoute SHALL 以 `SourceFormat`、`RequestedModel`、`Headers`、`Body` 为输入：先执行顶层规则集得 M₁，再对启用绑定的 key 接力 key 层得 M₂；仅当 M₂ ≠ RequestedModel 时返回 `Handled=true`、`TargetKind=self`。当 `SourceFormat=openai-response`、RequestedModel 不含显式后缀且 `Body.reasoning.effort` 是受支持的离散强度时，插件 SHALL 先以 `RequestedModel(effort)` 作为虚拟输入执行同一规则链；若虚拟输入未产生映射，再回退到 RequestedModel 执行原有规则链。executor 执行前的二次路由判定 SHALL 使用相同逻辑，确保路由判定与实际出站模型一致；显式模型后缀始终优先于请求体强度。
 
 #### Scenario: 两层接力触发路由
 
 - **GIVEN** 「接力降档」Scenario 的配置
 - **WHEN** K 经 claude 端点请求 `claude-opus-4-5(max)`
 - **THEN** 返回 Handled=true，目标为插件自身 executor，出站模型 `claude-opus-4-5(medium)`
+
+#### Scenario: Codex 请求体强度触发后缀规则
+
+- **GIVEN** Codex Responses 规则 `gpt-5.6-sol(xhigh)=>gpt-5.6-sol(medium)`
+- **WHEN** 客户端请求模型 `gpt-5.6-sol`，且请求体含 `reasoning.effort=xhigh`
+- **THEN** 路由返回 Handled=true，executor 实际出站模型为 `gpt-5.6-sol(medium)`，CPA 以该后缀覆盖请求体中的 xhigh
+
+#### Scenario: 强度规则未命中时保留普通映射
+
+- **GIVEN** Codex Responses 规则 `gpt-5.6-sol=>mapped-model`
+- **WHEN** 客户端请求模型 `gpt-5.6-sol`，且请求体含 `reasoning.effort=xhigh`
+- **THEN** 虚拟输入未命中后回退裸模型规则，实际出站模型为 `mapped-model`
 
 ### Requirement: 插件注册能力（改：新增 ManagementAPI 与 state_file 配置项）
 

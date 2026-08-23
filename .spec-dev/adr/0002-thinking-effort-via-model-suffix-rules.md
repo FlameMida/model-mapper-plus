@@ -11,6 +11,8 @@
 
 不设独立的强度映射机制与三层级强度表；思考强度控制通过规则内模型名后缀表达，如 `claude-opus-4-5(max)=>claude-opus-4-5(high)`，key 绑定同理。
 
+对于模型名本身不带后缀、但 Codex Responses 请求体通过 `reasoning.effort` 表达离散强度的请求，插件在路由阶段和 executor 二次判定阶段将其临时投影为 `model(effort)` 后再执行同一 DSL。显式模型后缀仍优先于请求体；若投影后的模型未产生映射，则回退裸模型匹配，保持既有普通模型规则的兼容性。
+
 ## 理由
 
-CPA 提取思考强度时模型名后缀优先级最高、覆盖请求体字段（internal/thinking/apply.go ExtractReasoningEffort），且后缀是模型名一部分，现有 `find=>replace` DSL 零改动即可表达。被否方案：全局/端点/key 三层级强度映射表 + 执行期请求体强度改写器——被用户裁决砍掉，复杂度远大于收益。
+CPA 提取思考强度时模型名后缀优先级最高、覆盖请求体字段（internal/thinking/apply.go ExtractReasoningEffort），且后缀是模型名一部分，现有 `find=>replace` DSL 无需新增语法即可表达。插件只把请求体的离散强度暴露给同一模型字符串匹配链，不引入第二套强度规则。被否方案：全局/端点/key 三层级强度映射表 + 执行期请求体强度改写器——被用户裁决砍掉，复杂度远大于收益。

@@ -535,6 +535,92 @@ func TestHandleModelRouteHandledSelfForChangedModel(t *testing.T) {
 	}
 }
 
+func TestHandleModelRouteMatchesCodexReasoningEffortFromBody(t *testing.T) {
+	setLoadedConfigForTest(Config{
+		Enabled:             true,
+		CodexResponsesRules: `gpt-5.6-sol(xhigh)=>gpt-5.6-sol(medium)`,
+	})
+	raw, err := json.Marshal(pluginapi.ModelRouteRequest{
+		SourceFormat:   "openai-response",
+		RequestedModel: "gpt-5.6-sol",
+		Body:           []byte(`{"model":"gpt-5.6-sol","reasoning":{"effort":"xhigh"}}`),
+	})
+	if err != nil {
+		t.Fatalf("marshal request: %v", err)
+	}
+	respRaw, err := handleModelRoute(raw)
+	if err != nil {
+		t.Fatalf("handleModelRoute error = %v", err)
+	}
+	var resp pluginapi.ModelRouteResponse
+	if err := json.Unmarshal(respRaw, &resp); err != nil {
+		t.Fatalf("decode route response: %v", err)
+	}
+	if !resp.Handled || resp.TargetKind != pluginapi.ModelRouteTargetSelf {
+		t.Fatalf("route response=%#v, want handled self route", resp)
+	}
+}
+
+func TestRouteModelForRequestCodexEffortPrecedenceAndFallback(t *testing.T) {
+	tests := []struct {
+		name         string
+		rules        string
+		model        string
+		body         []byte
+		wantHandled  bool
+		wantUpstream string
+		wantOriginal string
+	}{
+		{
+			name:         "body effort qualifies model",
+			rules:        `gpt-5.6-sol(xhigh)=>gpt-5.6-sol(medium)`,
+			model:        "gpt-5.6-sol",
+			body:         []byte(`{"reasoning":{"effort":"xhigh"}}`),
+			wantHandled:  true,
+			wantUpstream: "gpt-5.6-sol(medium)",
+			wantOriginal: "gpt-5.6-sol",
+		},
+		{
+			name:         "explicit suffix overrides body effort",
+			rules:        `gpt-5.6-sol(high)=>gpt-5.6-sol(low);gpt-5.6-sol(xhigh)=>gpt-5.6-sol(medium)`,
+			model:        "gpt-5.6-sol(high)",
+			body:         []byte(`{"reasoning":{"effort":"xhigh"}}`),
+			wantHandled:  true,
+			wantUpstream: "gpt-5.6-sol(low)",
+			wantOriginal: "gpt-5.6-sol(high)",
+		},
+		{
+			name:         "unmatched effort falls back to bare model rule",
+			rules:        `gpt-5.6-sol=>mapped-model`,
+			model:        "gpt-5.6-sol",
+			body:         []byte(`{"reasoning":{"effort":"xhigh"}}`),
+			wantHandled:  true,
+			wantUpstream: "mapped-model",
+			wantOriginal: "gpt-5.6-sol",
+		},
+		{
+			name:        "unknown effort is ignored",
+			rules:       `gpt-5.6-sol(xhigh)=>gpt-5.6-sol(medium)`,
+			model:       "gpt-5.6-sol",
+			body:        []byte(`{"reasoning":{"effort":"turbo"}}`),
+			wantHandled: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			cfg := Config{Enabled: true, CodexResponsesRules: tt.rules}
+			decision, err := routeModelForRequest(cfg, ruleSourceFromConfig(cfg), "openai-response", tt.model, "", tt.body)
+			if err != nil {
+				t.Fatalf("routeModelForRequest error = %v", err)
+			}
+			if decision.Handled != tt.wantHandled || decision.UpstreamModel != tt.wantUpstream || decision.OriginalModel != tt.wantOriginal {
+				t.Fatalf("decision=%#v, want handled=%v upstream=%q original=%q", decision, tt.wantHandled, tt.wantUpstream, tt.wantOriginal)
+			}
+		})
+	}
+}
+
 func TestRewriteRequestModelTopLevelOnly(t *testing.T) {
 	got, changed, err := rewriteRequestModel([]byte(`{"model":"A","messages":[],"message":{"model":"A"},"response":{"model":"A"},"modelVersion":"A"}`), "B")
 	if err != nil {
@@ -812,6 +898,126 @@ func TestHandleExecutorExecuteForwardsMappedRequestAndRestoresResponse(t *testin
 	}
 	if !strings.Contains(string(resp.Payload), `"model":"deepseek-v4-pro"`) {
 		t.Fatalf("payload=%s", resp.Payload)
+	}
+}
+
+func TestHandleExecutorExecuteMapsCodexReasoningEffortFromBody(t *testing.T) {
+	setLoadedConfigForTest(Config{
+		Enabled:             true,
+		CodexResponsesRules: `gpt-5.6-sol(xhigh)=>gpt-5.6-sol(medium)`,
+	})
+	req := rpcExecutorRequest{
+		ExecutorRequest: pluginapi.ExecutorRequest{
+			Model:           "gpt-5.6-sol",
+			Format:          "openai-response",
+			SourceFormat:    "openai-response",
+			OriginalRequest: []byte(`{"model":"gpt-5.6-sol","reasoning":{"effort":"xhigh"}}`),
+		},
+		HostCallbackID: "callback-1",
+	}
+	var captured hostModelExecutionRequest
+	rawReq, err := json.Marshal(req)
+	if err != nil {
+		t.Fatalf("marshal req: %v", err)
+	}
+	respRaw, err := handleExecutorExecute(rawReq, func(method string, payload any) (json.RawMessage, error) {
+		if method != pluginabi.MethodHostModelExecute {
+			t.Fatalf("method=%q, want %q", method, pluginabi.MethodHostModelExecute)
+		}
+		raw, errMarshal := json.Marshal(payload)
+		if errMarshal != nil {
+			t.Fatalf("marshal payload: %v", errMarshal)
+		}
+		if errUnmarshal := json.Unmarshal(raw, &captured); errUnmarshal != nil {
+			t.Fatalf("decode captured payload: %v", errUnmarshal)
+		}
+		return json.Marshal(pluginapi.HostModelExecutionResponse{
+			StatusCode: 200,
+			Body:       []byte(`{"model":"gpt-5.6-sol(medium)","id":"ok"}`),
+		})
+	})
+	if err != nil {
+		t.Fatalf("handleExecutorExecute error = %v", err)
+	}
+	if captured.Model != "gpt-5.6-sol(medium)" {
+		t.Fatalf("captured model=%q, want gpt-5.6-sol(medium)", captured.Model)
+	}
+	if !strings.Contains(string(captured.Body), `"model":"gpt-5.6-sol(medium)"`) {
+		t.Fatalf("captured body=%s", captured.Body)
+	}
+	if !strings.Contains(string(captured.Body), `"effort":"xhigh"`) {
+		t.Fatalf("captured body=%s, want original effort preserved for CPA suffix override", captured.Body)
+	}
+	var resp pluginapi.ExecutorResponse
+	if err := json.Unmarshal(respRaw, &resp); err != nil {
+		t.Fatalf("decode executor response: %v", err)
+	}
+	if !strings.Contains(string(resp.Payload), `"model":"gpt-5.6-sol"`) {
+		t.Fatalf("payload=%s, want client model restored", resp.Payload)
+	}
+}
+
+func TestHandleExecutorExecuteStreamMapsCodexReasoningEffortFromBody(t *testing.T) {
+	setLoadedConfigForTest(Config{
+		Enabled:             true,
+		CodexResponsesRules: `gpt-5.6-sol(xhigh)=>gpt-5.6-sol(medium)`,
+	})
+	req := rpcExecutorRequest{
+		ExecutorRequest: pluginapi.ExecutorRequest{
+			Model:           "gpt-5.6-sol",
+			Format:          "openai-response",
+			SourceFormat:    "openai-response",
+			Stream:          true,
+			OriginalRequest: []byte(`{"model":"gpt-5.6-sol","reasoning":{"effort":"xhigh"},"stream":true}`),
+		},
+		HostCallbackID: "callback-1",
+		StreamID:       "plugin-stream-effort-1",
+	}
+	var captured hostModelExecutionRequest
+	closed := make(chan struct{})
+	fakeHost := func(method string, payload any) (json.RawMessage, error) {
+		switch method {
+		case pluginabi.MethodHostModelExecuteStream:
+			raw, err := json.Marshal(payload)
+			if err != nil {
+				return nil, err
+			}
+			if err := json.Unmarshal(raw, &captured); err != nil {
+				return nil, err
+			}
+			return json.Marshal(pluginapi.HostModelStreamResponse{
+				StatusCode: 200,
+				Headers:    http.Header{"Content-Type": []string{"text/event-stream"}},
+				StreamID:   "host-stream-effort-1",
+			})
+		case pluginabi.MethodHostModelStreamRead:
+			return json.Marshal(pluginapi.HostModelStreamReadResponse{Done: true})
+		case pluginabi.MethodHostModelStreamClose:
+			return json.Marshal(map[string]any{})
+		case pluginabi.MethodHostStreamClose:
+			close(closed)
+			return json.Marshal(map[string]any{})
+		default:
+			return nil, fmt.Errorf("unexpected method %q", method)
+		}
+	}
+	rawReq, err := json.Marshal(req)
+	if err != nil {
+		t.Fatalf("marshal req: %v", err)
+	}
+	if _, err := handleExecutorExecuteStream(rawReq, fakeHost); err != nil {
+		t.Fatalf("handleExecutorExecuteStream error = %v", err)
+	}
+	select {
+	case <-closed:
+	case <-time.After(2 * time.Second):
+		t.Fatal("stream forwarder did not close plugin stream")
+	}
+	if captured.Model != "gpt-5.6-sol(medium)" {
+		t.Fatalf("captured model=%q, want gpt-5.6-sol(medium)", captured.Model)
+	}
+	if !strings.Contains(string(captured.Body), `"model":"gpt-5.6-sol(medium)"`) || !strings.Contains(string(captured.Body), `"effort":"xhigh"`) {
+		t.Fatalf("captured body=%s, want mapped model with original effort preserved", captured.Body)
 	}
 }
 

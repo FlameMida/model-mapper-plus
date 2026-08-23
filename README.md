@@ -40,7 +40,7 @@ If an existing state file cannot be parsed or fails validation, it is renamed to
 
 ## Key bindings and thinking-effort control
 
-A key binding runs one more structurally identical rule set on top of the top-level output for requests carrying that client key (endpoint segment wins; the binding's global segment is the fallback). Thinking effort is expressed directly through model-name suffixes, for example `claude-opus-4-5(max)=>claude-opus-4-5(high)` — CPA resolves the suffix and it overrides effort fields in the request body. Note that `*` captures swallow the suffix too (`claude-*` captures `opus-4-5(max)`).
+A key binding runs one more structurally identical rule set on top of the top-level output for requests carrying that client key (endpoint segment wins; the binding's global segment is the fallback). Thinking effort is expressed directly through model-name suffixes, for example `claude-opus-4-5(max)=>claude-opus-4-5(high)` — CPA resolves the suffix and it overrides effort fields in the request body. For Codex Responses requests whose model has no explicit suffix, `reasoning.effort` also participates in suffix matching: a request for `gpt-5.6-sol` with `reasoning.effort=xhigh` matches `gpt-5.6-sol(xhigh)=>gpt-5.6-sol(medium)`. An explicit model suffix wins; when the effort-qualified form does not match, the plugin retries the bare model so existing mappings keep working. Note that `*` captures swallow the suffix too (`claude-*` captures `opus-4-5(max)`).
 
 ## Rule syntax
 
