@@ -1448,7 +1448,7 @@ git commit -m "feat(T6): 管理面读写并预览渠道定向"
 - 产出：`ChannelTarget`、`CpaAuthFile`、扩展后的 `KeyBinding` / `PreviewResponse`
 - 产出：`listCpaAuthFiles(): Promise<CpaAuthFile[]>`
 
-- [ ] **步骤 1：写失败测试**
+- [x] **步骤 1：写失败测试**
 
 把 `web/src/api.test.ts` import 改为 `import { api, listCpaAuthFiles, StateResponse } from './api'`，并追加：
 
@@ -1497,7 +1497,7 @@ describe('api：渠道定向与 Fast', () => {
 })
 ```
 
-- [ ] **步骤 2：运行测试确认失败**
+- [x] **步骤 2：运行测试确认失败**
 
 ```bash
 npm --prefix web test -- src/api.test.ts
@@ -1506,7 +1506,7 @@ npm --prefix web run typecheck
 
 预期：FAIL，TypeScript 报 `listCpaAuthFiles` 未导出、`fast_allowed` 与 `channel_target` 不属于 PATCH 类型。
 
-- [ ] **步骤 3：写最小实现**
+- [x] **步骤 3：写最小实现**
 
 在 `web/src/api.ts` 增加并扩展类型：
 
@@ -1573,7 +1573,7 @@ export async function listCpaAuthFiles(): Promise<CpaAuthFile[]> {
 }
 ```
 
-- [ ] **步骤 4：运行测试确认通过**
+- [x] **步骤 4：运行测试确认通过**
 
 ```bash
 npm --prefix web test -- src/api.test.ts
@@ -1582,7 +1582,7 @@ npm --prefix web run typecheck
 
 预期：PASS；现有 HTML entity 还原测试继续通过。
 
-- [ ] **步骤 5：提交**
+- [x] **步骤 5：提交**
 
 ```bash
 git add web/src/api.ts web/src/api.test.ts
