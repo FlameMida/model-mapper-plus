@@ -1,0 +1,52 @@
+{
+  "status": "pass",
+  "assertions": {
+    "retryFailureVerified": true,
+    "mainTabsPresent": true,
+    "supplierNormalized": true,
+    "selectionsRestored": true,
+    "noMissingWarning": true,
+    "disabledWhileOff": true,
+    "selectionsRetainedWhileOff": true,
+    "dialogInsideViewport": true,
+    "noHorizontalOverflow": true,
+    "noConsoleErrors": true
+  },
+  "retryFailureVerified": true,
+  "beforeToggle": {
+    "tabs": [
+      "基础",
+      "渠道定向",
+      "规则集",
+      "全局",
+      "Claude Messages",
+      "Codex Responses",
+      "OpenAI Completions"
+    ],
+    "supplierCount": 1,
+    "supplierLabel": "供应商 KIMI",
+    "supplierChecked": true,
+    "authChecked": true,
+    "missingWarning": false
+  },
+  "disabledState": {
+    "supplierDisabled": true,
+    "authDisabled": true,
+    "supplierChecked": true,
+    "authChecked": true
+  },
+  "layout": {
+    "viewport": {
+      "width": 1440,
+      "height": 1100
+    },
+    "dialog": {
+      "left": 290,
+      "top": 80,
+      "right": 1150,
+      "bottom": 531
+    },
+    "horizontalOverflow": false
+  },
+  "consoleErrors": []
+}

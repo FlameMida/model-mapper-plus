@@ -1,0 +1,93 @@
+{
+  "items": [
+    {
+      "check": "定向请求实际落在目标认证文件",
+      "dimension": "e2e",
+      "tier": "D",
+      "requirement_ref": "定向请求实际落在目标认证文件",
+      "ops": "v7.2.139 临时实例绑定唯一 auth ID，POST /v1/messages，对照宿主日志与 request-log",
+      "result": "pass",
+      "evidence_ref": "channel-target-live.md; trace 89aaa7d6",
+      "recheck": {
+        "status": "维持",
+        "evidence_ref": "evidence-audit.md#独立审计结论"
+      }
+    },
+    {
+      "check": "目标 cooldown、池外 active 时收到 503 且不落池外",
+      "dimension": "e2e",
+      "tier": "D",
+      "requirement_ref": "目标 cooldown、池外 active 时不越池",
+      "ops": "检查安全 fixture；环境仅有一份 auth，未改写真实 cooldown；复跑 race 单测替代证据",
+      "result": "unverified",
+      "evidence_ref": "channel-target-cooldown.md",
+      "notes": "实施计划允许无安全 fixture 时 DEFERRED"
+    },
+    {
+      "check": "目标低优先级、池外高优先级时不越池",
+      "dimension": "integration",
+      "tier": "D",
+      "requirement_ref": "目标低优先级、池外高优先级时不越池",
+      "ops": "固定宿主 SDK fixture 只交付 outside 高优先级候选，执行 Scheduler race 测试",
+      "result": "pass",
+      "evidence_ref": "channel-target-priority.md; TestChannelTargetScheduler/目标低优先级、池外高优先级时不越池",
+      "recheck": {
+        "status": "维持",
+        "evidence_ref": "evidence-audit.md#独立审计结论"
+      }
+    },
+    {
+      "check": "v7.2.119 与 v7.2.139 三协议错误兼容",
+      "dimension": "integration",
+      "tier": "D",
+      "requirement_ref": "池内候选全部不可用时返回协议兼容 JSON 错误",
+      "ops": "精确双版本 CGO 宿主各请求 OpenAI/Responses/Claude，断言 HTTP 与错误字段",
+      "result": "pass",
+      "evidence_ref": "host-version-compat.md; 6 requests/6 pass",
+      "recheck": {
+        "status": "维持",
+        "evidence_ref": "evidence-audit.md#独立审计结论"
+      }
+    },
+    {
+      "check": "Fast 关闭后上游收到普通请求",
+      "dimension": "e2e",
+      "tier": "D",
+      "requirement_ref": "Claude Fast 标记按 key 剥离",
+      "ops": "发送同时含 speed=fast、fast beta 与其他 beta 的 Claude 请求，对照原始/上游 request-log",
+      "result": "pass",
+      "evidence_ref": "fast-strip-live.md; trace 2f1e1dd7",
+      "recheck": {
+        "status": "维持",
+        "evidence_ref": "evidence-audit.md#独立审计结论"
+      }
+    },
+    {
+      "check": "定向与 Fast 组合叠加",
+      "dimension": "e2e",
+      "tier": "D",
+      "requirement_ref": "定向 + fast 组合叠加",
+      "ops": "同一 key 定向唯一 auth 并关闭 Fast，对照选择日志与上游 body/header",
+      "result": "pass",
+      "evidence_ref": "channel-target-fast-combined.md; trace b5ec4e97",
+      "recheck": {
+        "status": "维持",
+        "evidence_ref": "evidence-audit.md#独立审计结论"
+      }
+    },
+    {
+      "check": "编辑表单全流程视觉与交互",
+      "dimension": "visual",
+      "tier": "A",
+      "requirement_ref": "Admin UI 表单重构",
+      "ops": "Chrome 1440x1100 实际登录，验证失败重试、规范化、置灰保留、弹窗边界，捕获浅/深色截图",
+      "result": "pass",
+      "evidence_ref": "ui-review.md; ui-run.json; ui-light.png; ui-dark.png",
+      "recheck": {
+        "status": "维持",
+        "evidence_ref": "evidence-audit.md#ui-补证复核"
+      }
+    }
+  ],
+  "coverage_note": "执行 T15 全部 7 行矩阵：6 pass，1 unverified/DEFERRED。6 个 pass 均经独立对抗审计维持；UI 首轮因缺少持久运行 JSON 被降级，补齐 10 项 fail-fast CDP 断言后独立复核恢复为维持。cooldown live 因只有一份 auth 且禁止操纵真实凭据状态而未执行，已保留 race 单测与可复跑条件。visual 无 Playwright 基线，本轮为 Tier A 当前状态判读，不宣称像素级回归。a11y 与性能不在当前矩阵，不额外发明门槛。"
+}

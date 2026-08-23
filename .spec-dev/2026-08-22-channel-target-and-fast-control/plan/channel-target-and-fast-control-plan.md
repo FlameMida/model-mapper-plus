@@ -2803,7 +2803,9 @@ test -z "$(git -C /Users/flame/CLIProxyAPI status --porcelain=v1)"
 
 验收开始前把目标 key 原 binding 写入 `acceptance/pre-state.json`；结束后原样 POST 恢复，原先不存在则 DELETE，并逐份记录恢复结果。不得修改真实 auth 文件来迁就测试；cooldown/优先级缺少安全 fixture 时按上表 DEFERRED。更新 `acceptance/acceptance-summary.md`，把已修复发现移入“已处置”，将确认的 cooldown/优先级与协议外形差异列为“已接受宿主边界”，并按复验结果重新计算总论。
 
-- [ ] **提交验收证据**
+- [x] **提交验收证据**
+
+执行记录（2026-08-24）：T15 七行矩阵为 6 PASS、1 `UNVERIFIED / DEFERRED`；双版本三协议请求 6/6 通过，真实定向、Fast 剥离、组合路径与 UI 均通过。6 个 PASS 经独立对抗审计维持；UI 首轮因未持久化 CDP 结果被降级，补齐 `ui-run.json` 的 10 项 fail-fast 断言后复核恢复为维持。cooldown live 因只有一份 auth 且不得改写真实凭据状态未执行，race 替代证据与可复跑条件已落盘。
 
 ```bash
 git add .spec-dev/2026-08-22-channel-target-and-fast-control/acceptance

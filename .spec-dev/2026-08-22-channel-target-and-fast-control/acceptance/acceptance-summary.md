@@ -2,7 +2,7 @@
 
 ## 结论
 
-**FAIL（阻塞合并）**。主体实现、确定性测试、真实定向与 Fast 剥离均有效，但独立审查和对抗复核确认了 5 项未处置发现；其中 4 项为中级、1 项为低级。另有 1 个既有脚本基线失败和 1 个无法安全执行的 cooldown live 场景。
+**PASS（含 1 项按计划 DEFERRED）**。代码、双宿主错误契约、真实定向、Fast 剥离、组合场景与当前 UI 均通过。仅“真实目标 cooldown + 池外 active”因环境只有一份凭据、且不允许改写真实冷却状态而标记 DEFERRED；已保留 race 单测替代证据和可复跑条件。
 
 ## 确定性安全网
 
@@ -12,34 +12,37 @@
 | `go test -race .` | PASS |
 | `go vet ./...` | PASS |
 | `bun run --cwd web typecheck` | PASS |
-| `bun run --cwd web test` | PASS，11 files / 41 tests |
+| `bun run --cwd web test` | PASS，11 files / 47 tests |
 | `VITE_HOSTED=1 bun run --cwd web build` | PASS；仅 lottie-web 依赖的既有 direct-eval warning |
 | `git diff --exit-code -- web/package-lock.json` | PASS |
 | `git diff --check` | PASS |
-| `make test-scripts` | FAIL；`FAIL: windows output not versioned`，已在主工作区源分支复现，属既有失败 |
+| `make test-scripts` | 既有 FAIL：`FAIL: windows output not versioned`；已在源分支复现并经用户裁决为本特性非阻塞 |
 
 ## 验收矩阵
 
 | 场景 | 结果 | 证据 |
 |---|---|---|
-| 定向请求落在目标 auth | PARTIAL | `channel-target-live.md` |
-| 目标池全冷却返回原生 429 | DEFERRED / UNVERIFIED | `channel-target-cooldown.md` |
+| 定向请求落在目标 auth | PASS | `channel-target-live.md` |
+| 目标 cooldown、池外 active 时 503 且不越池 | DEFERRED / UNVERIFIED | `channel-target-cooldown.md` |
+| 目标低优先级、池外高优先级时不越池 | PASS（integration fixture） | `channel-target-priority.md` |
+| v7.2.119 / v7.2.139 三协议错误兼容 | PASS，6/6 | `host-version-compat.md` |
 | Fast 关闭后上游无 Fast 标记 | PASS | `fast-strip-live.md` |
 | 定向 + Fast 组合 | PASS | `channel-target-fast-combined.md` |
-| 编辑表单浅色/深色交互 | PARTIAL PASS | `ui-review.md`、`ui-light.png`、`ui-dark.png` |
+| 编辑表单浅色/深色与失败重试 | PASS | `ui-review.md`、`ui-run.json`、`ui-light.png`、`ui-dark.png` |
 
-## 已确认发现
+## 已处置审查发现
 
-1. 中：Go `omitempty` 会让合法空数组从管理响应消失，`KeysPanel` 摘要直接读 `.length` 导致渲染崩溃。
-2. 中：目标凭据 cooldown 但池外有 active 凭据时，宿主的全局预过滤使插件返回 503，无法兑现原生 429 + `Retry-After` 契约。
-3. 中：CLIProxyAPI v7.2.119 RPC 适配层丢弃 ABI `auth_not_found` code；真实池空请求为 HTTP 503，但下游看不到承诺的 code。
-4. 中：前端 provider/auth ID 去重与后端 trim + 大小写不敏感语义不一致，可导致重复分组、误报缺失或保存 400。
-5. 低：`request.intercept_before` 同一请求读取两次状态快照，热更新窗口内可产生 blocked/Fast 混合时序；无 Go data race。
+1. wire JSON 缺失 `suppliers` / `auth_ids`：摘要安全计数，编辑边界补齐数组。
+2. cooldown / 优先级边界：契约已校准为宿主预过滤后插件返回 503；全局无候选才 MAY 由宿主返回 429。
+3. v7.2.119 typed code 丢失：改为合法 JSON message，双版本六次真实 HTTP 请求均保留协议字段。
+4. provider/auth ID 规范化：列表、分组、回显、缺失判定、组选与保存共用同一 helper。
+5. blocked/Fast 热更新快照：单次请求只加载一次 rule source，race 用例通过。
+6. 第二轮审查发现的“直接保存未规范化”已于 `5f0e922` 修复；独立复审结论 `CLOSED`，无新发现。
+7. T15 独立证据审计：6 个 PASS 全部维持；UI 首轮证据降级后补齐 10 项 fail-fast CDP 断言，复核恢复为维持；cooldown 仍保持 DEFERRED。
 
-每项中/高原始发现均由独立对抗复核员尝试反驳，上述 5 项均被证实，并按复核结果对严重性去重/校准。
+## 环境与恢复
 
-## 状态恢复
-
-- 验收 client key 的原 binding 不存在；验收结束后已 DELETE，复查为 0。
-- 视觉验收临时 binding 已 DELETE，独立 CPA 总 binding 数量为 0。
-- 未修改 auth 文件、冷却状态或主工作区的 CPA 容器/插件。
+- 宿主源码固定为 `v7.2.119` archive 与本地 clean `v7.2.139`；构建输出全部在 `/tmp/cpa-channel-compat-model-mapper-plus`。
+- Darwin 原生宿主加载 Go c-shared 插件时触发双 Go runtime 崩溃，因此真实双版本请求在 Debian 12 x86_64 容器中使用精确源码交叉构建的 CGO 宿主执行。
+- 验收 client key 在两个临时实例中的原 binding 均不存在；结束后 DELETE 并复查为 0。
+- 只复制真实 auth 文件到 `/tmp`；未改写 `/Users/flame/CLIProxyAPI` 的源码、配置、auth 文件或插件目录，验收后宿主仓库仍为 clean。

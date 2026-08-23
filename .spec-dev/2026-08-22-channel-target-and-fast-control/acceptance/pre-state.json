@@ -1,7 +1,13 @@
 {
-  "environment": "isolated cpa-channel-target-acceptance container",
+  "environment": "isolated exact-version v7.2.119 and v7.2.139 containers",
+  "binding_key": "acceptance-client-key",
   "binding_existed": false,
   "binding": null,
   "restored": true,
-  "restoration": "DELETE completed with HTTP 200; post-check found zero matching bindings"
+  "restoration": {
+    "v7.2.119": "DELETE completed; post-check found zero matching bindings",
+    "v7.2.139": "DELETE completed; post-check found zero matching bindings"
+  },
+  "real_auth_modified": false,
+  "host_repository_modified": false
 }
