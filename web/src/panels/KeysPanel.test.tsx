@@ -8,6 +8,8 @@ const binding = (key: string): KeyBinding => ({
   enabled: true,
   blocked: false,
   rules: { global: 'a=>b', claude: '', codex: '', openai: '' },
+  channel_target: { enabled: true, suppliers: ['claude'], auth_ids: ['gemini-main'] },
+  fast_allowed: false,
 })
 
 describe('审计 #12：编辑时改 key 应为重命名而非新增', () => {
@@ -45,5 +47,11 @@ describe('审计 #12：编辑时改 key 应为重命名而非新增', () => {
     expect(plan?.binding.enabled).toBe(false)
     expect(plan?.binding.blocked).toBe(true)
     expect(plan?.binding.rules.global).toBe('a=>b')
+    expect(plan?.binding.channel_target).toEqual({
+      enabled: true,
+      suppliers: ['claude'],
+      auth_ids: ['gemini-main'],
+    })
+    expect(plan?.binding.fast_allowed).toBe(false)
   })
 })

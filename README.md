@@ -42,6 +42,14 @@ If an existing state file cannot be parsed or fails validation, it is renamed to
 
 A key binding runs one more structurally identical rule set on top of the top-level output for requests carrying that client key (endpoint segment wins; the binding's global segment is the fallback). Thinking effort is expressed directly through model-name suffixes, for example `claude-opus-4-5(max)=>claude-opus-4-5(high)` — CPA resolves the suffix and it overrides effort fields in the request body. Note that `*` captures swallow the suffix too (`claude-*` captures `opus-4-5(max)`).
 
+### 渠道定向与 Fast 控制
+
+每条 key 绑定可独立开启渠道定向：供应商整选与认证文件单选取并集，池内按认证文件 ID 确定性轮转。定向开启后该 key 跳过模型映射；候选池为空会返回 503 `auth_not_found`，不会降级到池外凭据。池内凭据全部冷却时由 CPA 返回原生 429 `model_cooldown` 与 `Retry-After`。
+
+“Fast 允许”默认开启。关闭后，Claude 请求的 `speed:"fast"` 与 `fast-mode-2026-02-01` beta token 会在上游执行前被删除；其他协议不受影响。
+
+CPA 的 Scheduler 能力为宿主全局单实例。若同时启用另一个声明 Scheduler 的插件（例如 `cpa-plugin-key-policy`），只有宿主选择的首个 Scheduler 生效；本插件不提供冲突探测，请在部署配置中只保留一个 Scheduler 插件。
+
 ## Rule syntax
 
 Each ruleset is a `;`-separated ordered list of entries. An entry is either a `find=>replace` mapping or an exact standalone case operation: `\a` lowercases ASCII English letters and `\A` uppercases them. Whitespace and quotes are invalid inside the decoded rule value.

@@ -1,9 +1,32 @@
 import { useEffect, useState } from 'react'
-import { Button, Card, Table, Modal, Input, Select, Switch, Tag, Toast, Typography } from '@douyinfe/semi-ui'
-import { api, KeyBinding, RuleSet, StateResponse, listCpaApiKeys } from '../api'
+import { Button, Card, Table, Modal, Input, Select, Switch, Tag, Tabs, TabPane, Toast, Typography } from '@douyinfe/semi-ui'
+import { api, ChannelTarget, CpaAuthFile, KeyBinding, RuleSet, StateResponse, listCpaApiKeys, listCpaAuthFiles } from '../api'
+import ChannelTargetEditor from '../components/ChannelTargetEditor'
 import RuleSetEditor from '../components/RuleSetEditor'
 
 const EMPTY_RULES: RuleSet = { global: '', claude: '', codex: '', openai: '' }
+const EMPTY_CHANNEL_TARGET: ChannelTarget = { enabled: false, suppliers: [], auth_ids: [] }
+
+function normalizeBinding(binding: KeyBinding): KeyBinding {
+  return {
+    ...binding,
+    blocked: !!binding.blocked,
+    fast_allowed: binding.fast_allowed ?? true,
+    channel_target: {
+      ...EMPTY_CHANNEL_TARGET,
+      ...binding.channel_target,
+      suppliers: [...(binding.channel_target?.suppliers ?? [])],
+      auth_ids: [...(binding.channel_target?.auth_ids ?? [])],
+    },
+    rules: { ...binding.rules },
+  }
+}
+
+function channelTargetSummary(binding: KeyBinding): string {
+  const target = binding.channel_target
+  if (!target?.enabled) return '关闭'
+  return `${target.suppliers.length} 个供应商 · ${target.auth_ids.length} 个认证文件`
+}
 
 function maskKey(key: string): string {
   if (key.length <= 10) return key
@@ -56,10 +79,29 @@ export default function KeysPanel({ state, onSaved }: Props) {
   // a *different* existing binding (M4).
   const [originalKey, setOriginalKey] = useState('')
   const [saving, setSaving] = useState(false)
+  const [authFiles, setAuthFiles] = useState<CpaAuthFile[]>([])
+  const [authLoading, setAuthLoading] = useState(false)
+  const [authError, setAuthError] = useState('')
 
   useEffect(() => {
     listCpaApiKeys().then(setCpaKeys).catch(() => setCpaKeys([]))
   }, [])
+
+  const loadAuthFiles = () => {
+    setAuthLoading(true)
+    setAuthError('')
+    listCpaAuthFiles()
+      .then(setAuthFiles)
+      .catch((error: Error) => {
+        setAuthFiles([])
+        setAuthError(error.message)
+      })
+      .finally(() => setAuthLoading(false))
+  }
+
+  useEffect(() => {
+    if (editing !== null) loadAuthFiles()
+  }, [editing !== null])
 
   const save = () => {
     if (!editing) return
@@ -83,12 +125,17 @@ export default function KeysPanel({ state, onSaved }: Props) {
 
   const openCreate = () => {
     setOriginalKey('')
-    setEditing({ key: '', alias: '', enabled: true, blocked: false, rules: EMPTY_RULES })
+    setEditing(normalizeBinding({
+      key: '', alias: '', enabled: true, blocked: false,
+      fast_allowed: true,
+      channel_target: { ...EMPTY_CHANNEL_TARGET },
+      rules: { ...EMPTY_RULES },
+    }))
   }
 
   const openEdit = (b: KeyBinding) => {
     setOriginalKey(b.key)
-    setEditing({ ...b, blocked: !!b.blocked, rules: { ...b.rules } })
+    setEditing(normalizeBinding(b))
   }
 
   const closeEdit = () => {
@@ -117,7 +164,7 @@ export default function KeysPanel({ state, onSaved }: Props) {
   }
 
   return (
-    <Card title="指定 Key 追加规则集（串联跑在顶层规则之后）" style={{ margin: 16 }}
+    <Card title="Key 绑定策略" style={{ margin: 16 }}
       headerExtraContent={
         <Button theme="solid" onClick={openCreate}>
           + 新增绑定
@@ -130,6 +177,18 @@ export default function KeysPanel({ state, onSaved }: Props) {
           { title: 'API Key', dataIndex: 'key', render: (k: string) => <Typography.Text code>{maskKey(k)}</Typography.Text> },
           { title: '别名', dataIndex: 'alias' },
           { title: '追加规则', dataIndex: 'rules', render: (_: unknown, b: KeyBinding) => ruleSummary(b) },
+          {
+            title: '渠道定向',
+            dataIndex: 'channel_target',
+            render: (_: unknown, b: KeyBinding) => channelTargetSummary(b),
+          },
+          {
+            title: 'Fast',
+            dataIndex: 'fast_allowed',
+            render: (_: unknown, b: KeyBinding) => b.fast_allowed === false
+              ? <Tag color="grey">关闭</Tag>
+              : <Tag color="green">允许</Tag>,
+          },
           {
             title: '启用规则',
             dataIndex: 'enabled',
@@ -173,46 +232,66 @@ export default function KeysPanel({ state, onSaved }: Props) {
         width={860}
       >
         {editing && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            <Select
-              style={{ width: '100%' }}
-              filter
-              allowCreate
-              placeholder="选择或输入 API key"
-              value={editing.key || undefined}
-              onChange={(v) => setEditing({ ...editing, key: String(v) })}
-              optionList={cpaKeys.map((k) => ({ value: k, label: maskKey(k) }))}
-            />
-            <Input placeholder="别名（可选）" value={editing.alias}
-              onChange={(v) => setEditing({ ...editing, alias: v })} />
-            <div>
-              <Typography.Text size="small" type="tertiary">
-                追加规则集（与规则管理同构；本 key 的请求在顶层规则跑完后接力执行）
-              </Typography.Text>
-              <RuleSetEditor value={editing.rules} onChange={(r) => setEditing({ ...editing, rules: r })} />
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
-              <span>
-                <Switch
-                  aria-label="编辑绑定：启用规则"
-                  checked={editing.enabled}
-                  onChange={(v) => setEditing({ ...editing, enabled: v })}
-                />{' '}
-                启用规则
-              </span>
-              <span>
-                <Switch
-                  aria-label="编辑绑定：禁止访问"
-                  checked={!!editing.blocked}
-                  onChange={(v) => setEditing({ ...editing, blocked: v })}
-                />{' '}
-                禁止访问
-              </span>
-              {isKeyCollision && (
-                <Tag color="orange">同 key 已存在，保存将覆盖</Tag>
-              )}
-            </div>
-          </div>
+          <Tabs type="line" keepDOM>
+            <TabPane tab="基础" itemKey="basic">
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                <Select
+                  style={{ width: '100%' }}
+                  filter
+                  allowCreate
+                  placeholder="选择或输入 API key"
+                  value={editing.key || undefined}
+                  onChange={(value) => setEditing({ ...editing, key: String(value) })}
+                  optionList={cpaKeys.map((key) => ({ value: key, label: maskKey(key) }))}
+                />
+                <Input
+                  placeholder="别名（可选）"
+                  value={editing.alias}
+                  onChange={(alias) => setEditing({ ...editing, alias })}
+                />
+                <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
+                  <span>
+                    <Switch
+                      aria-label="编辑绑定：启用规则"
+                      checked={editing.enabled}
+                      onChange={(enabled) => setEditing({ ...editing, enabled })}
+                    />{' '}启用规则
+                  </span>
+                  <span>
+                    <Switch
+                      aria-label="编辑绑定：禁止访问"
+                      checked={!!editing.blocked}
+                      onChange={(blocked) => setEditing({ ...editing, blocked })}
+                    />{' '}禁止访问
+                  </span>
+                  <span>
+                    <Switch
+                      aria-label="编辑绑定：Fast 允许"
+                      checked={editing.fast_allowed ?? true}
+                      onChange={(fast_allowed) => setEditing({ ...editing, fast_allowed })}
+                    />{' '}Fast 允许
+                  </span>
+                  {isKeyCollision && <Tag color="orange">同 key 已存在，保存将覆盖</Tag>}
+                </div>
+              </div>
+            </TabPane>
+            <TabPane tab="渠道定向" itemKey="channel-target">
+              <ChannelTargetEditor
+                value={editing.channel_target ?? { ...EMPTY_CHANNEL_TARGET }}
+                authFiles={authFiles}
+                loading={authLoading}
+                error={authError}
+                onRetry={loadAuthFiles}
+                onChange={(channel_target) => setEditing({ ...editing, channel_target })}
+              />
+            </TabPane>
+            <TabPane tab="规则集" itemKey="rules">
+              <Typography.Paragraph size="small" type="tertiary">
+                追加规则集在顶层规则之后执行；渠道定向开启时本页规则跳过。
+              </Typography.Paragraph>
+              <RuleSetEditor value={editing.rules} onChange={(rules) => setEditing({ ...editing, rules })} />
+            </TabPane>
+          </Tabs>
         )}
       </Modal>
     </Card>

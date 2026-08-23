@@ -1891,7 +1891,7 @@ git commit -m "feat(T8): 新增双区块渠道定向编辑器"
 - 产出：旧绑定标准化为 `fast_allowed=true`、空的 disabled `channel_target`
 - 产出：表格“渠道定向”摘要列与“Fast”状态列；弹窗“基础 / 渠道定向 / 规则集”三页
 
-- [ ] **步骤 1：写失败测试**
+- [x] **步骤 1：写失败测试**
 
 在 `web/src/panels/KeysPanel.test.tsx` 的 `binding` fixture 增加：
 
@@ -1998,7 +1998,7 @@ describe('KeysPanel：渠道定向与 Fast', () => {
 })
 ```
 
-- [ ] **步骤 2：运行测试确认失败**
+- [x] **步骤 2：运行测试确认失败**
 
 ```bash
 npm --prefix web test -- src/panels/KeysPanel.test.tsx src/panels/KeysPanel.channel-target.test.tsx
@@ -2006,7 +2006,7 @@ npm --prefix web test -- src/panels/KeysPanel.test.tsx src/panels/KeysPanel.chan
 
 预期：FAIL；弹窗没有 Tabs/Fast 开关，`listCpaAuthFiles` 未被调用，表格没有新摘要。
 
-- [ ] **步骤 3：写最小实现**
+- [x] **步骤 3：写最小实现**
 
 把 `KeysPanel.tsx` imports 扩展为：
 
@@ -2185,7 +2185,7 @@ function channelTargetSummary(binding: KeyBinding): string {
 CPA 的 Scheduler 能力为宿主全局单实例。若同时启用另一个声明 Scheduler 的插件（例如 `cpa-plugin-key-policy`），只有宿主选择的首个 Scheduler 生效；本插件不提供冲突探测，请在部署配置中只保留一个 Scheduler 插件。
 ```
 
-- [ ] **步骤 4：运行测试确认通过并构建嵌入页面**
+- [x] **步骤 4：运行测试确认通过并构建嵌入页面**
 
 ```bash
 npm --prefix web test -- src/panels/KeysPanel.test.tsx src/panels/KeysPanel.blocked.test.tsx src/panels/KeysPanel.delete.test.tsx src/panels/KeysPanel.channel-target.test.tsx src/components/ChannelTargetEditor.test.tsx
@@ -2196,7 +2196,7 @@ git diff --exit-code -- web/package-lock.json
 
 预期：测试与 typecheck PASS；`web/dist/index.html` 被重新生成；lockfile 不变。
 
-- [ ] **步骤 5：提交**
+- [x] **步骤 5：提交**
 
 ```bash
 git add web/src/panels/KeysPanel.tsx web/src/panels/KeysPanel.test.tsx web/src/panels/KeysPanel.channel-target.test.tsx README.md web/dist/index.html
