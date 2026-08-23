@@ -784,6 +784,8 @@ func schedulerCandidateTargeted(candidate pluginapi.SchedulerAuthCandidate, targ
 	return false
 }
 
+const channelTargetAuthNotFoundMessage = `{"error":{"type":"auth_not_found","code":"auth_not_found","message":"no usable auth candidate in channel target"}}`
+
 type pluginMethodError struct {
 	Code       string
 	Message    string
@@ -814,7 +816,7 @@ func handleSchedulerPick(raw []byte) ([]byte, error) {
 	if len(pool) == 0 {
 		return nil, &pluginMethodError{
 			Code:       "auth_not_found",
-			Message:    "no usable auth candidate in channel target",
+			Message:    channelTargetAuthNotFoundMessage,
 			HTTPStatus: http.StatusServiceUnavailable,
 		}
 	}

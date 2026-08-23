@@ -2238,7 +2238,7 @@ git commit -m "feat(T9): 重构 Key 表单并展示定向与 Fast"
 - 产出：`channelTargetAuthNotFoundMessage`，固定为同时含 `error.type`、`error.code`、`error.message` 的合法 JSON
 - 产出：OpenAI/Codex 可从 message JSON 保留 `error.code=auth_not_found`，Claude 可在宿主重包装后保留 `error.type=auth_not_found`
 
-- [ ] **步骤 1：写失败测试**
+- [x] **步骤 1：写失败测试**
 
 在 `scheduler_test.go` 的 helper 区加入：
 
@@ -2296,7 +2296,7 @@ func assertChannelTargetAuthNotFound(t *testing.T, env pluginabi.Envelope) {
 
 保留现有 `FillFirstSelector` 测试，但改名为“宿主全局无候选 MAY 在 Scheduler 前返回 429”，并在注释中注明它是固定 SDK 的宿主边界回归，不是插件 429 保证。
 
-- [ ] **步骤 2：运行测试确认失败**
+- [x] **步骤 2：运行测试确认失败**
 
 ```bash
 go test . -run 'TestChannelTargetScheduler/(池内候选全部不可用时返回协议兼容_JSON_错误|目标_cooldown、池外_active_时不越池|目标低优先级、池外高优先级时不越池)' -v
@@ -2304,7 +2304,7 @@ go test . -run 'TestChannelTargetScheduler/(池内候选全部不可用时返回
 
 预期：FAIL，`json.Unmarshal` 报 `invalid character 'o'`，因为现有 message 是纯文本 `no usable auth candidate in channel target`。
 
-- [ ] **步骤 3：写最小实现**
+- [x] **步骤 3：写最小实现**
 
 在 `main.go` 的 `pluginMethodError` 定义前新增：
 
@@ -2332,7 +2332,7 @@ const channelTargetAuthNotFoundMessage = `{"error":{"type":"auth_not_found","cod
 CPA 会在 Scheduler 前过滤 cooldown 与全局较低优先级凭据。目标凭据因此缺席、但池外仍有 active 候选时，本插件过滤池外候选并返回 503；只有 CPA 全局无任何候选时，宿主才可能在插件前返回原生 429 `model_cooldown` 与 `Retry-After`。插件不会模拟该 429 分支。
 ```
 
-- [ ] **步骤 4：运行测试确认通过**
+- [x] **步骤 4：运行测试确认通过**
 
 ```bash
 gofmt -w main.go scheduler_test.go
@@ -2343,7 +2343,7 @@ git diff --check
 
 预期：全部 PASS；三个池空用例均断言 typed code、合法 JSON type/code 与 HTTP 503，宿主全局无候选边界测试仍断言 429/`Retry-After`。
 
-- [ ] **步骤 5：提交**
+- [x] **步骤 5：提交**
 
 ```bash
 git add main.go scheduler_test.go README.md

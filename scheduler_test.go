@@ -31,6 +31,26 @@ func schedulerEnvelope(t *testing.T, req pluginapi.SchedulerPickRequest) plugina
 	return env
 }
 
+func assertChannelTargetAuthNotFound(t *testing.T, env pluginabi.Envelope) {
+	t.Helper()
+	if env.OK || env.Error == nil || env.Error.Code != "auth_not_found" || env.Error.HTTPStatus != http.StatusServiceUnavailable {
+		t.Fatalf("envelope = %+v", env)
+	}
+	var body struct {
+		Error struct {
+			Type    string `json:"type"`
+			Code    string `json:"code"`
+			Message string `json:"message"`
+		} `json:"error"`
+	}
+	if err := json.Unmarshal([]byte(env.Error.Message), &body); err != nil {
+		t.Fatalf("error message is not JSON: %v message=%q", err, env.Error.Message)
+	}
+	if body.Error.Type != "auth_not_found" || body.Error.Code != "auth_not_found" || body.Error.Message == "" {
+		t.Fatalf("error body = %+v", body)
+	}
+}
+
 func schedulerResponse(t *testing.T, req pluginapi.SchedulerPickRequest) pluginapi.SchedulerPickResponse {
 	t.Helper()
 	env := schedulerEnvelope(t, req)
@@ -131,18 +151,34 @@ func TestChannelTargetScheduler(t *testing.T) {
 		}
 	})
 
-	t.Run("池内候选全部不可用", func(t *testing.T) {
+	t.Run("池内候选全部不可用时返回协议兼容 JSON 错误", func(t *testing.T) {
+		seedSchedulerBinding(t, KeyBinding{Key: "sk-k", ChannelTarget: &ChannelTarget{Enabled: true, AuthIDs: []string{"f1"}}})
+		env := schedulerEnvelope(t, schedulerRequest("sk-k",
+			pluginapi.SchedulerAuthCandidate{ID: "outside", Provider: "claude", Status: "active"},
+		))
+		assertChannelTargetAuthNotFound(t, env)
+	})
+
+	t.Run("目标 cooldown、池外 active 时不越池", func(t *testing.T) {
 		seedSchedulerBinding(t, KeyBinding{Key: "sk-k", ChannelTarget: &ChannelTarget{Enabled: true, AuthIDs: []string{"f1"}}})
 		env := schedulerEnvelope(t, schedulerRequest("sk-k",
 			pluginapi.SchedulerAuthCandidate{ID: "f1", Provider: "claude", Status: "cooldown"},
 			pluginapi.SchedulerAuthCandidate{ID: "outside", Provider: "claude", Status: "active"},
 		))
-		if env.OK || env.Error == nil || env.Error.Code != "auth_not_found" || env.Error.HTTPStatus != http.StatusServiceUnavailable {
-			t.Fatalf("envelope = %+v", env)
-		}
+		assertChannelTargetAuthNotFound(t, env)
 	})
 
-	t.Run("全部冷却走宿主原生应答", func(t *testing.T) {
+	t.Run("目标低优先级、池外高优先级时不越池", func(t *testing.T) {
+		seedSchedulerBinding(t, KeyBinding{Key: "sk-k", ChannelTarget: &ChannelTarget{Enabled: true, AuthIDs: []string{"f1"}}})
+		// 模拟宿主只把全局最高优先级层 outside 交给 Scheduler；f1 已在回调前被排除。
+		env := schedulerEnvelope(t, schedulerRequest("sk-k",
+			pluginapi.SchedulerAuthCandidate{ID: "outside", Provider: "claude", Status: "active"},
+		))
+		assertChannelTargetAuthNotFound(t, env)
+	})
+
+	t.Run("宿主全局无候选 MAY 在 Scheduler 前返回 429", func(t *testing.T) {
+		// 固定 SDK 的宿主边界回归；不是插件对定向请求的 429 保证。
 		model := "model-m"
 		next := time.Now().Add(time.Minute)
 		auths := []*cliproxyauth.Auth{{

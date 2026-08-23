@@ -44,7 +44,9 @@ A key binding runs one more structurally identical rule set on top of the top-le
 
 ### 渠道定向与 Fast 控制
 
-每条 key 绑定可独立开启渠道定向：供应商整选与认证文件单选取并集，池内按认证文件 ID 确定性轮转。定向开启后该 key 跳过模型映射；候选池为空会返回 503 `auth_not_found`，不会降级到池外凭据。池内凭据全部冷却时由 CPA 返回原生 429 `model_cooldown` 与 `Retry-After`。
+每条 key 绑定可独立开启渠道定向：供应商整选与认证文件单选取并集，池内按认证文件 ID 确定性轮转。定向开启后该 key 跳过模型映射；候选池是 CPA 交给 Scheduler 的当前 Candidates 与所选集合的交集，过滤为空时返回 HTTP 503 且不会降级到池外凭据。OpenAI/Codex 错误体使用 `error.code=auth_not_found`，Claude `/v1/messages` 错误体使用 `error.type=auth_not_found`。
+
+CPA 会在 Scheduler 前过滤 cooldown 与全局较低优先级凭据。目标凭据因此缺席、但池外仍有 active 候选时，本插件过滤池外候选并返回 503；只有 CPA 全局无任何候选时，宿主才可能在插件前返回原生 429 `model_cooldown` 与 `Retry-After`。插件不会模拟该 429 分支。
 
 “Fast 允许”默认开启。关闭后，Claude 请求的 `speed:"fast"` 与 `fast-mode-2026-02-01` beta token 会在上游执行前被删除；其他协议不受影响。
 
