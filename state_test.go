@@ -201,3 +201,72 @@ func TestFindBlockedKeyBindingIgnoresEnabled(t *testing.T) {
 		t.Fatal("unknown api key must not match")
 	}
 }
+
+func TestChannelTargetStateContract(t *testing.T) {
+	t.Run("存量文件零迁移加载", func(t *testing.T) {
+		raw := []byte(`{"version":1,"rules":{},"key_bindings":[{"key":"sk-old","enabled":false,"blocked":false,"rules":{}}]}`)
+		var st State
+		if err := json.Unmarshal(raw, &st); err != nil {
+			t.Fatalf("unmarshal old state: %v", err)
+		}
+		if err := validateState(st); err != nil {
+			t.Fatalf("validate old state: %v", err)
+		}
+		got := st.KeyBindings[0]
+		if got.ChannelTarget != nil || got.FastAllowed != nil {
+			t.Fatalf("old optional fields = target:%+v fast:%v, want nil/nil", got.ChannelTarget, got.FastAllowed)
+		}
+		if _, ok := findActiveChannelTarget(st.KeyBindings, "sk-old"); ok {
+			t.Fatal("old binding must not activate channel target")
+		}
+	})
+
+	t.Run("数组元素非空且去重", func(t *testing.T) {
+		cases := []struct {
+			name string
+			b    KeyBinding
+			want string
+		}{
+			{"supplier empty", KeyBinding{Key: "k1", ChannelTarget: &ChannelTarget{Suppliers: []string{" "}}}, "suppliers[0]"},
+			{"supplier duplicate fold", KeyBinding{Key: "k2", ChannelTarget: &ChannelTarget{Suppliers: []string{"Gemini", "gemini"}}}, "duplicate"},
+			{"auth id empty", KeyBinding{Key: "k3", ChannelTarget: &ChannelTarget{AuthIDs: []string{""}}}, "auth_ids[0]"},
+			{"auth id duplicate", KeyBinding{Key: "k4", ChannelTarget: &ChannelTarget{AuthIDs: []string{"a", "a"}}}, "duplicate"},
+		}
+		for _, tc := range cases {
+			t.Run(tc.name, func(t *testing.T) {
+				err := validateState(State{Version: stateVersion, KeyBindings: []KeyBinding{tc.b}})
+				if err == nil || !strings.Contains(err.Error(), tc.want) {
+					t.Fatalf("validate error = %v, want substring %q", err, tc.want)
+				}
+			})
+		}
+	})
+
+	t.Run("功能开关彼此独立", func(t *testing.T) {
+		fastOff := false
+		bindings := []KeyBinding{{
+			Key: "sk-k", Enabled: false, Blocked: false, FastAllowed: &fastOff,
+			ChannelTarget: &ChannelTarget{Enabled: true, Suppliers: []string{"gemini"}},
+		}}
+		got, ok := findKeyBindingByKey(bindings, "sk-k")
+		if !ok || got.FastAllowed == nil || *got.FastAllowed {
+			t.Fatalf("findKeyBindingByKey = %+v, %v", got, ok)
+		}
+		if _, ok := findKeyBinding(bindings, "sk-k"); ok {
+			t.Fatal("existing rule lookup must still honor Enabled=false")
+		}
+		if _, ok := findActiveChannelTarget(bindings, "sk-k"); !ok {
+			t.Fatal("channel target must not depend on rule Enabled")
+		}
+	})
+
+	t.Run("深拷贝不共享定向数组", func(t *testing.T) {
+		in := []KeyBinding{{Key: "sk-k", ChannelTarget: &ChannelTarget{Enabled: true, Suppliers: []string{"gemini"}, AuthIDs: []string{"f1"}}}}
+		out := cloneKeyBindings(in)
+		out[0].ChannelTarget.Suppliers[0] = "claude"
+		out[0].ChannelTarget.AuthIDs[0] = "f2"
+		if in[0].ChannelTarget.Suppliers[0] != "gemini" || in[0].ChannelTarget.AuthIDs[0] != "f1" {
+			t.Fatalf("clone mutated source: %+v", in[0].ChannelTarget)
+		}
+	})
+}

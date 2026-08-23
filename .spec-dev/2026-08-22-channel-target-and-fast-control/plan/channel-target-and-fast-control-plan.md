@@ -119,7 +119,7 @@ git diff --exit-code -- go.mod go.sum web/package-lock.json
 - 产出：`findKeyBindingByKey(bindings []KeyBinding, apiKey string) (KeyBinding, bool)`，忽略 `Enabled/Blocked` 等功能开关
 - 产出：`findActiveChannelTarget(bindings []KeyBinding, apiKey string) (KeyBinding, bool)`，只要求绑定存在且 `ChannelTarget.Enabled=true`
 
-- [ ] **步骤 1：写失败测试**
+- [x] **步骤 1：写失败测试**
 
 在 `state_test.go` 追加：
 
@@ -194,7 +194,7 @@ func TestChannelTargetStateContract(t *testing.T) {
 }
 ```
 
-- [ ] **步骤 2：运行测试确认失败**
+- [x] **步骤 2：运行测试确认失败**
 
 ```bash
 go test . -run TestChannelTargetStateContract -v
@@ -202,7 +202,7 @@ go test . -run TestChannelTargetStateContract -v
 
 预期：FAIL，编译错误包含 `undefined: ChannelTarget`、`KeyBinding.FastAllowed undefined` 或 `undefined: findActiveChannelTarget`。
 
-- [ ] **步骤 3：写最小实现**
+- [x] **步骤 3：写最小实现**
 
 把 `state.go` 的 `KeyBinding` 定义改为：
 
@@ -315,7 +315,7 @@ func cloneKeyBindings(in []KeyBinding) []KeyBinding {
 }
 ```
 
-- [ ] **步骤 4：运行测试确认通过**
+- [x] **步骤 4：运行测试确认通过**
 
 ```bash
 gofmt -w state.go state_test.go
@@ -324,7 +324,7 @@ go test . -run 'TestChannelTargetStateContract|TestValidateState|TestOldStateWit
 
 预期：PASS；现有 blocked 与 enabled 语义保持不变。
 
-- [ ] **步骤 5：提交**
+- [x] **步骤 5：提交**
 
 ```bash
 git add state.go state_test.go

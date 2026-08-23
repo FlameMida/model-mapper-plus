@@ -47,12 +47,20 @@ type RuleSet struct {
 	OpenAI string `json:"openai"`
 }
 
+type ChannelTarget struct {
+	Enabled   bool     `json:"enabled"`
+	Suppliers []string `json:"suppliers,omitempty"`
+	AuthIDs   []string `json:"auth_ids,omitempty"`
+}
+
 type KeyBinding struct {
-	Key     string  `json:"key"`
-	Alias   string  `json:"alias"`
-	Enabled bool    `json:"enabled"`
-	Blocked bool    `json:"blocked"`
-	Rules   RuleSet `json:"rules"`
+	Key           string         `json:"key"`
+	Alias         string         `json:"alias"`
+	Enabled       bool           `json:"enabled"`
+	Blocked       bool           `json:"blocked"`
+	Rules         RuleSet        `json:"rules"`
+	ChannelTarget *ChannelTarget `json:"channel_target,omitempty"`
+	FastAllowed   *bool          `json:"fast_allowed,omitempty"`
 }
 
 type State struct {
@@ -99,6 +107,25 @@ func readStateFile(path string) (State, error) {
 	return st, nil
 }
 
+func validateUniqueNonEmptyStrings(path string, values []string, foldCase bool) error {
+	seen := make(map[string]struct{}, len(values))
+	for i, raw := range values {
+		value := strings.TrimSpace(raw)
+		if value == "" {
+			return fmt.Errorf("%s[%d]: value is required", path, i)
+		}
+		key := value
+		if foldCase {
+			key = strings.ToLower(value)
+		}
+		if _, exists := seen[key]; exists {
+			return fmt.Errorf("%s[%d]: duplicate value %q", path, i, value)
+		}
+		seen[key] = struct{}{}
+	}
+	return nil
+}
+
 func validateState(st State) error {
 	segments := []struct{ name, rules string }{
 		{"rules.global", st.Rules.Global}, {"rules.claude", st.Rules.Claude},
@@ -114,6 +141,14 @@ func validateState(st State) error {
 			return fmt.Errorf("key_bindings[%d]: duplicate key", i)
 		}
 		seen[key] = true
+		if b.ChannelTarget != nil {
+			if err := validateUniqueNonEmptyStrings(fmt.Sprintf("key_bindings[%d].channel_target.suppliers", i), b.ChannelTarget.Suppliers, true); err != nil {
+				return err
+			}
+			if err := validateUniqueNonEmptyStrings(fmt.Sprintf("key_bindings[%d].channel_target.auth_ids", i), b.ChannelTarget.AuthIDs, false); err != nil {
+				return err
+			}
+		}
 		prefix := fmt.Sprintf("key_bindings[%d].rules", i)
 		segments = append(segments,
 			struct{ name, rules string }{prefix + ".global", b.Rules.Global},
@@ -168,18 +203,32 @@ func atomicWriteState(path string, st State) error {
 	return os.Rename(tmpName, path)
 }
 
-// findKeyBinding returns the enabled binding for apiKey using constant-time
-// comparison; empty apiKey never matches.
-func findKeyBinding(bindings []KeyBinding, apiKey string) (KeyBinding, bool) {
+// findKeyBindingByKey returns the binding for apiKey using constant-time
+// comparison; feature-specific enable flags are intentionally ignored.
+func findKeyBindingByKey(bindings []KeyBinding, apiKey string) (KeyBinding, bool) {
 	if apiKey == "" {
 		return KeyBinding{}, false
 	}
 	for _, b := range bindings {
-		if b.Enabled && subtle.ConstantTimeCompare([]byte(b.Key), []byte(apiKey)) == 1 {
+		if subtle.ConstantTimeCompare([]byte(b.Key), []byte(apiKey)) == 1 {
 			return b, true
 		}
 	}
 	return KeyBinding{}, false
+}
+
+// findKeyBinding returns the enabled binding used by rule mapping.
+func findKeyBinding(bindings []KeyBinding, apiKey string) (KeyBinding, bool) {
+	b, ok := findKeyBindingByKey(bindings, apiKey)
+	return b, ok && b.Enabled
+}
+
+func findActiveChannelTarget(bindings []KeyBinding, apiKey string) (KeyBinding, bool) {
+	b, ok := findKeyBindingByKey(bindings, apiKey)
+	if !ok || b.ChannelTarget == nil || !b.ChannelTarget.Enabled {
+		return KeyBinding{}, false
+	}
+	return b, true
 }
 
 // findBlockedKeyBinding returns a blocked binding for apiKey using the same
@@ -202,8 +251,25 @@ func cloneKeyBindings(in []KeyBinding) []KeyBinding {
 		return nil
 	}
 	out := make([]KeyBinding, len(in))
-	copy(out, in)
+	for i := range in {
+		out[i] = in[i]
+		out[i].ChannelTarget = cloneChannelTarget(in[i].ChannelTarget)
+		if in[i].FastAllowed != nil {
+			value := *in[i].FastAllowed
+			out[i].FastAllowed = &value
+		}
+	}
 	return out
+}
+
+func cloneChannelTarget(in *ChannelTarget) *ChannelTarget {
+	if in == nil {
+		return nil
+	}
+	out := *in
+	out.Suppliers = append([]string(nil), in.Suppliers...)
+	out.AuthIDs = append([]string(nil), in.AuthIDs...)
+	return &out
 }
 
 func cloneState(st State) State {
