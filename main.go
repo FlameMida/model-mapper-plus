@@ -17,6 +17,8 @@ import (
 
 	pluginabi "github.com/router-for-me/CLIProxyAPI/v7/sdk/pluginabi"
 	pluginapi "github.com/router-for-me/CLIProxyAPI/v7/sdk/pluginapi"
+	"github.com/tidwall/gjson"
+	"github.com/tidwall/sjson"
 	"gopkg.in/yaml.v3"
 )
 
@@ -674,6 +676,49 @@ func apiKeyFromHeaders(h http.Header) string {
 
 const blockedQuotaExhaustedBody = `{"error":{"message":"Your quota has been exhausted.","type":"permission_error","code":"insufficient_quota"}}`
 
+const fastModeBeta = "fast-mode-2026-02-01"
+
+func stripFastBeta(headers http.Header) (http.Header, []string) {
+	values := headers.Values("Anthropic-Beta")
+	if len(values) == 0 {
+		return nil, nil
+	}
+	kept := make([]string, 0)
+	found := false
+	for _, value := range values {
+		for _, token := range strings.Split(value, ",") {
+			token = strings.TrimSpace(token)
+			if token == "" {
+				continue
+			}
+			if token == fastModeBeta {
+				found = true
+				continue
+			}
+			kept = append(kept, token)
+		}
+	}
+	if !found {
+		return nil, nil
+	}
+	if len(kept) == 0 {
+		return nil, []string{"Anthropic-Beta"}
+	}
+	return http.Header{"Anthropic-Beta": {strings.Join(kept, ",")}}, nil
+}
+
+func stripFastBody(body []byte) ([]byte, bool, error) {
+	value := gjson.GetBytes(body, "speed")
+	if !value.Exists() || !strings.EqualFold(value.String(), "fast") {
+		return nil, false, nil
+	}
+	out, err := sjson.DeleteBytes(body, "speed")
+	if err != nil {
+		return nil, false, err
+	}
+	return out, true, nil
+}
+
 func handleRequestInterceptBefore(raw []byte) ([]byte, error) {
 	var req pluginapi.RequestInterceptRequest
 	if err := json.Unmarshal(raw, &req); err != nil {
@@ -691,7 +736,20 @@ func handleRequestInterceptBefore(raw []byte) ([]byte, error) {
 			ResponseBody:    []byte(blockedQuotaExhaustedBody),
 		})
 	}
-	return json.Marshal(pluginapi.RequestInterceptResponse{})
+	binding, exists := findKeyBindingByKey(loadedRuleSource().KeyBindings, apiKey)
+	if !exists || binding.FastAllowed == nil || *binding.FastAllowed || !strings.EqualFold(req.SourceFormat, "claude") {
+		return json.Marshal(pluginapi.RequestInterceptResponse{})
+	}
+	body, bodyChanged, err := stripFastBody(req.Body)
+	if err != nil {
+		return nil, err
+	}
+	headers, clearHeaders := stripFastBeta(req.Headers)
+	resp := pluginapi.RequestInterceptResponse{Headers: headers, ClearHeaders: clearHeaders}
+	if bodyChanged {
+		resp.Body = body
+	}
+	return json.Marshal(resp)
 }
 
 func handleRequestInterceptAfter(raw []byte) ([]byte, error) {

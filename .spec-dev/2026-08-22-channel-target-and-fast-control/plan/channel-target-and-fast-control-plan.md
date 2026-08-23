@@ -841,7 +841,7 @@ git commit -m "feat(T3): 定向过滤并轮转 Scheduler 候选池"
 - 产出：`stripFastBeta(headers http.Header) (http.Header, []string)`
 - 产出：`handleRequestInterceptBefore` 在 blocked 放行之后返回 body/header 的最小差量
 
-- [ ] **步骤 1：写失败测试**
+- [x] **步骤 1：写失败测试**
 
 创建 `fast_strip_test.go`：
 
@@ -941,7 +941,7 @@ func TestFastAllowedRequestRewrite(t *testing.T) {
 }
 ```
 
-- [ ] **步骤 2：运行测试确认失败**
+- [x] **步骤 2：运行测试确认失败**
 
 ```bash
 go test . -run TestFastAllowedRequestRewrite -v
@@ -949,7 +949,7 @@ go test . -run TestFastAllowedRequestRewrite -v
 
 预期：FAIL；body/header 未被剥离，或 `FastAllowed` 尚未被 handler 使用。
 
-- [ ] **步骤 3：写最小实现**
+- [x] **步骤 3：写最小实现**
 
 在 `main.go` imports 加入：
 
@@ -1037,7 +1037,7 @@ require (
 
 再运行 `go mod tidy`，预期只调整 direct/indirect 分组，版本与 `go.sum` 校验值不变。
 
-- [ ] **步骤 4：运行测试确认通过**
+- [x] **步骤 4：运行测试确认通过**
 
 ```bash
 gofmt -w main.go fast_strip_test.go
@@ -1048,7 +1048,7 @@ git diff --exit-code -- go.sum
 
 预期：测试 PASS；`go.sum` 无内容变化。
 
-- [ ] **步骤 5：提交**
+- [x] **步骤 5：提交**
 
 ```bash
 git add main.go fast_strip_test.go go.mod go.sum
