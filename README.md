@@ -42,6 +42,16 @@ If an existing state file cannot be parsed or fails validation, it is renamed to
 
 A key binding runs one more structurally identical rule set on top of the top-level output for requests carrying that client key (endpoint segment wins; the binding's global segment is the fallback). Thinking effort is expressed directly through model-name suffixes, for example `claude-opus-4-5(max)=>claude-opus-4-5(high)` — CPA resolves the suffix and it overrides effort fields in the request body. For Codex Responses requests whose model has no explicit suffix, `reasoning.effort` also participates in suffix matching: a request for `gpt-5.6-sol` with `reasoning.effort=xhigh` matches `gpt-5.6-sol(xhigh)=>gpt-5.6-sol(medium)`. An explicit model suffix wins; when the effort-qualified form does not match, the plugin retries the bare model so existing mappings keep working. Note that `*` captures swallow the suffix too (`claude-*` captures `opus-4-5(max)`).
 
+### 渠道定向与 Fast 控制
+
+每条 key 绑定可独立开启渠道定向：供应商整选与认证文件单选取并集，池内按认证文件 ID 确定性轮转。定向开启后该 key 跳过模型映射；候选池是 CPA 交给 Scheduler 的当前 Candidates 与所选集合的交集，过滤为空时返回 HTTP 503 且不会降级到池外凭据。OpenAI/Codex 错误体使用 `error.code=auth_not_found`，Claude `/v1/messages` 错误体使用 `error.type=auth_not_found`。
+
+CPA 会在 Scheduler 前过滤 cooldown 与全局较低优先级凭据。目标凭据因此缺席、但池外仍有 active 候选时，本插件过滤池外候选并返回 503；只有 CPA 全局无任何候选时，宿主才可能在插件前返回原生 429 `model_cooldown` 与 `Retry-After`。插件不会模拟该 429 分支。
+
+“Fast 允许”默认开启。关闭后，Claude 请求的 `speed:"fast"` 与 `fast-mode-2026-02-01` beta token 会在上游执行前被删除；其他协议不受影响。
+
+CPA 的 Scheduler 能力为宿主全局单实例。若同时启用另一个声明 Scheduler 的插件（例如 `cpa-plugin-key-policy`），只有宿主选择的首个 Scheduler 生效；本插件不提供冲突探测，请在部署配置中只保留一个 Scheduler 插件。
+
 ## Rule syntax
 
 Each ruleset is a `;`-separated ordered list of entries. An entry is either a `find=>replace` mapping or an exact standalone case operation: `\a` lowercases ASCII English letters and `\A` uppercases them. Whitespace and quotes are invalid inside the decoded rule value.

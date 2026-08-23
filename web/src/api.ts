@@ -7,12 +7,28 @@ export interface RuleSet {
   openai: string
 }
 
+export interface ChannelTarget {
+  enabled: boolean
+  suppliers: string[]
+  auth_ids: string[]
+}
+
+export interface CpaAuthFile {
+  id: string
+  provider: string
+  status: string
+  disabled: boolean
+  label: string
+}
+
 export interface KeyBinding {
   key: string
   alias: string
   enabled: boolean
   blocked: boolean
   rules: RuleSet
+  channel_target?: ChannelTarget
+  fast_allowed?: boolean
 }
 
 export interface StateResponse {
@@ -38,6 +54,11 @@ export interface PreviewResponse {
   m2: string
   routed: boolean
   final: string
+  mapping_skipped?: boolean
+  channel_target?: {
+    enabled: boolean
+    resolved: Pick<ChannelTarget, 'suppliers' | 'auth_ids'>
+  }
 }
 
 const PLUGIN_BASE = '/v0/management/plugins/model-mapper-plus'
@@ -103,7 +124,8 @@ export const api = {
   getState: () => call<StateResponse>('GET', '/state'),
   putRules: (rules: RuleSet) => call<StateResponse>('PUT', '/rules', rules),
   postKey: (binding: KeyBinding) => call<StateResponse>('POST', '/keys', binding),
-  patchKey: (key: string, patch: Partial<Pick<KeyBinding, 'alias' | 'enabled' | 'blocked' | 'rules'>>) =>
+  patchKey: (key: string, patch: Partial<Pick<KeyBinding,
+    'alias' | 'enabled' | 'blocked' | 'rules' | 'channel_target' | 'fast_allowed'>>) =>
     call<StateResponse>('PATCH', `/keys?key=${encodeURIComponent(key)}`, patch),
   deleteKey: (key: string) => call<StateResponse>('DELETE', `/keys?key=${encodeURIComponent(key)}`),
   preview: (req: PreviewRequest) => call<PreviewResponse>('POST', '/preview', req),
@@ -117,4 +139,17 @@ export async function listCpaApiKeys(): Promise<string[]> {
   if (!resp.ok) throw new Error(`读取 CPA api-keys 失败：HTTP ${resp.status}`)
   const body = (await resp.json()) as { 'api-keys'?: string[] }
   return body['api-keys'] ?? []
+}
+
+export async function listCpaAuthFiles(): Promise<CpaAuthFile[]> {
+  const resp = await fetch('/v0/management/auth-files', {
+    headers: { Authorization: `Bearer ${getKey()}` },
+  })
+  if (resp.status === 401 || resp.status === 403) {
+    clearKey()
+    throw new Error('认证失败，请重新登录')
+  }
+  if (!resp.ok) throw new Error(`读取 CPA auth-files 失败：HTTP ${resp.status}`)
+  const body = (await resp.json()) as { files?: CpaAuthFile[] }
+  return body.files ?? []
 }

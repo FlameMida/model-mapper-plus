@@ -193,10 +193,12 @@ func managementPatchKey(req pluginapi.ManagementRequest) pluginapi.ManagementRes
 		return managementError(http.StatusBadRequest, "key is required")
 	}
 	var patch struct {
-		Alias   *string  `json:"alias"`
-		Enabled *bool    `json:"enabled"`
-		Blocked *bool    `json:"blocked"`
-		Rules   *RuleSet `json:"rules"`
+		Alias         *string        `json:"alias"`
+		Enabled       *bool          `json:"enabled"`
+		Blocked       *bool          `json:"blocked"`
+		Rules         *RuleSet       `json:"rules"`
+		ChannelTarget *ChannelTarget `json:"channel_target"`
+		FastAllowed   *bool          `json:"fast_allowed"`
 	}
 	if err := json.Unmarshal(req.Body, &patch); err != nil {
 		return managementError(http.StatusBadRequest, "invalid patch payload: "+err.Error())
@@ -221,6 +223,13 @@ func managementPatchKey(req pluginapi.ManagementRequest) pluginapi.ManagementRes
 			}
 			if patch.Rules != nil {
 				st.KeyBindings[i].Rules = *patch.Rules
+			}
+			if patch.ChannelTarget != nil {
+				st.KeyBindings[i].ChannelTarget = cloneChannelTarget(patch.ChannelTarget)
+			}
+			if patch.FastAllowed != nil {
+				value := *patch.FastAllowed
+				st.KeyBindings[i].FastAllowed = &value
 			}
 			return nil
 		}
@@ -267,11 +276,23 @@ type previewRequest struct {
 	Model  string `json:"model"`
 }
 
+type resolvedChannelTarget struct {
+	Suppliers []string `json:"suppliers"`
+	AuthIDs   []string `json:"auth_ids"`
+}
+
+type channelTargetPreview struct {
+	Enabled  bool                  `json:"enabled"`
+	Resolved resolvedChannelTarget `json:"resolved"`
+}
+
 type previewResponse struct {
-	M1     string `json:"m1"`
-	M2     string `json:"m2"`
-	Routed bool   `json:"routed"`
-	Final  string `json:"final"`
+	M1             string                `json:"m1"`
+	M2             string                `json:"m2"`
+	Routed         bool                  `json:"routed"`
+	Final          string                `json:"final"`
+	ChannelTarget  *channelTargetPreview `json:"channel_target,omitempty"`
+	MappingSkipped bool                  `json:"mapping_skipped,omitempty"`
 }
 
 // previewRoute evaluates the same two-layer chain as routeModel (including the
@@ -279,6 +300,19 @@ type previewResponse struct {
 func previewRoute(cfg Config, src ruleSource, format, model, apiKey string) (previewResponse, error) {
 	if !cfg.Enabled {
 		return previewResponse{M1: model, M2: model, Routed: false, Final: model}, nil
+	}
+	if binding, targeted := findActiveChannelTarget(src.KeyBindings, apiKey); targeted {
+		target := binding.ChannelTarget
+		return previewResponse{
+			M1: model, M2: model, Routed: false, Final: model, MappingSkipped: true,
+			ChannelTarget: &channelTargetPreview{
+				Enabled: true,
+				Resolved: resolvedChannelTarget{
+					Suppliers: append([]string(nil), target.Suppliers...),
+					AuthIDs:   append([]string(nil), target.AuthIDs...),
+				},
+			},
+		}, nil
 	}
 	m1 := model
 	mapped, matched, err := applyRuleSet(src.Rules, format, model)

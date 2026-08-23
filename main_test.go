@@ -33,6 +33,12 @@ func TestPluginRegistrationMetadataAndConfigFields(t *testing.T) {
 	if !reg.Capabilities.RequestInterceptor {
 		t.Fatalf("capabilities=%#v, want request_interceptor=true", reg.Capabilities)
 	}
+	if !reg.Capabilities.Scheduler {
+		t.Fatalf("capabilities=%#v, want scheduler=true", reg.Capabilities)
+	}
+	if !reg.Capabilities.ResponseInterceptor {
+		t.Fatalf("capabilities=%#v, want response_interceptor=true", reg.Capabilities)
+	}
 	if pluginabi.ABIVersion != 1 || reg.SchemaVersion != 2 {
 		t.Fatalf("ABI/schema = %d/%d, want 1/2", pluginabi.ABIVersion, reg.SchemaVersion)
 	}
@@ -1591,4 +1597,105 @@ func TestHandleMethodCountTokensUnsupportedWithoutPanic(t *testing.T) {
 	if env.OK || env.Error == nil || env.Error.Code != "unsupported" {
 		t.Fatalf("count tokens envelope=%#v", env)
 	}
+}
+
+func TestRouteModelChannelTarget(t *testing.T) {
+	t.Run("定向时模型名不被改写", func(t *testing.T) {
+		src := ruleSource{
+			Rules: RuleSet{Global: "model-m=>model-n"},
+			KeyBindings: []KeyBinding{{
+				Key: "sk-k", Enabled: true,
+				Rules:         RuleSet{Global: "model-n=>model-p"},
+				ChannelTarget: &ChannelTarget{Enabled: true, Suppliers: []string{"gemini"}},
+			}},
+		}
+		decision, err := routeModel(Config{Enabled: true}, src, "openai", "model-m", "sk-k")
+		if err != nil {
+			t.Fatalf("routeModel: %v", err)
+		}
+		if decision.Handled || decision.UpstreamModel != "" {
+			t.Fatalf("targeted decision = %+v, want unhandled original model", decision)
+		}
+
+		untargeted, err := routeModel(Config{Enabled: true}, src, "openai", "model-m", "sk-other")
+		if err != nil || !untargeted.Handled || untargeted.UpstreamModel != "model-n" {
+			t.Fatalf("untargeted mapping regression: decision=%+v err=%v", untargeted, err)
+		}
+	})
+}
+
+func responseInterceptResult(t *testing.T, req pluginapi.ResponseInterceptRequest) pluginapi.ResponseInterceptResponse {
+	t.Helper()
+	raw, err := json.Marshal(req)
+	if err != nil {
+		t.Fatal(err)
+	}
+	envRaw, err := handleMethod(pluginabi.MethodResponseInterceptAfter, raw)
+	if err != nil {
+		t.Fatalf("handle response intercept: %v", err)
+	}
+	var env pluginabi.Envelope
+	if err := json.Unmarshal(envRaw, &env); err != nil || !env.OK {
+		t.Fatalf("envelope=%+v err=%v raw=%s", env, err, envRaw)
+	}
+	var resp pluginapi.ResponseInterceptResponse
+	if err := json.Unmarshal(env.Result, &resp); err != nil {
+		t.Fatal(err)
+	}
+	return resp
+}
+
+func TestChannelTargetResponseIntercept(t *testing.T) {
+	setupManagementTest(t, Config{Enabled: true})
+	post := managementPostKey(pluginapi.ManagementRequest{
+		Method: http.MethodPost,
+		Body:   []byte(`{"key":"sk-k","channel_target":{"enabled":true,"suppliers":["gemini"]}}`),
+	})
+	if post.StatusCode != http.StatusOK {
+		t.Fatalf("seed binding: %d %s", post.StatusCode, post.Body)
+	}
+
+	t.Run("非流式还原", func(t *testing.T) {
+		resp := responseInterceptResult(t, pluginapi.ResponseInterceptRequest{
+			RequestedModel: "client-model", Stream: false,
+			RequestHeaders: http.Header{"Authorization": {"Bearer sk-k"}},
+			Body:           []byte(`{"model":"upstream-real-name","modelVersion":"v2","message":{"model":"nested"},"response":{"modelVersion":"nested-v"}}`),
+		})
+		var body map[string]any
+		if err := json.Unmarshal(resp.Body, &body); err != nil {
+			t.Fatalf("decode rewritten body: %v body=%s", err, resp.Body)
+		}
+		message := body["message"].(map[string]any)
+		response := body["response"].(map[string]any)
+		if body["model"] != "client-model" || body["modelVersion"] != "client-model" ||
+			message["model"] != "client-model" || response["modelVersion"] != "client-model" {
+			t.Fatalf("rewritten body = %#v", body)
+		}
+	})
+
+	t.Run("流式透传", func(t *testing.T) {
+		resp := responseInterceptResult(t, pluginapi.ResponseInterceptRequest{
+			RequestedModel: "client-model", Stream: true,
+			RequestHeaders: http.Header{"Authorization": {"Bearer sk-k"}},
+			Body:           []byte(`{"model":"upstream-real-name"}`),
+		})
+		if len(resp.Body) != 0 || len(resp.Headers) != 0 {
+			t.Fatalf("stream response must be untouched: %+v", resp)
+		}
+	})
+
+	t.Run("非定向与缺 key 原样透传", func(t *testing.T) {
+		for _, headers := range []http.Header{
+			{"Authorization": {"Bearer sk-other"}},
+			nil,
+		} {
+			resp := responseInterceptResult(t, pluginapi.ResponseInterceptRequest{
+				RequestedModel: "client-model", RequestHeaders: headers,
+				Body: []byte(`{"model":"upstream-real-name"}`),
+			})
+			if len(resp.Body) != 0 {
+				t.Fatalf("untargeted response changed: %+v", resp)
+			}
+		}
+	})
 }

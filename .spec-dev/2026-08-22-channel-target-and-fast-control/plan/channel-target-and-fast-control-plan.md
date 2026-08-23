@@ -8,24 +8,27 @@
 
 **Spec**：`.spec-dev/2026-08-22-channel-target-and-fast-control/spec/channel-target-and-fast-control-design.md`
 
-**架构**：`KeyBinding` 增量保存 `ChannelTarget` 与 `FastAllowed`；定向请求在 `model.route` 阶段跳过映射、在 `scheduler.pick` 阶段过滤并轮转认证候选、在非流式 `response.intercept_after` 阶段还原客户端模型名。Fast 关闭时复用现有 `request.intercept_before`，在 blocked 短路之后仅对 Claude 请求删除 body/header 中的 fast 标记。管理 API 与 React 管理页共享同一数据结构，前端直接读取 CPA 的 `/v0/management/auth-files`。
+**架构**：`KeyBinding` 增量保存 `ChannelTarget` 与 `FastAllowed`；定向请求在 `model.route` 阶段跳过映射、在 `scheduler.pick` 阶段只对“宿主已提供 Candidates ∩ 所选集合”过滤并轮转、在非流式 `response.intercept_after` 阶段还原客户端模型名。池空错误用合法 JSON message 跨越 v7.2.119 会丢 typed code 的 RPC 层；Fast 关闭时复用现有 `request.intercept_before`，blocked 与 Fast 共用一次状态快照。管理 API 与 React 管理页共享同一数据结构，前端在 wire 边界补齐缺失数组并统一 provider/auth ID 规范化。
 
 **技术栈**：Go 1.26、CLIProxyAPI SDK `v7.2.119`（RPC `SchemaVersion=2`）、`tidwall/gjson`、`tidwall/sjson`、React 19、Semi Design `2.62.x`、TypeScript 7、Vitest 4、Testing Library、Vite 8。
 
 ## 全局约束
 
 - `go.mod` 继续精确固定 `github.com/router-for-me/CLIProxyAPI/v7 v7.2.119`；`github.com/tidwall/gjson v1.18.0` 与 `github.com/tidwall/sjson v1.2.5` 只从现有间接依赖升为 direct，不引入新模块。
+- `/Users/flame/CLIProxyAPI` 为严格只读边界：不得修改、提交、切分支或在仓库内生成构建产物；v7.2.119 基线从 tag 归档到 `/tmp`，当前本地 v7.2.139 只读构建输出也只能写入 `/tmp`，测试前后 `git status --porcelain=v1` 都必须为空。
 - state `version` 保持 `1`；`channel_target` 与 `fast_allowed` 均为增量可选字段，旧 state 不迁移。
 - `fast_allowed` 未设置时语义必须等同 `true`；只有显式 `false` 才改写请求。
 - `enabled` 只控制 per-key 规则映射；`blocked`、`channel_target.enabled`、`fast_allowed` 三者彼此独立，不得借用 `findKeyBinding` 的 `Enabled=true` 条件。
-- 渠道候选集合固定为 `Provider ∈ suppliers`（大小写不敏感）或 `ID ∈ auth_ids` 的并集；候选必须再排除 `disabled/error/expired/revoked/invalid/unavailable/cooldown/cooling_down/quota_exhausted/exhausted/blocked` 状态。
+- 渠道候选集合固定为宿主交给 Scheduler 的 Candidates 与（`Provider ∈ suppliers`，trim 后大小写不敏感；或 `ID ∈ auth_ids`，trim 后大小写敏感）的交集；插件不得召回或选择不在 Candidates 中的 AuthID，并防御性排除 `disabled/error/expired/revoked/invalid/unavailable/cooldown/cooling_down/quota_exhausted/exhausted/blocked` 状态。
 - 池内候选按 ID 升序形成确定性顺序；同 key 的候选 ID 集合改变时轮转游标归零，进程重启后游标归零。
-- 定向池空必须返回 ABI 错误 `code=auth_not_found`、`HTTPStatus=503`；不得用 `DelegateBuiltin`，不得返回池外 `AuthID`。
-- 池内凭据全冷却的 429 `model_cooldown` 与 `Retry-After` 由 CPA 在调用 `scheduler.pick` 之前生成；插件不得伪造 429。
+- 定向池空必须返回 ABI 错误 `code=auth_not_found`、`HTTPStatus=503`，并把 message 编码为同时包含 `error.type=auth_not_found`、`error.code=auth_not_found` 与人类可读 `error.message` 的合法 JSON；不得用 `DelegateBuiltin`，不得返回池外 `AuthID`。
+- 目标凭据因 cooldown 或全局较低优先级未进入 Candidates、但池外仍有 active 候选时，插件过滤后返回 503；只有宿主全局无任何候选时才 MAY 在 Scheduler 前返回原生 429 `model_cooldown` 与 `Retry-After`，插件不得伪造该分支。
 - 定向开启时顶层与 per-key 映射均不执行；非流式响应只重写 `model`、`modelVersion`、`message.model`、`message.modelVersion`、`response.model`、`response.modelVersion`，流式响应不注册 chunk 改写。
 - Fast 剥离只处理 `SourceFormat == "claude"`、body 顶层大小写不敏感值 `speed:"fast"`、以及 `anthropic-beta` 中精确 token `fast-mode-2026-02-01`；其余 body 字段与 beta token 原样保留。
+- 同一次 `request.intercept_before` 只加载一次不可变 rule-source 快照；blocked 与 Fast 判定不得跨两次 `loadedRuleSource()` 混用版本。
 - `PATCH /keys` 中 `channel_target` 缺席或为 `null` 都不改变旧值；关闭定向必须发送完整对象并只把 `enabled` 改为 `false`。
 - Admin UI 必须只使用 Semi Design 组件；弹窗固定三页“基础 / 渠道定向 / 规则集”，渠道定向关闭后配置保留且两个选择区禁用。
+- 管理 API 因 `omitempty` 合法缺少 `suppliers` / `auth_ids` 时按空数组处理；provider trim 后以大小写不敏感 canonical key 去重并保留首个展示值，auth ID trim 后按大小写敏感值去重，列表/分组/回显/缺失/组选/保存必须复用同一语义。
 - CPA `auth-files` 列表响应固定读取 `{files:[{id,provider,status,disabled,label}]}`；前端不代理该接口。
 - Scheduler 是宿主全局单实例：与 `cpa-plugin-key-policy` 同时声明时只有宿主选择的首个插件生效；README 必须明确这一限制，不做运行时冲突探测。
 - 每个实施任务遵循 TDD：失败测试 → 确认红灯 → 最小实现 → 确认绿灯 → 提交。
@@ -52,32 +55,33 @@ npm --prefix web test -- src/api.test.ts src/panels/KeysPanel.test.tsx src/panel
 | `state_test.go` | 修改 | 旧 state 零迁移与新字段校验回归 |
 | `main.go` | 修改 | 能力注册、定向跳过映射、Scheduler、Fast 剥离、响应还原与 ABI 错误状态 |
 | `main_test.go` | 修改 | 能力/dispatch、映射跳过、响应还原与流式透传 |
-| `scheduler_test.go` | 创建 | 候选池并集、动态供应商、轮转、fail-open、池空 503 与宿主冷却契约 |
-| `fast_strip_test.go` | 创建 | body/header Fast 标记剥离与默认放行 |
+| `scheduler_test.go` | 创建后修改 | 候选池并集、动态供应商、轮转、fail-open、协议兼容 JSON 503，以及 cooldown/优先级前置过滤边界 |
+| `fast_strip_test.go` | 创建后修改 | body/header Fast 标记剥离、默认放行与 blocked/Fast 单快照回归 |
 | `management.go` | 修改 | PATCH 新字段、preview 定向解析结果与 mapping_skipped |
 | `management_test.go` | 修改 | PATCH、重复 ID 拒绝、preview 定向场景 |
 | `go.mod` / `go.sum` | 修改/核对 | 把已存在的 gjson/sjson 固定为直接依赖 |
 | `web/src/api.ts` | 修改 | 新类型、PATCH 字段、preview 类型与 auth-files 客户端 |
 | `web/src/api.test.ts` | 修改 | auth-files 解包、授权头与错误响应 |
-| `web/src/components/ChannelTargetEditor.tsx` | 创建 | 总开关、供应商整选、认证文件分组多选、组头全选、加载错误重试 |
-| `web/src/components/ChannelTargetEditor.test.tsx` | 创建 | 混选回显、关闭置灰与组头全选组件测试 |
-| `web/src/panels/KeysPanel.tsx` | 修改 | 三页 Tabs、Fast 开关、auth-files 生命周期、列表摘要列 |
+| `web/src/components/ChannelTargetEditor.tsx` | 创建后修改 | 总开关、供应商整选、认证文件分组多选、组头全选、加载错误重试，以及 provider/auth ID 统一规范化 |
+| `web/src/components/ChannelTargetEditor.test.tsx` | 创建后修改 | 混选回显、关闭置灰、组头全选与 canonicalization 组件测试 |
+| `web/src/panels/KeysPanel.tsx` | 修改 | 三页 Tabs、Fast 开关、auth-files 生命周期、列表摘要列与缺失数组容错 |
 | `web/src/panels/KeysPanel.test.tsx` | 修改 | 保存规划保留新字段、旧绑定 Fast 默认允许 |
 | `web/src/panels/KeysPanel.channel-target.test.tsx` | 创建 | 弹窗集成、auth-files 失败重试与表格摘要测试 |
 | `web/dist/index.html` | 修改 | `npm run build` 生成的单文件 Admin UI |
-| `README.md` | 修改 | 使用说明、Fast 语义、定向池空行为与 Scheduler 单实例限制 |
+| `README.md` | 修改 | 使用说明、Fast 语义、定向池空/宿主前置过滤行为与 Scheduler 单实例限制 |
+| `.spec-dev/2026-08-22-channel-target-and-fast-control/acceptance/host-version-compat.md` | 创建 | v7.2.119 与只读本地 v7.2.139 的三协议错误兼容对比证据 |
 
 ---
 
 ### 任务 0：建立隔离工作区
 
-- [ ] **步骤 1：检测已有隔离**
+- [x] **步骤 1：检测已有隔离**
 
 运行：`git rev-parse --git-dir` 与 `git rev-parse --git-common-dir`
 两者不同、且 `git rev-parse --show-superproject-working-tree` 无输出（排除 submodule）
 → 已在隔离工作区，跳过本任务。
 
-- [ ] **步骤 2：建立 worktree**
+- [x] **步骤 2：建立 worktree**
 
 有原生 worktree 工具（如 EnterWorktree）或 using-git-worktrees skill 时优先使用（Codex 无原生 worktree 工具，直接走下面的手工路径）；否则手工降级：
 确认 `.worktrees/` 已被忽略（`git check-ignore -q .worktrees`，未忽略先加入 `.gitignore` 并提交），然后：
@@ -87,7 +91,7 @@ git worktree add .worktrees/plan/2026-08-22-channel-target-and-fast-control -b p
 cd .worktrees/plan/2026-08-22-channel-target-and-fast-control
 ```
 
-- [ ] **步骤 3：安装依赖并验证基线**
+- [x] **步骤 3：安装依赖并验证基线**
 
 ```bash
 go mod download
@@ -99,6 +103,8 @@ git diff --exit-code -- go.mod go.sum web/package-lock.json
 ```
 
 预期：全部 exit 0。基线测试失败 → 停下报告，先问再继续；声明命令不可用时回退 `go test ./... && npm --prefix web test` 并记录计划测试范围失效。
+
+执行记录（2026-08-23）：环境未提供 Node/npm，使用已有 Bun 1.4.0 执行 `bun install --cwd web --no-save --frozen-lockfile`、`bun run --cwd web typecheck` 与对应 Vitest 脚本；Go 全包测试、typecheck、3 个基线测试文件（18 tests）均通过，项目既有锁文件无变化，Bun 临时生成的 `web/bun.lock` 已删除。
 
 ---
 
@@ -117,7 +123,7 @@ git diff --exit-code -- go.mod go.sum web/package-lock.json
 - 产出：`findKeyBindingByKey(bindings []KeyBinding, apiKey string) (KeyBinding, bool)`，忽略 `Enabled/Blocked` 等功能开关
 - 产出：`findActiveChannelTarget(bindings []KeyBinding, apiKey string) (KeyBinding, bool)`，只要求绑定存在且 `ChannelTarget.Enabled=true`
 
-- [ ] **步骤 1：写失败测试**
+- [x] **步骤 1：写失败测试**
 
 在 `state_test.go` 追加：
 
@@ -192,7 +198,7 @@ func TestChannelTargetStateContract(t *testing.T) {
 }
 ```
 
-- [ ] **步骤 2：运行测试确认失败**
+- [x] **步骤 2：运行测试确认失败**
 
 ```bash
 go test . -run TestChannelTargetStateContract -v
@@ -200,7 +206,7 @@ go test . -run TestChannelTargetStateContract -v
 
 预期：FAIL，编译错误包含 `undefined: ChannelTarget`、`KeyBinding.FastAllowed undefined` 或 `undefined: findActiveChannelTarget`。
 
-- [ ] **步骤 3：写最小实现**
+- [x] **步骤 3：写最小实现**
 
 把 `state.go` 的 `KeyBinding` 定义改为：
 
@@ -313,7 +319,7 @@ func cloneKeyBindings(in []KeyBinding) []KeyBinding {
 }
 ```
 
-- [ ] **步骤 4：运行测试确认通过**
+- [x] **步骤 4：运行测试确认通过**
 
 ```bash
 gofmt -w state.go state_test.go
@@ -322,7 +328,7 @@ go test . -run 'TestChannelTargetStateContract|TestValidateState|TestOldStateWit
 
 预期：PASS；现有 blocked 与 enabled 语义保持不变。
 
-- [ ] **步骤 5：提交**
+- [x] **步骤 5：提交**
 
 ```bash
 git add state.go state_test.go
@@ -341,7 +347,7 @@ git commit -m "feat(T1): 持久化渠道定向与 Fast 配置"
 - 消费：任务 1 的 `findActiveChannelTarget(bindings, apiKey)`
 - 产出：`routeModel(...)` 在插件启用且 key 定向开启时返回零值 `routeDecision{}`，即 `Handled=false`
 
-- [ ] **步骤 1：写失败测试**
+- [x] **步骤 1：写失败测试**
 
 在 `main_test.go` 追加：
 
@@ -372,7 +378,7 @@ func TestRouteModelChannelTarget(t *testing.T) {
 }
 ```
 
-- [ ] **步骤 2：运行测试确认失败**
+- [x] **步骤 2：运行测试确认失败**
 
 ```bash
 go test . -run TestRouteModelChannelTarget -v
@@ -380,7 +386,7 @@ go test . -run TestRouteModelChannelTarget -v
 
 预期：FAIL，定向 key 仍得到 `Handled=true`、`UpstreamModel=model-p`。
 
-- [ ] **步骤 3：写最小实现**
+- [x] **步骤 3：写最小实现**
 
 在 `main.go` 的 `routeModel` 中，`Config.Enabled` 检查之后、应用顶层规则之前插入：
 
@@ -424,7 +430,7 @@ func routeModel(cfg Config, src ruleSource, format, model, apiKey string) (route
 }
 ```
 
-- [ ] **步骤 4：运行测试确认通过**
+- [x] **步骤 4：运行测试确认通过**
 
 ```bash
 gofmt -w main.go main_test.go
@@ -433,7 +439,7 @@ go test . -run 'TestRouteModelChannelTarget|TestRouteModel|TestHandleModelRoute'
 
 预期：PASS；定向 key 不被映射，非定向既有测试继续通过。
 
-- [ ] **步骤 5：提交**
+- [x] **步骤 5：提交**
 
 ```bash
 git add main.go main_test.go
@@ -445,6 +451,8 @@ git commit -m "feat(T2): 定向请求跳过规则映射"
 ## 运行时钩子
 
 ### 任务 3：Scheduler 候选池过滤、轮转与 503 契约
+
+> **历史执行记录**：本任务已按原 spec 完成。其纯文本池空 message 与“目标冷却必然原生 429”的命名已被后续宿主证据推翻；当前执行者不得重跑本任务的旧实现步骤，统一由任务 11 的差量 TDD 修正。
 
 **文件**：
 - 修改：`main.go`
@@ -458,7 +466,7 @@ git commit -m "feat(T2): 定向请求跳过规则映射"
 - 产出：注册 JSON `capabilities.scheduler=true`，dispatch 支持 `pluginabi.MethodSchedulerPick`
 - 产出：`pluginMethodError{Code, Message, HTTPStatus}` 使 ABI 错误携带 503
 
-- [ ] **步骤 1：写失败测试**
+- [x] **步骤 1：写失败测试**
 
 创建 `scheduler_test.go`：
 
@@ -641,7 +649,7 @@ func TestChannelTargetScheduler(t *testing.T) {
 	}
 ```
 
-- [ ] **步骤 2：运行测试确认失败**
+- [x] **步骤 2：运行测试确认失败**
 
 ```bash
 go test . -run 'TestChannelTargetScheduler|TestPluginRegistration' -v
@@ -649,7 +657,7 @@ go test . -run 'TestChannelTargetScheduler|TestPluginRegistration' -v
 
 预期：FAIL，编译错误包含 `registrationCapabilities.Scheduler undefined`、`undefined: channelTargetRoundRobin`，或 dispatch 返回 `unknown_method`。
 
-- [ ] **步骤 3：写最小实现**
+- [x] **步骤 3：写最小实现**
 
 在 `main.go` imports 增加 `errors`、`sort`；在 `registrationCapabilities` 与 `pluginRegistration` 增加：
 
@@ -807,7 +815,7 @@ func errorEnvelopeWithStatus(code, message string, status int) []byte {
 		return wrapEnvelope(handleSchedulerPick(request))
 ```
 
-- [ ] **步骤 4：运行测试确认通过**
+- [x] **步骤 4：运行测试确认通过**
 
 ```bash
 gofmt -w main.go main_test.go scheduler_test.go
@@ -817,7 +825,7 @@ go test -race . -run TestChannelTargetScheduler -v
 
 预期：全部 PASS；race 检查不报告轮转器并发读写。
 
-- [ ] **步骤 5：提交**
+- [x] **步骤 5：提交**
 
 ```bash
 git add main.go main_test.go scheduler_test.go
@@ -839,7 +847,7 @@ git commit -m "feat(T3): 定向过滤并轮转 Scheduler 候选池"
 - 产出：`stripFastBeta(headers http.Header) (http.Header, []string)`
 - 产出：`handleRequestInterceptBefore` 在 blocked 放行之后返回 body/header 的最小差量
 
-- [ ] **步骤 1：写失败测试**
+- [x] **步骤 1：写失败测试**
 
 创建 `fast_strip_test.go`：
 
@@ -939,7 +947,7 @@ func TestFastAllowedRequestRewrite(t *testing.T) {
 }
 ```
 
-- [ ] **步骤 2：运行测试确认失败**
+- [x] **步骤 2：运行测试确认失败**
 
 ```bash
 go test . -run TestFastAllowedRequestRewrite -v
@@ -947,7 +955,7 @@ go test . -run TestFastAllowedRequestRewrite -v
 
 预期：FAIL；body/header 未被剥离，或 `FastAllowed` 尚未被 handler 使用。
 
-- [ ] **步骤 3：写最小实现**
+- [x] **步骤 3：写最小实现**
 
 在 `main.go` imports 加入：
 
@@ -1035,7 +1043,7 @@ require (
 
 再运行 `go mod tidy`，预期只调整 direct/indirect 分组，版本与 `go.sum` 校验值不变。
 
-- [ ] **步骤 4：运行测试确认通过**
+- [x] **步骤 4：运行测试确认通过**
 
 ```bash
 gofmt -w main.go fast_strip_test.go
@@ -1046,7 +1054,7 @@ git diff --exit-code -- go.sum
 
 预期：测试 PASS；`go.sum` 无内容变化。
 
-- [ ] **步骤 5：提交**
+- [x] **步骤 5：提交**
 
 ```bash
 git add main.go fast_strip_test.go go.mod go.sum
@@ -1066,7 +1074,7 @@ git commit -m "feat(T4): 按 key 剥离 Claude Fast 标记"
 - 产出：`handleResponseInterceptAfter(raw []byte) ([]byte, error)`
 - 产出：注册 JSON `capabilities.response_interceptor=true`，dispatch 支持 `pluginabi.MethodResponseInterceptAfter`
 
-- [ ] **步骤 1：写失败测试**
+- [x] **步骤 1：写失败测试**
 
 在 `main_test.go` 追加：
 
@@ -1156,7 +1164,7 @@ func TestChannelTargetResponseIntercept(t *testing.T) {
 	}
 ```
 
-- [ ] **步骤 2：运行测试确认失败**
+- [x] **步骤 2：运行测试确认失败**
 
 ```bash
 go test . -run 'TestChannelTargetResponseIntercept|TestPluginRegistration' -v
@@ -1164,7 +1172,7 @@ go test . -run 'TestChannelTargetResponseIntercept|TestPluginRegistration' -v
 
 预期：FAIL；注册字段仍为 false，或 dispatch 返回 `unknown_method`。
 
-- [ ] **步骤 3：写最小实现**
+- [x] **步骤 3：写最小实现**
 
 在 `pluginRegistration().Capabilities` 中加入：
 
@@ -1207,7 +1215,7 @@ func handleResponseInterceptAfter(raw []byte) ([]byte, error) {
 
 不要注册 `pluginabi.MethodResponseInterceptStreamChunk`，也不要声明 `response_stream_interceptor`。
 
-- [ ] **步骤 4：运行测试确认通过**
+- [x] **步骤 4：运行测试确认通过**
 
 ```bash
 gofmt -w main.go main_test.go
@@ -1216,7 +1224,7 @@ go test . -run 'TestChannelTargetResponseIntercept|TestPluginRegistration|TestRe
 
 预期：PASS；非流式六个允许字段按已有 helper 还原，流式与非定向返回空差量。
 
-- [ ] **步骤 5：提交**
+- [x] **步骤 5：提交**
 
 ```bash
 git add main.go main_test.go
@@ -1238,7 +1246,7 @@ git commit -m "feat(T5): 还原定向非流式响应模型名"
 - 产出：PATCH 可选字段 `ChannelTarget *ChannelTarget`、`FastAllowed *bool`
 - 产出：`previewResponse.ChannelTarget *channelTargetPreview`、`MappingSkipped bool`
 
-- [ ] **步骤 1：写失败测试**
+- [x] **步骤 1：写失败测试**
 
 在 `management_test.go` imports 增加 `os`、`net/url`，并追加：
 
@@ -1337,7 +1345,7 @@ func TestManagementChannelTargetAndFast(t *testing.T) {
 }
 ```
 
-- [ ] **步骤 2：运行测试确认失败**
+- [x] **步骤 2：运行测试确认失败**
 
 ```bash
 go test . -run TestManagementChannelTargetAndFast -v
@@ -1345,7 +1353,7 @@ go test . -run TestManagementChannelTargetAndFast -v
 
 预期：FAIL；PATCH 忽略新字段，preview 仍返回映射后的模型，或 `previewResponse.MappingSkipped` 尚不存在。
 
-- [ ] **步骤 3：写最小实现**
+- [x] **步骤 3：写最小实现**
 
 把 `managementPatchKey` 的 patch 结构与赋值扩展为：
 
@@ -1415,7 +1423,7 @@ type previewResponse struct {
 
 未定向时继续返回旧四字段，两个新字段因 `omitempty` 不出现。
 
-- [ ] **步骤 4：运行测试确认通过**
+- [x] **步骤 4：运行测试确认通过**
 
 ```bash
 gofmt -w management.go management_test.go
@@ -1424,7 +1432,7 @@ go test . -run 'TestManagementChannelTargetAndFast|TestManagementPatchKey|TestMa
 
 预期：PASS；`channel_target:null` 保留旧配置，未定向 preview 的 JSON 结构不增加新字段。
 
-- [ ] **步骤 5：提交**
+- [x] **步骤 5：提交**
 
 ```bash
 git add management.go management_test.go
@@ -1446,7 +1454,7 @@ git commit -m "feat(T6): 管理面读写并预览渠道定向"
 - 产出：`ChannelTarget`、`CpaAuthFile`、扩展后的 `KeyBinding` / `PreviewResponse`
 - 产出：`listCpaAuthFiles(): Promise<CpaAuthFile[]>`
 
-- [ ] **步骤 1：写失败测试**
+- [x] **步骤 1：写失败测试**
 
 把 `web/src/api.test.ts` import 改为 `import { api, listCpaAuthFiles, StateResponse } from './api'`，并追加：
 
@@ -1495,7 +1503,7 @@ describe('api：渠道定向与 Fast', () => {
 })
 ```
 
-- [ ] **步骤 2：运行测试确认失败**
+- [x] **步骤 2：运行测试确认失败**
 
 ```bash
 npm --prefix web test -- src/api.test.ts
@@ -1504,7 +1512,7 @@ npm --prefix web run typecheck
 
 预期：FAIL，TypeScript 报 `listCpaAuthFiles` 未导出、`fast_allowed` 与 `channel_target` 不属于 PATCH 类型。
 
-- [ ] **步骤 3：写最小实现**
+- [x] **步骤 3：写最小实现**
 
 在 `web/src/api.ts` 增加并扩展类型：
 
@@ -1571,7 +1579,7 @@ export async function listCpaAuthFiles(): Promise<CpaAuthFile[]> {
 }
 ```
 
-- [ ] **步骤 4：运行测试确认通过**
+- [x] **步骤 4：运行测试确认通过**
 
 ```bash
 npm --prefix web test -- src/api.test.ts
@@ -1580,7 +1588,7 @@ npm --prefix web run typecheck
 
 预期：PASS；现有 HTML entity 还原测试继续通过。
 
-- [ ] **步骤 5：提交**
+- [x] **步骤 5：提交**
 
 ```bash
 git add web/src/api.ts web/src/api.test.ts
@@ -1600,7 +1608,7 @@ git commit -m "feat(T7): 前端接入定向与 auth-files 类型"
 - 产出：`ChannelTargetEditor({value, authFiles, loading, error, onChange, onRetry})`
 - 产出：供应商 CheckboxGroup、按 provider 分组的认证文件 Collapse、组头全选/半选、总开关禁用态
 
-- [ ] **步骤 1：写失败测试**
+- [x] **步骤 1：写失败测试**
 
 创建 `web/src/components/ChannelTargetEditor.test.tsx`：
 
@@ -1691,7 +1699,7 @@ describe('ChannelTargetEditor', () => {
 })
 ```
 
-- [ ] **步骤 2：运行测试确认失败**
+- [x] **步骤 2：运行测试确认失败**
 
 ```bash
 npm --prefix web test -- src/components/ChannelTargetEditor.test.tsx
@@ -1699,7 +1707,7 @@ npm --prefix web test -- src/components/ChannelTargetEditor.test.tsx
 
 预期：FAIL，模块 `./ChannelTargetEditor` 不存在。
 
-- [ ] **步骤 3：写最小实现**
+- [x] **步骤 3：写最小实现**
 
 创建 `web/src/components/ChannelTargetEditor.tsx`：
 
@@ -1857,7 +1865,7 @@ export default function ChannelTargetEditor({ value, authFiles, loading, error, 
 }
 ```
 
-- [ ] **步骤 4：运行测试确认通过**
+- [x] **步骤 4：运行测试确认通过**
 
 ```bash
 npm --prefix web test -- src/components/ChannelTargetEditor.test.tsx
@@ -1866,7 +1874,7 @@ npm --prefix web run typecheck
 
 预期：PASS；总开关关闭后两个区块中的 checkbox 均 disabled，原选择仍 checked。
 
-- [ ] **步骤 5：提交**
+- [x] **步骤 5：提交**
 
 ```bash
 git add web/src/components/ChannelTargetEditor.tsx web/src/components/ChannelTargetEditor.test.tsx
@@ -1876,6 +1884,8 @@ git commit -m "feat(T8): 新增双区块渠道定向编辑器"
 ---
 
 ### 任务 9：KeysPanel 三页表单、列表摘要与使用说明
+
+> **历史执行记录**：本任务已完成初版 UI 与 README。下方 README 中旧的 cooldown/429 口径仅记录当时实现，当前契约与最终文案以任务 11 为准；摘要缺失数组和 canonicalization 分别由任务 13、14 修正。
 
 **文件**：
 - 修改：`web/src/panels/KeysPanel.tsx`
@@ -1889,7 +1899,7 @@ git commit -m "feat(T8): 新增双区块渠道定向编辑器"
 - 产出：旧绑定标准化为 `fast_allowed=true`、空的 disabled `channel_target`
 - 产出：表格“渠道定向”摘要列与“Fast”状态列；弹窗“基础 / 渠道定向 / 规则集”三页
 
-- [ ] **步骤 1：写失败测试**
+- [x] **步骤 1：写失败测试**
 
 在 `web/src/panels/KeysPanel.test.tsx` 的 `binding` fixture 增加：
 
@@ -1996,7 +2006,7 @@ describe('KeysPanel：渠道定向与 Fast', () => {
 })
 ```
 
-- [ ] **步骤 2：运行测试确认失败**
+- [x] **步骤 2：运行测试确认失败**
 
 ```bash
 npm --prefix web test -- src/panels/KeysPanel.test.tsx src/panels/KeysPanel.channel-target.test.tsx
@@ -2004,7 +2014,7 @@ npm --prefix web test -- src/panels/KeysPanel.test.tsx src/panels/KeysPanel.chan
 
 预期：FAIL；弹窗没有 Tabs/Fast 开关，`listCpaAuthFiles` 未被调用，表格没有新摘要。
 
-- [ ] **步骤 3：写最小实现**
+- [x] **步骤 3：写最小实现**
 
 把 `KeysPanel.tsx` imports 扩展为：
 
@@ -2183,7 +2193,7 @@ function channelTargetSummary(binding: KeyBinding): string {
 CPA 的 Scheduler 能力为宿主全局单实例。若同时启用另一个声明 Scheduler 的插件（例如 `cpa-plugin-key-policy`），只有宿主选择的首个 Scheduler 生效；本插件不提供冲突探测，请在部署配置中只保留一个 Scheduler 插件。
 ```
 
-- [ ] **步骤 4：运行测试确认通过并构建嵌入页面**
+- [x] **步骤 4：运行测试确认通过并构建嵌入页面**
 
 ```bash
 npm --prefix web test -- src/panels/KeysPanel.test.tsx src/panels/KeysPanel.blocked.test.tsx src/panels/KeysPanel.delete.test.tsx src/panels/KeysPanel.channel-target.test.tsx src/components/ChannelTargetEditor.test.tsx
@@ -2194,7 +2204,7 @@ git diff --exit-code -- web/package-lock.json
 
 预期：测试与 typecheck PASS；`web/dist/index.html` 被重新生成；lockfile 不变。
 
-- [ ] **步骤 5：提交**
+- [x] **步骤 5：提交**
 
 ```bash
 git add web/src/panels/KeysPanel.tsx web/src/panels/KeysPanel.test.tsx web/src/panels/KeysPanel.channel-target.test.tsx README.md web/dist/index.html
@@ -2203,59 +2213,654 @@ git commit -m "feat(T9): 重构 Key 表单并展示定向与 Fast"
 
 ---
 
+## 首次验收记录
+
+### 任务 10：首次验收（acceptance-qa，已完成）
+
+> 本任务由 executing-plans 收尾审查阶段触发 acceptance-qa 按下表执行，
+> 不参与逐任务连续执行；报告与证据落盘特性目录 `acceptance/` 子目录。
+>
+> **2026-08-23 执行结果**：已执行，总结论 FAIL（阻塞合并），详见 `acceptance/acceptance-summary.md`。确定性安全网、真实定向、Fast 剥离与组合场景有效；审查确认四项需改实现的问题（wire 缺失数组、provider/auth ID 规范化、Fast 单快照、协议错误兼容），并确认原“目标 cooldown 必然 429”是宿主边界误判。该历史任务不再承载当前验收契约；修复后的完整矩阵由任务 15 重新执行。
+
+---
+
+## 增量修复
+
+### 任务 11：池空 503 的协议兼容 JSON 与宿主前置过滤边界
+
+**文件**：
+- 修改：`main.go`
+- 修改：`scheduler_test.go`
+- 修改：`README.md`
+
+**接口**：
+- 消费：现有 `pluginMethodError{Code, Message, HTTPStatus}` 与 `handleSchedulerPick`
+- 产出：`channelTargetAuthNotFoundMessage`，固定为同时含 `error.type`、`error.code`、`error.message` 的合法 JSON
+- 产出：OpenAI/Codex 可从 message JSON 保留 `error.code=auth_not_found`，Claude 可在宿主重包装后保留 `error.type=auth_not_found`
+
+- [x] **步骤 1：写失败测试**
+
+在 `scheduler_test.go` 的 helper 区加入：
+
+```go
+func assertChannelTargetAuthNotFound(t *testing.T, env pluginabi.Envelope) {
+	t.Helper()
+	if env.OK || env.Error == nil || env.Error.Code != "auth_not_found" || env.Error.HTTPStatus != http.StatusServiceUnavailable {
+		t.Fatalf("envelope = %+v", env)
+	}
+	var body struct {
+		Error struct {
+			Type    string `json:"type"`
+			Code    string `json:"code"`
+			Message string `json:"message"`
+		} `json:"error"`
+	}
+	if err := json.Unmarshal([]byte(env.Error.Message), &body); err != nil {
+		t.Fatalf("error message is not JSON: %v message=%q", err, env.Error.Message)
+	}
+	if body.Error.Type != "auth_not_found" || body.Error.Code != "auth_not_found" || body.Error.Message == "" {
+		t.Fatalf("error body = %+v", body)
+	}
+}
+```
+
+把原“池内候选全部不可用”用例替换为以下三个与 spec 同名的子用例：
+
+```go
+	t.Run("池内候选全部不可用时返回协议兼容 JSON 错误", func(t *testing.T) {
+		seedSchedulerBinding(t, KeyBinding{Key: "sk-k", ChannelTarget: &ChannelTarget{Enabled: true, AuthIDs: []string{"f1"}}})
+		env := schedulerEnvelope(t, schedulerRequest("sk-k",
+			pluginapi.SchedulerAuthCandidate{ID: "outside", Provider: "claude", Status: "active"},
+		))
+		assertChannelTargetAuthNotFound(t, env)
+	})
+
+	t.Run("目标 cooldown、池外 active 时不越池", func(t *testing.T) {
+		seedSchedulerBinding(t, KeyBinding{Key: "sk-k", ChannelTarget: &ChannelTarget{Enabled: true, AuthIDs: []string{"f1"}}})
+		env := schedulerEnvelope(t, schedulerRequest("sk-k",
+			pluginapi.SchedulerAuthCandidate{ID: "f1", Provider: "claude", Status: "cooldown"},
+			pluginapi.SchedulerAuthCandidate{ID: "outside", Provider: "claude", Status: "active"},
+		))
+		assertChannelTargetAuthNotFound(t, env)
+	})
+
+	t.Run("目标低优先级、池外高优先级时不越池", func(t *testing.T) {
+		seedSchedulerBinding(t, KeyBinding{Key: "sk-k", ChannelTarget: &ChannelTarget{Enabled: true, AuthIDs: []string{"f1"}}})
+		// 模拟宿主只把全局最高优先级层 outside 交给 Scheduler；f1 已在回调前被排除。
+		env := schedulerEnvelope(t, schedulerRequest("sk-k",
+			pluginapi.SchedulerAuthCandidate{ID: "outside", Provider: "claude", Status: "active"},
+		))
+		assertChannelTargetAuthNotFound(t, env)
+	})
+```
+
+保留现有 `FillFirstSelector` 测试，但改名为“宿主全局无候选 MAY 在 Scheduler 前返回 429”，并在注释中注明它是固定 SDK 的宿主边界回归，不是插件 429 保证。
+
+- [x] **步骤 2：运行测试确认失败**
+
+```bash
+go test . -run 'TestChannelTargetScheduler/(池内候选全部不可用时返回协议兼容_JSON_错误|目标_cooldown、池外_active_时不越池|目标低优先级、池外高优先级时不越池)' -v
+```
+
+预期：FAIL，`json.Unmarshal` 报 `invalid character 'o'`，因为现有 message 是纯文本 `no usable auth candidate in channel target`。
+
+- [x] **步骤 3：写最小实现**
+
+在 `main.go` 的 `pluginMethodError` 定义前新增：
+
+```go
+const channelTargetAuthNotFoundMessage = `{"error":{"type":"auth_not_found","code":"auth_not_found","message":"no usable auth candidate in channel target"}}`
+```
+
+把 `handleSchedulerPick` 的池空分支改为：
+
+```go
+	if len(pool) == 0 {
+		return nil, &pluginMethodError{
+			Code:       "auth_not_found",
+			Message:    channelTargetAuthNotFoundMessage,
+			HTTPStatus: http.StatusServiceUnavailable,
+		}
+	}
+```
+
+把 `README.md` 的渠道定向池空说明替换为：
+
+```markdown
+每条 key 绑定可独立开启渠道定向：供应商整选与认证文件单选取并集，池内按认证文件 ID 确定性轮转。定向开启后该 key 跳过模型映射；候选池是 CPA 交给 Scheduler 的当前 Candidates 与所选集合的交集，过滤为空时返回 HTTP 503 且不会降级到池外凭据。OpenAI/Codex 错误体使用 `error.code=auth_not_found`，Claude `/v1/messages` 错误体使用 `error.type=auth_not_found`。
+
+CPA 会在 Scheduler 前过滤 cooldown 与全局较低优先级凭据。目标凭据因此缺席、但池外仍有 active 候选时，本插件过滤池外候选并返回 503；只有 CPA 全局无任何候选时，宿主才可能在插件前返回原生 429 `model_cooldown` 与 `Retry-After`。插件不会模拟该 429 分支。
+```
+
+- [x] **步骤 4：运行测试确认通过**
+
+```bash
+gofmt -w main.go scheduler_test.go
+go test . -run 'TestChannelTargetScheduler|TestHandleMethodDispatchesRegisterReconfigureAndUnknown' -v
+go test -race . -run TestChannelTargetScheduler -v
+git diff --check
+```
+
+预期：全部 PASS；三个池空用例均断言 typed code、合法 JSON type/code 与 HTTP 503，宿主全局无候选边界测试仍断言 429/`Retry-After`。
+
+- [x] **步骤 5：提交**
+
+```bash
+git add main.go scheduler_test.go README.md
+git commit -m "fix(T11): 兼容渠道池空协议错误"
+```
+
+---
+
+### 任务 12：blocked 与 Fast 使用单一状态快照
+
+**文件**：
+- 修改：`main.go`
+- 修改：`fast_strip_test.go`
+
+**接口**：
+- 消费：现有 `loadedRuleSource() ruleSource`
+- 产出：`handleRequestInterceptBeforeWithRuleSource(raw []byte, load func() ruleSource) ([]byte, error)` 测试 seam
+- 保持：生产入口 `handleRequestInterceptBefore(raw []byte)` 的签名与 ABI dispatch 不变
+
+- [x] **步骤 1：写失败测试**
+
+在 `fast_strip_test.go` 追加：
+
+```go
+func TestFastBlockedUsesSingleRuleSourceSnapshot(t *testing.T) {
+	setupBlockedInterceptTest(t, Config{Enabled: true}, nil)
+	raw, err := json.Marshal(pluginapi.RequestInterceptRequest{
+		SourceFormat: "claude",
+		Headers:      http.Header{"Authorization": {"Bearer sk-k"}},
+		Body:         []byte(`{"model":"m","speed":"fast"}`),
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	fastOff := false
+	calls := 0
+	load := func() ruleSource {
+		calls++
+		if calls == 1 {
+			return ruleSource{KeyBindings: []KeyBinding{{Key: "sk-k", FastAllowed: &fastOff}}}
+		}
+		return ruleSource{KeyBindings: []KeyBinding{{Key: "sk-k", Blocked: true}}}
+	}
+	result, err := handleRequestInterceptBeforeWithRuleSource(raw, load)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var resp pluginapi.RequestInterceptResponse
+	if err := json.Unmarshal(result, &resp); err != nil {
+		t.Fatal(err)
+	}
+	if calls != 1 {
+		t.Fatalf("rule source loads = %d, want 1", calls)
+	}
+	if resp.Terminate || string(resp.Body) != `{"model":"m"}` {
+		t.Fatalf("response mixed snapshots: %+v body=%s", resp, resp.Body)
+	}
+}
+```
+
+- [x] **步骤 2：运行测试确认失败**
+
+```bash
+go test . -run TestFastBlockedUsesSingleRuleSourceSnapshot -v
+```
+
+预期：FAIL，编译错误包含 `undefined: handleRequestInterceptBeforeWithRuleSource`。
+
+- [x] **步骤 3：写最小实现**
+
+把 `main.go` 的现有 handler 拆为生产薄入口与可注入 loader 的实现：
+
+```go
+func handleRequestInterceptBefore(raw []byte) ([]byte, error) {
+	return handleRequestInterceptBeforeWithRuleSource(raw, loadedRuleSource)
+}
+
+func handleRequestInterceptBeforeWithRuleSource(raw []byte, load func() ruleSource) ([]byte, error) {
+	var req pluginapi.RequestInterceptRequest
+	if err := json.Unmarshal(raw, &req); err != nil {
+		return nil, err
+	}
+	if !loadedConfig().Enabled {
+		return json.Marshal(pluginapi.RequestInterceptResponse{})
+	}
+	src := load()
+	apiKey := apiKeyFromHeaders(req.Headers)
+	if _, blocked := findBlockedKeyBinding(src.KeyBindings, apiKey); blocked {
+		return json.Marshal(pluginapi.RequestInterceptResponse{
+			Terminate:       true,
+			StatusCode:      http.StatusForbidden,
+			ResponseHeaders: http.Header{"Content-Type": {"application/json"}},
+			ResponseBody:    []byte(blockedQuotaExhaustedBody),
+		})
+	}
+	binding, exists := findKeyBindingByKey(src.KeyBindings, apiKey)
+	if !exists || binding.FastAllowed == nil || *binding.FastAllowed || !strings.EqualFold(req.SourceFormat, "claude") {
+		return json.Marshal(pluginapi.RequestInterceptResponse{})
+	}
+	body, bodyChanged, err := stripFastBody(req.Body)
+	if err != nil {
+		return nil, err
+	}
+	headers, clearHeaders := stripFastBeta(req.Headers)
+	resp := pluginapi.RequestInterceptResponse{Headers: headers, ClearHeaders: clearHeaders}
+	if bodyChanged {
+		resp.Body = body
+	}
+	return json.Marshal(resp)
+}
+```
+
+- [x] **步骤 4：运行测试确认通过**
+
+```bash
+gofmt -w main.go fast_strip_test.go
+go test . -run 'TestFastBlockedUsesSingleRuleSourceSnapshot|TestFastAllowedRequestRewrite|TestInterceptBlocksBlockedKeyWithFixedBody' -v
+go test -race . -run 'TestFastBlockedUsesSingleRuleSourceSnapshot|TestFastAllowedRequestRewrite' -v
+```
+
+预期：全部 PASS；注入 loader 只调用一次，blocked 既有 403 与 Fast 剥离行为不变。
+
+- [x] **步骤 5：提交**
+
+```bash
+git add main.go fast_strip_test.go
+git commit -m "fix(T12): 统一 Fast 与门禁状态快照"
+```
+
+---
+
+### 任务 13：KeysPanel 容忍 channel_target 缺失数组
+
+**文件**：
+- 修改：`web/src/panels/KeysPanel.tsx`
+- 修改：`web/src/panels/KeysPanel.channel-target.test.tsx`
+
+**接口**：
+- 消费：管理 API 因 Go `omitempty` 返回的 `channel_target={enabled:true}`、仅 suppliers 或仅 auth_ids 合法 wire 形状
+- 产出：`channelTargetSummary(binding: KeyBinding) string` 对缺失数组分别按 0 项计数
+
+- [x] **步骤 1：写失败测试**
+
+在 `KeysPanel.channel-target.test.tsx` 追加参数化用例：
+
+```tsx
+  it.each([
+    [{ enabled: true }, '0 个供应商 · 0 个认证文件'],
+    [{ enabled: true, suppliers: ['gemini'] }, '1 个供应商 · 0 个认证文件'],
+    [{ enabled: true, auth_ids: ['f1'] }, '0 个供应商 · 1 个认证文件'],
+  ])('合法缺失数组的表格回显：%j', (wireTarget, summary) => {
+    vi.mocked(listCpaAuthFiles).mockResolvedValue([])
+    const binding = {
+      ...BINDING,
+      channel_target: wireTarget as KeyBinding['channel_target'],
+    }
+    expect(() => render(
+      <KeysPanel state={{ ...STATE, key_bindings: [binding] }} onSaved={vi.fn()} />,
+    )).not.toThrow()
+    expect(screen.getByText(summary)).toBeInTheDocument()
+  })
+```
+
+- [x] **步骤 2：运行测试确认失败**
+
+```bash
+bun run --cwd web test -- src/panels/KeysPanel.channel-target.test.tsx
+```
+
+预期：FAIL，渲染抛出 `Cannot read properties of undefined (reading 'length')`。
+
+- [x] **步骤 3：写最小实现**
+
+把 `KeysPanel.tsx` 的摘要 helper 改为：
+
+```tsx
+function channelTargetSummary(binding: KeyBinding): string {
+  const target = binding.channel_target
+  if (!target?.enabled) return '关闭'
+  return `${target.suppliers?.length ?? 0} 个供应商 · ${target.auth_ids?.length ?? 0} 个认证文件`
+}
+```
+
+不要用非空断言，也不要改变 `normalizeBinding` 已有的数组补齐逻辑。
+
+- [x] **步骤 4：运行测试确认通过**
+
+```bash
+bun run --cwd web test -- src/panels/KeysPanel.channel-target.test.tsx src/panels/KeysPanel.test.tsx
+bun run --cwd web typecheck
+```
+
+预期：全部 PASS；三种合法 wire 形状均能首次渲染，已有完整数组摘要不变。
+
+- [x] **步骤 5：提交**
+
+```bash
+git add web/src/panels/KeysPanel.tsx web/src/panels/KeysPanel.channel-target.test.tsx
+git commit -m "fix(T13): 容忍定向摘要缺失数组"
+```
+
+---
+
+### 任务 14：渠道编辑器统一 provider 与 auth ID 规范化
+
+**文件**：
+- 修改：`web/src/components/ChannelTargetEditor.tsx`
+- 修改：`web/src/components/ChannelTargetEditor.test.tsx`
+
+**接口**：
+- 产出：`normalizeProviders(values: readonly string[]) string[]`，trim、大小写不敏感去重、保留首个展示值、稳定排序
+- 产出：`normalizeAuthIDs(values: readonly string[]) string[]`，trim、大小写敏感去重、稳定排序
+- 产出：`normalizeAuthFiles(files: readonly CpaAuthFile[]) CpaAuthFile[]`，ID/provider trim、按大小写敏感 ID 保留首条
+- 保持：`ChannelTargetEditor` props 与任务 8 一致
+
+- [x] **步骤 1：写失败测试**
+
+在 `ChannelTargetEditor.test.tsx` 追加：
+
+```tsx
+  it('provider 与 auth ID 规范化一致', async () => {
+    const user = userEvent.setup()
+    const onChange = vi.fn()
+    render(<ChannelTargetEditor
+      value={{ enabled: true, suppliers: [' Gemini ', 'gemini'], auth_ids: [' f1 ', 'f1'] }}
+      authFiles={[
+        { id: 'f1', provider: 'gemini', status: 'active', disabled: false, label: 'lower' },
+        { id: 'F1', provider: 'GEMINI', status: 'active', disabled: false, label: 'upper' },
+      ]}
+      loading={false}
+      error=""
+      onChange={onChange}
+      onRetry={vi.fn()}
+    />)
+
+    expect(screen.getAllByLabelText(/^供应商 /)).toHaveLength(1)
+    expect(screen.getByLabelText('供应商 Gemini')).toBeChecked()
+    expect(screen.getByLabelText('认证文件 f1')).toBeChecked()
+    expect(screen.getByLabelText('认证文件 F1')).not.toBeChecked()
+    expect(screen.queryByText('已保存但 CPA 当前未返回：')).not.toBeInTheDocument()
+
+    await user.click(screen.getByLabelText('认证文件 f1'))
+    expect(onChange).toHaveBeenLastCalledWith({
+      enabled: true,
+      suppliers: ['Gemini'],
+      auth_ids: [],
+    })
+  })
+```
+
+- [x] **步骤 2：运行测试确认失败**
+
+```bash
+bun run --cwd web test -- src/components/ChannelTargetEditor.test.tsx
+```
+
+预期：FAIL；当前实现产生两个 provider checkbox，`" f1 "` 被误报缺失且未正确回显。
+
+- [x] **步骤 3：写最小实现**
+
+把 `ChannelTargetEditor.tsx` 的 `sortedUnique` 替换为：
+
+```tsx
+function normalizedUniqueStrings(values: readonly string[], foldCase: boolean): string[] {
+  const seen = new Set<string>()
+  const result: string[] = []
+  for (const raw of values) {
+    const value = raw.trim()
+    if (!value) continue
+    const key = foldCase ? value.toLowerCase() : value
+    if (seen.has(key)) continue
+    seen.add(key)
+    result.push(value)
+  }
+  return result.sort((a, b) => a.localeCompare(b))
+}
+
+function normalizeProviders(values: readonly string[]): string[] {
+  return normalizedUniqueStrings(values, true)
+}
+
+function normalizeAuthIDs(values: readonly string[]): string[] {
+  return normalizedUniqueStrings(values, false)
+}
+
+function providerKey(value: string): string {
+  return value.trim().toLowerCase()
+}
+
+function normalizeAuthFiles(files: readonly CpaAuthFile[]): CpaAuthFile[] {
+  const seen = new Set<string>()
+  const result: CpaAuthFile[] = []
+  for (const file of files) {
+    const id = file.id.trim()
+    const provider = file.provider.trim()
+    if (!id || !provider || seen.has(id)) continue
+    seen.add(id)
+    result.push({ ...file, id, provider })
+  }
+  return result
+}
+```
+
+把组件函数开头到 `toggleAuthGroup` 改为：
+
+```tsx
+  const selectedSuppliers = normalizeProviders(value.suppliers)
+  const selectedAuthIDs = normalizeAuthIDs(value.auth_ids)
+  const normalizedFiles = normalizeAuthFiles(authFiles)
+  const providers = normalizeProviders([
+    ...selectedSuppliers,
+    ...normalizedFiles.map((file) => file.provider),
+  ])
+  const knownAuthIDs = new Set(normalizedFiles.map((file) => file.id))
+  const missingAuthIDs = selectedAuthIDs.filter((id) => !knownAuthIDs.has(id))
+  const grouped = providers.map((provider) => ({
+    provider,
+    files: normalizedFiles
+      .filter((file) => providerKey(file.provider) === providerKey(provider))
+      .sort((a, b) => a.id.localeCompare(b.id)),
+  }))
+
+  const emit = (enabled: boolean, suppliers: readonly string[], authIDs: readonly string[]) => onChange({
+    enabled,
+    suppliers: normalizeProviders(suppliers),
+    auth_ids: normalizeAuthIDs(authIDs),
+  })
+  const setSuppliers = (suppliers: string[]) => emit(value.enabled, suppliers, selectedAuthIDs)
+  const setAuthIDs = (authIDs: string[]) => emit(value.enabled, selectedSuppliers, authIDs)
+
+  const toggleAuthGroup = (ids: string[], checked: boolean) => {
+    const next = new Set(selectedAuthIDs)
+    for (const id of ids) {
+      if (checked) next.add(id)
+      else next.delete(id)
+    }
+    setAuthIDs(Array.from(next))
+  }
+```
+
+并逐项替换 JSX 中的消费点：
+
+```tsx
+// 总开关
+onChange={(enabled) => emit(enabled, selectedSuppliers, selectedAuthIDs)}
+
+// 供应商 CheckboxGroup
+value={selectedSuppliers}
+
+// 每组 selectedCount
+const selectedCount = ids.filter((id) => selectedAuthIDs.includes(id)).length
+
+// 认证文件 checkbox
+checked={selectedAuthIDs.includes(file.id)}
+onChange={(event) => {
+  const next = new Set(selectedAuthIDs)
+  if (event.target.checked) next.add(file.id)
+  else next.delete(file.id)
+  setAuthIDs(Array.from(next))
+}}
+```
+
+- [x] **步骤 4：运行测试确认通过**
+
+```bash
+bun run --cwd web test -- src/components/ChannelTargetEditor.test.tsx src/panels/KeysPanel.channel-target.test.tsx
+bun run --cwd web typecheck
+VITE_HOSTED=1 bun run --cwd web build
+git diff --exit-code -- web/package-lock.json
+```
+
+预期：全部 PASS；provider 只有一个 `Gemini` 分组，f1 正确回显且不误报缺失，F1 作为大小写不同的独立 auth ID 保留，所有 `onChange` 数组均 trim 且无 canonical 重复。
+
+- [x] **步骤 5：提交**
+
+```bash
+git add web/src/components/ChannelTargetEditor.tsx web/src/components/ChannelTargetEditor.test.tsx web/dist/index.html
+git commit -m "fix(T14): 统一渠道选项规范化"
+```
+
+### 审查处置 14A：补齐渠道定向保存边界规范化
+
+> 第二轮审查确认：任务 14 只在编辑器派生显示与 `emit` 路径规范化，
+> 用户不操作渠道页直接保存时，`planKeySave` 仍会提交原始数组。
+> 用户选择修复；独立反证审查确认为低严重性，但违反本 spec 的保存 `SHALL`。
+
+**文件**：
+- 新增：`web/src/channelTarget.ts`
+- 修改：`web/src/components/ChannelTargetEditor.tsx`
+- 修改：`web/src/panels/KeysPanel.tsx`
+- 修改：`web/src/panels/KeysPanel.test.tsx`
+- 修改：`web/src/panels/KeysPanel.channel-target.test.tsx`
+
+- [x] **步骤 1：先写保存边界失败测试**
+
+`planKeySave` 纯函数测试和 KeysPanel 弹窗真实保存测试同时复现：
+`suppliers=[" Gemini ", "gemini"]` 与 `auth_ids=[" f1 ", "f1"]` 被原样提交。
+
+- [x] **步骤 2：抽取共享规范化并接入读取/保存边界**
+
+`normalizeProviders` / `normalizeAuthIDs` / `normalizeChannelTarget` 集中到
+`web/src/channelTarget.ts`；`ChannelTargetEditor`、`normalizeBinding` 和 `planKeySave`
+复用同一语义。
+
+- [x] **步骤 3：确认绿灯与全量安全网**
+
+```bash
+bun run --cwd web test
+bun run --cwd web typecheck
+VITE_HOSTED=1 bun run --cwd web build
+go test ./...
+git diff --check
+```
+
+结果：11 个前端测试文件 / 47 个测试全部 PASS；TypeScript、生产构建、Go 全量测试与 diff 检查均 PASS。
+
+- [x] **步骤 4：提交审查修复**
+
+```bash
+git commit -m "fix(review): 规范化渠道定向保存载荷"
+```
+
+---
+
 ## 验收与收尾
 
-### 任务 10：验收（acceptance-qa）
+### 任务 15：修复后验收（acceptance-qa）
 
 > 本任务由 executing-plans 收尾审查阶段触发 acceptance-qa 按下表执行，
 > 不参与逐任务连续执行；报告与证据落盘特性目录 `acceptance/` 子目录。
 
 | Scenario / 检查项 | 维度 | 执行方式 | 目标 | 阈值/预期 | 验收证据 |
 |-------------------|------|---------|------|----------|---------|
-| 定向请求实际落在目标认证文件 | e2e | 验收任务 (D) | 已加载本分支插件的 CPA：`POST /v1/messages`；绑定 `CPA_SMOKE_CLIENT_KEY` 到从 `GET /v0/management/auth-files` 选定的唯一 auth ID | `make smoke-local` 基线通过；目标请求 2xx 或目标凭据自身上游错误，CPA request-log 中 auth ID 等于绑定 ID，日志中不出现池外 auth ID | `acceptance/channel-target-live.md` + 脱敏 request-log 摘要 |
-| 池内凭据全冷却时收到 429 且不落池外 | e2e | 验收任务 (D) | 同一 CPA，将定向池唯一凭据置于可恢复冷却状态后请求相同模型 | HTTP 429；JSON `error.code=model_cooldown`；`Retry-After` 非空；request-log 无池外 auth ID | `acceptance/channel-target-cooldown.md` |
-| fast 关闭后上游收到普通请求 | e2e | 验收任务 (D) | `POST /v1/messages` 同时发送 `speed:"fast"` 与 `anthropic-beta: fast-mode-2026-02-01,prompt-caching-2024`，key 的 `fast_allowed=false` | 上游/request-log 捕获 body 无 `speed`；beta 仅剩 `prompt-caching-2024`；请求结果不因 Fast 标记被拒 | `acceptance/fast-strip-live.md` + 脱敏上游请求捕获 |
-| 定向 + fast 组合叠加 | e2e | 验收任务 (D) | 同一 key 同时 `channel_target.enabled=true`、`fast_allowed=false` 发 Claude 请求 | request-log auth ID 在定向池内，且上游 body/header 均无 Fast 标记；两机制均生效 | `acceptance/channel-target-fast-combined.md` |
-| 编辑表单全流程人工审查 | visual | 验收任务 (D) | `http://127.0.0.1:8317/v0/resource/plugins/model-mapper-plus/index.html` 的 Key 绑定新增/编辑弹窗 | 三个 Tabs 可切换；混选回显正确；总开关关闭后禁用但保留选择；组头全选/半选正确；失败提示可重试；表格摘要与 Fast 列正确；浅色/深色均无溢出 | `acceptance/ui-light.png`、`acceptance/ui-dark.png`、`acceptance/ui-review.md` |
+| 定向请求实际落在目标认证文件 | e2e | 验收任务 (D) | 已加载修复后插件的 CPA：`POST /v1/messages`；绑定 `CPA_SMOKE_CLIENT_KEY` 到从 auth-files 选定的唯一 ID | 目标请求 2xx 或目标凭据自身上游错误；request-log auth ID 等于绑定 ID，且无池外 ID | `acceptance/channel-target-live.md` |
+| 目标 cooldown、池外 active 时收到 503 且不落池外 | e2e | 验收任务 (D) | 只使用可安全恢复的测试凭据制造“目标 cooldown + 池外 active” | HTTP 503；request-log 无池外 auth ID；无安全 fixture 时保持 DEFERRED，并记录单元替代证据与可复跑步骤 | `acceptance/channel-target-cooldown.md` |
+| 目标低优先级、池外高优先级时收到 503 且不落池外 | integration/e2e | 验收任务 (D) | 可控 fixture 把目标设为低优先级、池外设为高优先级，确认宿主只把高优先级层交给 Scheduler | HTTP 503；不选择缺席目标，也不使用池外 AuthID；若 live 不可安全构造，用 host 集成 fixture 并明确证据性质 | `acceptance/channel-target-priority.md` |
+| v7.2.119 与本地 v7.2.139 三协议错误兼容对比 | integration/e2e | 验收任务 (D) | 两个 `/tmp` 宿主实例分别请求 `/v1/chat/completions`、`/v1/responses`、`/v1/messages`，绑定到不存在的 auth ID 形成安全池空 | 六次请求均 HTTP 503；OpenAI/Codex 均 `error.code=auth_not_found`；Claude 均 `error.type=auth_not_found`；版本差异逐项记录 | `acceptance/host-version-compat.md` |
+| fast 关闭后上游收到普通请求 | e2e | 验收任务 (D) | Claude 请求同时携带 `speed:"fast"` 与 fast beta，binding `fast_allowed=false` | 上游 body 无 speed；beta 仅保留其他 token | `acceptance/fast-strip-live.md` |
+| 定向 + fast 组合叠加 | e2e | 验收任务 (D) | 同一 key 同时开启 channel target、关闭 Fast | request-log auth ID 在池内，且上游 body/header 无 Fast 标记 | `acceptance/channel-target-fast-combined.md` |
+| 编辑表单全流程人工审查 | visual | 验收任务 (D) | Admin UI Key 绑定新增/编辑弹窗，含空数组 wire fixture 与大小写/空白变体 fixture | 三 Tabs、混选、禁用保留、组头状态、重试、摘要均正确；无崩溃/重复分组/误报缺失；浅色/深色无溢出 | `acceptance/ui-review.md`、`acceptance/ui-light.png`、`acceptance/ui-dark.png` |
 
-验收开始前把目标 key 的原始 binding JSON 写入 `acceptance/pre-state.json`；结束后原样 POST 恢复，原先不存在则 DELETE，并在每份 live 报告记录恢复结果。冷却状态只使用可恢复的测试凭据，验收结束确认恢复 active；无法安全制造冷却时该行标记 DEFERRED，不得用插件自造 429 冒充通过。
+双版本对比固定执行边界：
+
+```bash
+test -z "$(git -C /Users/flame/CLIProxyAPI status --porcelain=v1)"
+test "$(git -C /Users/flame/CLIProxyAPI describe --tags --always --dirty)" = "v7.2.139"
+test ! -e /tmp/cpa-channel-compat-model-mapper-plus
+mkdir -p /tmp/cpa-channel-compat-model-mapper-plus/v7.2.119 /tmp/cpa-channel-compat-model-mapper-plus/bin
+git -C /Users/flame/CLIProxyAPI archive v7.2.119 | tar -x -C /tmp/cpa-channel-compat-model-mapper-plus/v7.2.119
+(cd /tmp/cpa-channel-compat-model-mapper-plus/v7.2.119 && go build -o /tmp/cpa-channel-compat-model-mapper-plus/bin/cpa-v7.2.119 ./cmd/server)
+(cd /Users/flame/CLIProxyAPI && go build -mod=readonly -o /tmp/cpa-channel-compat-model-mapper-plus/bin/cpa-v7.2.139 ./cmd/server)
+test -z "$(git -C /Users/flame/CLIProxyAPI status --porcelain=v1)"
+```
+
+插件、配置、state、脱敏日志与两版本运行目录全部放入 `/tmp/cpa-channel-compat-model-mapper-plus/`；禁止运行未覆盖 `CPA_PLUGINS_DIR` 的 `make dev-so`，因为其默认路径会写入 `/Users/flame/CLIProxyAPI/plugins`。每个实例启动后先读取自身版本/注册状态，再用不存在的 auth ID 构造池空 binding，依次请求三个协议并保存 status/body；每轮结束恢复原 binding，停止实例。若当前本地宿主版本不再是 v7.2.139，停止并回写 spec/计划的对比版本，不用漂移版本冒充验收。
+
+验收开始前把目标 key 原 binding 写入 `acceptance/pre-state.json`；结束后原样 POST 恢复，原先不存在则 DELETE，并逐份记录恢复结果。不得修改真实 auth 文件来迁就测试；cooldown/优先级缺少安全 fixture 时按上表 DEFERRED。更新 `acceptance/acceptance-summary.md`，把已修复发现移入“已处置”，将确认的 cooldown/优先级与协议外形差异列为“已接受宿主边界”，并按复验结果重新计算总论。
+
+- [x] **提交验收证据**
+
+执行记录（2026-08-24）：T15 七行矩阵为 6 PASS、1 `UNVERIFIED / DEFERRED`；双版本三协议请求 6/6 通过，真实定向、Fast 剥离、组合路径与 UI 均通过。6 个 PASS 经独立对抗审计维持；UI 首轮因未持久化 CDP 结果被降级，补齐 `ui-run.json` 的 10 项 fail-fast 断言后复核恢复为维持。cooldown live 因只有一份 auth 且不得改写真实凭据状态未执行，race 替代证据与可复跑条件已落盘。
+
+```bash
+git add .spec-dev/2026-08-22-channel-target-and-fast-control/acceptance
+git commit -m "test(T15): 完成渠道定向修复复验"
+```
 
 ---
 
-### 任务 11：合并与清理
+### 任务 16：合并与清理
 
 **资源台账**（清理依据；写计划时预登记已知资源，执行中创建即追加；行格式 `- [ ] <类型>: <标识> —— <清理命令>`）：
 
 - [ ] worktree: `.worktrees/plan/2026-08-22-channel-target-and-fast-control` —— `git worktree remove .worktrees/plan/2026-08-22-channel-target-and-fast-control && git branch -d plan/2026-08-22-channel-target-and-fast-control`
+- [ ] 审查临时目录: `/tmp/cpa-channel-review.966s5j` —— `rm -rf /tmp/cpa-channel-review.966s5j`
+- [ ] 双版本兼容临时目录: `/tmp/cpa-channel-compat-model-mapper-plus` —— `rm -rf /tmp/cpa-channel-compat-model-mapper-plus`
+- [x] 验收临时目录: `/tmp/cpa-channel-target-acceptance.20260823` —— 已删除（含凭据副本与原始日志）
+- [x] 验收容器: `cpa-channel-target-acceptance` —— 已执行 `docker rm -f cpa-channel-target-acceptance`
+- [x] 视觉验收 Chrome: `--user-data-dir=/tmp/cpa-channel-target-acceptance.20260823/chrome-profile` —— 进程已终止，复查无残留
 
 台账总则：**清理只遍历本台账、台账外一律不动**（可疑残留只报告不删）；共享缓存（`~/.cargo`、pnpm store、npm cache 等）默认保留，仅用户显式要求清理时才登记入账；台账限定持久资源（容器、测试库/表、临时目录、后台服务），worktree 内构建产物随 worktree 删除自然回收、不入账。
 
-- [ ] **步骤 1：全量验证（安全网）与归属裁决**
+- [x] **步骤 1：全量验证（安全网）与归属裁决**
 
 在 worktree 内运行：
 
 ```bash
 go test ./...
 go test -race .
+go vet ./...
 make test-scripts
-npm --prefix web run typecheck
-npm --prefix web test
-VITE_HOSTED=1 npm --prefix web run build
+bun run --cwd web typecheck
+bun run --cwd web test
+VITE_HOSTED=1 bun run --cwd web build
 git diff --exit-code -- web/package-lock.json
 git diff --check
+test -z "$(git -C /Users/flame/CLIProxyAPI status --porcelain=v1)"
 ```
 
-- 全绿 → 进入步骤 2。
+- 除已裁决的既有 `make test-scripts` 单项 `FAIL: windows output not versioned` 外全绿 → 进入步骤 2；该命令若出现任何新增失败则仍按下述规则裁决。
 - 失败测试在相关测试范围内 → 修复并复跑全绿后进入步骤 2。
 - 失败测试在范围之外 → 归属裁决：在主工作区的源分支检出上复跑该测试（主工作区有未提交改动 → 先询问用户）。源分支同样失败 → 报告“既有失败”，请用户裁决是否阻塞合并；源分支通过 → 判定为本次引入的回归，修复并复跑全绿。
 
-- [ ] **步骤 2：测试退役检查**
+执行记录（2026-08-24）：修复与 T15 复验完成后再次执行完整安全网。`go test ./...`、`go test -race .`、`go vet ./...`、TypeScript typecheck、11 个前端测试文件 / 47 tests、生产 build、lockfile、diff 与 `/Users/flame/CLIProxyAPI` clean 检查全部通过；build 只有 `lottie-web` 既有 direct-eval warning。`make test-scripts` 仍只出现已在源分支复现并获用户裁决为非阻塞的 `FAIL: windows output not versioned`，无新增失败。
+
+- [x] **步骤 2：测试退役检查**
 
 扫描 `state_test.go`、`main_test.go`、`scheduler_test.go`、`fast_strip_test.go`、`management_test.go`、`web/src/api.test.ts`、`web/src/components/ChannelTargetEditor.test.tsx`、`web/src/panels/KeysPanel*.test.tsx`：仅当测试名对不上任何 active spec 的现行 Scenario，且对应 Requirement 已 REMOVED、带 `Superseded` 标注或所属 spec 已 superseded 时才列为候选。候选非空先征询用户；用户未确认不删除。无候选则记录“无孤儿测试”。
 
-- [ ] **步骤 3：取代回写**
+执行记录：无孤儿测试。
+
+- [x] **步骤 3：取代回写**
 
 本 spec 的 `supersedes: []`，声明“无取代回写”后跳过。
+
+执行记录：无取代回写。
 
 - [ ] **步骤 4：合并回来源分支**
 
@@ -2295,14 +2900,16 @@ git commit -m "chore(spec): sync_commit 锚定 ${SYNC:0:7}"
 | 渠道定向候选池过滤：供应商整选动态入池 | 任务 3 `供应商整选动态入池` |
 | 渠道定向候选池过滤：池内多凭据轮转分摊 | 任务 3 `池内多凭据轮转分摊` |
 | 渠道定向候选池过滤：无法识别上下文时 fail-open | 任务 3 `无法识别上下文时 fail-open` |
-| 定向池空：池内候选全部不可用 | 任务 3 `池内候选全部不可用` + 任务 10 live |
-| 定向池空：全部冷却走宿主原生应答 | 任务 3 `全部冷却走宿主原生应答` + 任务 10 live |
+| 定向池空：池内候选全部不可用 | 任务 11 `池内候选全部不可用时返回协议兼容 JSON 错误` + 任务 15 双版本三协议对比 |
+| 定向池空：目标冷却但池外仍可用 | 任务 11 `目标 cooldown、池外 active 时不越池` + 任务 15 cooldown live/DEFERRED |
+| 定向池空：目标被全局优先级收窄排除 | 任务 11 `目标低优先级、池外高优先级时不越池` + 任务 15 优先级集成/e2e |
 | 定向开启跳过规则映射：定向时模型名不被改写 | 任务 2 `定向时模型名不被改写` |
 | 定向响应：非流式还原 | 任务 5 `非流式还原` |
 | 定向响应：流式透传 | 任务 5 `流式透传` |
 | Fast 关闭：仅 body 带 speed | 任务 4 `仅 body 带 speed` |
 | Fast 关闭：仅 beta 头标记 | 任务 4 `仅 beta 头标记` |
 | Fast 关闭：默认放行 | 任务 4 `默认放行` |
+| Fast 关闭：热更新不混用绑定快照 | 任务 12 `TestFastBlockedUsesSingleRuleSourceSnapshot` |
 | KeyBinding：存量文件零迁移加载 | 任务 1 `存量文件零迁移加载` |
 | KeyBinding：校验拒绝重复 ID | 任务 6 `校验拒绝重复 ID` |
 | 管理面：PATCH 局部更新 fast_allowed | 任务 6 `PATCH 局部更新 fast_allowed` |
@@ -2311,18 +2918,21 @@ git commit -m "chore(spec): sync_commit 锚定 ${SYNC:0:7}"
 | Admin UI：双区块混选回显 | 任务 8 `双区块混选回显` |
 | Admin UI：总开关关闭置灰 | 任务 8 `总开关关闭置灰` |
 | Admin UI：auth-files 加载失败 | 任务 9 `auth-files 加载失败` |
-| 验收矩阵五条“验收任务” | 任务 10 逐行承载，目标、阈值与证据路径已补齐 |
+| Admin UI：合法缺失数组的表格回显 | 任务 13 参数化 wire 形状测试 |
+| Admin UI：provider 与 auth ID 规范化一致 | 任务 14 `provider 与 auth ID 规范化一致` |
+| 验收矩阵七条“验收任务” | 任务 15 逐行承载，目标、阈值、只读宿主边界与证据路径已补齐 |
 
-Spec 没有 ADDED/MODIFIED/REMOVED 差量三节；无需另建删除或迁移任务。风险节中的 Scheduler 单实例限制由任务 9 README 与任务 10 live 验收覆盖；Headers 通路由任务 3/5 单元契约和任务 10 live 共同覆盖。
+Spec 没有 ADDED/MODIFIED/REMOVED 差量三节；无需另建删除或迁移任务。风险节中的 Scheduler 单实例限制由任务 9 README 与任务 15 live 验收覆盖；宿主 cooldown/优先级预过滤边界由任务 11 单元回归与任务 15 integration/e2e 共同覆盖；v7.2.119/v7.2.139 错误转换由任务 15 三协议对比覆盖。
 
 ### 占位符扫描
 
-计划中每个实施任务均给出精确路径、失败测试代码、红灯命令、最小实现代码、绿灯命令与提交命令；未发现空实现指令。
+任务 1–9 保留已执行的原始 TDD 记录，任务 11–14 均给出精确路径、失败测试代码、红灯命令、最小实现代码、绿灯命令与提交命令；任务 15 给出完整验收矩阵、固定双版本构建边界、恢复纪律与证据提交命令。未发现空实现指令。
 
 ### 类型一致性
 
 - Go 全链路统一使用 `ChannelTarget.Suppliers` / `AuthIDs`、JSON `suppliers` / `auth_ids`；管理 preview 的 `resolvedChannelTarget` 只做响应形状转换。
-- 前端统一使用 `ChannelTarget.enabled/suppliers/auth_ids` 与 `CpaAuthFile.id/provider/status/disabled/label`；`KeysPanel` 与 `ChannelTargetEditor` props 完全一致。
-- Scheduler 全链路统一使用 `pluginapi.SchedulerPickRequest` / `SchedulerAuthCandidate` / `SchedulerPickResponse`；池空只走 `pluginMethodError`，不与正常 `Handled=false` 混用。
+- 前端统一使用 `ChannelTarget.enabled/suppliers/auth_ids` 与 `CpaAuthFile.id/provider/status/disabled/label`；`KeysPanel` 在 wire 边界用 optional chaining 容错，编辑器入口立即规范化为完整数组，props 不变。
+- Scheduler 全链路统一使用 `pluginapi.SchedulerPickRequest` / `SchedulerAuthCandidate` / `SchedulerPickResponse`；池空只走 `pluginMethodError`，message 固定为 JSON，不与正常 `Handled=false` 混用。
+- request interceptor 生产签名不变；新增 `handleRequestInterceptBeforeWithRuleSource` 只提供 loader seam，并让 blocked/Fast 共享局部 `src`。
 - Response hook 统一使用 `pluginabi.MethodResponseInterceptAfter` 与 `pluginapi.ResponseInterceptRequest/Response`；没有引入 stream-chunk capability。
-- 任务 0 分支名、任务 11 merge/清理分支名与 worktree 路径一致。
+- 任务 0 分支名、任务 16 merge/清理分支名与 worktree 路径一致；`/Users/flame/CLIProxyAPI` 只读约束贯穿全局、任务 15 与任务 16 安全网。

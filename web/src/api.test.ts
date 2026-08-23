@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
-import { api, StateResponse } from './api'
+import { api, listCpaAuthFiles, StateResponse } from './api'
 
 /**
  * CPA 宿主对插件 management 响应统一跑 html.EscapeString
@@ -119,5 +119,48 @@ describe('api：还原 CPA 宿主的 HTML 实体转义', () => {
     stubFetch({ error: 'rules.global: invalid rule &quot;a=&gt;&quot;' }, 400)
 
     await expect(api.getState()).rejects.toThrow('rules.global: invalid rule &quot;a=>&quot;')
+  })
+})
+
+describe('api：渠道定向与 Fast', () => {
+  it('auth-files 解包 files 并携带管理密钥', async () => {
+    const fetchMock = vi.fn(async (_input: RequestInfo | URL, _init?: RequestInit) => ({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        files: [{ id: 'f1', provider: 'gemini', status: 'active', disabled: false, label: 'Gemini Main' }],
+      }),
+    }))
+    vi.stubGlobal('fetch', fetchMock)
+
+    await expect(listCpaAuthFiles()).resolves.toEqual([
+      { id: 'f1', provider: 'gemini', status: 'active', disabled: false, label: 'Gemini Main' },
+    ])
+    expect(fetchMock).toHaveBeenCalledWith('/v0/management/auth-files', expect.objectContaining({
+      headers: expect.objectContaining({ Authorization: expect.stringMatching(/^Bearer /) }),
+    }))
+  })
+
+  it('auth-files 非 2xx 返回可显示错误', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => ({ ok: false, status: 503, json: async () => ({}) })))
+    await expect(listCpaAuthFiles()).rejects.toThrow('读取 CPA auth-files 失败：HTTP 503')
+  })
+
+  it('PATCH 可发送 false 与完整渠道定向对象', async () => {
+    const fetchMock = vi.fn(async (_input: RequestInfo | URL, _init?: RequestInit) => ({
+      ok: true,
+      status: 200,
+      text: async () => JSON.stringify(BASE_STATE),
+    }))
+    vi.stubGlobal('fetch', fetchMock)
+    await api.patchKey('sk-k', {
+      fast_allowed: false,
+      channel_target: { enabled: true, suppliers: ['gemini'], auth_ids: ['f1'] },
+    })
+    const init = fetchMock.mock.calls[0][1] as RequestInit
+    expect(JSON.parse(String(init.body))).toEqual({
+      fast_allowed: false,
+      channel_target: { enabled: true, suppliers: ['gemini'], auth_ids: ['f1'] },
+    })
   })
 })
