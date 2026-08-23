@@ -71,13 +71,13 @@ npm --prefix web test -- src/api.test.ts src/panels/KeysPanel.test.tsx src/panel
 
 ### 任务 0：建立隔离工作区
 
-- [ ] **步骤 1：检测已有隔离**
+- [x] **步骤 1：检测已有隔离**
 
 运行：`git rev-parse --git-dir` 与 `git rev-parse --git-common-dir`
 两者不同、且 `git rev-parse --show-superproject-working-tree` 无输出（排除 submodule）
 → 已在隔离工作区，跳过本任务。
 
-- [ ] **步骤 2：建立 worktree**
+- [x] **步骤 2：建立 worktree**
 
 有原生 worktree 工具（如 EnterWorktree）或 using-git-worktrees skill 时优先使用（Codex 无原生 worktree 工具，直接走下面的手工路径）；否则手工降级：
 确认 `.worktrees/` 已被忽略（`git check-ignore -q .worktrees`，未忽略先加入 `.gitignore` 并提交），然后：
@@ -87,7 +87,7 @@ git worktree add .worktrees/plan/2026-08-22-channel-target-and-fast-control -b p
 cd .worktrees/plan/2026-08-22-channel-target-and-fast-control
 ```
 
-- [ ] **步骤 3：安装依赖并验证基线**
+- [x] **步骤 3：安装依赖并验证基线**
 
 ```bash
 go mod download
@@ -99,6 +99,8 @@ git diff --exit-code -- go.mod go.sum web/package-lock.json
 ```
 
 预期：全部 exit 0。基线测试失败 → 停下报告，先问再继续；声明命令不可用时回退 `go test ./... && npm --prefix web test` 并记录计划测试范围失效。
+
+执行记录（2026-08-23）：环境未提供 Node/npm，使用已有 Bun 1.4.0 执行 `bun install --cwd web --no-save --frozen-lockfile`、`bun run --cwd web typecheck` 与对应 Vitest 脚本；Go 全包测试、typecheck、3 个基线测试文件（18 tests）均通过，项目既有锁文件无变化，Bun 临时生成的 `web/bun.lock` 已删除。
 
 ---
 
