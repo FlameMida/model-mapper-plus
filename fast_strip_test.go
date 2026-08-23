@@ -91,3 +91,39 @@ func TestFastAllowedRequestRewrite(t *testing.T) {
 		}
 	})
 }
+
+func TestFastBlockedUsesSingleRuleSourceSnapshot(t *testing.T) {
+	setupBlockedInterceptTest(t, Config{Enabled: true}, nil)
+	raw, err := json.Marshal(pluginapi.RequestInterceptRequest{
+		SourceFormat: "claude",
+		Headers:      http.Header{"Authorization": {"Bearer sk-k"}},
+		Body:         []byte(`{"model":"m","speed":"fast"}`),
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	fastOff := false
+	calls := 0
+	load := func() ruleSource {
+		calls++
+		if calls == 1 {
+			return ruleSource{KeyBindings: []KeyBinding{{Key: "sk-k", FastAllowed: &fastOff}}}
+		}
+		return ruleSource{KeyBindings: []KeyBinding{{Key: "sk-k", Blocked: true}}}
+	}
+	result, err := handleRequestInterceptBeforeWithRuleSource(raw, load)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var resp pluginapi.RequestInterceptResponse
+	if err := json.Unmarshal(result, &resp); err != nil {
+		t.Fatal(err)
+	}
+	if calls != 1 {
+		t.Fatalf("rule source loads = %d, want 1", calls)
+	}
+	if resp.Terminate || string(resp.Body) != `{"model":"m"}` {
+		t.Fatalf("response mixed snapshots: %+v body=%s", resp, resp.Body)
+	}
+}

@@ -2363,7 +2363,7 @@ git commit -m "fix(T11): 兼容渠道池空协议错误"
 - 产出：`handleRequestInterceptBeforeWithRuleSource(raw []byte, load func() ruleSource) ([]byte, error)` 测试 seam
 - 保持：生产入口 `handleRequestInterceptBefore(raw []byte)` 的签名与 ABI dispatch 不变
 
-- [ ] **步骤 1：写失败测试**
+- [x] **步骤 1：写失败测试**
 
 在 `fast_strip_test.go` 追加：
 
@@ -2405,7 +2405,7 @@ func TestFastBlockedUsesSingleRuleSourceSnapshot(t *testing.T) {
 }
 ```
 
-- [ ] **步骤 2：运行测试确认失败**
+- [x] **步骤 2：运行测试确认失败**
 
 ```bash
 go test . -run TestFastBlockedUsesSingleRuleSourceSnapshot -v
@@ -2413,7 +2413,7 @@ go test . -run TestFastBlockedUsesSingleRuleSourceSnapshot -v
 
 预期：FAIL，编译错误包含 `undefined: handleRequestInterceptBeforeWithRuleSource`。
 
-- [ ] **步骤 3：写最小实现**
+- [x] **步骤 3：写最小实现**
 
 把 `main.go` 的现有 handler 拆为生产薄入口与可注入 loader 的实现：
 
@@ -2457,7 +2457,7 @@ func handleRequestInterceptBeforeWithRuleSource(raw []byte, load func() ruleSour
 }
 ```
 
-- [ ] **步骤 4：运行测试确认通过**
+- [x] **步骤 4：运行测试确认通过**
 
 ```bash
 gofmt -w main.go fast_strip_test.go
@@ -2467,7 +2467,7 @@ go test -race . -run 'TestFastBlockedUsesSingleRuleSourceSnapshot|TestFastAllowe
 
 预期：全部 PASS；注入 loader 只调用一次，blocked 既有 403 与 Fast 剥离行为不变。
 
-- [ ] **步骤 5：提交**
+- [x] **步骤 5：提交**
 
 ```bash
 git add main.go fast_strip_test.go

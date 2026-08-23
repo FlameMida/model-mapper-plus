@@ -721,6 +721,10 @@ func stripFastBody(body []byte) ([]byte, bool, error) {
 }
 
 func handleRequestInterceptBefore(raw []byte) ([]byte, error) {
+	return handleRequestInterceptBeforeWithRuleSource(raw, loadedRuleSource)
+}
+
+func handleRequestInterceptBeforeWithRuleSource(raw []byte, load func() ruleSource) ([]byte, error) {
 	var req pluginapi.RequestInterceptRequest
 	if err := json.Unmarshal(raw, &req); err != nil {
 		return nil, err
@@ -728,8 +732,9 @@ func handleRequestInterceptBefore(raw []byte) ([]byte, error) {
 	if !loadedConfig().Enabled {
 		return json.Marshal(pluginapi.RequestInterceptResponse{})
 	}
+	src := load()
 	apiKey := apiKeyFromHeaders(req.Headers)
-	if _, blocked := findBlockedKeyBinding(loadedRuleSource().KeyBindings, apiKey); blocked {
+	if _, blocked := findBlockedKeyBinding(src.KeyBindings, apiKey); blocked {
 		return json.Marshal(pluginapi.RequestInterceptResponse{
 			Terminate:       true,
 			StatusCode:      http.StatusForbidden,
@@ -737,7 +742,7 @@ func handleRequestInterceptBefore(raw []byte) ([]byte, error) {
 			ResponseBody:    []byte(blockedQuotaExhaustedBody),
 		})
 	}
-	binding, exists := findKeyBindingByKey(loadedRuleSource().KeyBindings, apiKey)
+	binding, exists := findKeyBindingByKey(src.KeyBindings, apiKey)
 	if !exists || binding.FastAllowed == nil || *binding.FastAllowed || !strings.EqualFold(req.SourceFormat, "claude") {
 		return json.Marshal(pluginapi.RequestInterceptResponse{})
 	}
