@@ -17,6 +17,35 @@ const VALUE: ChannelTarget = {
 }
 
 describe('ChannelTargetEditor', () => {
+  it('provider 与 auth ID 规范化一致', async () => {
+    const user = userEvent.setup()
+    const onChange = vi.fn()
+    render(<ChannelTargetEditor
+      value={{ enabled: true, suppliers: [' Gemini ', 'gemini'], auth_ids: [' f1 ', 'f1'] }}
+      authFiles={[
+        { id: 'f1', provider: 'gemini', status: 'active', disabled: false, label: 'lower' },
+        { id: 'F1', provider: 'GEMINI', status: 'active', disabled: false, label: 'upper' },
+      ]}
+      loading={false}
+      error=""
+      onChange={onChange}
+      onRetry={vi.fn()}
+    />)
+
+    expect(screen.getAllByLabelText(/^供应商 /)).toHaveLength(1)
+    expect(screen.getByLabelText('供应商 Gemini')).toBeChecked()
+    expect(screen.getByLabelText('认证文件 f1')).toBeChecked()
+    expect(screen.getByLabelText('认证文件 F1')).not.toBeChecked()
+    expect(screen.queryByText('已保存但 CPA 当前未返回：')).not.toBeInTheDocument()
+
+    await user.click(screen.getByLabelText('认证文件 f1'))
+    expect(onChange).toHaveBeenLastCalledWith({
+      enabled: true,
+      suppliers: ['Gemini'],
+      auth_ids: [],
+    })
+  })
+
   it('双区块混选回显', () => {
     render(<ChannelTargetEditor
       value={VALUE}

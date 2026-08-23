@@ -2560,7 +2560,7 @@ git commit -m "fix(T13): 容忍定向摘要缺失数组"
 - 产出：`normalizeAuthFiles(files: readonly CpaAuthFile[]) CpaAuthFile[]`，ID/provider trim、按大小写敏感 ID 保留首条
 - 保持：`ChannelTargetEditor` props 与任务 8 一致
 
-- [ ] **步骤 1：写失败测试**
+- [x] **步骤 1：写失败测试**
 
 在 `ChannelTargetEditor.test.tsx` 追加：
 
@@ -2580,13 +2580,13 @@ git commit -m "fix(T13): 容忍定向摘要缺失数组"
       onRetry={vi.fn()}
     />)
 
-    expect(screen.getAllByRole('checkbox', { name: /^供应商 / })).toHaveLength(1)
-    expect(screen.getByRole('checkbox', { name: '供应商 Gemini' })).toBeChecked()
-    expect(screen.getByRole('checkbox', { name: '认证文件 f1' })).toBeChecked()
-    expect(screen.getByRole('checkbox', { name: '认证文件 F1' })).not.toBeChecked()
+    expect(screen.getAllByLabelText(/^供应商 /)).toHaveLength(1)
+    expect(screen.getByLabelText('供应商 Gemini')).toBeChecked()
+    expect(screen.getByLabelText('认证文件 f1')).toBeChecked()
+    expect(screen.getByLabelText('认证文件 F1')).not.toBeChecked()
     expect(screen.queryByText('已保存但 CPA 当前未返回：')).not.toBeInTheDocument()
 
-    await user.click(screen.getByRole('checkbox', { name: '认证文件 f1' }))
+    await user.click(screen.getByLabelText('认证文件 f1'))
     expect(onChange).toHaveBeenLastCalledWith({
       enabled: true,
       suppliers: ['Gemini'],
@@ -2595,7 +2595,7 @@ git commit -m "fix(T13): 容忍定向摘要缺失数组"
   })
 ```
 
-- [ ] **步骤 2：运行测试确认失败**
+- [x] **步骤 2：运行测试确认失败**
 
 ```bash
 bun run --cwd web test -- src/components/ChannelTargetEditor.test.tsx
@@ -2603,7 +2603,7 @@ bun run --cwd web test -- src/components/ChannelTargetEditor.test.tsx
 
 预期：FAIL；当前实现产生两个 provider checkbox，`" f1 "` 被误报缺失且未正确回显。
 
-- [ ] **步骤 3：写最小实现**
+- [x] **步骤 3：写最小实现**
 
 把 `ChannelTargetEditor.tsx` 的 `sortedUnique` 替换为：
 
@@ -2707,7 +2707,7 @@ onChange={(event) => {
 }}
 ```
 
-- [ ] **步骤 4：运行测试确认通过**
+- [x] **步骤 4：运行测试确认通过**
 
 ```bash
 bun run --cwd web test -- src/components/ChannelTargetEditor.test.tsx src/panels/KeysPanel.channel-target.test.tsx
@@ -2718,7 +2718,7 @@ git diff --exit-code -- web/package-lock.json
 
 预期：全部 PASS；provider 只有一个 `Gemini` 分组，f1 正确回显且不误报缺失，F1 作为大小写不同的独立 auth ID 保留，所有 `onChange` 数组均 trim 且无 canonical 重复。
 
-- [ ] **步骤 5：提交**
+- [x] **步骤 5：提交**
 
 ```bash
 git add web/src/components/ChannelTargetEditor.tsx web/src/components/ChannelTargetEditor.test.tsx web/dist/index.html

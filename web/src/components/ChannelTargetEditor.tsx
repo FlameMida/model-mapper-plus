@@ -10,8 +10,43 @@ interface Props {
   onRetry: () => void
 }
 
-function sortedUnique(values: string[]): string[] {
-  return Array.from(new Set(values.filter((value) => value.trim() !== ''))).sort((a, b) => a.localeCompare(b))
+function normalizedUniqueStrings(values: readonly string[], foldCase: boolean): string[] {
+  const seen = new Set<string>()
+  const result: string[] = []
+  for (const raw of values) {
+    const value = raw.trim()
+    if (!value) continue
+    const key = foldCase ? value.toLowerCase() : value
+    if (seen.has(key)) continue
+    seen.add(key)
+    result.push(value)
+  }
+  return result.sort((a, b) => a.localeCompare(b))
+}
+
+function normalizeProviders(values: readonly string[]): string[] {
+  return normalizedUniqueStrings(values, true)
+}
+
+function normalizeAuthIDs(values: readonly string[]): string[] {
+  return normalizedUniqueStrings(values, false)
+}
+
+function providerKey(value: string): string {
+  return value.trim().toLowerCase()
+}
+
+function normalizeAuthFiles(files: readonly CpaAuthFile[]): CpaAuthFile[] {
+  const seen = new Set<string>()
+  const result: CpaAuthFile[] = []
+  for (const file of files) {
+    const id = file.id.trim()
+    const provider = file.provider.trim()
+    if (!id || !provider || seen.has(id)) continue
+    seen.add(id)
+    result.push({ ...file, id, provider })
+  }
+  return result
 }
 
 function authStatus(file: CpaAuthFile) {
@@ -21,21 +56,32 @@ function authStatus(file: CpaAuthFile) {
 }
 
 export default function ChannelTargetEditor({ value, authFiles, loading, error, onChange, onRetry }: Props) {
-  const providers = sortedUnique([...value.suppliers, ...authFiles.map((file) => file.provider)])
-  const knownAuthIDs = new Set(authFiles.map((file) => file.id))
-  const missingAuthIDs = value.auth_ids.filter((id) => !knownAuthIDs.has(id))
+  const selectedSuppliers = normalizeProviders(value.suppliers)
+  const selectedAuthIDs = normalizeAuthIDs(value.auth_ids)
+  const normalizedFiles = normalizeAuthFiles(authFiles)
+  const providers = normalizeProviders([
+    ...selectedSuppliers,
+    ...normalizedFiles.map((file) => file.provider),
+  ])
+  const knownAuthIDs = new Set(normalizedFiles.map((file) => file.id))
+  const missingAuthIDs = selectedAuthIDs.filter((id) => !knownAuthIDs.has(id))
   const grouped = providers.map((provider) => ({
     provider,
-    files: authFiles
-      .filter((file) => file.provider.toLowerCase() === provider.toLowerCase())
+    files: normalizedFiles
+      .filter((file) => providerKey(file.provider) === providerKey(provider))
       .sort((a, b) => a.id.localeCompare(b.id)),
   }))
 
-  const setSuppliers = (suppliers: string[]) => onChange({ ...value, suppliers: sortedUnique(suppliers) })
-  const setAuthIDs = (authIDs: string[]) => onChange({ ...value, auth_ids: sortedUnique(authIDs) })
+  const emit = (enabled: boolean, suppliers: readonly string[], authIDs: readonly string[]) => onChange({
+    enabled,
+    suppliers: normalizeProviders(suppliers),
+    auth_ids: normalizeAuthIDs(authIDs),
+  })
+  const setSuppliers = (suppliers: string[]) => emit(value.enabled, suppliers, selectedAuthIDs)
+  const setAuthIDs = (authIDs: string[]) => emit(value.enabled, selectedSuppliers, authIDs)
 
   const toggleAuthGroup = (ids: string[], checked: boolean) => {
-    const next = new Set(value.auth_ids)
+    const next = new Set(selectedAuthIDs)
     for (const id of ids) {
       if (checked) next.add(id)
       else next.delete(id)
@@ -49,7 +95,7 @@ export default function ChannelTargetEditor({ value, authFiles, loading, error, 
         <Switch
           aria-label="渠道定向总开关"
           checked={value.enabled}
-          onChange={(enabled) => onChange({ ...value, enabled })}
+          onChange={(enabled) => emit(enabled, selectedSuppliers, selectedAuthIDs)}
         />{' '}
         渠道定向
       </span>
@@ -63,7 +109,7 @@ export default function ChannelTargetEditor({ value, authFiles, loading, error, 
           aria-label="AI 供应商"
           direction="horizontal"
           disabled={!value.enabled}
-          value={value.suppliers}
+          value={selectedSuppliers}
           onChange={(items) => setSuppliers(items.map(String))}
         >
           {providers.map((provider) => (
@@ -102,7 +148,7 @@ export default function ChannelTargetEditor({ value, authFiles, loading, error, 
           <Collapse defaultActiveKey={providers} keepDOM>
             {grouped.map(({ provider, files }) => {
               const ids = files.map((file) => file.id)
-              const selectedCount = ids.filter((id) => value.auth_ids.includes(id)).length
+              const selectedCount = ids.filter((id) => selectedAuthIDs.includes(id)).length
               const allChecked = ids.length > 0 && selectedCount === ids.length
               return (
                 <Collapse.Panel
@@ -127,9 +173,9 @@ export default function ChannelTargetEditor({ value, authFiles, loading, error, 
                         key={file.id}
                         aria-label={`认证文件 ${file.id}`}
                         disabled={!value.enabled}
-                        checked={value.auth_ids.includes(file.id)}
+                        checked={selectedAuthIDs.includes(file.id)}
                         onChange={(event) => {
-                          const next = new Set(value.auth_ids)
+                          const next = new Set(selectedAuthIDs)
                           if (event.target.checked) next.add(file.id)
                           else next.delete(file.id)
                           setAuthIDs(Array.from(next))
