@@ -1602,7 +1602,7 @@ git commit -m "feat(T7): 前端接入定向与 auth-files 类型"
 - 产出：`ChannelTargetEditor({value, authFiles, loading, error, onChange, onRetry})`
 - 产出：供应商 CheckboxGroup、按 provider 分组的认证文件 Collapse、组头全选/半选、总开关禁用态
 
-- [ ] **步骤 1：写失败测试**
+- [x] **步骤 1：写失败测试**
 
 创建 `web/src/components/ChannelTargetEditor.test.tsx`：
 
@@ -1693,7 +1693,7 @@ describe('ChannelTargetEditor', () => {
 })
 ```
 
-- [ ] **步骤 2：运行测试确认失败**
+- [x] **步骤 2：运行测试确认失败**
 
 ```bash
 npm --prefix web test -- src/components/ChannelTargetEditor.test.tsx
@@ -1701,7 +1701,7 @@ npm --prefix web test -- src/components/ChannelTargetEditor.test.tsx
 
 预期：FAIL，模块 `./ChannelTargetEditor` 不存在。
 
-- [ ] **步骤 3：写最小实现**
+- [x] **步骤 3：写最小实现**
 
 创建 `web/src/components/ChannelTargetEditor.tsx`：
 
@@ -1859,7 +1859,7 @@ export default function ChannelTargetEditor({ value, authFiles, loading, error, 
 }
 ```
 
-- [ ] **步骤 4：运行测试确认通过**
+- [x] **步骤 4：运行测试确认通过**
 
 ```bash
 npm --prefix web test -- src/components/ChannelTargetEditor.test.tsx
@@ -1868,7 +1868,7 @@ npm --prefix web run typecheck
 
 预期：PASS；总开关关闭后两个区块中的 checkbox 均 disabled，原选择仍 checked。
 
-- [ ] **步骤 5：提交**
+- [x] **步骤 5：提交**
 
 ```bash
 git add web/src/components/ChannelTargetEditor.tsx web/src/components/ChannelTargetEditor.test.tsx
