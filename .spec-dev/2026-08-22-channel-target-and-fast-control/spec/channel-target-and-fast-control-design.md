@@ -16,7 +16,7 @@ spec_dev:
     - "web/src/panels/KeysPanel.tsx"
     - "web/src/components/ChannelTargetEditor.tsx"
     - "web/src/api.ts"
-  sync_commit: null
+  sync_commit: 00f481055783d8bce9fcc632fbfdcab5ccd0cf39
   supersedes: []
   superseded_by: null
 ---
