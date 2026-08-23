@@ -2725,6 +2725,48 @@ git add web/src/components/ChannelTargetEditor.tsx web/src/components/ChannelTar
 git commit -m "fix(T14): 统一渠道选项规范化"
 ```
 
+### 审查处置 14A：补齐渠道定向保存边界规范化
+
+> 第二轮审查确认：任务 14 只在编辑器派生显示与 `emit` 路径规范化，
+> 用户不操作渠道页直接保存时，`planKeySave` 仍会提交原始数组。
+> 用户选择修复；独立反证审查确认为低严重性，但违反本 spec 的保存 `SHALL`。
+
+**文件**：
+- 新增：`web/src/channelTarget.ts`
+- 修改：`web/src/components/ChannelTargetEditor.tsx`
+- 修改：`web/src/panels/KeysPanel.tsx`
+- 修改：`web/src/panels/KeysPanel.test.tsx`
+- 修改：`web/src/panels/KeysPanel.channel-target.test.tsx`
+
+- [x] **步骤 1：先写保存边界失败测试**
+
+`planKeySave` 纯函数测试和 KeysPanel 弹窗真实保存测试同时复现：
+`suppliers=[" Gemini ", "gemini"]` 与 `auth_ids=[" f1 ", "f1"]` 被原样提交。
+
+- [x] **步骤 2：抽取共享规范化并接入读取/保存边界**
+
+`normalizeProviders` / `normalizeAuthIDs` / `normalizeChannelTarget` 集中到
+`web/src/channelTarget.ts`；`ChannelTargetEditor`、`normalizeBinding` 和 `planKeySave`
+复用同一语义。
+
+- [x] **步骤 3：确认绿灯与全量安全网**
+
+```bash
+bun run --cwd web test
+bun run --cwd web typecheck
+VITE_HOSTED=1 bun run --cwd web build
+go test ./...
+git diff --check
+```
+
+结果：11 个前端测试文件 / 47 个测试全部 PASS；TypeScript、生产构建、Go 全量测试与 diff 检查均 PASS。
+
+- [x] **步骤 4：提交审查修复**
+
+```bash
+git commit -m "fix(review): 规范化渠道定向保存载荷"
+```
+
 ---
 
 ## 验收与收尾

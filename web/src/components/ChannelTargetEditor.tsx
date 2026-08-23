@@ -1,5 +1,6 @@
 import { Banner, Button, Checkbox, CheckboxGroup, Collapse, Spin, Switch, Tag, Typography } from '@douyinfe/semi-ui'
 import { ChannelTarget, CpaAuthFile } from '../api'
+import { normalizeAuthIDs, normalizeChannelTarget, normalizeProviders, providerKey } from '../channelTarget'
 
 interface Props {
   value: ChannelTarget
@@ -8,32 +9,6 @@ interface Props {
   error: string
   onChange: (value: ChannelTarget) => void
   onRetry: () => void
-}
-
-function normalizedUniqueStrings(values: readonly string[], foldCase: boolean): string[] {
-  const seen = new Set<string>()
-  const result: string[] = []
-  for (const raw of values) {
-    const value = raw.trim()
-    if (!value) continue
-    const key = foldCase ? value.toLowerCase() : value
-    if (seen.has(key)) continue
-    seen.add(key)
-    result.push(value)
-  }
-  return result.sort((a, b) => a.localeCompare(b))
-}
-
-function normalizeProviders(values: readonly string[]): string[] {
-  return normalizedUniqueStrings(values, true)
-}
-
-function normalizeAuthIDs(values: readonly string[]): string[] {
-  return normalizedUniqueStrings(values, false)
-}
-
-function providerKey(value: string): string {
-  return value.trim().toLowerCase()
 }
 
 function normalizeAuthFiles(files: readonly CpaAuthFile[]): CpaAuthFile[] {
@@ -72,11 +47,11 @@ export default function ChannelTargetEditor({ value, authFiles, loading, error, 
       .sort((a, b) => a.id.localeCompare(b.id)),
   }))
 
-  const emit = (enabled: boolean, suppliers: readonly string[], authIDs: readonly string[]) => onChange({
+  const emit = (enabled: boolean, suppliers: readonly string[], authIDs: readonly string[]) => onChange(normalizeChannelTarget({
     enabled,
-    suppliers: normalizeProviders(suppliers),
-    auth_ids: normalizeAuthIDs(authIDs),
-  })
+    suppliers,
+    auth_ids: authIDs,
+  }))
   const setSuppliers = (suppliers: string[]) => emit(value.enabled, suppliers, selectedAuthIDs)
   const setAuthIDs = (authIDs: string[]) => emit(value.enabled, selectedSuppliers, authIDs)
 

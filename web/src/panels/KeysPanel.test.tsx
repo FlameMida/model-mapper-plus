@@ -54,4 +54,21 @@ describe('审计 #12：编辑时改 key 应为重命名而非新增', () => {
     })
     expect(plan?.binding.fast_allowed).toBe(false)
   })
+
+  it('保存边界规范化 provider 与 auth ID', () => {
+    const plan = planKeySave('sk-same', {
+      ...binding('sk-same'),
+      channel_target: {
+        enabled: true,
+        suppliers: [' Gemini ', 'gemini'],
+        auth_ids: [' f1 ', 'f1'],
+      },
+    })
+
+    expect(plan?.binding.channel_target).toEqual({
+      enabled: true,
+      suppliers: ['Gemini'],
+      auth_ids: ['f1'],
+    })
+  })
 })

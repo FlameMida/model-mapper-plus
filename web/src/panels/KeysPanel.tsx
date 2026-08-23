@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Button, Card, Table, Modal, Input, Select, Switch, Tag, Tabs, TabPane, Toast, Typography } from '@douyinfe/semi-ui'
 import { api, ChannelTarget, CpaAuthFile, KeyBinding, RuleSet, StateResponse, listCpaApiKeys, listCpaAuthFiles } from '../api'
+import { normalizeChannelTarget } from '../channelTarget'
 import ChannelTargetEditor from '../components/ChannelTargetEditor'
 import RuleSetEditor from '../components/RuleSetEditor'
 
@@ -12,12 +13,7 @@ function normalizeBinding(binding: KeyBinding): KeyBinding {
     ...binding,
     blocked: !!binding.blocked,
     fast_allowed: binding.fast_allowed ?? true,
-    channel_target: {
-      ...EMPTY_CHANNEL_TARGET,
-      ...binding.channel_target,
-      suppliers: [...(binding.channel_target?.suppliers ?? [])],
-      auth_ids: [...(binding.channel_target?.auth_ids ?? [])],
-    },
+    channel_target: normalizeChannelTarget(binding.channel_target),
     rules: { ...binding.rules },
   }
 }
@@ -65,8 +61,10 @@ export function planKeySave(originalKey: string, editing: KeyBinding): KeySavePl
   const key = editing.key.trim()
   if (!key) return null
   const previous = originalKey.trim()
+  const binding = { ...editing, key }
+  if (binding.channel_target) binding.channel_target = normalizeChannelTarget(binding.channel_target)
   return {
-    binding: { ...editing, key },
+    binding,
     deleteKey: previous && previous !== key ? previous : '',
   }
 }

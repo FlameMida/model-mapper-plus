@@ -95,4 +95,34 @@ describe('KeysPanel：渠道定向与 Fast', () => {
     await user.click(screen.getByRole('button', { name: '编辑' }))
     expect(screen.getByRole('switch', { name: '编辑绑定：Fast 允许' })).toBeChecked()
   })
+
+  it('不操作渠道页直接保存时提交规范化渠道值', async () => {
+    vi.mocked(listCpaAuthFiles).mockResolvedValue([])
+    vi.mocked(api.postKey).mockResolvedValue(STATE)
+    const user = userEvent.setup()
+    const binding: KeyBinding = {
+      ...BINDING,
+      channel_target: {
+        enabled: true,
+        suppliers: [' Gemini ', 'gemini'],
+        auth_ids: [' f1 ', 'f1'],
+      },
+    }
+    render(<KeysPanel state={{ ...STATE, key_bindings: [binding] }} onSaved={vi.fn()} />)
+
+    await user.click(screen.getByRole('button', { name: '编辑' }))
+    const dialog = screen.getByRole('dialog')
+    const okButton = dialog.querySelector('.semi-modal-footer .semi-button-primary') as HTMLButtonElement
+    await user.click(okButton)
+
+    await waitFor(() => {
+      expect(api.postKey).toHaveBeenCalledWith(expect.objectContaining({
+        channel_target: {
+          enabled: true,
+          suppliers: ['Gemini'],
+          auth_ids: ['f1'],
+        },
+      }))
+    })
+  })
 })
