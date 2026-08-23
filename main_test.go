@@ -33,6 +33,9 @@ func TestPluginRegistrationMetadataAndConfigFields(t *testing.T) {
 	if !reg.Capabilities.RequestInterceptor {
 		t.Fatalf("capabilities=%#v, want request_interceptor=true", reg.Capabilities)
 	}
+	if !reg.Capabilities.Scheduler {
+		t.Fatalf("capabilities=%#v, want scheduler=true", reg.Capabilities)
+	}
 	if pluginabi.ABIVersion != 1 || reg.SchemaVersion != 2 {
 		t.Fatalf("ABI/schema = %d/%d, want 1/2", pluginabi.ABIVersion, reg.SchemaVersion)
 	}

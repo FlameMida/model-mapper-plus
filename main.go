@@ -4,11 +4,13 @@ import (
 	"bytes"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"log/slog"
 	"net/http"
 	"os"
+	"sort"
 	"strings"
 	"sync"
 	"unicode"
@@ -350,6 +352,8 @@ type registrationCapabilities struct {
 	ExecutorOutputFormats []string `json:"executor_output_formats"`
 	ManagementAPI         bool     `json:"management_api"`
 	RequestInterceptor    bool     `json:"request_interceptor"`
+	Scheduler             bool     `json:"scheduler"`
+	ResponseInterceptor   bool     `json:"response_interceptor"`
 }
 
 func pluginRegistration() registration {
@@ -380,8 +384,47 @@ func pluginRegistration() registration {
 			ExecutorOutputFormats: []string{"openai", "claude", "openai-response"},
 			ManagementAPI:         true,
 			RequestInterceptor:    true,
+			Scheduler:             true,
 		},
 	}
+}
+
+type channelRoundRobinState struct {
+	signature string
+	next      uint64
+}
+
+type channelRoundRobin struct {
+	mu     sync.Mutex
+	states map[string]channelRoundRobinState
+}
+
+var channelTargetRoundRobin = channelRoundRobin{states: make(map[string]channelRoundRobinState)}
+
+func (r *channelRoundRobin) reset() {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	r.states = make(map[string]channelRoundRobinState)
+}
+
+func (r *channelRoundRobin) pick(key string, candidates []pluginapi.SchedulerAuthCandidate) string {
+	ids := make([]string, 0, len(candidates))
+	for _, candidate := range candidates {
+		ids = append(ids, candidate.ID)
+	}
+	sort.Strings(ids)
+	signature := strings.Join(ids, "\x00")
+
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	state := r.states[key]
+	if state.signature != signature {
+		state = channelRoundRobinState{signature: signature}
+	}
+	id := ids[state.next%uint64(len(ids))]
+	state.next++
+	r.states[key] = state
+	return id
 }
 
 func decodeConfig(raw json.RawMessage) (Config, error) {
@@ -655,6 +698,71 @@ func handleRequestInterceptAfter(raw []byte) ([]byte, error) {
 	// Required by RequestInterceptor capability; access gate runs only before auth.
 	_ = raw
 	return json.Marshal(pluginapi.RequestInterceptResponse{})
+}
+
+var unavailableSchedulerStatuses = map[string]struct{}{
+	"disabled": {}, "error": {}, "expired": {}, "revoked": {}, "invalid": {},
+	"unavailable": {}, "cooldown": {}, "cooling_down": {},
+	"quota_exhausted": {}, "exhausted": {}, "blocked": {},
+}
+
+func schedulerCandidateUsable(candidate pluginapi.SchedulerAuthCandidate) bool {
+	_, unavailable := unavailableSchedulerStatuses[strings.ToLower(strings.TrimSpace(candidate.Status))]
+	return strings.TrimSpace(candidate.ID) != "" && !unavailable
+}
+
+func schedulerCandidateTargeted(candidate pluginapi.SchedulerAuthCandidate, target *ChannelTarget) bool {
+	for _, id := range target.AuthIDs {
+		if strings.TrimSpace(id) == strings.TrimSpace(candidate.ID) {
+			return true
+		}
+	}
+	for _, supplier := range target.Suppliers {
+		if strings.EqualFold(strings.TrimSpace(supplier), strings.TrimSpace(candidate.Provider)) {
+			return true
+		}
+	}
+	return false
+}
+
+type pluginMethodError struct {
+	Code       string
+	Message    string
+	HTTPStatus int
+}
+
+func (e *pluginMethodError) Error() string { return e.Message }
+
+func handleSchedulerPick(raw []byte) ([]byte, error) {
+	var req pluginapi.SchedulerPickRequest
+	if err := json.Unmarshal(raw, &req); err != nil {
+		return nil, err
+	}
+	if !loadedConfig().Enabled {
+		return json.Marshal(pluginapi.SchedulerPickResponse{Handled: false})
+	}
+	apiKey := apiKeyFromHeaders(http.Header(req.Options.Headers))
+	binding, targeted := findActiveChannelTarget(loadedRuleSource().KeyBindings, apiKey)
+	if !targeted {
+		return json.Marshal(pluginapi.SchedulerPickResponse{Handled: false})
+	}
+	pool := make([]pluginapi.SchedulerAuthCandidate, 0, len(req.Candidates))
+	for _, candidate := range req.Candidates {
+		if schedulerCandidateUsable(candidate) && schedulerCandidateTargeted(candidate, binding.ChannelTarget) {
+			pool = append(pool, candidate)
+		}
+	}
+	if len(pool) == 0 {
+		return nil, &pluginMethodError{
+			Code:       "auth_not_found",
+			Message:    "no usable auth candidate in channel target",
+			HTTPStatus: http.StatusServiceUnavailable,
+		}
+	}
+	return json.Marshal(pluginapi.SchedulerPickResponse{
+		Handled: true,
+		AuthID:  channelTargetRoundRobin.pick(binding.Key, pool),
+	})
 }
 
 func selectRulesFrom(rs RuleSet, format string) (string, bool) {
@@ -992,6 +1100,10 @@ func okEnvelope(v any) ([]byte, error) {
 
 func wrapEnvelope(payload []byte, err error) ([]byte, error) {
 	if err != nil {
+		var methodErr *pluginMethodError
+		if errors.As(err, &methodErr) {
+			return errorEnvelopeWithStatus(methodErr.Code, methodErr.Message, methodErr.HTTPStatus), nil
+		}
 		return errorEnvelope("plugin_error", err.Error()), nil
 	}
 	return okEnvelope(json.RawMessage(payload))
@@ -1001,6 +1113,17 @@ func errorEnvelope(code, message string) []byte {
 	raw, err := json.Marshal(pluginabi.Envelope{
 		OK:    false,
 		Error: &pluginabi.Error{Code: code, Message: message},
+	})
+	if err != nil {
+		return []byte(`{"ok":false,"error":{"code":"plugin_error","message":"failed to encode error envelope"}}`)
+	}
+	return raw
+}
+
+func errorEnvelopeWithStatus(code, message string, status int) []byte {
+	raw, err := json.Marshal(pluginabi.Envelope{
+		OK:    false,
+		Error: &pluginabi.Error{Code: code, Message: message, HTTPStatus: status},
 	})
 	if err != nil {
 		return []byte(`{"ok":false,"error":{"code":"plugin_error","message":"failed to encode error envelope"}}`)
@@ -1038,6 +1161,8 @@ func dispatchMethod(method string, request []byte) ([]byte, error) {
 		return wrapEnvelope(handleRequestInterceptBefore(request))
 	case pluginabi.MethodRequestInterceptAfter:
 		return wrapEnvelope(handleRequestInterceptAfter(request))
+	case pluginabi.MethodSchedulerPick:
+		return wrapEnvelope(handleSchedulerPick(request))
 	case pluginabi.MethodExecutorIdentifier:
 		return wrapEnvelope(handleExecutorIdentifier())
 	case pluginabi.MethodExecutorExecute:

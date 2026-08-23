@@ -460,7 +460,7 @@ git commit -m "feat(T2): 定向请求跳过规则映射"
 - 产出：注册 JSON `capabilities.scheduler=true`，dispatch 支持 `pluginabi.MethodSchedulerPick`
 - 产出：`pluginMethodError{Code, Message, HTTPStatus}` 使 ABI 错误携带 503
 
-- [ ] **步骤 1：写失败测试**
+- [x] **步骤 1：写失败测试**
 
 创建 `scheduler_test.go`：
 
@@ -643,7 +643,7 @@ func TestChannelTargetScheduler(t *testing.T) {
 	}
 ```
 
-- [ ] **步骤 2：运行测试确认失败**
+- [x] **步骤 2：运行测试确认失败**
 
 ```bash
 go test . -run 'TestChannelTargetScheduler|TestPluginRegistration' -v
@@ -651,7 +651,7 @@ go test . -run 'TestChannelTargetScheduler|TestPluginRegistration' -v
 
 预期：FAIL，编译错误包含 `registrationCapabilities.Scheduler undefined`、`undefined: channelTargetRoundRobin`，或 dispatch 返回 `unknown_method`。
 
-- [ ] **步骤 3：写最小实现**
+- [x] **步骤 3：写最小实现**
 
 在 `main.go` imports 增加 `errors`、`sort`；在 `registrationCapabilities` 与 `pluginRegistration` 增加：
 
@@ -809,7 +809,7 @@ func errorEnvelopeWithStatus(code, message string, status int) []byte {
 		return wrapEnvelope(handleSchedulerPick(request))
 ```
 
-- [ ] **步骤 4：运行测试确认通过**
+- [x] **步骤 4：运行测试确认通过**
 
 ```bash
 gofmt -w main.go main_test.go scheduler_test.go
@@ -819,7 +819,7 @@ go test -race . -run TestChannelTargetScheduler -v
 
 预期：全部 PASS；race 检查不报告轮转器并发读写。
 
-- [ ] **步骤 5：提交**
+- [x] **步骤 5：提交**
 
 ```bash
 git add main.go main_test.go scheduler_test.go
