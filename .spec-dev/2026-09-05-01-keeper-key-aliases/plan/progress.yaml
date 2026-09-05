@@ -1,16 +1,16 @@
 format_version: 1
 current: null
 tasks:
-  T00: { status: completed, commit: null, tests: "Go pass; typecheck pass; Vitest 50/50" }
-  T01: { status: completed, commit: null, tests: "HTTP login/session/errors/deadlines pass" }
-  T02: { status: completed, commit: null, tests: "Go full/race and management/config/cache pass" }
-  T03: { status: completed, commit: null, tests: "选择器优先级、动态列表、搜索和手动 Key 回归通过" }
-  T04: { status: completed, commit: null, tests: "同步草稿及竞态 10 项通过" }
-  T05: { status: completed, commit: null, tests: "Vitest 77/77, typecheck, Go race/vet, release packager, Linux build pass" }
-  T06: { status: completed, commit: null, tests: "3份独立审查无开放发现；真实CPA/Keeper/Chrome 13项断言、长别名视口限制通过" }
-  T07: { status: completed, commit: null, tests: "已逐文件校验同步主目录；容器/进程关闭；隔离 worktree 清理；未提交推送" }
+  T00: { status: completed, commit: 56f57363473ffab77d1a1e8e2735257d0f7079b9, tests: "Go pass; typecheck pass; Vitest 50/50" }
+  T01: { status: completed, commit: 56f57363473ffab77d1a1e8e2735257d0f7079b9, tests: "HTTP login/session/errors/deadlines pass" }
+  T02: { status: completed, commit: 56f57363473ffab77d1a1e8e2735257d0f7079b9, tests: "Go full/race and management/config/cache pass" }
+  T03: { status: completed, commit: 56f57363473ffab77d1a1e8e2735257d0f7079b9, tests: "选择器优先级、动态列表、搜索和手动 Key 回归通过" }
+  T04: { status: completed, commit: 56f57363473ffab77d1a1e8e2735257d0f7079b9, tests: "同步草稿及竞态 10 项通过" }
+  T05: { status: completed, commit: 56f57363473ffab77d1a1e8e2735257d0f7079b9, tests: "Vitest 77/77, typecheck, Go race/vet, release packager, Linux build pass" }
+  T06: { status: completed, commit: 56f57363473ffab77d1a1e8e2735257d0f7079b9, tests: "3份独立审查无开放发现；真实CPA/Keeper/Chrome 13项断言、长别名视口限制通过" }
+  T07: { status: completed, commit: 56f57363473ffab77d1a1e8e2735257d0f7079b9, tests: "已逐文件校验同步主目录；容器/进程关闭；隔离 worktree 清理；实现已提交" }
 resources: []
 notes:
   - "用户批准会话计划，随后要求先记录计划再执行。"
-  - "当前未获单独提交/推送指示；任务验证与工作区保留独立记录，commit 允许 null。"
+  - "用户于 2026-09-05 明确授权提交、推送和发版；开发任务合并提交于 56f57363473ffab77d1a1e8e2735257d0f7079b9，发版目标 v0.1.6。"
   - "已保留测试二进制：dist/keeper-key-aliases/model-mapper-plus.so；验收证据位于 acceptance/。"

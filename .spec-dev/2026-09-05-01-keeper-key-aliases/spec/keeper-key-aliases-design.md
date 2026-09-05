@@ -16,7 +16,7 @@ spec_dev:
     - "web/src/panels/PreviewPanel*"
     - "web/src/App.tsx"
     - ".github/workflows/build.yml"
-  sync_commit: null
+  sync_commit: 56f57363473ffab77d1a1e8e2735257d0f7079b9
   supersedes: []
   superseded_by: null
 ---

@@ -4,7 +4,7 @@
 
 ## 结论与环境
 
-功能验收通过；后端、前端和覆盖审查均无未解决发现。源码和文档已同步回主工作目录，保留为未提交变更，未推送或发布。测试二进制保存在 `dist/keeper-key-aliases/model-mapper-plus.so`。
+功能验收通过；后端、前端和覆盖审查均无未解决发现。验收时源码和文档已同步回主工作目录；随后用户授权提交、推送和发版，实现提交 `56f57363473ffab77d1a1e8e2735257d0f7079b9`，发版目标 `v0.1.6`。发布结果以 GitHub Release 及其 CI 为准。验收测试二进制保存在 `dist/keeper-key-aliases/model-mapper-plus.so`。
 
 - 工作基线：`f1d3d35ac4389d4223ac20e7f6ee9699d329c936`，以当前未提交实现构建。
 - CPA：Linux amd64 Docker，v7.2.119，commit `6e92e3e`；镜像 ID `sha256:0b046bc593de22b706f8d32dce45c9defe0d48ec4cc3a5188ce0ebbd99b438a8`。
