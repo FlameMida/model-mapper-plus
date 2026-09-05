@@ -74,10 +74,10 @@ describe('KeysPanel：渠道定向与 Fast', () => {
 
     await user.click(screen.getByRole('button', { name: '编辑' }))
     await user.click(screen.getByRole('tab', { name: '渠道定向' }))
-    expect(await screen.findByText('认证文件加载失败')).toBeInTheDocument()
+    expect(await screen.findByText('认证文件加载失败，已选配置已保留。')).toBeInTheDocument()
     expect(screen.getByText('读取 CPA auth-files 失败：HTTP 503')).toBeInTheDocument()
     expect(screen.getByText('gemini-main')).toBeInTheDocument()
-    await user.click(screen.getByRole('button', { name: '重试' }))
+    await user.click(screen.getByRole('button', { name: '重新加载' }))
     await waitFor(() => expect(listCpaAuthFiles).toHaveBeenCalledTimes(2))
   })
 

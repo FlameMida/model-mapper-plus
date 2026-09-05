@@ -236,27 +236,39 @@ PATCH /keys SHALL 支持 channel_target 与 fast_allowed 字段的局部更新�
 - **WHEN** POST /preview {key:K, format, model}
 - **THEN** 响应含 channel_target.resolved={suppliers:["gemini"],auth_ids:["f1"]}、mapping_skipped=true、final=model 原名
 
-### Requirement: Admin UI 表单重构（Tabs 三页 + 双区块定向编辑器）
+### Requirement: Admin UI 表单重构（Tabs 三页 + B 版定向编辑器）
 
-编辑/新增绑定弹窗 SHALL 采用 Tabs 分页：「基础」（key Select、别名、启用规则/禁止访问/Fast 允许三 Switch、同 key 冲突提示）、「渠道定向」（总开关 + AI 供应商 CheckboxGroup + 认证文件按供应商折叠分组多选，含组头全选与每项状态标识；开关关闭时区块禁用置灰、配置保留）、「规则集」（现有 RuleSetEditor）。表格 SHALL 新增渠道定向摘要列与 Fast 状态列，并必须容忍 wire JSON 因 `omitempty` 缺少 `suppliers` / `auth_ids` 或两者的合法形状。provider 从存量绑定与 auth-files 合并时 SHALL 先 trim、按大小写不敏感 canonical key 去重并保留第一个展示值；auth ID SHALL 先 trim、按大小写敏感值去重。列表、分组、回显、缺失判定、组选与保存 SHALL 共用这两套规范化语义。全程使用 Semi Design 组件；auth-files 数据加载失败 SHALL 显示可重试的错误提示。
+编辑/新增绑定弹窗 SHALL 采用 Tabs 分页：「基础」（key Select、别名、启用规则/禁止访问/Fast 允许三 Switch、同 key 冲突提示）、「渠道定向」（总开关 + 左侧供应商导航 + 右侧认证文件列表；右侧包含供应商整选、名称/ID 搜索、当前结果全选及每项状态标识；开关关闭时选择控件禁用置灰、配置保留，仍可切换供应商查看）、「规则集」（现有 RuleSetEditor）。窄屏时供应商导航横向排列在列表上方。表格 SHALL 新增渠道定向摘要列与 Fast 状态列，并必须容忍 wire JSON 因 `omitempty` 缺少 `suppliers` / `auth_ids` 或两者的合法形状。provider 从存量绑定与 auth-files 合并时 SHALL 先 trim、按大小写不敏感 canonical key 去重并保留第一个展示值；auth ID SHALL 先 trim、按大小写敏感值去重。列表、分组、回显、缺失判定、组选与保存 SHALL 共用这两套规范化语义。全程使用 Semi Design 组件；加载提示图标与「正在加载认证文件…」SHALL 单行显示，加载失败提示、详情与「重新加载」按钮文字 SHALL 统一为 14px。目录仍仅调用 auth-files，不接入 AI Providers 配置接口。
 
-#### Scenario: 双区块混选回显
+#### Scenario: 供应商导航切换与混选回显
 
 - **GIVEN** 绑定 K 已存 suppliers=["claude"]、auth_ids=["gemini-main"]
 - **WHEN** 打开编辑弹窗切到渠道定向页
-- **THEN** claude 供应商复选框勾选、gemini 分组下 gemini-main 勾选，其余未选
+- **THEN** 查看 claude 时供应商整选复选框勾选；切换至 gemini 时 gemini-main 勾选，其余未选；切换不修改任何已选值
+
+#### Scenario: 搜索后的批选与整选独立
+
+- **GIVEN** 已选择其他供应商文件、当前搜索范围之外的文件，以及 CPA 当前未返回的文件
+- **WHEN** 在当前供应商中按名称或 ID 搜索并全选/取消全选当前结果
+- **THEN** 只增删当前可见文件的显式 ID；筛选外、跨供应商与未返回 ID 保留，suppliers 不变；取消供应商整选不移除显式文件选择
+
+#### Scenario: 搜索无结果与目录刷新
+
+- **GIVEN** 当前供应商搜索无匹配项，或目录刷新后当前供应商已不再存在
+- **WHEN** 用户查看列表
+- **THEN** 无匹配项时显示对应提示且禁用批选；供应商不存在时回退到首个有效供应商，不修改绑定配置；主动切换供应商清空搜索
 
 #### Scenario: 总开关关闭置灰
 
 - **GIVEN** 编辑弹窗中渠道定向总开关被关闭
-- **WHEN** 用户查看两个选项区块
-- **THEN** 区块呈现禁用态不可勾选，已勾选项保留，重新打开开关后恢复可选
+- **WHEN** 用户查看供应商整选与文件列表
+- **THEN** 选择控件呈现禁用态不可勾选，搜索禁用，已勾选项保留，重新打开开关后恢复可选
 
 #### Scenario: auth-files 加载失败
 
 - **GIVEN** CPA auth-files 接口不可达
 - **WHEN** 打开渠道定向页
-- **THEN** 页面显示错误提示与重试按钮，不显示空白列表也不崩溃
+- **THEN** 页面显示「认证文件加载失败，已选配置已保留。」、错误详情与「重新加载」按钮，文字均为 14px；已选值保留，加载中或失败时不将未出现 ID 标为「当前未返回」；目录成功返回后才作该缺失提示
 
 #### Scenario: 合法缺失数组的表格回显
 
@@ -346,7 +358,7 @@ type KeyBinding struct {
 | blocked 与 Fast 热更新使用单一快照 | unit | 任务内 TDD | loader 只调用一次且行为来自同一版本 |
 | 存量文件零迁移加载 / 校验拒绝重复 ID | unit | 任务内 TDD | 测试通过 |
 | PATCH 局部更新 / preview 显示定向 | unit | 任务内 TDD | 测试通过 |
-| 双区块混选回显 / 总开关置灰 / 加载失败 | component (vitest) | 任务内 TDD | 测试通过 |
+| B 版导航混选 / 搜索批选 / 总开关置灰 / 加载失败 | component (vitest) | 任务内 TDD | 测试通过 |
 | wire 缺失数组与 provider/auth ID 规范化 | component (vitest) | 任务内 TDD | 不崩溃、回显/缺失/保存语义一致 |
 | 定向请求实际落在目标认证文件 | e2e | 验收任务 (D) | smoke-local 通过（CPA 日志断言凭据） |
 | 目标 cooldown、池外 active 时收到 503 且不落池外 | e2e | 验收任务 (D) | 有可安全恢复的测试凭据时执行，否则以原因和替代证据标记 DEFERRED |

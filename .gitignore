@@ -27,6 +27,7 @@ Thumbs.db
 
 # spec-dev visual preview sessions
 .spec-dev/visual/
+.spec-dev/*/visual/
 
 # isolated worktrees
 .worktrees/

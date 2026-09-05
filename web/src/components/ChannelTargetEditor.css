@@ -1,0 +1,64 @@
+.channel-target-editor { display: flex; flex-direction: column; gap: 16px; color: var(--semi-color-text-0); }
+.channel-target-editor p, .channel-target-editor h3 { margin: 0; }
+.channel-target-enable { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 16px; border-radius: 6px; background: var(--semi-color-fill-0); }
+.channel-target-enable p { margin-top: 4px; font-size: 12px; color: var(--semi-color-text-2); }
+.channel-target-enable .semi-switch { flex-shrink: 0; }
+.channel-target-browser { display: grid; grid-template-columns: 214px minmax(0, 1fr); min-height: 340px; border: 1px solid var(--semi-color-border); border-radius: 7px; overflow: hidden; }
+.channel-target-disabled { opacity: .55; }
+.channel-target-sidebar { min-width: 0; padding: 14px 10px; background: var(--semi-color-fill-0); border-right: 1px solid var(--semi-color-border); }
+.channel-target-sidebar-title { display: flex; justify-content: space-between; padding: 0 8px 12px; font-size: 12px; color: var(--semi-color-text-2); }
+.channel-target-provider-list { display: flex; flex-direction: column; gap: 6px; max-height: 330px; overflow: auto; }
+.channel-target-provider.semi-button { width: 100%; height: auto; padding: 12px 8px; text-align: left; }
+.channel-target-provider .semi-button-content { width: 100%; display: flex; align-items: center; gap: 9px; min-width: 0; }
+.channel-target-provider.channel-target-provider-active { color: var(--semi-color-primary); background: var(--semi-color-primary-light-default); }
+.channel-target-avatar { width: 27px; height: 27px; flex-shrink: 0; display: grid; place-items: center; border-radius: 6px; background: var(--semi-color-bg-2); font-size: 12px; }
+.channel-target-provider-copy { min-width: 0; flex: 1; }
+.channel-target-provider-copy strong { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; }
+.channel-target-provider-copy small { display: block; margin-top: 4px; font-size: 10px; font-weight: 400; color: var(--semi-color-text-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.channel-target-sidebar-hint { padding: 20px 8px 0; font-size: 11px; line-height: 1.8; color: var(--semi-color-text-2); }
+.channel-target-detail { padding: 18px; min-width: 0; }
+.channel-target-detail-heading { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+.channel-target-detail-heading > div { min-width: 0; }
+.channel-target-detail-heading h3 { font-size: 17px; font-weight: 600; overflow-wrap: anywhere; }
+.channel-target-detail-heading > div > span { font-size: 12px; color: var(--semi-color-text-2); }
+.channel-target-help { padding: 12px 0 14px; font-size: 12px; line-height: 1.7; color: var(--semi-color-text-2); }
+.channel-target-file-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 14px 8px 8px; }
+.channel-target-file-toolbar > span { font-size: 12px; color: var(--semi-color-text-2); }
+.channel-target-files { max-height: 300px; overflow: auto; }
+.channel-target-file { display: flex; align-items: center; gap: 12px; padding: 12px 8px; border-bottom: 1px solid var(--semi-color-border); }
+.channel-target-file:last-child { border-bottom: none; }
+.channel-target-file-selected { background: var(--semi-color-primary-light-default); }
+.channel-target-file > .semi-checkbox { flex-shrink: 0; }
+.channel-target-file-name { min-width: 0; flex: 1; }
+.channel-target-file-name strong { display: block; font-size: 13px; font-weight: 500; overflow-wrap: anywhere; }
+.channel-target-file-name code { display: block; margin-top: 4px; font-size: 11px; color: var(--semi-color-text-2); overflow-wrap: anywhere; }
+.channel-target-file-badges { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex-shrink: 0; max-width: 40%; }
+.channel-target-file-badges > span:not(.semi-tag) { font-size: 11px; color: var(--semi-color-text-2); }
+.channel-target-file-badges .semi-tag { max-width: 100%; }
+.channel-target-no-results { padding: 32px 8px; text-align: center; color: var(--semi-color-text-2); font-size: 13px; }
+.channel-target-missing { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 12px; color: var(--semi-color-text-2); min-width: 0; }
+.channel-target-missing .semi-tag { max-width: 100%; }
+.channel-target-state { min-height: 220px; display: grid; place-items: center; font-size: 14px; color: var(--semi-color-text-2); }
+.channel-target-loading { display: flex; align-items: center; gap: 10px; white-space: nowrap; line-height: 22px; }
+.channel-target-loading .semi-spin { display: inline-flex; flex-shrink: 0; }
+.channel-target-error-content { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; font-size: 14px; line-height: 22px; font-weight: 400; }
+.channel-target-error-detail { overflow-wrap: anywhere; }
+.channel-target-error .semi-banner-description, .channel-target-error-content .semi-button, .channel-target-error-content .semi-button-content { font-size: 14px; font-weight: 400; line-height: 22px; }
+.channel-target-summary { display: flex; flex-direction: column; gap: 4px; padding-top: 12px; border-top: 1px solid var(--semi-color-border); }
+.channel-target-summary strong { font-size: 12px; font-weight: 500; }
+.channel-target-summary > span { font-size: 11px; color: var(--semi-color-text-2); }
+@media (max-width: 700px) {
+  .channel-target-browser { grid-template-columns: 174px minmax(0, 1fr); }
+  .channel-target-detail { padding: 12px; }
+  .channel-target-avatar { display: none; }
+}
+@media (max-width: 560px) {
+  .channel-target-browser { grid-template-columns: minmax(0, 1fr); }
+  .channel-target-sidebar { padding: 6px; border-right: none; border-bottom: 1px solid var(--semi-color-border); }
+  .channel-target-sidebar-title, .channel-target-sidebar-hint { display: none; }
+  .channel-target-provider-list { flex-direction: row; }
+  .channel-target-provider.semi-button { width: auto; flex-shrink: 0; max-width: 180px; padding: 9px 12px; }
+  .channel-target-provider-copy small, .channel-target-provider .semi-icon { display: none; }
+  .channel-target-file { gap: 8px; }
+  .channel-target-file-badges > span:not(.semi-tag) { display: none; }
+}
