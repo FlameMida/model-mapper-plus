@@ -164,3 +164,19 @@ describe('api：渠道定向与 Fast', () => {
     })
   })
 })
+
+describe('Keeper 管理接口', () => {
+  it('别名和原文 Key 对称解码，特殊字符不丢失', async () => {
+    stubFetch({ status: 'ready', items: [{ key: 'sk-a&amp;b', alias: '团队 &amp; &lt;主用&gt;' }], fetched_at: '2026-09-05T00:00:00Z' })
+    const result = await api.getKeeperAliases()
+    expect(result.items).toEqual([{ key: 'sk-a&b', alias: '团队 & <主用>' }])
+    expect(vi.mocked(fetch).mock.calls[0][0]).toBe('/v0/management/plugins/model-mapper-plus/keeper/key-aliases')
+  })
+  it('刷新使用 POST；Keeper 认证失败仍是接入状态', async () => {
+    stubFetch({ status: 'unavailable', items: [], error_code: 'authentication_failed' })
+    const result = await api.refreshKeeperAliases()
+    expect(result.status).toBe('unavailable')
+    expect(vi.mocked(fetch).mock.calls[0][0]).toBe('/v0/management/plugins/model-mapper-plus/keeper/key-aliases/refresh')
+    expect(vi.mocked(fetch).mock.calls[0][1]?.method).toBe('POST')
+  })
+})

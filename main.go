@@ -332,6 +332,8 @@ func isIncompleteSSEPrefix(p []byte) bool {
 }
 
 type Config struct {
+	UsageKeeperURL         string `json:"usage_keeper_url"`
+	UsageKeeperPasswordEnv string `json:"usage_keeper_password_env"`
 	Enabled                bool   `json:"enabled"`
 	GlobalRules            string `json:"global_rules"`
 	ClaudeMessagesRules    string `json:"claude_messages_rules"`
@@ -366,7 +368,7 @@ func pluginRegistration() registration {
 			Version:          pluginVersion,
 			Author:           "FlameMida",
 			GitHubRepository: "https://github.com/FlameMida/cpa-model-mapper-plus",
-			// 只声明宿主配置页真正需要露出的两个字段。规则四段（global_rules /
+			// 声明宿主配置页维护的开关、state 路径和 Keeper 接入字段。规则四段（global_rules /
 			// claude_messages_rules / codex_responses_rules / openai_completions_rules）
 			// 仍能从 YAML 读入作为首次 seed，但由插件自己的管理页维护，不在 CPA 页面重复暴露。
 			//
@@ -376,6 +378,8 @@ func pluginRegistration() registration {
 			ConfigFields: []pluginapi.ConfigField{
 				{Name: "enabled", Type: pluginapi.ConfigFieldTypeBoolean, Description: "Enable model request mapping."},
 				{Name: "state_file", Type: pluginapi.ConfigFieldTypeString, Description: "Path to the JSON state file holding mapping rules and key bindings. Relative paths resolve against the CPA process working directory; leave empty to use model-mapper-plus-state.json there. Edit the rules themselves in the Model Mapper Plus admin page."},
+				{Name: "usage_keeper_url", Type: pluginapi.ConfigFieldTypeString, Description: "Keeper base URL reachable from the CPA process, including any deployment subpath. Leave empty to disable API key alias lookup."},
+				{Name: "usage_keeper_password_env", Type: pluginapi.ConfigFieldTypeString, Description: "Environment variable holding the Keeper administrator login password. Defaults to CPA_KEEPER_LOGIN_PASSWORD. Set the actual password in the CPA process environment and restart CPA after changing it."},
 			},
 		},
 		Capabilities: registrationCapabilities{
@@ -437,6 +441,9 @@ func decodeConfig(raw json.RawMessage) (Config, error) {
 	}
 	if err := json.Unmarshal(raw, &cfg); err != nil {
 		return Config{}, err
+	}
+	if strings.TrimSpace(cfg.UsageKeeperPasswordEnv) == "" {
+		cfg.UsageKeeperPasswordEnv = defaultConfig().UsageKeeperPasswordEnv
 	}
 	for _, rules := range []string{cfg.GlobalRules, cfg.ClaudeMessagesRules, cfg.CodexResponsesRules, cfg.OpenAICompletionsRules} {
 		if rules == "" {
@@ -579,6 +586,7 @@ func loadedConfig() Config {
 func setLoadedConfigForTest(cfg Config) {
 	loadedConfigMu.Lock()
 	loadedCfg = cfg
+	resetKeeperAliases()
 	loadedConfigMu.Unlock()
 	loadedStateMu.Lock()
 	loadedHolder = stateHolder{src: ruleSourceFromConfig(cfg), state: seedStateFromConfig(cfg)}
@@ -637,6 +645,7 @@ func handlePluginReconfigure(raw []byte) ([]byte, error) {
 	}
 	loadedConfigMu.Lock()
 	loadedCfg = cfg
+	resetKeeperAliases()
 	loadedConfigMu.Unlock()
 	loadedStateMu.Lock()
 	loadedHolder = holder
@@ -1328,6 +1337,8 @@ func dispatchMethod(method string, request []byte) ([]byte, error) {
 // distinguish "key absent" from "key present with a zero value", so an omitted
 // `enabled` keeps defaultConfig()'s true while `enabled: false` disables.
 type lifecycleConfigYAML struct {
+	UsageKeeperURL         *string `yaml:"usage_keeper_url"`
+	UsageKeeperPasswordEnv *string `yaml:"usage_keeper_password_env"`
 	Enabled                *bool   `yaml:"enabled"`
 	GlobalRules            *string `yaml:"global_rules"`
 	ClaudeMessagesRules    *string `yaml:"claude_messages_rules"`
@@ -1359,6 +1370,12 @@ func decodeLifecycleConfig(raw []byte) (json.RawMessage, bool, error) {
 		return nil, true, fmt.Errorf("parse plugin config yaml: %w", err)
 	}
 	cfg := defaultConfig()
+	if doc.UsageKeeperURL != nil {
+		cfg.UsageKeeperURL = *doc.UsageKeeperURL
+	}
+	if doc.UsageKeeperPasswordEnv != nil {
+		cfg.UsageKeeperPasswordEnv = *doc.UsageKeeperPasswordEnv
+	}
 	if doc.Enabled != nil {
 		cfg.Enabled = *doc.Enabled
 	}
@@ -1491,7 +1508,7 @@ type rule struct {
 }
 
 func defaultConfig() Config {
-	return Config{Enabled: true, StateFile: defaultStateFile}
+	return Config{Enabled: true, StateFile: defaultStateFile, UsageKeeperPasswordEnv: "CPA_KEEPER_LOGIN_PASSWORD"}
 }
 
 func parseRules(raw string) ([]rule, error) {

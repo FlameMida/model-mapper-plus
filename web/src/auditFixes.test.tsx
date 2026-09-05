@@ -4,8 +4,10 @@ import { render, screen, waitFor } from '@testing-library/react'
 // api 与 panelAuth 被 mock；session 用真实实现，让 clearKey → onAuthChange
 // 的完整回路跑起来（回路本身正是被测对象）。
 vi.mock('./api', () => ({
+  listCpaApiKeys: vi.fn().mockResolvedValue([]),
   api: {
     getState: vi.fn(),
+    getKeeperAliases: vi.fn().mockResolvedValue({ status: 'disabled', items: [] }),
     putRules: vi.fn(),
     postKey: vi.fn(),
     patchKey: vi.fn(),

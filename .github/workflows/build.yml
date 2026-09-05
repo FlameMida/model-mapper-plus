@@ -39,6 +39,12 @@ jobs:
       - name: Build web UI
         run: make web-build
 
+      - name: Typecheck web UI
+        run: npm --prefix web run typecheck
+
+      - name: Test web UI
+        run: npm --prefix web test
+
       - name: Test
         run: make test
 

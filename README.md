@@ -20,11 +20,13 @@ plugins:
       codex_responses_rules: ""
       openai_completions_rules: ""
       state_file: ""  # optional, defaults to model-mapper-plus-state.json
+      usage_keeper_url: ""  # optional, Keeper base URL including its deployment subpath
+      usage_keeper_password_env: "CPA_KEEPER_LOGIN_PASSWORD"
 ```
 
 The plugin's own `enabled` field defaults to `true`. Empty rule fields mean the request is skipped and CPA behaves normally.
 
-Only `enabled` and `state_file` are declared to CPA (`Metadata.ConfigFields`), so those are the two fields the CPA plugin config page renders. The four `*_rules` keys above are still read from YAML as the first-run seed — they are just managed in the plugin's own admin page instead of being duplicated in CPA's UI.
+`enabled`, `state_file`, `usage_keeper_url`, and `usage_keeper_password_env` are declared to CPA (`Metadata.ConfigFields`) and can be edited on the CPA plugin settings page. The four `*_rules` keys above are still read from YAML as the first-run seed — they are just managed in the plugin's own admin page instead of being duplicated in CPA's UI.
 
 ## Web admin UI
 
@@ -37,6 +39,38 @@ The plugin serves an admin page at `http://<cpa-host>:<api-port>/v0/resource/plu
 After the first save, rules and key bindings live in `state_file`. When unset, the default basename is `model-mapper-plus-state.json`, resolved against the CPA process working directory (same as key-policy; the plugin cannot read CPA's `plugins.dir`). Parent dirs are created as needed (mode 0700); the file is mode 0600. Once present, the state file is the single source of truth and the YAML rule fields no longer take effect (`enabled` still comes from YAML only). Delete the state file to fall back to YAML configuration. Set an explicit absolute `state_file` in config when you want a specific directory (e.g. a writable volume). The admin UI follows the CPA panel light/dark theme when embedded.
 
 If an existing state file cannot be parsed or fails validation, it is renamed to `<state_file>.corrupt` and the plugin falls back to the YAML seed. The reason is logged and returned as `load_error` from `GET .../state`, and the admin UI shows a banner — the quarantined file keeps its key bindings recoverable instead of being overwritten by the next save.
+
+## Keeper API Key 别名
+
+可在 **CPA 插件设置页**编辑 `usage_keeper_url` 和 `usage_keeper_password_env`，它们保存到 CPA 的 `config.yaml` 中 `plugins.configs.model-mapper-plus` 下，**不写入 state 文件**。
+
+```yaml
+plugins:
+  configs:
+    model-mapper-plus:
+      usage_keeper_url: "http://cpa-usage-keeper:8080"
+      usage_keeper_password_env: "CPA_KEEPER_LOGIN_PASSWORD"
+```
+
+`usage_keeper_url` 留空关闭接入；地址必须能从 CPA 进程/容器内访问。Keeper 部署在子路径时，将前缀包含在地址中，例如 `https://keeper.example.com/cpa`。Docker 中可用同一网络的 Keeper 服务名；容器内的 `localhost` 指向容器自身。
+
+实际密码通过 **CPA 进程环境变量**提供。以 Compose 为例，在 CPA 服务的 `environment` 中合并：
+
+```yaml
+environment:
+  CPA_KEEPER_LOGIN_PASSWORD: "${CPA_KEEPER_LOGIN_PASSWORD}"
+```
+
+环境变量值应为 Keeper 的管理员登录密码（不是 CPA management key 或客户端 API Key）。变量变更后重启 CPA。插件通过 Keeper 现有登录接口建立内存 Cookie 会话；密码和 Cookie 不返回插件页面。Keeper 关闭认证时读取接口无需密码。
+
+- Key 绑定和规则试跑使用相同显示规则：**已保存插件别名 → Keeper 别名 → 脱敏 Key**；有别名时显示“别名 · 脱敏 Key”。搜索支持两边别名和 Key，选择值始终为完整 Key。
+- 下拉成员来自 CPA；Keeper 只补充别名。绑定页仍可手动输入未列出的 Key。
+- **刷新别名**更新展示数据，不修改绑定。成功结果缓存 60 秒；手动刷新绕过成功缓存。
+- **从 Keeper 同步**强制读取当前 Key 的最新非空别名并替换编辑框内容，可继续手改；只有点击编辑弹窗的 **确定** 保存 才写入 `KeyBinding.alias`。取消编辑会放弃该草稿。绑定列表的别名列显示已保存值。
+- Keeper 没有对应 Key、别名为空或读取失败时保留输入并提示原因；等待期间改 Key、改别名或关闭编辑窗会丢弃旧同步结果。
+- Keeper 超时/认证失败不会退出 CPA 登录，也不影响规则和 Key 选择。一次读取最多 5 秒；认证失败冷却 60 秒，限流遵守 Keeper 的 `Retry-After`。配置切换会清理接入会话及缓存。
+
+排查时先看选择器下方状态：配置错误检查 URL 和 CPA 环境变量；认证失败检查 Keeper 登录密码；无对应 Key 检查 Keeper 是否已同步同一 CPA 的当前 Key。不要用两边的脱敏 Key 进行人工自动匹配。关闭接入不会删除已经保存的本地别名。
 
 ## Key bindings and thinking-effort control
 

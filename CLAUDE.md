@@ -62,7 +62,7 @@ This is a single-package Go `c-shared` CLIProxyAPI native plugin. `abi_cgo.go` i
 `main.go` contains the plugin logic:
 
 - `pluginRegistration` advertises `model_router`, `executor`, `executor.execute_stream`, and `management_api` support for `openai`, `claude`, and `openai-response` formats.
-- `decodeLifecycleConfig` and `decodeConfig` load plugin config from CPA lifecycle payloads. Readable config fields are `enabled`, `global_rules`, `claude_messages_rules`, `codex_responses_rules`, `openai_completions_rules`, and `state_file`. Only `enabled` and `state_file` are *declared* in `Metadata.ConfigFields` — the rule segments are managed in the plugin's own admin page, not duplicated on CPA's plugin config page. Keep `& ' < > "` out of every `ConfigField` name/description: CPA runs `html.EscapeString` over plugin metadata, so those characters render as entity garbage and the plugin cannot turn the host escaping off.
+- `decodeLifecycleConfig` and `decodeConfig` load plugin config from CPA lifecycle payloads. Readable config fields are `enabled`, `global_rules`, `claude_messages_rules`, `codex_responses_rules`, `openai_completions_rules`, `state_file`, `usage_keeper_url`, and `usage_keeper_password_env`. `enabled`, `state_file`, `usage_keeper_url`, and `usage_keeper_password_env` are *declared* in `Metadata.ConfigFields` — the rule segments are managed in the plugin's own admin page, not duplicated on CPA's plugin config page. Keep `& ' < > "` out of every `ConfigField` name/description: CPA runs `html.EscapeString` over plugin metadata, so those characters render as entity garbage and the plugin cannot turn the host escaping off.
 - `state.go` implements the state_file persistence layer (ADR-0001: once `state_file` exists it is the source of truth for rules and key bindings; YAML rule fields are seed-only, `enabled` stays YAML-only). Writes are atomic (tmp+fsync+rename, mode 0600).
 - `management.go` and `web_embed.go` implement `management.register`/`management.handle`: a resource route serves the embedded admin UI, and data routes manage rules, key bindings, and dry-run previews.
 - `selectRules` selects an endpoint-specific ruleset when non-empty; otherwise it falls back to `global_rules`. Endpoint-specific rules do not stack with global rules. The same segment logic (`selectRulesFrom`) is shared by top-level and per-key rule sets.
@@ -104,3 +104,13 @@ The GitHub Actions workflow runs tests/vet on PRs, builds all release platforms 
 Live smoke creates ignored local state under `.test-cpa/`; builds create ignored artifacts under `dist/`. Do not treat either directory as source.
 
 `docs/solutions/` stores documented solutions to past project problems, organized by category with YAML frontmatter. Search it before changing documented areas such as release automation or model/stream rewriting. `CONCEPTS.md` defines project-specific vocabulary used by these docs.
+
+## Keeper alias integration
+
+- Keeper URL and password environment-variable name live in CPA plugin configuration (`usage_keeper_url`, `usage_keeper_password_env`) and are declared as ConfigFields. State persists only the existing saved binding alias.
+- `keeper_client.go` owns the standard-library HTTP/Cookie client; `keeper_aliases.go` owns a 60-second cache, 5-second request deadline, coalescing and stable failure states. Keeper IO must stay outside config/state locks and every inference hook.
+- Management GET `/keeper/key-aliases` and POST `/keeper/key-aliases/refresh` return an HTTP 200 status envelope for Keeper failures, so external 401/403 cannot clear CPA management authentication.
+- `useKeyOptions` is owned by App; both panels consume the same options. `keyOptions.ts` keeps values as exact full keys, local alias first, Keeper alias second. Do not add Keeper-only keys to the CPA list.
+- Editor synchronization updates draft alias only. Guard edit session/key/alias changes before applying asynchronous results; saving uses the existing binding path.
+- Run `go test . -run '^Test(Keeper|ManagementKeeper)'`, `go test -race ./...`, `npm --prefix web run typecheck`, and `npm --prefix web test`. CI also runs the frontend tests.
+- UI component tests disable Select motion after installing the canvas shim because jsdom does not execute popup exit animations. Verify actual selection/clear behavior with motion enabled in browser QA.

@@ -2,6 +2,7 @@
 // Modal.confirm / Toast 等命令式 API 在 jsdom 下同样静默失效（删除绑定等用例会假红）。
 import '@douyinfe/semi-ui/react19-adapter'
 import '@testing-library/jest-dom/vitest'
+
 import { afterEach } from 'vitest'
 import { cleanup } from '@testing-library/react'
 
@@ -40,3 +41,8 @@ HTMLCanvasElement.prototype.getContext = function () {
     },
   })
 } as unknown as typeof HTMLCanvasElement.prototype.getContext
+
+// Import after the canvas shim: Semi loads lottie at module evaluation time.
+// jsdom cannot run popup exit animations; real motion is covered by browser QA.
+const { Select } = await import('@douyinfe/semi-ui')
+Select.defaultProps.motion = false

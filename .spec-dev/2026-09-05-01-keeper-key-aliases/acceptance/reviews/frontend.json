@@ -1,0 +1,4 @@
+{
+  "findings": [],
+  "coverage_note": "最终独立只读复核通过，当前没有开放的可操作发现。审查基线 f1d3d35ac4389d4223ac20e7f6ee9699d329c936 至当前未提交变更，已读 spec/plan 与全部前端实现和相关测试。历次发现及修复验证：（1）共享 hook 仅登录读 CPA Keys，已通过独立 page effect、App 传 tab 恢复切页重试/列表增删，并保留请求代际和既有列表；（2）Semi 原生 allowCreate 的旧 options 缓存，最终使用普通受控 Select 和显式手动 Key 选项解决，选中标签/下拉新别名/新增 Key 均有真实组件回归；（3）手填 Key 是现有 Key 或别名子串时无法创建，已改成完整 value 精确去重，前缀创建回归通过；（4）动态 options 更新重置搜索过滤，已在传入列表前按当前 search 过滤，旧 Key 保持隐藏且回车选择完整手动值。最终复跑 keyOptions/useKeyOptions/ApiKeySelect/KeysPanel.alias-sync 共 4 文件、25 项测试全部通过，typecheck 通过。额外只读确认键盘测试环境：Semi 仅读取 event.keyCode，而当前 jsdom/user-event keyboard Enter 的 keyCode/which 为 0；显式 fireEvent.keyDown 的 keyCode/which=13 后真实组件键盘回归通过，无需更改生产键盘逻辑。此前缺陷均以 Node stdin + jsdom + 当前真实 Semi 实现独立复现；未修改生产源码/测试，未创建额外测试文件，未使用浏览器。真实布局和宿主联调由主线程验收。"
+}

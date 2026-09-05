@@ -1,3 +1,4 @@
+import { createKeyOptions } from '../test/keyOptions'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
@@ -40,7 +41,7 @@ afterEach(() => {
 describe('KeysPanel：禁止访问', () => {
   it('新增绑定默认不禁止访问', async () => {
     const user = userEvent.setup()
-    render(<KeysPanel state={STATE} onSaved={vi.fn()} />)
+    render(<KeysPanel keyOptions={createKeyOptions()} state={STATE} onSaved={vi.fn()} />)
 
     await user.click(screen.getByRole('button', { name: /新增绑定/ }))
 
@@ -53,7 +54,7 @@ describe('KeysPanel：禁止访问', () => {
       ...STATE,
       key_bindings: [{ ...BINDING, blocked: true }],
     })
-    render(<KeysPanel state={STATE} onSaved={vi.fn()} />)
+    render(<KeysPanel keyOptions={createKeyOptions()} state={STATE} onSaved={vi.fn()} />)
     await user.click(screen.getByRole('button', { name: '编辑' }))
     await user.click(await screen.findByRole('switch', { name: '编辑绑定：禁止访问' }))
 
@@ -75,7 +76,7 @@ describe('KeysPanel：禁止访问', () => {
       ...STATE,
       key_bindings: [{ ...BINDING, blocked: false }],
     })
-    render(<KeysPanel state={{ ...STATE, key_bindings: [{ ...BINDING, blocked: true }] }} onSaved={vi.fn()} />)
+    render(<KeysPanel keyOptions={createKeyOptions()} state={{ ...STATE, key_bindings: [{ ...BINDING, blocked: true }] }} onSaved={vi.fn()} />)
     await user.click(screen.getByRole('button', { name: '编辑' }))
     const blockedSwitch = await screen.findByRole('switch', { name: '编辑绑定：禁止访问' })
     expect(blockedSwitch).toBeChecked()
@@ -99,7 +100,7 @@ describe('KeysPanel：禁止访问', () => {
       ...STATE,
       key_bindings: [{ ...BINDING, blocked: true }],
     })
-    render(<KeysPanel state={STATE} onSaved={vi.fn()} />)
+    render(<KeysPanel keyOptions={createKeyOptions()} state={STATE} onSaved={vi.fn()} />)
     await user.click(screen.getByRole('switch', { name: '禁止访问：Blocked Test' }))
 
     await waitFor(() => {

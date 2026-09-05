@@ -1,0 +1,57 @@
+{
+  "at": "2026-09-05T10:10:06.063Z",
+  "browser": "152.0.7977.82",
+  "records": [
+    {
+      "name": "CPA 配置元数据可编辑",
+      "status": "pass",
+      "detail": "两个字段均为 string"
+    },
+    {
+      "name": "CPA 设置接口保存与热更新",
+      "status": "pass",
+      "detail": "禁用→启用立即生效；空密码字段使用默认环境变量"
+    },
+    {
+      "name": "真实 Keeper 登录、子路径与别名读取",
+      "status": "pass",
+      "detail": "AUTH_ENABLED=true，APP_BASE_PATH=/keeper，使用独立测试数据"
+    },
+    {
+      "name": "同步仅修改草稿且取消不保存",
+      "status": "pass",
+      "detail": "真实 Keeper 值覆盖本地草稿，state 仍为空"
+    },
+    {
+      "name": "同步保存完整 Key 与别名",
+      "status": "pass",
+      "detail": "绑定保存 API 与 state 持久化成功"
+    },
+    {
+      "name": "主动同步绕过缓存并保留中文和特殊字符",
+      "status": "pass",
+      "detail": "Keeper 修改后立即同步当前值"
+    },
+    {
+      "name": "试跑搜索双别名、本地优先、完整 Key 与清空",
+      "status": "pass",
+      "detail": "搜索 Keeper 别名显示本地别名，传入完整 Key；清空后不传 Key"
+    },
+    {
+      "name": "手动完整 Key 键盘创建",
+      "status": "pass",
+      "detail": "无匹配输入后 Enter 不选择旧 Key"
+    },
+    {
+      "name": "明暗主题与长别名渲染",
+      "status": "pass",
+      "detail": "已生成真实浏览器截图，视觉判读单独记录"
+    },
+    {
+      "name": "浏览器运行错误",
+      "status": "pass",
+      "detail": "pageerror 为空；真实 Select 动画启用"
+    }
+  ],
+  "errors": []
+}

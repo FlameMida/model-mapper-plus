@@ -1,3 +1,4 @@
+import { createKeyOptions } from '../test/keyOptions'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
@@ -48,7 +49,7 @@ describe('KeysPanel：渠道定向与 Fast', () => {
       channel_target: wireTarget as KeyBinding['channel_target'],
     }
     expect(() => render(
-      <KeysPanel state={{ ...STATE, key_bindings: [binding] }} onSaved={vi.fn()} />,
+      <KeysPanel keyOptions={createKeyOptions()} state={{ ...STATE, key_bindings: [binding] }} onSaved={vi.fn()} />,
     )).not.toThrow()
     expect(screen.getByText(summary)).toBeInTheDocument()
   })
@@ -58,7 +59,7 @@ describe('KeysPanel：渠道定向与 Fast', () => {
       { id: 'gemini-main', provider: 'gemini', status: 'active', disabled: false, label: 'Gemini Main' },
     ])
     const user = userEvent.setup()
-    render(<KeysPanel state={STATE} onSaved={vi.fn()} />)
+    render(<KeysPanel keyOptions={createKeyOptions()} state={STATE} onSaved={vi.fn()} />)
 
     await user.click(screen.getByRole('button', { name: '编辑' }))
     expect(screen.getByRole('tab', { name: '基础' })).toBeInTheDocument()
@@ -70,7 +71,7 @@ describe('KeysPanel：渠道定向与 Fast', () => {
   it('auth-files 加载失败', async () => {
     vi.mocked(listCpaAuthFiles).mockRejectedValue(new Error('读取 CPA auth-files 失败：HTTP 503'))
     const user = userEvent.setup()
-    render(<KeysPanel state={STATE} onSaved={vi.fn()} />)
+    render(<KeysPanel keyOptions={createKeyOptions()} state={STATE} onSaved={vi.fn()} />)
 
     await user.click(screen.getByRole('button', { name: '编辑' }))
     await user.click(screen.getByRole('tab', { name: '渠道定向' }))
@@ -88,7 +89,7 @@ describe('KeysPanel：渠道定向与 Fast', () => {
       key: 'sk-old', alias: 'Old', enabled: true, blocked: false, rules: { ...EMPTY_RULES },
       channel_target: { enabled: true, suppliers: ['gemini'], auth_ids: ['f1', 'f2'] },
     }
-    render(<KeysPanel state={{ ...STATE, key_bindings: [oldBinding] }} onSaved={vi.fn()} />)
+    render(<KeysPanel keyOptions={createKeyOptions()} state={{ ...STATE, key_bindings: [oldBinding] }} onSaved={vi.fn()} />)
 
     expect(screen.getByText('1 个供应商 · 2 个认证文件')).toBeInTheDocument()
     expect(screen.getByText('允许')).toBeInTheDocument()
@@ -108,7 +109,7 @@ describe('KeysPanel：渠道定向与 Fast', () => {
         auth_ids: [' f1 ', 'f1'],
       },
     }
-    render(<KeysPanel state={{ ...STATE, key_bindings: [binding] }} onSaved={vi.fn()} />)
+    render(<KeysPanel keyOptions={createKeyOptions()} state={{ ...STATE, key_bindings: [binding] }} onSaved={vi.fn()} />)
 
     await user.click(screen.getByRole('button', { name: '编辑' }))
     const dialog = screen.getByRole('dialog')

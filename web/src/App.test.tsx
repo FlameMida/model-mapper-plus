@@ -2,7 +2,9 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 
 vi.mock('./api', () => ({
+  listCpaApiKeys: vi.fn().mockResolvedValue([]),
   api: {
+    getKeeperAliases: vi.fn().mockResolvedValue({ status: 'disabled', items: [] }),
     getState: vi.fn(),
     putRules: vi.fn(),
     postKey: vi.fn(),

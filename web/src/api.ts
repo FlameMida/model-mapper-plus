@@ -31,6 +31,12 @@ export interface KeyBinding {
   fast_allowed?: boolean
 }
 
+export interface KeeperAlias { key: string; alias: string }
+export type KeeperAliasesResponse =
+  | { status: 'ready'; items: KeeperAlias[]; fetched_at: string }
+  | { status: 'disabled'; items: [] }
+  | { status: 'unavailable'; items: []; error_code: 'configuration_error' | 'authentication_failed' | 'rate_limited' | 'timeout' | 'invalid_response' | 'connection_failed'; retry_after_seconds?: number }
+
 export interface StateResponse {
   version: number
   rules: RuleSet
@@ -121,6 +127,8 @@ async function call<T>(method: string, path: string, body?: unknown): Promise<T>
 }
 
 export const api = {
+  getKeeperAliases: () => call<KeeperAliasesResponse>('GET', '/keeper/key-aliases'),
+  refreshKeeperAliases: () => call<KeeperAliasesResponse>('POST', '/keeper/key-aliases/refresh'),
   getState: () => call<StateResponse>('GET', '/state'),
   putRules: (rules: RuleSet) => call<StateResponse>('PUT', '/rules', rules),
   postKey: (binding: KeyBinding) => call<StateResponse>('POST', '/keys', binding),

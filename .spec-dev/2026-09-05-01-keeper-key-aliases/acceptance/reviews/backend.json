@@ -1,0 +1,23 @@
+{
+  "findings": [
+    {
+      "file": "main.go",
+      "line": 335,
+      "severity": "高",
+      "confidence": 100,
+      "category": "Bug",
+      "description": "[已修复并独立复核] 原发现：新增 Keeper 配置只进入 Config 的 JSON 解码，lifecycleConfigYAML 和 decodeLifecycleConfig 的 YAML 字段复制没有加入 usage_keeper_url/usage_keeper_password_env。CPA 的 registerRPCPlugin 实际通过 config_yaml(base64 YAML) 发送配置，因而在插件设置或 config.yaml 配置的 URL 被静默丢弃为默认空字符串，正常宿主加载后别名接口始终 disabled；现有配置测试只直接调用 decodeConfig(JSON)，无法检出该问题。 修复验证：已加入 lifecycleConfigYAML 的两个指针字段及 decodeLifecycleConfig 转换；TestKeeperLifecycleYAMLFields 通过真实 config_yaml envelope 分别调用 register/reconfigure，验证 URL 与自定义环境变量名保留；空环境变量默认值也有回归。独立 race 复跑通过，原问题已修复。",
+      "fix_suggestion": "原建议已落实；为生命周期 YAML 结构及转换加入两个字段，并通过真实 config_yaml envelope 测试 plugin.register/plugin.reconfigure 后 loadedConfig 和管理别名接口状态，覆盖自定义 password env、默认值和留空禁用。"
+    },
+    {
+      "file": "keeper_aliases.go",
+      "line": 138,
+      "severity": "中",
+      "confidence": 98,
+      "category": "Bug",
+      "description": "[已修复并独立复核] 原发现：管理处理在调用 keeperAliasesForConfig 前读取 loadedConfig 快照，随后此处可根据任何传入快照重新安装全局服务。可达时序：请求 A 读旧 cfg 后暂停；请求 B 重配到新 Keeper 并 reset/读取新服务；A 恢复，以旧 cfg 替换当前服务，再返回旧别名 ready。结束时仅比较 service 指针会通过，因为旧请求自己重新成为当前服务。宿主 guardedPluginClient 允许并发调用，因此配置切换后仍可能返回旧别名并覆盖前端共享映射，违反 R2 配置切换契约。 修复验证：服务选择先在 loadedConfigMu.RLock 下校验 cfg 快照，再在释放该读锁前取得 keeperServices.Lock；重配在 loadedConfigMu 写锁内设置配置并 reset。旧选择只能先于 reset 而被指针检查废弃，或晚于重配而被字段校验拒绝，无法在已完成的重配后安装旧服务。A-B-A 且配置字段相同时只读取当前 A 的新服务，不复活旧 Cookie/缓存。新增旧快照回归与已有在途响应回归均在 race 复跑通过，原问题已修复。",
+      "fix_suggestion": "原建议已落实；将配置版本/快照和服务选择作为同一个短临界区取得，或传入配置 generation 并在服务安装及结果发布前验证它仍为最新；不要允许过期 cfg 重建全局服务。补充旧配置快照在 reconfigure 完成后才进入服务选择的确定性并发测试，现有测试只覆盖已经在上游执行的旧请求。"
+    }
+  ],
+  "coverage_note": "独立只读审查工作区相对 f1d3d35ac4389d4223ac20e7f6ee9699d329c936 的后端变更及全部新增 keeper_client.go、keeper_aliases.go、相关测试；比对已批准 spec/plan、Keeper settings/login 实现和 CPA config_yaml/并发调用路径。已运行 go test -race . -run ^Test(KeeperClient|KeeperAliases|ManagementKeeper) -count=1，结果通过（1.170s）；通过测试不覆盖上述生命周期字段与旧快照时序。核查认证重试、Cookie、禁跟随重定向、5 秒共享 deadline、缓存克隆、并发合并、冷却、无敏感正文错误回传、管理 200/no-store 及网络 IO 不持有规则锁；未修改生产代码或测试。 二次复核结论：保留以上 2 条历史发现供追溯，当前未解决发现为 0。新增复跑 go test -race . -run ^Test(KeeperClient|KeeperAliases|ManagementKeeper|DecodeLifecycleConfig) -count=1 通过（1.178s）；go test -race . -run ^TestKeeper(LifecycleYAMLFields|PasswordEnvBlankUsesDefault) -count=1 通过（1.080s）。仅更新审查报告，未改代码或测试。"
+}

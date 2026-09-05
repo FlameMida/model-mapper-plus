@@ -1,0 +1,20 @@
+{
+  "at": "2026-09-05T10:10:09.887Z",
+  "records": [
+    {
+      "name": "CPA 重启持久化",
+      "status": "pass",
+      "detail": "重启独立 Linux CPA，所有绑定别名与完整 Key 保留；state 无 Keeper 配置或密码"
+    },
+    {
+      "name": "真实 Keeper 停机隔离",
+      "status": "pass",
+      "detail": "停机后同步提示连接失败，保留草稿，CPA 登录与绑定保存正常"
+    },
+    {
+      "name": "故障下 CPA 列表仍可用",
+      "status": "pass",
+      "detail": "试跑页保留两个 CPA Key，Keeper 不可用不清空列表"
+    }
+  ]
+}

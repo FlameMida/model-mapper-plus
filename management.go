@@ -20,6 +20,8 @@ const (
 func handleManagementRegister() ([]byte, error) {
 	return json.Marshal(pluginapi.ManagementRegistrationResponse{
 		Routes: []pluginapi.ManagementRoute{
+			{Method: http.MethodGet, Path: managementRegisterBase + "/keeper/key-aliases", Description: "Read optional Keeper key aliases."},
+			{Method: http.MethodPost, Path: managementRegisterBase + "/keeper/key-aliases/refresh", Description: "Refresh Keeper key aliases without saving bindings."},
 			{Method: http.MethodGet, Path: managementRegisterBase + "/state", Description: "Read full model-mapper-plus state."},
 			{Method: http.MethodPut, Path: managementRegisterBase + "/rules", Description: "Replace top-level rule sets."},
 			{Method: http.MethodPost, Path: managementRegisterBase + "/keys", Description: "Create or replace a key binding."},
@@ -50,6 +52,10 @@ func dispatchManagement(req pluginapi.ManagementRequest) pluginapi.ManagementRes
 		return serveIndexHTML()
 	}
 	switch {
+	case req.Method == http.MethodGet && path == managementHandleBase+"/keeper/key-aliases":
+		return managementKeeperAliases(false)
+	case req.Method == http.MethodPost && path == managementHandleBase+"/keeper/key-aliases/refresh":
+		return managementKeeperAliases(true)
 	case req.Method == http.MethodGet && path == managementHandleBase+"/state":
 		return managementGetState()
 	case req.Method == http.MethodPut && path == managementHandleBase+"/rules":

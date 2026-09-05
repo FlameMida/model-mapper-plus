@@ -21,3 +21,11 @@ html[data-theme="white"] body {
 html[data-theme="dark"] body {
   background-color: var(--semi-color-bg-0);
 }
+
+/* Keeper aliases can reach 128 characters. Keep the Key visible within the
+   dropdown without expanding the page beyond the viewport. */
+.api-key-options .semi-select-option-text {
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}

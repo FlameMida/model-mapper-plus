@@ -6,6 +6,7 @@ import { readPanelAuth } from './panelAuth'
 import RulesPanel from './panels/RulesPanel'
 import KeysPanel from './panels/KeysPanel'
 import PreviewPanel from './panels/PreviewPanel'
+import { useKeyOptions } from './useKeyOptions'
 
 const { Header, Content } = Layout
 
@@ -14,6 +15,7 @@ export default function App() {
   const [state, setState] = useState<StateResponse | null>(null)
   const [inputKey, setInputKey] = useState('')
   const [tab, setTab] = useState('rules')
+  const keyOptions = useKeyOptions(state?.key_bindings ?? [], authed, tab)
   // 面板 key 只自动尝试一次。否则 401 → clearKey → authed=false → 再次读到同一个
   // 失效 key → 重新登录 → 401……形成无限重试，用户也回不到登录表单。
   const panelAuthTried = useRef(false)
@@ -114,8 +116,8 @@ export default function App() {
             { itemKey: 'preview', text: '规则试跑' },
           ]} />
         {tab === 'rules' && state && <RulesPanel state={state} onSaved={setState} />}
-        {tab === 'keys' && state && <KeysPanel state={state} onSaved={setState} />}
-        {tab === 'preview' && <PreviewPanel />}
+        {tab === 'keys' && state && <KeysPanel state={state} onSaved={setState} keyOptions={keyOptions} />}
+        {tab === 'preview' && <PreviewPanel keyOptions={keyOptions} />}
       </Content>
     </Layout>
   )

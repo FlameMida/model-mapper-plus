@@ -1,3 +1,4 @@
+import { createKeyOptions } from '../test/keyOptions'
 import { describe, it, expect, vi, afterEach } from 'vitest'
 import { useState } from 'react'
 import { render, screen, waitFor } from '@testing-library/react'
@@ -35,7 +36,7 @@ const STATE_WITH_BINDING: StateResponse = {
 
 function Harness() {
   const [state, setState] = useState<StateResponse>(STATE_WITH_BINDING)
-  return <KeysPanel state={state} onSaved={setState} />
+  return <KeysPanel keyOptions={createKeyOptions()} state={state} onSaved={setState} />
 }
 
 afterEach(() => {

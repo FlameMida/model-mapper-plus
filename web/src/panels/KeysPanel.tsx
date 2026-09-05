@@ -1,9 +1,12 @@
-import { useEffect, useState } from 'react'
-import { Button, Card, Table, Modal, Input, Select, Switch, Tag, Tabs, TabPane, Toast, Typography } from '@douyinfe/semi-ui'
-import { api, ChannelTarget, CpaAuthFile, KeyBinding, RuleSet, StateResponse, listCpaApiKeys, listCpaAuthFiles } from '../api'
+import { useEffect, useRef, useState } from 'react'
+import { Button, Card, Table, Modal, Input, Switch, Tag, Tabs, TabPane, Toast, Typography } from '@douyinfe/semi-ui'
+import { api, ChannelTarget, CpaAuthFile, KeyBinding, RuleSet, StateResponse, listCpaAuthFiles } from '../api'
 import { normalizeChannelTarget } from '../channelTarget'
 import ChannelTargetEditor from '../components/ChannelTargetEditor'
 import RuleSetEditor from '../components/RuleSetEditor'
+import ApiKeySelect from '../components/ApiKeySelect'
+import { maskKey } from '../keyOptions'
+import { keeperStatusText, type KeyOptionsState } from '../useKeyOptions'
 
 const EMPTY_RULES: RuleSet = { global: '', claude: '', codex: '', openai: '' }
 const EMPTY_CHANNEL_TARGET: ChannelTarget = { enabled: false, suppliers: [], auth_ids: [] }
@@ -24,11 +27,6 @@ function channelTargetSummary(binding: KeyBinding): string {
   return `${target.suppliers?.length ?? 0} 个供应商 · ${target.auth_ids?.length ?? 0} 个认证文件`
 }
 
-function maskKey(key: string): string {
-  if (key.length <= 10) return key
-  return `${key.slice(0, 6)}…${key.slice(-4)}`
-}
-
 function ruleSummary(b: KeyBinding): string {
   const parts: string[] = []
   const count = (dsl: string) => (dsl ? dsl.split(';').filter(Boolean).length : 0)
@@ -40,6 +38,7 @@ function ruleSummary(b: KeyBinding): string {
 }
 
 interface Props {
+  keyOptions: KeyOptionsState
   state: StateResponse
   onSaved: (s: StateResponse) => void
 }
@@ -69,8 +68,7 @@ export function planKeySave(originalKey: string, editing: KeyBinding): KeySavePl
   }
 }
 
-export default function KeysPanel({ state, onSaved }: Props) {
-  const [cpaKeys, setCpaKeys] = useState<string[]>([])
+export default function KeysPanel({ state, onSaved, keyOptions }: Props) {
   const [editing, setEditing] = useState<KeyBinding | null>(null)
   // originalKey tracks the binding being edited; empty means "create new".
   // Used so the upsert warning only shows when the selected key collides with
@@ -80,10 +78,53 @@ export default function KeysPanel({ state, onSaved }: Props) {
   const [authFiles, setAuthFiles] = useState<CpaAuthFile[]>([])
   const [authLoading, setAuthLoading] = useState(false)
   const [authError, setAuthError] = useState('')
+  const [aliasSyncing, setAliasSyncing] = useState(false)
+  const [aliasNotice, setAliasNotice] = useState('')
+  const editRevision = useRef(0)
+  const syncRequest = useRef(0)
 
-  useEffect(() => {
-    listCpaApiKeys().then(setCpaKeys).catch(() => setCpaKeys([]))
-  }, [])
+  const invalidateAliasSync = () => {
+    editRevision.current++
+    syncRequest.current++
+    setAliasSyncing(false)
+    setAliasNotice('')
+  }
+
+  useEffect(() => () => { editRevision.current++; syncRequest.current++ }, [])
+
+  const syncAlias = async () => {
+    const key = editing?.key.trim()
+    if (!key || aliasSyncing || keyOptions.keeper?.status === 'disabled') return
+    const revision = editRevision.current
+    const request = ++syncRequest.current
+    const isCurrent = () => revision === editRevision.current && request === syncRequest.current
+    setAliasSyncing(true)
+    setAliasNotice('')
+    try {
+      const result = await keyOptions.refreshAliases()
+      if (!isCurrent()) return
+      if (result.status !== 'ready') {
+        setAliasNotice(keeperStatusText(result) + '，已保留当前内容')
+        return
+      }
+      const match = result.items.find(item => item.key === key)
+      if (!match) {
+        setAliasNotice('Keeper 中没有对应的 API Key，已保留当前内容')
+        return
+      }
+      const alias = match.alias.trim()
+      if (!alias) {
+        setAliasNotice('Keeper 中尚未设置别名，已保留当前内容')
+        return
+      }
+      setEditing(current => current?.key.trim() === key ? { ...current, alias } : current)
+      setAliasNotice('已填入，保存绑定后生效')
+    } catch {
+      if (isCurrent()) setAliasNotice('读取 Keeper 失败，已保留当前内容')
+    } finally {
+      if (isCurrent()) setAliasSyncing(false)
+    }
+  }
 
   const loadAuthFiles = () => {
     setAuthLoading(true)
@@ -108,6 +149,7 @@ export default function KeysPanel({ state, onSaved }: Props) {
       Toast.error('请选择或输入 API key')
       return
     }
+    invalidateAliasSync()
     setSaving(true)
     api.postKey(plan.binding)
       .then((s) => (plan.deleteKey ? api.deleteKey(plan.deleteKey) : Promise.resolve(s)))
@@ -122,6 +164,7 @@ export default function KeysPanel({ state, onSaved }: Props) {
   }
 
   const openCreate = () => {
+    invalidateAliasSync()
     setOriginalKey('')
     setEditing(normalizeBinding({
       key: '', alias: '', enabled: true, blocked: false,
@@ -132,11 +175,13 @@ export default function KeysPanel({ state, onSaved }: Props) {
   }
 
   const openEdit = (b: KeyBinding) => {
+    invalidateAliasSync()
     setOriginalKey(b.key)
     setEditing(normalizeBinding(b))
   }
 
   const closeEdit = () => {
+    invalidateAliasSync()
     setEditing(null)
     setOriginalKey('')
   }
@@ -233,20 +278,29 @@ export default function KeysPanel({ state, onSaved }: Props) {
           <Tabs type="line" keepDOM>
             <TabPane tab="基础" itemKey="basic">
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                <Select
-                  style={{ width: '100%' }}
-                  filter
+                <ApiKeySelect
+                  source={keyOptions}
                   allowCreate
-                  placeholder="选择或输入 API key"
-                  value={editing.key || undefined}
-                  onChange={(value) => setEditing({ ...editing, key: String(value) })}
-                  optionList={cpaKeys.map((key) => ({ value: key, label: maskKey(key) }))}
+                  value={editing.key}
+                  onChange={(key) => { invalidateAliasSync(); setEditing(current => current ? { ...current, key } : current) }}
                 />
-                <Input
-                  placeholder="别名（可选）"
-                  value={editing.alias}
-                  onChange={(alias) => setEditing({ ...editing, alias })}
-                />
+                <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+                  <Input
+                    aria-label="绑定别名"
+                    style={{ flex: '1 1 220px', minWidth: 0 }}
+                    placeholder="别名（可选）"
+                    value={editing.alias}
+                    onChange={(alias) => { invalidateAliasSync(); setEditing(current => current ? { ...current, alias } : current) }}
+                  />
+                  <Button
+                    loading={aliasSyncing}
+                    disabled={!editing.key.trim() || keyOptions.keeper?.status === 'disabled' || aliasSyncing || saving}
+                    onClick={() => { void syncAlias() }}
+                  >从 Keeper 同步</Button>
+                </div>
+                <Typography.Text size="small" type="tertiary" aria-live="polite">
+                  {aliasNotice || (!editing.key.trim() ? '选择或输入 Key 后可同步别名' : keyOptions.keeper?.status === 'disabled' ? '请在 CPA 插件设置中配置 Keeper 后同步' : '同步会替换输入框内容，保存绑定后生效')}
+                </Typography.Text>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
                   <span>
                     <Switch

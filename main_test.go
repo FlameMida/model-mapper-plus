@@ -53,7 +53,7 @@ func TestPluginRegistrationMetadataAndConfigFields(t *testing.T) {
 	}
 	// 规则四段由插件自己的管理页维护，不再向 CPA 声明；YAML 里的 *_rules 仍可读
 	// （decodeConfig/decodeLifecycleConfig 保持兼容），只是不在 CPA 插件配置页出现。
-	wantFields := []string{"enabled", "state_file"}
+	wantFields := []string{"enabled", "state_file", "usage_keeper_url", "usage_keeper_password_env"}
 	got := make([]string, 0, len(reg.Metadata.ConfigFields))
 	for _, field := range reg.Metadata.ConfigFields {
 		got = append(got, field.Name)
