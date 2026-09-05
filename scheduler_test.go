@@ -202,3 +202,50 @@ func TestChannelTargetScheduler(t *testing.T) {
 		}
 	})
 }
+
+func TestChannelTargetSchedulerAcceptsHostReadyErrorStatus(t *testing.T) {
+	const model = "gpt-5.6-sol"
+	for _, scenario := range []string{"model_cooldown_expired", "auth_cooldown_expired", "other_model_failed"} {
+		for _, targetKind := range []string{"auth_id", "supplier"} {
+			t.Run(scenario+"/"+targetKind, func(t *testing.T) {
+				target := &ChannelTarget{Enabled: true, AuthIDs: []string{"target"}}
+				if targetKind == "supplier" {
+					target = &ChannelTarget{Enabled: true, Suppliers: []string{"codex"}}
+				}
+				seedSchedulerBinding(t, KeyBinding{Key: "sk-k", ChannelTarget: target})
+
+				auth := &cliproxyauth.Auth{
+					ID: "target", Provider: "codex", Status: cliproxyauth.StatusError,
+					Unavailable: true, NextRetryAfter: time.Unix(1, 0),
+				}
+				switch scenario {
+				case "model_cooldown_expired":
+					auth.ModelStates = map[string]*cliproxyauth.ModelState{model: {
+						Status: cliproxyauth.StatusError, Unavailable: true, NextRetryAfter: time.Unix(1, 0),
+					}}
+				case "other_model_failed":
+					auth.ModelStates = map[string]*cliproxyauth.ModelState{"other-model": {
+						Status: cliproxyauth.StatusError, Unavailable: true, NextRetryAfter: time.Now().Add(time.Hour),
+					}}
+				}
+
+				// The host decides readiness per model and recovery time, even when
+				// the credential still carries the status of a previous failure.
+				selected, err := (&cliproxyauth.FillFirstSelector{}).Pick(context.Background(), "codex", model, cliproxyexecutor.Options{}, []*cliproxyauth.Auth{auth})
+				if err != nil || selected == nil {
+					t.Fatalf("host must consider the target ready: selected=%v err=%v", selected, err)
+				}
+				req := schedulerRequest("sk-k",
+					pluginapi.SchedulerAuthCandidate{ID: "outside", Provider: "claude", Status: "active"},
+					pluginapi.SchedulerAuthCandidate{ID: selected.ID, Provider: selected.Provider, Status: string(selected.Status)},
+				)
+				req.Model = model
+				req.Providers = []string{"codex", "claude"}
+				resp := schedulerResponse(t, req)
+				if !resp.Handled || resp.AuthID != "target" || resp.DelegateBuiltin != "" {
+					t.Fatalf("must select the host-ready target without leaving the pool: %+v", resp)
+				}
+			})
+		}
+	}
+}

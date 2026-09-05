@@ -765,12 +765,14 @@ func handleRequestInterceptAfter(raw []byte) ([]byte, error) {
 }
 
 var unavailableSchedulerStatuses = map[string]struct{}{
-	"disabled": {}, "error": {}, "expired": {}, "revoked": {}, "invalid": {},
+	"disabled": {}, "expired": {}, "revoked": {}, "invalid": {},
 	"unavailable": {}, "cooldown": {}, "cooling_down": {},
 	"quota_exhausted": {}, "exhausted": {}, "blocked": {},
 }
 
 func schedulerCandidateUsable(candidate pluginapi.SchedulerAuthCandidate) bool {
+	// The host already checks model-specific availability and cooldowns.
+	// Status "error" may describe a past failure of this or another model.
 	_, unavailable := unavailableSchedulerStatuses[strings.ToLower(strings.TrimSpace(candidate.Status))]
 	return strings.TrimSpace(candidate.ID) != "" && !unavailable
 }

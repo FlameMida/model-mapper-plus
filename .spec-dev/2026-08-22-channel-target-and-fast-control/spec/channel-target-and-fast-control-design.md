@@ -82,6 +82,8 @@ key 绑定目前只能追加模型映射规则和做访问禁用。需要两个�
 
 当某 key 的渠道定向开关开启时，该 key 发起的每个模型请求 SHALL 只能由候选池内的凭据执行：候选 = 宿主交给 Scheduler 的 Candidates ∩（所选供应商 ∪ 单独所选认证文件）。宿主在 Scheduler 前已按模型能力、可用性、cooldown 与全局最高优先级收窄 Candidates；插件 SHALL NOT 选择不在 Candidates 中的 AuthID。池内多个凭据时插件按确定性顺序（ID 排序）轮转分配。
 
+对于宿主已判定当前请求可用并放入 Candidates 的目标凭据，插件 SHALL NOT 仅因其 `Status=error` 再次排除；该状态可能来自已结束的冷却或其他模型的历史失败，不代表当前请求不可用。
+
 #### Scenario: 单选认证文件命中
 
 - **GIVEN** 绑定 key K 定向开启，auth_ids 含认证文件 F1（provider=claude），suppliers 为空
@@ -105,6 +107,18 @@ key 绑定目前只能追加模型映射规则和做访问禁用。需要两个�
 - **GIVEN** 插件收到 scheduler.pick 回调但无法从请求头提取客户端 key（或该 key 无绑定）
 - **WHEN** 宿主等待调度决策
 - **THEN** 插件返回 Handled=false，宿主按其默认策略自由调度（不报错）
+
+#### Scenario: 历史失败的目标凭据恢复可用
+
+- **GIVEN** 绑定 key K 按供应商或认证文件定向到 F1；F1 的凭据级或当前模型冷却已经结束，但 `Status` 仍为 `error`
+- **WHEN** 宿主将 F1 作为当前请求的可用 Candidates 交给插件
+- **THEN** F1 正常参与定向池内调度，不因历史 `error` 状态返回 503，也不使用池外凭据
+
+#### Scenario: 其他模型失败不影响当前可用模型
+
+- **GIVEN** F1 因模型 A 失败而处于 `Status=error`，当前请求模型 B 可用；绑定 key K 按供应商或认证文件定向到 F1
+- **WHEN** 宿主针对模型 B 将 F1 放入 Candidates
+- **THEN** F1 正常参与 K 的定向池内调度，不受模型 A 的失败状态影响
 
 ### Requirement: 定向池空时显式报错不降级
 
@@ -268,7 +282,7 @@ PATCH /keys SHALL 支持 channel_target 与 fast_allowed 字段的局部更新�
 | Fast 覆盖 | `request.intercept_before`（已有） | 现有 handler 内追加非终止改写分支 |
 | 响应还原 | `response.intercept_after`（新注册） | `ResponseInterceptor` 能力 + 薄还原 |
 
-- `handleSchedulerPick`：过滤（usable 状态 ∧ 池内归属）→ 空池报 503 → 非空按 ID 确定性排序后由插件自持计数器轮转选一个（round-robin；计数器驻内存，绑定池变化时归零）。不用 `DelegateBuiltin`——它在宿主全量凭据分片上重挑、会绕开候选池。Candidates 由宿主做过模型能力、可用性、cooldown 与全局最高优先级预过滤，插件的 usable 过滤是防御性冗余。空池时插件仍设置 typed `Code=auth_not_found`，同时把 message 编码为合法 JSON `{"error":{"type":"auth_not_found","code":"auth_not_found","message":"…"}}`，以兼容宿主 RPC 丢失 typed code 后的三协议错误转换路径。
+- `handleSchedulerPick`：过滤（usable 状态 ∧ 池内归属）→ 空池报 503 → 非空按 ID 确定性排序后由插件自持计数器轮转选一个（round-robin；计数器驻内存，绑定池变化时归零）。不用 `DelegateBuiltin`——它在宿主全量凭据分片上重挑、会绕开候选池。Candidates 由宿主做过模型能力、可用性、cooldown 与全局最高优先级预过滤，插件仅防御性排除显式不可用状态；`error` 可能只是历史失败，必须保留宿主判定可用的此类候选。空池时插件仍设置 typed `Code=auth_not_found`，同时把 message 编码为合法 JSON `{"error":{"type":"auth_not_found","code":"auth_not_found","message":"…"}}`，以兼容宿主 RPC 丢失 typed code 后的三协议错误转换路径。
 - fast 剥离：blocked 检查之后追加；handler 开始时只加载一次不可变 rule-source 快照，blocked 与 Fast 都基于该快照判定。改写仅在「绑定存在且 fast_allowed 显式 false」时发生。
 - `handleResponseInterceptAfter`：Stream 直接透传；否则提取 key、确认定向开启后调 `rewriteModelFields(body, RequestedModel)`。
 - 客户端 key 识别统一走 `apiKeyFromHeaders`（Authorization Bearer / x-api-key），scheduler 从 `Options.Headers`、response 从 `RequestHeaders` 提取；提取失败一律 fail-open。
@@ -290,7 +304,7 @@ type KeyBinding struct {
 }
 ```
 
-定向请求路径：客户端 → routeModel 返回 Handled=false（跳过映射）→ 宿主按原始模型名解析 providers → 宿主按模型能力、可用性、cooldown 与全局最高优先级层预过滤 → conductor 调 scheduler.pick → 插件过滤候选（usable 状态 ∧ (Provider∈Suppliers ∨ ID∈AuthIDs)，Provider 大小写不敏感比较）→ 空→503 / 非空→插件轮转计数器选 AuthID。usable 排除表照抄 key-policy：disabled/error/expired/revoked/invalid/unavailable/cooldown/cooling_down/quota_exhausted/exhausted/blocked。
+定向请求路径：客户端 → routeModel 返回 Handled=false（跳过映射）→ 宿主按原始模型名解析 providers → 宿主按模型能力、可用性、cooldown 与全局最高优先级层预过滤 → conductor 调 scheduler.pick → 插件过滤候选（usable 状态 ∧ (Provider∈Suppliers ∨ ID∈AuthIDs)，Provider 大小写不敏感比较）→ 空→503 / 非空→插件轮转计数器选 AuthID。usable 排除表为 disabled/expired/revoked/invalid/unavailable/cooldown/cooling_down/quota_exhausted/exhausted/blocked；不排除宿主已判定可用的历史 `error` 状态。
 
 这个顺序意味着插件只能在宿主已提供的 Candidates 内收窄，无法召回因 cooldown 或较低全局优先级而缺席的目标凭据：若池外仍有 active 候选，插件收到的交集为空并返回 503；只有宿主全局无任何候选且未调用 Scheduler 时，宿主才可能直接返回原生 429 `model_cooldown` 与 `Retry-After`。插件不模拟该分支。
 
