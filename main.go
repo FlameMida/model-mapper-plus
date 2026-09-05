@@ -586,7 +586,9 @@ func setLoadedConfigForTest(cfg Config) {
 }
 
 func handlePluginRegister(raw []byte) ([]byte, error) {
-	return json.Marshal(pluginRegistration())
+	// A newly loaded library receives its config in plugin.register; the host
+	// only sends plugin.reconfigure on later reloads. Load state immediately.
+	return handlePluginReconfigure(raw)
 }
 
 func handlePluginReconfigure(raw []byte) ([]byte, error) {

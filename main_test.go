@@ -1524,6 +1524,9 @@ func runExecutorStreamTestWithHostContentType(req rpcExecutorRequest, reads []pl
 }
 
 func TestHandleMethodDispatchesRegisterReconfigureAndUnknown(t *testing.T) {
+	t.Chdir(t.TempDir())
+	setLoadedConfigForTest(defaultConfig())
+	t.Cleanup(func() { setLoadedConfigForTest(defaultConfig()) })
 	registerRaw, err := handleMethod(pluginabi.MethodPluginRegister, nil)
 	if err != nil {
 		t.Fatalf("handle register error = %v", err)
