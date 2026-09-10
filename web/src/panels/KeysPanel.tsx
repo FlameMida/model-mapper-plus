@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Button, Card, Table, Modal, Input, Switch, Tag, Tabs, TabPane, Toast, Typography } from '@douyinfe/semi-ui'
-import { api, ChannelTarget, CpaAuthFile, KeyBinding, RuleSet, StateResponse, listCpaAuthFiles } from '../api'
+import { api, ChannelTarget, CpaAuthFile, KeyBinding, RuleSet, StateResponse, listCpaCredentials } from '../api'
 import { normalizeChannelTarget } from '../channelTarget'
 import ChannelTargetEditor from '../components/ChannelTargetEditor'
 import RuleSetEditor from '../components/RuleSetEditor'
@@ -24,7 +24,7 @@ function normalizeBinding(binding: KeyBinding): KeyBinding {
 function channelTargetSummary(binding: KeyBinding): string {
   const target = binding.channel_target
   if (!target?.enabled) return '关闭'
-  return `${target.suppliers?.length ?? 0} 个供应商 · ${target.auth_ids?.length ?? 0} 个认证文件`
+  return `${target.suppliers?.length ?? 0} 个供应商 · ${target.auth_ids?.length ?? 0} 个凭据`
 }
 
 function ruleSummary(b: KeyBinding): string {
@@ -129,7 +129,7 @@ export default function KeysPanel({ state, onSaved, keyOptions }: Props) {
   const loadAuthFiles = () => {
     setAuthLoading(true)
     setAuthError('')
-    listCpaAuthFiles()
+    listCpaCredentials()
       .then(setAuthFiles)
       .catch((error: Error) => {
         setAuthFiles([])
@@ -273,6 +273,7 @@ export default function KeysPanel({ state, onSaved, keyOptions }: Props) {
         onOk={save}
         confirmLoading={saving}
         width={860}
+        style={{ maxWidth: 'calc(100vw - 32px)' }}
       >
         {editing && (
           <Tabs type="line" keepDOM>

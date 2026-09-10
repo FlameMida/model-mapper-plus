@@ -13,6 +13,12 @@ spec_dev:
     - "management_test.go"
     - "scheduler_test.go"
     - "fast_strip_test.go"
+    - "channel_credentials*.go"
+    - "testdata/channel_credentials.json"
+    - "web/src/channelCredentials.test.ts"
+    - "web/src/components/ChannelTargetEditor.css"
+    - "web/src/components/ChannelTargetEditor.test.tsx"
+    - "web/src/panels/KeysPanel.channel-target.test.tsx"
     - "web/src/panels/KeysPanel.tsx"
     - "web/src/components/ChannelTargetEditor.tsx"
     - "web/src/api.ts"
@@ -27,23 +33,24 @@ spec_dev:
 
 key 绑定目前只能追加模型映射规则和做访问禁用。需要两个新控制维度：(1) 把某个客户端 key 的请求**定向**到指定的 AI 供应商 / 认证文件集合（候选池内正常调度，池空报错不降级）；(2) 对每个 key 控制 **fast 模式**准入——关闭时把 fast 请求覆盖成普通请求。
 
-**成功标准**：绑定渠道定向后，该 key 的请求只可能由“宿主交给 Scheduler 的当前可选候选”与“所选供应商 ∪ 所选认证文件”的交集中的凭据执行，交集为空时 HTTP 503 且绝不降级到池外；关闭 Fast 允许后，该 key 的任何 fast 标记（`speed:"fast"` body 字段或 `fast-mode-2026-02-01` beta 头）在到达上游前被剥离；管理 UI 可视化配置两者。
+**成功标准**：绑定渠道定向后，该 key 的请求只可能由“宿主交给 Scheduler 的当前可选候选”与“所选供应商 ∪ 所选凭据”的交集中的凭据执行，交集为空时 HTTP 503 且绝不降级到池外；关闭 Fast 允许后，该 key 的任何 fast 标记（`speed:"fast"` body 字段或 `fast-mode-2026-02-01` beta 头）在到达上游前被剥离；管理 UI 可视化配置两者。
 
 ## 非目标
 
 - 不实现按选择顺序的优先级降级调度（池内交给宿主内建策略）。
 - 不做流式响应的模型名还原（SSE 逐块改写风险高，收益低）。
 - 不在 UI 上检测/展示 Scheduler 调度权冲突状态。
-- 不代理 CPA 的 auth-files 接口（前端直调宿主 API）。
+- 不代理 CPA 的 auth-files 或 AI Providers 配置 GET 接口（前端直调宿主 API）；插件仅提供无状态的凭据 ID 解析 POST 接口。
 - 不支持 OpenAI Responses 等非 Claude 协议的 fast 变体（CPA 宿主中 fast 是 Claude 协议专属语义）。
 - 不修改 `/Users/flame/CLIProxyAPI` 宿主、SDK 或 RPC 适配层；宿主仓库仅作为只读契约依据。
 - 不伪造宿主的 per-model cooldown 判定或 `Retry-After`；插件看不到 Scheduler 前被排除候选的完整模型状态。
 
 ## 术语表
 
-- **渠道定向（channel target）**：某 key 绑定上的一组「供应商整选 + 认证文件单选」及总开关；生效时请求只能由该集合内的凭据执行。_Avoid_：渠道绑定、通道指定。
-- **候选池（candidate pool）**：定向开启时，宿主完成模型能力、可用性、cooldown 与全局最高优先级预过滤后交给 Scheduler 的 Candidates，与「所选供应商 ∪ 所选认证文件」的交集。
+- **渠道定向（channel target）**：某 key 绑定上的一组「供应商整选 + 凭据单选」及总开关；生效时请求只能由该集合内的凭据执行。_Avoid_：渠道绑定、通道指定。
+- **候选池（candidate pool）**：定向开启时，宿主完成模型能力、可用性、cooldown 与全局最高优先级预过滤后交给 Scheduler 的 Candidates，与「所选供应商 ∪ 所选凭据」的交集。
 - **Fast 允许（fast allowed）**：绑定级开关；false 时该 key 的 fast 标记被剥离为普通请求。_Avoid_：加速模式、turbo。
+- **凭据（credential）**：CPA Scheduler 的一条候选记录，以 `ID` 唯一标识；来源包括认证文件和 AI Providers 配置。定向按凭据判断，不以模型名区分。
 - **认证文件（auth file）**：CPA 宿主中的一条凭据记录（`GET /v0/management/auth-files` 条目），有唯一 `id` 与归属 `provider`。
 - **fail-open**：插件无法识别请求上下文（拿不到 key、无绑定、功能关）时不干预、交还宿主正常流程的行为约定。
 
@@ -59,7 +66,7 @@ key 绑定目前只能追加模型映射规则和做访问禁用。需要两个�
 - 定向机制走纯 Scheduler 能力而非 `TargetKind=provider` 路由 —— Target 单值无法表达多供应商并集；scheduler 层天然拿到带 Provider 归属的候选列表（详见 `../../adr/0006-channel-targeting-via-scheduler-not-provider-route.md`）。
 - 开关粒度：每 key 一个渠道定向总开关 —— 配置保留不丢失，数据结构与 UI 都最简。
 - 多认证文件语义：插件自持计数器在池内轮转（round-robin，按 ID 确定性排序）——SDK 契约下 `DelegateBuiltin` 不受候选池约束（宿主在全量分片上重挑）、钉死单个 AuthID 又无轮转，插件侧轮转是同时保住「池隔离」与「多文件分摊」的唯一实现路径；计数器驻内存、重启归零可接受。
-- 选择粒度：供应商整选 + 认证文件单选可混选，取并集 —— 整选是动态语义（供应商新增文件自动入池），不做保存时展开。
+- 选择粒度：供应商整选 + 凭据单选可混选，取并集 —— 整选是动态语义（供应商新增文件自动入池），不做保存时展开。
 - 池空行为：报错不降级——插件 ABI 保留 `HTTPStatus=503` / `Code=auth_not_found`，并把 message 编码为同时含 `error.type` 与 `error.code` 的完整 JSON。CPA v7.2.119 的 RPC 适配层会丢弃 typed code，但会保留 HTTP 状态与 message；OpenAI/Codex 错误路径原样透传 JSON，Claude `/v1/messages` 重包装后保留 `error.type=auth_not_found`。
 - 响应模型名：非流式还原 + 流式透传 —— 与 key-policy 先例一致，流式 SSE 改写风险高。
 - 定向与映射关系：定向优先、跳过本插件的规则映射 —— 定向是「换执行路径」不是「改模型名」；路由决策返回 Handled=false 即自然实现。
@@ -80,7 +87,7 @@ key 绑定目前只能追加模型映射规则和做访问禁用。需要两个�
 
 ### Requirement: 渠道定向候选池过滤
 
-当某 key 的渠道定向开关开启时，该 key 发起的每个模型请求 SHALL 只能由候选池内的凭据执行：候选 = 宿主交给 Scheduler 的 Candidates ∩（所选供应商 ∪ 单独所选认证文件）。宿主在 Scheduler 前已按模型能力、可用性、cooldown 与全局最高优先级收窄 Candidates；插件 SHALL NOT 选择不在 Candidates 中的 AuthID。池内多个凭据时插件按确定性顺序（ID 排序）轮转分配。
+当某 key 的渠道定向开关开启时，该 key 发起的每个模型请求 SHALL 只能由候选池内的凭据执行：候选 = 宿主交给 Scheduler 的 Candidates ∩（所选供应商 ∪ 单独所选凭据）。宿主在 Scheduler 前已按模型能力、可用性、cooldown 与全局最高优先级收窄 Candidates；插件 SHALL NOT 选择不在 Candidates 中的 AuthID。池内多个凭据时插件按确定性顺序（ID 排序）轮转分配。
 
 对于宿主已判定当前请求可用并放入 Candidates 的目标凭据，插件 SHALL NOT 仅因其 `Status=error` 再次排除；该状态可能来自已结束的冷却或其他模型的历史失败，不代表当前请求不可用。
 
@@ -170,6 +177,36 @@ key 绑定目前只能追加模型映射规则和做访问禁用。需要两个�
 - **WHEN** SSE 分块经过插件
 - **THEN** 各分块内容与不经插件时一致（无逐块模型名改写）
 
+### Requirement: AI Providers 凭据目录与精确勾选
+
+认证文件和 AI Providers 凭据 SHALL 统一按 `suppliers ∪ auth_ids` 过滤，AI Providers 无特殊豁免；同模型、同供应商内的未选凭据亦不得进入候选池（供应商整选覆盖的条目除外）。保持现有保存结构、池内轮转、池空 503 及宿主预过滤边界。
+
+前端 SHALL 读取 `auth-files` 及 `gemini-api-key`、`interactions-api-key`、`claude-api-key`、`codex-api-key`、`xai-api-key`、`openai-compatibility`、`vertex-api-key`，将配置数组按宿主原始顺序提交插件 `POST /channel-credentials`。插件用 Go 标准库复现本地 CPA `d1a024e9400bc65bd78ccd908945cf2eacc2835e` 的 ID 算法和内部 provider 命名，不修改宿主、不引入依赖、不依赖浏览器安全上下文。
+
+ID SHALL 使用正确的类型与字段顺序、Go TrimSpace、排序后的 headers 和重复编号；先生成 ID 再排序或搜索。重复计数器在每次完整目录解析时新建；禁用的 OpenAI Compatibility 供应商不生成运行时凭据且不消耗编号，故不提供勾选项；无 API Key 的兼容供应商按宿主规则生成条目。其他宿主版本的 ID 或 provider 规则变化需重新验证，不能假定兼容。
+
+解析接口 SHALL 仅返回 ID、内部 provider、展示名称、脱敏 Key、展示地址、来源和「已配置」状态；不发起上游请求、不写状态文件、不保留或回显原文 API Key、代理地址或自定义 headers。绑定继续仅保存供应商与凭据 ID。解析错误 SHALL 不回显原始输入。
+
+旧宿主缺少 Interactions / xAI 接口时，其 404 SHALL 视为不支持该类型；其他读取失败或非法目录格式 SHALL 显示加载失败并保留所有勾选，不能静默显示不完整目录。401/403 沿用重新登录流程。配置变化导致 ID 变化时，旧 ID 保留并显示「当前未返回」，不猜测转绑。
+
+#### Scenario: 同模型下按配置凭据单选
+
+- **GIVEN** 宿主同模型 Candidates 含同供应商的两个 AI Providers 凭据及认证文件，绑定仅选择其中一个配置凭据 ID
+- **WHEN** Scheduler 接收该请求
+- **THEN** 仅选中 ID 可被使用；其他配置凭据和认证文件被过滤
+
+#### Scenario: 跨来源混选与重开回显
+
+- **GIVEN** 页面展示认证文件和 AI Providers 配置凭据
+- **WHEN** 用户混选、保存绑定并重新打开
+- **THEN** 两类 ID 均回显；保存体只携带绑定字段，不携带上游配置；Scheduler 仅在所选凭据间轮转
+
+#### Scenario: 原始接口与真实宿主 ID 一致
+
+- **GIVEN** 七类管理 GET 的响应样本与真实 ConfigSynthesizer 输出
+- **WHEN** 插件解析目录
+- **THEN** ID 与 provider 逐条等于宿主结果，包括重复条目后缀及无 Key 的兼容供应商；与模型名无关
+
 ### Requirement: Fast 关闭时剥离 fast 标记
 
 绑定的 Fast 允许为显式 false 时，该 key 的 Claude 协议请求若携带 fast 标记——body 顶层 `speed` 字段值为 fast（大小写不敏感），或请求头 anthropic-beta 列表含 fast-mode-2026-02-01——则插件 SHALL 在请求进入上游前移除这些标记（删除 speed 字段、从 beta 头各值中剔除该 token 且保留其余 beta）；无 fast 标记的请求与非 Claude 协议请求 SHALL 原样通过。Fast 允许缺省（true 或未设置）时不做任何改写。同一次 `request.intercept_before` 的 blocked 与 Fast 判定 SHALL 使用同一份不可变状态快照，不得在热更新窗口内混用两个版本。
@@ -238,7 +275,7 @@ PATCH /keys SHALL 支持 channel_target 与 fast_allowed 字段的局部更新�
 
 ### Requirement: Admin UI 表单重构（Tabs 三页 + B 版定向编辑器）
 
-编辑/新增绑定弹窗 SHALL 采用 Tabs 分页：「基础」（key Select、别名、启用规则/禁止访问/Fast 允许三 Switch、同 key 冲突提示）、「渠道定向」（总开关 + 左侧供应商导航 + 右侧认证文件列表；右侧包含供应商整选、名称/ID 搜索、当前结果全选及每项状态标识；开关关闭时选择控件禁用置灰、配置保留，仍可切换供应商查看）、「规则集」（现有 RuleSetEditor）。窄屏时供应商导航横向排列在列表上方。表格 SHALL 新增渠道定向摘要列与 Fast 状态列，并必须容忍 wire JSON 因 `omitempty` 缺少 `suppliers` / `auth_ids` 或两者的合法形状。provider 从存量绑定与 auth-files 合并时 SHALL 先 trim、按大小写不敏感 canonical key 去重并保留第一个展示值；auth ID SHALL 先 trim、按大小写敏感值去重。列表、分组、回显、缺失判定、组选与保存 SHALL 共用这两套规范化语义。全程使用 Semi Design 组件；加载提示图标与「正在加载认证文件…」SHALL 单行显示，加载失败提示、详情与「重新加载」按钮文字 SHALL 统一为 14px。目录仍仅调用 auth-files，不接入 AI Providers 配置接口。
+编辑/新增绑定弹窗 SHALL 采用 Tabs 分页：「基础」（key Select、别名、启用规则/禁止访问/Fast 允许三 Switch、同 key 冲突提示）、「渠道定向」（总开关 + 左侧供应商导航 + 右侧认证文件列表；右侧包含供应商整选、名称/ID 搜索、当前结果全选及每项状态标识；开关关闭时选择控件禁用置灰、配置保留，仍可切换供应商查看）、「规则集」（现有 RuleSetEditor）。窄屏时供应商导航横向排列在列表上方；编辑弹窗保留桌面 860px 宽度并限制最大宽度为视口减 32px，防止凭据标签与开关被裁切。表格 SHALL 新增渠道定向摘要列与 Fast 状态列，并必须容忍 wire JSON 因 `omitempty` 缺少 `suppliers` / `auth_ids` 或两者的合法形状。provider 从存量绑定与 auth-files 合并时 SHALL 先 trim、按大小写不敏感 canonical key 去重并保留第一个展示值；auth ID SHALL 先 trim、按大小写敏感值去重。列表、分组、回显、缺失判定、组选与保存 SHALL 共用这两套规范化语义。全程使用 Semi Design 组件；加载提示图标与「正在加载凭据…」SHALL 单行显示，加载失败提示、详情与「重新加载」按钮文字 SHALL 统一为 14px。目录合并 auth-files 与 AI Providers 配置凭据，加载、搜索、计数、摘要统一称为「凭据」；每项标注「认证文件」或「AI Providers」。AI Providers 条目可显示名称、脱敏 Key 和去除 userinfo/query/fragment 的地址；状态显示「已配置」，不伪称实时可用。搜索支持名称、地址与 ID。自定义 OpenAI Compatibility 展示配置名称，供应商整选保存 Scheduler 内部 provider key。
 
 #### Scenario: 供应商导航切换与混选回显
 
@@ -268,7 +305,7 @@ PATCH /keys SHALL 支持 channel_target 与 fast_allowed 字段的局部更新�
 
 - **GIVEN** CPA auth-files 接口不可达
 - **WHEN** 打开渠道定向页
-- **THEN** 页面显示「认证文件加载失败，已选配置已保留。」、错误详情与「重新加载」按钮，文字均为 14px；已选值保留，加载中或失败时不将未出现 ID 标为「当前未返回」；目录成功返回后才作该缺失提示
+- **THEN** 页面显示「凭据加载失败，已选配置已保留。」、错误详情与「重新加载」按钮，文字均为 14px；已选值保留，加载中或失败时不将未出现 ID 标为「当前未返回」；目录成功返回后才作该缺失提示
 
 #### Scenario: 合法缺失数组的表格回显
 
@@ -326,7 +363,7 @@ type KeyBinding struct {
 - Scheduler 空池错误：`HTTPStatus=503`、typed `Code=auth_not_found`，`Message` 为同时包含 `error.type`、`error.code` 与人类可读 `error.message` 的合法 JSON；OpenAI/Codex 路径使用 JSON 内的 code，Claude 路径使用 JSON 内的 type。
 - `PATCH /keys` patch 结构增加 `*ChannelTarget`（json tag `channel_target`）与 `*bool`（`fast_allowed`）。
 - `POST /preview` 响应增加 `channel_target`（{enabled,resolved:{suppliers,auth_ids}}）与 `mapping_skipped` 字段（omitempty，向后兼容）。
-- 前端新增 `api.listCpaAuthFiles(): Promise<CpaAuthFile[]>` 直调 `GET /v0/management/auth-files`（条目字段 id/provider/status/disabled/label）。
+- 前端 `listCpaCredentials()` 合并 `listCpaAuthFiles()` 和七类配置接口，调用插件 `POST /channel-credentials` 解析后返回统一目录。原有 `CpaAuthFile` 类型扩展可选 `source`、`provider_label`、`base_url` 字段以兼容旧文件目录。
 
 ### 错误处理
 
@@ -345,6 +382,8 @@ type KeyBinding struct {
 
 | Scenario / 检查项 | 维度 | 执行方式 | 验收证据 |
 |-------------------|------|---------|---------|
+| 七类宿主目录 ID/provider 一致、配置输入校验、无敏感值泄漏、混选轮转 | unit/integration | Go fixture + Scheduler ABI | 与真实宿主输出逐条比较 |
+| 配置目录加载、搜索、混选保存与重开回显 | component | Vitest + 浏览器受控页面 | 测试与浏览器记录 |
 | 单选认证文件命中 | unit | 任务内 TDD | 测试通过 |
 | 供应商整选动态入池 | unit | 任务内 TDD | 测试通过 |
 | 池内多凭据轮转分摊 | unit | 任务内 TDD | 测试通过 |

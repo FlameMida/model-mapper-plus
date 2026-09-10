@@ -19,6 +19,9 @@ export interface CpaAuthFile {
   status: string
   disabled: boolean
   label: string
+  source?: 'auth-file' | 'ai-provider'
+  provider_label?: string
+  base_url?: string
 }
 
 export interface KeyBinding {
@@ -160,4 +163,39 @@ export async function listCpaAuthFiles(): Promise<CpaAuthFile[]> {
   if (!resp.ok) throw new Error(`读取 CPA auth-files 失败：HTTP ${resp.status}`)
   const body = (await resp.json()) as { files?: CpaAuthFile[] }
   return body.files ?? []
+}
+
+// Resolve IDs on the plugin using Go's SHA-256, including on HTTP-hosted pages.
+// Raw provider configuration is transient and never part of a saved binding.
+export async function listCpaCredentials(): Promise<CpaAuthFile[]> {
+  const endpoints = ['gemini-api-key', 'interactions-api-key', 'claude-api-key',
+    'codex-api-key', 'xai-api-key', 'openai-compatibility', 'vertex-api-key']
+  const [files, entries] = await Promise.all([
+    listCpaAuthFiles(),
+    Promise.all(endpoints.map(async endpoint => {
+      const resp = await fetch(`/v0/management/${endpoint}`, {
+        headers: { Authorization: `Bearer ${getKey()}` },
+      })
+      if (resp.status === 401 || resp.status === 403) {
+        clearKey()
+        throw new Error('认证失败，请重新登录')
+      }
+      // These provider types were added after the original supported SDK.
+      if (resp.status === 404 && ['interactions-api-key', 'xai-api-key'].includes(endpoint)) {
+        return [endpoint, []] as const
+      }
+      if (!resp.ok) throw new Error(`读取 CPA ${endpoint} 失败：HTTP ${resp.status}`)
+      const body = await resp.json()
+      if (!body || !(endpoint in body) || (body[endpoint] !== null && !Array.isArray(body[endpoint]))) {
+        throw new Error(`CPA ${endpoint} 响应格式错误`)
+      }
+      return [endpoint, body[endpoint] ?? []] as const
+    })),
+  ])
+  const configured = await call<CpaAuthFile[]>('POST', '/channel-credentials', Object.fromEntries(entries))
+  if (!Array.isArray(configured)) throw new Error('凭据目录响应格式错误')
+  const combined = new Map<string, CpaAuthFile>()
+  for (const file of files) combined.set(file.id, { ...file, source: 'auth-file' })
+  for (const credential of configured) combined.set(credential.id, credential)
+  return [...combined.values()]
 }

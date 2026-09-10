@@ -29,6 +29,7 @@ function normalizeAuthFiles(files: readonly CpaAuthFile[]): CpaAuthFile[] {
 
 function authStatus(file: CpaAuthFile) {
   if (file.disabled) return <Tag color="red" size="small">已禁用</Tag>
+  if (file.source === 'ai-provider' && file.status === 'configured') return <Tag color="blue" size="small">已配置</Tag>
   if (file.status && file.status !== 'active') return <Tag color="orange" size="small">{file.status}</Tag>
   return <Tag color="green" size="small">可用</Tag>
 }
@@ -44,6 +45,7 @@ export default function ChannelTargetEditor({ value, authFiles, loading, error, 
   const missingAuthIDs = selectedAuthIDs.filter((id) => !knownAuthIDs.has(id))
   const grouped = providers.map((provider) => ({
     provider,
+    label: normalizedFiles.find(file => providerKey(file.provider) === providerKey(provider) && file.provider_label)?.provider_label || provider,
     files: normalizedFiles
       .filter((file) => providerKey(file.provider) === providerKey(provider))
       .sort((a, b) => a.id.localeCompare(b.id)),
@@ -52,7 +54,7 @@ export default function ChannelTargetEditor({ value, authFiles, loading, error, 
   const activeKey = active ? providerKey(active.provider) : ''
   const query = search.provider === activeKey ? search.text : ''
   const visibleFiles = active?.files.filter((file) =>
-    `${file.label} ${file.id}`.toLowerCase().includes(query.trim().toLowerCase()),
+    `${file.label} ${file.base_url ?? ''} ${file.id}`.toLowerCase().includes(query.trim().toLowerCase()),
   ) ?? []
   const visibleIDs = visibleFiles.map((file) => file.id)
   const visibleSelectedCount = visibleIDs.filter((id) => selectedAuthIDs.includes(id)).length
@@ -82,31 +84,31 @@ export default function ChannelTargetEditor({ value, authFiles, loading, error, 
 
       {missingAuthIDs.length > 0 && (
         <div className="channel-target-missing">
-          <span>{loading || error ? '已保存的认证文件：' : '已保存但 CPA 当前未返回：'}</span>
+          <span>{loading || error ? '已保存的凭据：' : '已保存但 CPA 当前未返回：'}</span>
           {missingAuthIDs.map((id) => <Tag key={id} color="grey">{id}</Tag>)}
         </div>
       )}
 
       {loading ? (
         <div className="channel-target-state">
-          <div className="channel-target-loading" role="status"><Spin size="small" /><span>正在加载认证文件…</span></div>
+          <div className="channel-target-loading" role="status"><Spin size="small" /><span>正在加载凭据…</span></div>
         </div>
       ) : error ? (
         <Banner className="channel-target-error" type="danger" description={
           <div className="channel-target-error-content">
-            <span>认证文件加载失败，已选配置已保留。</span>
+            <span>凭据加载失败，已选配置已保留。</span>
             <span className="channel-target-error-detail">{error}</span>
             <Button theme="borderless" onClick={onRetry}>重新加载</Button>
           </div>
         } />
       ) : !active ? (
-        <div className="channel-target-state">CPA 当前没有可展示的认证文件。</div>
+        <div className="channel-target-state">CPA 当前没有可展示的凭据。</div>
       ) : (
         <div className={`channel-target-browser${value.enabled ? '' : ' channel-target-disabled'}`}>
           <nav className="channel-target-sidebar" aria-label="供应商导航">
             <div className="channel-target-sidebar-title"><span>AI 供应商</span><span>{providers.length}</span></div>
             <div className="channel-target-provider-list">
-              {grouped.map(({ provider, files }) => (
+              {grouped.map(({ provider, label, files }) => (
                 <Button key={provider} theme="borderless" type="tertiary"
                   aria-label={`查看供应商 ${provider}`}
                   aria-pressed={providerKey(provider) === activeKey}
@@ -117,20 +119,20 @@ export default function ChannelTargetEditor({ value, authFiles, loading, error, 
                   }}>
                   <span className="channel-target-avatar" aria-hidden="true">{provider.slice(0, 1).toUpperCase()}</span>
                   <span className="channel-target-provider-copy">
-                    <strong title={provider}>{provider}</strong>
+                    <strong title={provider}>{label}</strong>
                     <small>{supplierSelected(provider) ? '已整选 · 自动包含新增' :
-                      `${files.filter((file) => selectedAuthIDs.includes(file.id)).length} 项指定 / ${files.length} 个文件`}</small>
+                      `${files.filter((file) => selectedAuthIDs.includes(file.id)).length} 项指定 / ${files.length} 个凭据`}</small>
                   </span>
                   <IconChevronRight aria-hidden="true" />
                 </Button>
               ))}
             </div>
-            <p className="channel-target-sidebar-hint">点击供应商查看文件。<br />切换时保留所有选择。</p>
+            <p className="channel-target-sidebar-hint">点击供应商查看凭据。<br />切换时保留所有选择。</p>
           </nav>
 
-          <section className="channel-target-detail" aria-label={`${active.provider} 认证文件`}>
+          <section className="channel-target-detail" aria-label={`${active.provider} 凭据`}>
             <div className="channel-target-detail-heading">
-              <div><h3>{active.provider}</h3><span>{active.files.length} 个认证文件</span></div>
+              <div><h3>{active.label}</h3><span>{active.files.length} 个凭据</span></div>
               <Checkbox aria-label={`供应商 ${active.provider}`} disabled={!value.enabled}
                 checked={supplierSelected(active.provider)}
                 onChange={(event) => emit(value.enabled,
@@ -139,31 +141,33 @@ export default function ChannelTargetEditor({ value, authFiles, loading, error, 
                   selectedAuthIDs,
                 )}>整选此供应商</Checkbox>
             </div>
-            <p className="channel-target-help">整选包含该供应商及其后续新增凭据；下方指定文件与整选范围取并集。</p>
-            <Input prefix={<IconSearch />} aria-label="搜索认证文件" placeholder="搜索文件名称或 ID"
+            <p className="channel-target-help">整选包含该供应商及其后续新增凭据；下方指定凭据与整选范围取并集。</p>
+            <Input prefix={<IconSearch />} aria-label="搜索凭据" placeholder="搜索名称、地址或 ID"
               showClear disabled={!value.enabled} value={query}
               onChange={(text) => setSearch({ provider: activeKey, text })} />
             <div className="channel-target-file-toolbar">
               <Checkbox aria-label={`全选 ${active.provider}`} disabled={!value.enabled || visibleIDs.length === 0}
                 checked={allVisibleChecked} indeterminate={visibleSelectedCount > 0 && !allVisibleChecked}
                 onChange={(event) => toggleAuthGroup(visibleIDs, !!event.target.checked)}>
-                {query.trim() ? '全选搜索结果' : '全选当前文件'}（{visibleIDs.length}）
+                {query.trim() ? '全选搜索结果' : '全选当前凭据'}（{visibleIDs.length}）
               </Checkbox>
               <span>状态</span>
             </div>
             <div className="channel-target-files">
               {visibleFiles.length === 0 ? (
-                <div className="channel-target-no-results">{query.trim() ? '没有匹配的认证文件' : '该供应商当前没有认证文件。'}</div>
+                <div className="channel-target-no-results">{query.trim() ? '没有匹配的凭据' : '该供应商当前没有凭据。'}</div>
               ) : visibleFiles.map((file) => (
                 <div key={file.id} className={`channel-target-file${selectedAuthIDs.includes(file.id) ? ' channel-target-file-selected' : ''}`}>
-                  <Checkbox aria-label={`认证文件 ${file.id}`} disabled={!value.enabled}
+                  <Checkbox aria-label={`凭据 ${file.id}`} disabled={!value.enabled}
                     checked={selectedAuthIDs.includes(file.id)}
                     onChange={(event) => toggleAuthGroup([file.id], !!event.target.checked)} />
                   <div className="channel-target-file-name">
                     <strong>{file.label || file.id}</strong>
                     <code title={file.id}>{file.id}</code>
+                    {file.base_url && <span className="channel-target-credential-url">{file.base_url}</span>}
                   </div>
                   <div className="channel-target-file-badges">
+                    <Tag size="small" color={file.source === 'ai-provider' ? 'blue' : 'grey'}>{file.source === 'ai-provider' ? 'AI Providers' : '认证文件'}</Tag>
                     {supplierSelected(active.provider) && <span>整选已覆盖</span>}
                     {authStatus(file)}
                   </div>
@@ -175,8 +179,8 @@ export default function ChannelTargetEditor({ value, authFiles, loading, error, 
       )}
 
       <div className="channel-target-summary">
-        <strong>{selectedSuppliers.length} 个整选供应商 + {selectedAuthIDs.length} 个指定文件</strong>
-        <span>保存后应用于当前 Key</span>
+        <strong>{selectedSuppliers.length} 个整选供应商 + {selectedAuthIDs.length} 个指定凭据</strong>
+        <span>认证文件与 AI Providers 统一按勾选生效；可用性由 CPA 调度判断。</span>
       </div>
     </div>
   )

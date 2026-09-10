@@ -18,6 +18,28 @@ const VALUE: ChannelTarget = {
 }
 
 describe('ChannelTargetEditor', () => {
+  it('AI Providers 与认证文件按凭据混选，搜索地址并以内部 provider 整选', async () => {
+    const user = userEvent.setup()
+    const onChange = vi.fn()
+    function Harness() {
+      const [value, setValue] = useState<ChannelTarget>({ enabled: true, suppliers: [], auth_ids: ['account.json'] })
+      return <ChannelTargetEditor value={value} loading={false} error="" onRetry={vi.fn()}
+        onChange={next => { setValue(next); onChange(next) }} authFiles={[
+          { id: 'account.json', provider: 'openai-compatible-proof', label: 'Account', status: 'active', disabled: false },
+          { id: 'openai-compatibility:proof:123', provider: 'openai-compatible-proof', provider_label: 'Proof', label: 'Key ••••1234', status: 'configured', disabled: false, source: 'ai-provider', base_url: 'https://proof.example/v1' },
+        ]} />
+    }
+    render(<Harness />)
+    expect(screen.getByText('AI Providers')).toBeInTheDocument()
+    expect(screen.getByText('认证文件')).toBeInTheDocument()
+    expect(screen.getByText('已配置')).toBeInTheDocument()
+    await user.type(screen.getByRole('textbox', { name: '搜索凭据' }), 'proof.example')
+    expect(screen.queryByLabelText('凭据 account.json')).not.toBeInTheDocument()
+    await user.click(screen.getByLabelText('凭据 openai-compatibility:proof:123'))
+    expect(onChange).toHaveBeenLastCalledWith({ enabled: true, suppliers: [], auth_ids: ['account.json', 'openai-compatibility:proof:123'] })
+    await user.click(screen.getByLabelText('供应商 openai-compatible-proof'))
+    expect(onChange).toHaveBeenLastCalledWith({ enabled: true, suppliers: ['openai-compatible-proof'], auth_ids: ['account.json', 'openai-compatibility:proof:123'] })
+  })
   it('provider 与 auth ID 规范化一致', async () => {
     const user = userEvent.setup()
     const onChange = vi.fn()
@@ -35,11 +57,11 @@ describe('ChannelTargetEditor', () => {
 
     expect(screen.getAllByLabelText(/^供应商 /)).toHaveLength(1)
     expect(screen.getByLabelText('供应商 Gemini')).toBeChecked()
-    expect(screen.getByLabelText('认证文件 f1')).toBeChecked()
-    expect(screen.getByLabelText('认证文件 F1')).not.toBeChecked()
+    expect(screen.getByLabelText('凭据 f1')).toBeChecked()
+    expect(screen.getByLabelText('凭据 F1')).not.toBeChecked()
     expect(screen.queryByText('已保存但 CPA 当前未返回：')).not.toBeInTheDocument()
 
-    await user.click(screen.getByLabelText('认证文件 f1'))
+    await user.click(screen.getByLabelText('凭据 f1'))
     expect(onChange).toHaveBeenLastCalledWith({
       enabled: true,
       suppliers: ['Gemini'],
@@ -60,12 +82,12 @@ describe('ChannelTargetEditor', () => {
 
     expect(screen.getByLabelText('供应商 claude')).toBeChecked()
     expect(screen.getByRole('button', { name: '查看供应商 claude' })).toHaveAttribute('aria-pressed', 'true')
-    expect(screen.queryByLabelText('认证文件 gemini-main')).not.toBeInTheDocument()
-    expect(screen.getByLabelText('认证文件 claude-main')).not.toBeChecked()
+    expect(screen.queryByLabelText('凭据 gemini-main')).not.toBeInTheDocument()
+    expect(screen.getByLabelText('凭据 claude-main')).not.toBeChecked()
     await user.click(screen.getByRole('button', { name: '查看供应商 gemini' }))
     expect(screen.getByLabelText('供应商 gemini')).not.toBeChecked()
-    expect(screen.getByLabelText('认证文件 gemini-main')).toBeChecked()
-    expect(screen.queryByLabelText('认证文件 claude-main')).not.toBeInTheDocument()
+    expect(screen.getByLabelText('凭据 gemini-main')).toBeChecked()
+    expect(screen.queryByLabelText('凭据 claude-main')).not.toBeInTheDocument()
   })
 
   it('总开关关闭置灰', async () => {
@@ -94,9 +116,9 @@ describe('ChannelTargetEditor', () => {
     expect(screen.getByLabelText('供应商 claude')).toBeDisabled()
     expect(screen.getByLabelText('供应商 claude')).toBeChecked()
     await user.click(screen.getByRole('button', { name: '查看供应商 gemini' }))
-    expect(screen.getByLabelText('认证文件 gemini-main')).toBeDisabled()
-    expect(screen.getByLabelText('认证文件 gemini-main')).toBeChecked()
-    expect(screen.getByRole('textbox', { name: '搜索认证文件' })).toBeDisabled()
+    expect(screen.getByLabelText('凭据 gemini-main')).toBeDisabled()
+    expect(screen.getByLabelText('凭据 gemini-main')).toBeChecked()
+    expect(screen.getByRole('textbox', { name: '搜索凭据' })).toBeDisabled()
   })
 
   it('认证文件组头全选只更新该组', async () => {
@@ -132,8 +154,8 @@ describe('ChannelTargetEditor', () => {
     }
     render(<Editor />)
     await user.click(screen.getByRole('button', { name: '查看供应商 gemini' }))
-    await user.type(screen.getByRole('textbox', { name: '搜索认证文件' }), 'BACKUP')
-    expect(screen.queryByLabelText('认证文件 gemini-main')).not.toBeInTheDocument()
+    await user.type(screen.getByRole('textbox', { name: '搜索凭据' }), 'BACKUP')
+    expect(screen.queryByLabelText('凭据 gemini-main')).not.toBeInTheDocument()
     await user.click(screen.getByLabelText('全选 gemini'))
     expect(onChange).toHaveBeenLastCalledWith({
       enabled: true, suppliers: ['claude'], auth_ids: ['claude-main', 'gemini-backup', 'gemini-main', 'missing'],
@@ -143,8 +165,8 @@ describe('ChannelTargetEditor', () => {
       enabled: true, suppliers: ['claude'], auth_ids: ['claude-main', 'gemini-main', 'missing'],
     })
     await user.click(screen.getByRole('button', { name: '查看供应商 claude' }))
-    expect(screen.getByRole('textbox', { name: '搜索认证文件' })).toHaveValue('')
-    expect(screen.getByLabelText('认证文件 claude-main')).toBeChecked()
+    expect(screen.getByRole('textbox', { name: '搜索凭据' })).toHaveValue('')
+    expect(screen.getByLabelText('凭据 claude-main')).toBeChecked()
     await user.click(screen.getByLabelText('供应商 claude'))
     expect(onChange).toHaveBeenLastCalledWith({
       enabled: true, suppliers: [], auth_ids: ['claude-main', 'gemini-main', 'missing'],
@@ -155,25 +177,25 @@ describe('ChannelTargetEditor', () => {
     const user = userEvent.setup()
     const props = { value: { enabled: true, suppliers: [], auth_ids: [] }, loading: false, error: '', onChange: vi.fn(), onRetry: vi.fn() }
     const { rerender } = render(<ChannelTargetEditor {...props} authFiles={FILES} />)
-    await user.type(screen.getByRole('textbox', { name: '搜索认证文件' }), 'not-present')
-    expect(screen.getByText('没有匹配的认证文件')).toBeInTheDocument()
+    await user.type(screen.getByRole('textbox', { name: '搜索凭据' }), 'not-present')
+    expect(screen.getByText('没有匹配的凭据')).toBeInTheDocument()
     expect(screen.getByLabelText('全选 claude')).toBeDisabled()
-    await user.clear(screen.getByRole('textbox', { name: '搜索认证文件' }))
+    await user.clear(screen.getByRole('textbox', { name: '搜索凭据' }))
     await user.click(screen.getByRole('button', { name: '查看供应商 gemini' }))
     rerender(<ChannelTargetEditor {...props} authFiles={[FILES[0]]} />)
     expect(screen.getByRole('button', { name: '查看供应商 claude' })).toHaveAttribute('aria-pressed', 'true')
-    expect(screen.getByLabelText('认证文件 claude-main')).toBeInTheDocument()
+    expect(screen.getByLabelText('凭据 claude-main')).toBeInTheDocument()
   })
 
   it('加载与失败保留已选项，失败提供可重试提示', async () => {
     const user = userEvent.setup()
     const props = { value: VALUE, authFiles: [], onChange: vi.fn(), onRetry: vi.fn() }
     const { rerender } = render(<ChannelTargetEditor {...props} loading error="" />)
-    expect(screen.getByRole('status')).toHaveTextContent('正在加载认证文件…')
+    expect(screen.getByRole('status')).toHaveTextContent('正在加载凭据…')
     expect(screen.getByText('gemini-main')).toBeInTheDocument()
     expect(screen.queryByText('已保存但 CPA 当前未返回：')).not.toBeInTheDocument()
     rerender(<ChannelTargetEditor {...props} loading={false} error="HTTP 503" />)
-    expect(screen.getByText('认证文件加载失败，已选配置已保留。')).toBeInTheDocument()
+    expect(screen.getByText('凭据加载失败，已选配置已保留。')).toBeInTheDocument()
     expect(screen.getByText('HTTP 503')).toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: '重新加载' }))
     expect(props.onRetry).toHaveBeenCalledOnce()

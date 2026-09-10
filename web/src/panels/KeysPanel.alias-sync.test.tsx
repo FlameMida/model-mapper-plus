@@ -8,7 +8,7 @@ import { createKeyOptions } from '../test/keyOptions'
 
 vi.mock('../api', async (importOriginal) => {
  const actual = await importOriginal<typeof import('../api')>()
- return { ...actual, listCpaAuthFiles: vi.fn().mockResolvedValue([]), api: { ...actual.api, postKey: vi.fn() } }
+ return { ...actual, listCpaCredentials: vi.fn().mockResolvedValue([]), api: { ...actual.api, postKey: vi.fn() } }
 })
 const binding: KeyBinding = { key: 'sk-a', alias: '手填旧名', enabled: true, blocked: false, rules: { global: 'a=>b', claude: '', codex: '', openai: '' } }
 const state: StateResponse = { version: 1, rules: { global: '', claude: '', codex: '', openai: '' }, key_bindings: [binding], persisted: true }

@@ -32,6 +32,7 @@
 .channel-target-file-name { min-width: 0; flex: 1; }
 .channel-target-file-name strong { display: block; font-size: 13px; font-weight: 500; overflow-wrap: anywhere; }
 .channel-target-file-name code { display: block; margin-top: 4px; font-size: 11px; color: var(--semi-color-text-2); overflow-wrap: anywhere; }
+.channel-target-credential-url { display: block; margin-top: 4px; font-size: 11px; color: var(--semi-color-text-2); overflow-wrap: anywhere; }
 .channel-target-file-badges { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex-shrink: 0; max-width: 40%; }
 .channel-target-file-badges > span:not(.semi-tag) { font-size: 11px; color: var(--semi-color-text-2); }
 .channel-target-file-badges .semi-tag { max-width: 100%; }
