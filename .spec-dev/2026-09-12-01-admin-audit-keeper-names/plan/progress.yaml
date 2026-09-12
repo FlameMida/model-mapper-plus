@@ -1,5 +1,5 @@
 format_version: 1
-current: null
+current: T07
 tasks:
   T00: { status: completed, commit: fbc63d7c0ac414200b3011fc6b2c34675e17525b, tests: pass }
   T01:
@@ -86,7 +86,7 @@ tasks:
       branch: impl/admin-audit-t06
       base_commit: 1313c90333b7e30476608c85c3ef32e234d32759
       model_declaration_id: initial-20260912
-  T07: { status: pending }
+  T07: { status: in_progress }
   T08: { status: pending }
 resources:
   - "worktree: /Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-t06; claim=t06-20260912-a1; created; remove after acceptance/archive; branch=impl/admin-audit-t06"
@@ -104,6 +104,7 @@ resources:
   - "worktree: /Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-keeper-names; created by this plan; after verified merge: git worktree remove /Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-keeper-names; git branch -d plan/admin-audit-keeper-names"
   - "service: T07 本地验收服务预期 127.0.0.1:31819，尚未启动；启动时登记命令、PID、开始时间和关闭方法"
 notes:
+  - "T07 main-thread acceptance started after T01-T06 verified integration. Browser uses available CUA native app path; no Playwright MCP installed, no new dependency required. All service data is synthetic loopback-only."
   - "During T06, plugin cache 8.6.0 was removed and 8.7.0 installed externally. Main read and verified implementation-result schema and parallel verifyResult fields remain compatible, used 8.7.0 tools for T06 reception. Approved spec/plan behavior unchanged; historical 8.6.0 receipts retained."
   - "T06 write scope extended before change to KeeperAuthNameEditor.tsx and its test: preserve optional error.audit in non2xx catch under existing all-mutation warning contract; Begin503 without audit keeps ordinary error. T05 stopped, no active overlap; claim preserved."
   - "T04 accepted: precise PATCH authentication-stage handling and cache generations implemented within declared writes; interrupted httptest cleanup attempt exit130 retained, not PASS; final target/race and 78-test combined backend integration passed."

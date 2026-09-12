@@ -72,6 +72,30 @@ environment:
 
 排查时先看选择器下方状态：配置错误检查 URL 和 CPA 环境变量；认证失败检查 Keeper 登录密码；无对应 Key 检查 Keeper 是否已同步同一 CPA 的当前 Key。不要用两边的脱敏 Key 进行人工自动匹配。关闭接入不会删除已经保存的本地别名。
 
+## Codex 认证名称同步
+
+在 Key 绑定的“渠道定向”页，Codex 认证文件默认显示 Keeper 的名称，并保留原文件名/ID。名称通过 CPA `auth_index` 精确关联 Keeper 身份；渠道勾选仍保存 CPA 的凭据 `id`，两者不能混用。
+
+编辑“认证自定义名称”后点击 **同步到 Keeper** 会立即保存，独立于 Key 绑定的“确定/取消”。取消绑定编辑不会撤销已同步的名称。清空名称会恢复 Keeper 默认名称；名称最多 50 个 Unicode 字符。未配置 Keeper、没有唯一匹配或读取失败时，页面保留原 CPA 名称和渠道选择，并提示原因。
+
+连接配置复用上面的 `usage_keeper_url` 和密码环境变量。整个预检、登录和同步共用 5 秒期限。同步结果未确认时不会自动重试；可以刷新核对当前名称，但刷新不会把历史审计中的未确认结果改成成功。
+
+## 操作审计
+
+“规则试跑”后的 **操作审计** 页支持按日查询、分页和查看变更前后内容。记录范围是提交到本插件的规则保存、Key 绑定新增/编辑/删除、开关修改和认证名称同步，包括失败结果；未保存草稿中的点击、只读刷新和规则试跑不产生操作记录。更改绑定 Key 的现有流程包含新增和删除两个请求，分别记录结果。
+
+记录直接追加到 `state_file` 同级的 `model-mapper-plus-audit/YYYY-MM-DD.jsonl`，按北京时间分文件，默认保留历史。每项操作先写入并同步开始记录，再执行修改，最后追加结果；页面按操作 ID 合并成一项，跨午夜的结果仍写到开始日期的文件。目录权限为 `0700`，文件为 `0600`。
+
+审计文件无法写入时，新修改被阻止并返回 `audit_unavailable`。若业务已执行但结果记录写入失败，会保留真实业务响应并额外提示审计异常，不能视为已回滚。只有开始记录或结果未确认时显示“结果未确认”，不自动重放操作。日志与 state 不是跨文件事务，重启后按实际存留的完整日志解析。
+
+审计只记录经过脱敏的字段差异：Key 使用 SHA-256 指纹和掩码，不记录原始请求头、完整请求体、密码、Token 或 Cookie。操作者标识为管理 API，不将其当作某个具体管理员身份。修改 `state_file` 所在目录后，新记录使用新目录，旧日志不会自动搬迁或删除。
+
+管理 API 在 `/v0/management/plugins/model-mapper-plus` 下增加：
+
+- `GET /keeper/auth-names`、`POST /keeper/auth-names/refresh`：认证名称读取/刷新。
+- `PATCH /keeper/auth-names`：提交 `{auth_index, alias}`，立即保存名称。
+- `GET /audit?date=YYYY-MM-DD&page=1&page_size=20`：读取当天或指定日期的操作；每页最多 100 项。
+
 ## Key bindings and thinking-effort control
 
 A key binding runs one more structurally identical rule set on top of the top-level output for requests carrying that client key (endpoint segment wins; the binding's global segment is the fallback). Thinking effort is expressed directly through model-name suffixes, for example `claude-opus-4-5(max)=>claude-opus-4-5(high)` — CPA resolves the suffix and it overrides effort fields in the request body. For Codex Responses requests whose model has no explicit suffix, `reasoning.effort` also participates in suffix matching: a request for `gpt-5.6-sol` with `reasoning.effort=xhigh` matches `gpt-5.6-sol(xhigh)=>gpt-5.6-sol(medium)`. An explicit model suffix wins; when the effort-qualified form does not match, the plugin retries the bare model so existing mappings keep working. Note that `*` captures swallow the suffix too (`claude-*` captures `opus-4-5(max)`).

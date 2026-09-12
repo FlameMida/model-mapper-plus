@@ -111,6 +111,15 @@ Live smoke creates ignored local state under `.test-cpa/`; builds create ignored
 - `keeper_client.go` owns the standard-library HTTP/Cookie client; `keeper_aliases.go` owns a 60-second cache, 5-second request deadline, coalescing and stable failure states. Keeper IO must stay outside config/state locks and every inference hook.
 - Management GET `/keeper/key-aliases` and POST `/keeper/key-aliases/refresh` return an HTTP 200 status envelope for Keeper failures, so external 401/403 cannot clear CPA management authentication.
 - `useKeyOptions` is owned by App; both panels consume the same options. `keyOptions.ts` keeps values as exact full keys, local alias first, Keeper alias second. Do not add Keeper-only keys to the CPA list.
-- Editor synchronization updates draft alias only. Guard edit session/key/alias changes before applying asynchronous results; saving uses the existing binding path.
+- API Key editor synchronization updates draft alias only. Guard edit session/key/alias changes before applying asynchronous results; saving uses the existing binding path.
 - Run `go test . -run '^Test(Keeper|ManagementKeeper)'`, `go test -race ./...`, `npm --prefix web run typecheck`, and `npm --prefix web test`. CI also runs the frontend tests.
 - UI component tests disable Select motion after installing the canvas shim because jsdom does not execute popup exit animations. Verify actual selection/clear behavior with motion enabled in browser QA.
+
+## Keeper auth names and operation audit
+
+- Codex authentication names are a separate workflow: match CPA `auth_index` to Keeper identity, display its name, and PATCH Keeper immediately. Canceling the outer key-binding editor does not undo a completed name update. Names remain in Keeper, not state; selection continues to use CPA `id`.
+- `keeper_auth_names.go` owns identity projection/cache and the name PATCH authentication stages. Keep the entire preflight/login/PATCH under one five-second context; never automatically retry an uncertain write. Cache generations prevent an older read from replacing a published update.
+- `audit.go` and `audit_query.go` append start/finish JSONL records directly to `model-mapper-plus-audit/YYYY-MM-DD.jsonl` beside state. The day is the operation start date in Asia/Shanghai. No state outbox, delayed export, business replay or automatic log deletion.
+- `audit_management.go` gates management mutations and reconfiguration. Begin must Write+Sync before side effects; Finish errors retain the real business result with an additional audit warning. In-process unconfirmed finishes appear unknown; after restart, parse the records that actually survived.
+- Only audit projections are redacted; do not change the existing full-Key state API. Never serialize raw headers/body/upstream responses into audit records. A Keeper HTTP 200 envelope may still describe failure or an unknown result.
+- Related checks: `go test . -run '^Test(Audit|ManagementAudit|Keeper|ManagementKeeper)' -count=1`, frontend target files, and final race/typecheck/build. The opt-in `MAPPER_ACCEPTANCE_SERVE=1 go test . -run '^TestAdminAcceptanceServe$' -count=1 -v -timeout=30m` serves a loopback-only browser fixture; its default Skip and server exit are not browser acceptance results.
