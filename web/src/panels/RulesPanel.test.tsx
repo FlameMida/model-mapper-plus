@@ -4,6 +4,7 @@ import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import RulesPanel from './RulesPanel'
 import { StateResponse } from '../api'
+import { Toast } from '@douyinfe/semi-ui'
 
 const EMPTY_STATE: StateResponse = {
   version: 1,
@@ -20,7 +21,26 @@ function Harness() {
 }
 
 afterEach(() => {
+  Toast.destroyAll()
   vi.unstubAllGlobals()
+})
+
+it.each([200, 400])('S9 HTTP%s 保存结果和审计失败分别展示', async status => {
+  vi.stubGlobal('fetch', vi.fn(async () => ({ ok: status === 200, status,
+    text: async () => JSON.stringify({ ...EMPTY_STATE, error: '规则校验失败',
+      audit: { operation_id: `rule-op-${status}`, recorded: false, error_code: 'audit_write_failed' } }),
+  })))
+  const onSaved = vi.fn()
+  render(<RulesPanel state={EMPTY_STATE} onSaved={onSaved} />)
+  await userEvent.setup().click(screen.getByRole('button', { name: '保存' }))
+  expect(await screen.findByText(new RegExp(`审计结果未写入.*rule-op-${status}`))).toBeInTheDocument()
+  if (status === 200) {
+    expect(onSaved).toHaveBeenCalledOnce()
+    expect(await screen.findByText('规则已保存')).toBeInTheDocument()
+  } else {
+    expect(onSaved).not.toHaveBeenCalled()
+    expect(await screen.findByText('规则校验失败')).toBeInTheDocument()
+  }
 })
 
 /**

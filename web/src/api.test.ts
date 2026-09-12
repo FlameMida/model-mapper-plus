@@ -29,6 +29,25 @@ afterEach(() => {
   vi.unstubAllGlobals()
 })
 
+it('S9 业务失败保留审计元数据及已解码错误', async () => {
+  stubFetch({ error: 'invalid &lt;rule&gt;', audit: { operation_id: 'failed-op', recorded: false, error_code: 'audit_write_failed' } }, 400)
+  await expect(api.putRules(BASE_STATE.rules)).rejects.toMatchObject({ name: 'ManagementAPIError', message: 'invalid <rule>',
+    audit: { operation_id: 'failed-op', recorded: false, error_code: 'audit_write_failed' } })
+})
+
+it('S10 审计查询参数独立编码，默认省略日期并保留未知变更', async () => {
+  const payload = { date: '2026-09-12', timezone: 'Asia/Shanghai', page: 1, page_size: 20, total: 1,
+    items: [{ operation_id: 'op-unknown', actor: 'management_api', action: 'update', object_type: 'rules', object_ref: 'rules',
+      started_at: '2026-09-12T00:00:00+08:00', outcome: 'unknown', changed: null, changes: {} }], warnings: [] }
+  stubFetch(payload)
+  expect(await api.getAudit()).toEqual(payload)
+  expect(vi.mocked(fetch).mock.calls[0][0]).toBe('/v0/management/plugins/model-mapper-plus/audit')
+  await api.getAudit('../other&day', 2, 50)
+  const url = new URL(String(vi.mocked(fetch).mock.calls[1][0]), 'https://example.test')
+  expect(url.pathname).toBe('/v0/management/plugins/model-mapper-plus/audit')
+  expect([...url.searchParams]).toEqual([['date', '../other&day'], ['page', '2'], ['page_size', '50']])
+})
+
 describe('api：还原 CPA 宿主的 HTML 实体转义', () => {
   it('规则 DSL 的 =&gt; 还原为 =>（本 bug 的直接成因）', async () => {
     stubFetch({

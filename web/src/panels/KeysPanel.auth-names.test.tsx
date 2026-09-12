@@ -1,9 +1,10 @@
-import { beforeEach, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import KeysPanel from './KeysPanel'
 import { api, listCpaCredentials, type StateResponse } from '../api'
 import { createKeyOptions } from '../test/keyOptions'
+import { Toast } from '@douyinfe/semi-ui'
 
 vi.mock('../api', async (importOriginal) => {
   const actual = await importOriginal<typeof import('../api')>()
@@ -43,6 +44,43 @@ beforeEach(() => {
   vi.mocked(listCpaCredentials).mockResolvedValue([FILE])
   vi.mocked(api.getKeeperAuthNames).mockResolvedValue(READY)
   vi.mocked(api.refreshKeeperAuthNames).mockResolvedValue(READY)
+})
+afterEach(() => { Toast.destroyAll(); vi.unstubAllGlobals() })
+
+it('S9 Key 重命名逐项保留 POST 与 DELETE 的审计警告并完成保存', async () => {
+  // 真实写入 API 仅替换 fetch，名称/凭据读取沿本文件已有边界。
+  const actual = await vi.importActual<typeof import('../api')>('../api')
+  vi.mocked(api.postKey).mockImplementation(actual.api.postKey)
+  vi.stubGlobal('fetch', vi.fn(async (_url: string, init: RequestInit) => ({ ok: true, status: 200,
+    text: async () => JSON.stringify({ ...STATE, audit: { operation_id: init.method === 'POST' ? 'op-create' : 'op-delete', recorded: false } }),
+  })))
+  const onSaved = vi.fn()
+  render(<KeysPanel state={STATE} keyOptions={createKeyOptions()} onSaved={onSaved} />)
+  const user = userEvent.setup()
+  await user.click(screen.getByRole('button', { name: '编辑' }))
+  const select = screen.getByRole('combobox')
+  await user.click(select)
+  await user.type(select.querySelector('input')!, 'new-key')
+  await user.click(await screen.findByRole('option', { name: /使用手动 Key：new-key/ }))
+  await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'confirm' }))
+  expect(await screen.findByText(/审计结果未写入.*op-create/)).toBeInTheDocument()
+  expect(await screen.findByText(/审计结果未写入.*op-delete/)).toBeInTheDocument()
+  expect(onSaved).toHaveBeenCalledOnce()
+})
+
+it.each([200, 400])('S9 Key 开关 HTTP%s 保留业务结果和独立审计警告', async status => {
+  vi.stubGlobal('fetch', vi.fn(async () => ({ ok: status === 200, status,
+    text: async () => JSON.stringify({ ...STATE, error: 'Key 不存在', audit: { operation_id: `op-toggle-${status}`, recorded: false } }),
+  })))
+  const onSaved = vi.fn()
+  render(<KeysPanel state={STATE} keyOptions={createKeyOptions()} onSaved={onSaved} />)
+  await userEvent.setup().click(screen.getByRole('switch', { name: '启用规则：K' }))
+  expect(await screen.findByText(new RegExp(`审计结果未写入.*op-toggle-${status}`))).toBeInTheDocument()
+  if (status === 200) expect(onSaved).toHaveBeenCalledOnce()
+  else {
+    expect(onSaved).not.toHaveBeenCalled()
+    expect(await screen.findByText('Key 不存在')).toBeInTheDocument()
+  }
 })
 
 it('S1 默认显示 Keeper 名称且保留认证 ID 与原名称搜索', async () => {
@@ -134,7 +172,7 @@ it.each(['ready', 'unknown'] as const)('S4 %s 与审计失败同时清楚展示�
     audit: { operation_id: 'op-1', recorded: false, error_code: 'audit_finish_failed' } })
   mount(); const user = await open(); await user.click(sync())
   expect(await screen.findByText(status === 'ready' ? '已保存到 Keeper' : '同步结果未确认，请刷新名称核对')).toBeInTheDocument()
-  expect(screen.getByRole('alert')).toHaveTextContent('审计结果未写入')
+  expect(within(screen.getByRole('dialog')).getByRole('alert')).toHaveTextContent('审计结果未写入')
   expect(api.patchKeeperAuthName).toHaveBeenCalledTimes(1)
 })
 

@@ -1,4 +1,4 @@
-import { beforeEach, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import { act, fireEvent, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import KeeperAuthNameEditor from './KeeperAuthNameEditor'
@@ -17,6 +17,24 @@ function deferred() {
   return { promise, resolve }
 }
 beforeEach(() => vi.resetAllMocks())
+afterEach(() => vi.unstubAllGlobals())
+
+it.each([false, true])('S9 非2xx显示原错误，仅存在audit时提示审计失败：%s', async withAudit => {
+  const actual = await vi.importActual<typeof import('../api')>('../api')
+  vi.mocked(api.patchKeeperAuthName).mockImplementation(actual.api.patchKeeperAuthName)
+  vi.stubGlobal('fetch', vi.fn(async () => ({ ok: false, status: withAudit ? 400 : 503,
+    text: async () => JSON.stringify({ error: withAudit ? '名称不合法' : 'audit_unavailable',
+      ...(withAudit ? { audit: { operation_id: 'name-op', recorded: false } } : {}) }),
+  })))
+  const onSaved = vi.fn()
+  render(<KeeperAuthNameEditor authIndex="idx-a" name={NAME} onSaved={onSaved} />)
+  await userEvent.setup().click(button())
+  expect(await screen.findByText(withAudit ? '同步失败：名称不合法' : '同步失败：audit_unavailable')).toBeInTheDocument()
+  if (withAudit) expect(screen.getByRole('alert')).toHaveTextContent('审计结果未写入')
+  else expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+  expect(screen.queryByText(/同步结果未确认|已保存到 Keeper/)).not.toBeInTheDocument()
+  expect(onSaved).not.toHaveBeenCalled()
+})
 
 it('S4 索引 A→B→A 丢弃旧提交结果，保留新编辑', async () => {
   const response = deferred(); vi.mocked(api.patchKeeperAuthName).mockReturnValue(response.promise)

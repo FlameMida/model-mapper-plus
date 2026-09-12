@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Button, Input } from '@douyinfe/semi-ui'
-import { api, type KeeperAuthName } from '../api'
+import { api, type KeeperAuthName, type ManagementAPIError } from '../api'
 
 interface Props {
   authIndex: string
@@ -51,8 +51,12 @@ function NameEditor({ authIndex, name, onSaved }: Props) {
           response.status === 'not_found' ? '同步失败：未找到唯一匹配的 Keeper 身份，已保留输入' :
             '同步失败：Keeper 暂不可用，已保留输入')
       }
-    } catch {
-      if (isCurrent()) setNotice('同步结果未确认，请刷新名称核对')
+    } catch (error) {
+      if (isCurrent()) {
+        const failure = error as ManagementAPIError
+        setAuditWarning(failure.audit?.recorded === false)
+        setNotice(failure.name === 'ManagementAPIError' ? `同步失败：${failure.message}` : '同步结果未确认，请刷新名称核对')
+      }
     } finally {
       pending.current = false
       if (alive.current) setSaving(false)
