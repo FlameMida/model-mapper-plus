@@ -1,5 +1,5 @@
 format_version: 1
-current: T08
+current: null
 tasks:
   T00: { status: completed, commit: fbc63d7c0ac414200b3011fc6b2c34675e17525b, tests: pass }
   T01:
@@ -87,7 +87,7 @@ tasks:
       base_commit: 1313c90333b7e30476608c85c3ef32e234d32759
       model_declaration_id: initial-20260912
   T07: { status: completed, commit: 52eb799, tests: pass }
-  T08: { status: in_progress }
+  T08: { status: completed, commit: ab0d0fa78f9e410d23a59eb358a4335a1d7a4623, tests: pass }
   T09:
     status: completed
     commit: 4118c40c95749a6ae61be2e3afb2978b54f911e6
@@ -103,12 +103,15 @@ tasks:
       base_commit: 3bae2f217856f50c41c7e1b23fae9a24223a4ae6
       model_declaration_id: initial-20260912
 resources:
+  - "release-verification: downloads verified and moved to /Users/maverick/.Trash/cpa-admin-audit-20260912-iftg3E/cpa-release-v0.2.0-7YC6EJ; recoverable; checksum/API receipts archived in acceptance/release"
   - "cleanup: all seven accepted implementation worktrees removed after clean checks; implementation commits recoverable under refs/archive/admin-audit/t01,t02,t03,t04,t05,t06,t09"
   - "cleanup: integrated worktree and plan branch removed after fast-forward merge 1aee10e; all evidence archived in feature"
   - "cleanup: external evidence, reviews, browser toolchain and abandoned server01 synthetic temp directory moved to /Users/maverick/.Trash/cpa-admin-audit-20260912-iftg3E; recoverable, no user resources removed"
   - "service: server01 timeout exit1; server02/server03 gracefully stopped exit0 (lifecycle-only); no active owned service"
   - "retained: standalone CUA-created local fixture tab may remain; CUA cannot safely identify/close it, handed back without touching other tabs"
 notes:
+  - "Delivery complete: v0.2.0 Release published, tagCI34683169869 allsuccess, mainCI34683170429 test+7builds success; seven ZIP sha256/unzip tests and all8 GitHub asset digests verified. No deployment or realKeeper writes. No active roadmap directory. Final .spec-dev-only metadata does not alter release code."
+  - "Atomic push main+v0.2.0 succeeded: release commit ab0d0fa78f9e410d23a59eb358a4335a1d7a4623, annotated tag object 3d3ae020ea117041b7c3a1b5b43441def86a066e; remote verified. Tag CI34683169869 and main CI34683170429 running; release still pending."
   - "T08 final six checks exit0: Go race216 top-level, frontend140/20; final/results.json hashes and raw logs committed. Independent critic no permanent gaps, 5 DELIVERED. Fast-forward merged 1aee10e; unrelated untracked nginx-agent.colinwoo.com.md preserved and excluded, no overlapping path. Cleanup branch deletion first attempted while removal still running and refused safely, then retried successfully."
   - "T07 run-05: 12 browser checks pass, zero pageerror, controlled audit503 expected; screenshots visually checked. server03 PID60003/start15:44:35/go-build390952819 identity verified and gracefully stopped, exit0 (startup-only, excluded from acceptance count). Independent critic and T08 full tests still gate merge/release."
   - "User added explicit delivery authorization: 完成后提交 推送 发版. This supersedes earlier no-push/no-release statements, but not host/Keeper read-only or no production deployment/name-change boundary. Verify GitHub origin, remote commits/tags, CI and release assets after QA."
@@ -143,5 +146,5 @@ execution:
   validated_commit: 4118c40c95749a6ae61be2e3afb2978b54f911e6
   delivery:
     channel: local
-    state: merged
+    state: completed
     source_branch: main

@@ -32,4 +32,6 @@ server01 超时 exit 1，不计 PASS；server02/server03 正常关闭只证明�
 
 Requirement Reconciliation：5 DELIVERED / 0 DEFERRED / 0 DROPPED / 0 SUPERSEDED / 0 ADDED-IN-FLIGHT。T09 是原 S4 修复，不新增需求。真实线上名称写入及部署保持 manual-pending，不计入本地交付缺口。
 
-最终检查六项全部 exit 0，见 final/results.json 与原始日志：Go race 216 项顶层测试通过（两个辅助 Skip 排除），前端 20 文件 140 项通过，vet/typecheck/build/打包测试通过。构建保留第三方 lottie eval 警告。当前 spec 无移除或取代，无测试退役或取代回写；尚不宣称远端发布完成。
+最终检查六项全部 exit 0，见 final/results.json 与原始日志：Go race 216 项顶层测试通过（两个辅助 Skip 排除），前端 20 文件 140 项通过，vet/typecheck/build/打包测试通过。构建保留第三方 lottie eval 警告。当前 spec 无移除或取代，无测试退役或取代回写。
+
+已提交、推送并发布 v0.2.0；远端测试和七个平台构建通过，七个 ZIP 的 SHA-256/完整性及所有附件 GitHub digest 核对通过，详见 release/verification.md。正式代码与已验收代码一致，未修改 CLIProxyAPI、未部署生产。
