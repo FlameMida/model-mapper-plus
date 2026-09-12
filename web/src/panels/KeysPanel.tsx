@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Button, Card, Table, Modal, Input, Switch, Tag, Tabs, TabPane, Toast, Typography } from '@douyinfe/semi-ui'
-import { api, ChannelTarget, CpaAuthFile, KeyBinding, RuleSet, StateResponse, listCpaCredentials, type KeeperAuthName, type KeeperAuthNamesResponse } from '../api'
+import { api, ChannelTarget, CpaAuthFile, KeyBinding, RuleSet, StateResponse, listCpaCredentials, type KeeperAuthName, type KeeperAuthNamesResponse, type AuditMeta, type ManagementAPIError } from '../api'
 import { normalizeChannelTarget } from '../channelTarget'
 import ChannelTargetEditor from '../components/ChannelTargetEditor'
 import RuleSetEditor from '../components/RuleSetEditor'
@@ -10,6 +10,14 @@ import { keeperStatusText, type KeyOptionsState } from '../useKeyOptions'
 
 const EMPTY_RULES: RuleSet = { global: '', claude: '', codex: '', openai: '' }
 const EMPTY_CHANNEL_TARGET: ChannelTarget = { enabled: false, suppliers: [], auth_ids: [] }
+
+function warnAudit(audit?: AuditMeta) {
+  if (audit?.recorded === false) Toast.warning(`审计结果未写入（${audit.operation_id}）`)
+}
+function showSaveError(error: ManagementAPIError) {
+  Toast.error(error.message)
+  warnAudit(error.audit)
+}
 
 function normalizeBinding(binding: KeyBinding): KeyBinding {
   return {
@@ -194,14 +202,20 @@ export default function KeysPanel({ state, onSaved, keyOptions }: Props) {
     invalidateAliasSync()
     setSaving(true)
     api.postKey(plan.binding)
-      .then((s) => (plan.deleteKey ? api.deleteKey(plan.deleteKey) : Promise.resolve(s)))
+      .then((s) => {
+        warnAudit(s.audit)
+        return plan.deleteKey ? api.deleteKey(plan.deleteKey).then(result => {
+          warnAudit(result.audit)
+          return result
+        }) : s
+      })
       .then((s) => {
         onSaved(s)
         setEditing(null)
         setOriginalKey('')
         Toast.success(plan.deleteKey ? '绑定已重命名并保存' : '绑定已保存')
       })
-      .catch((e: Error) => Toast.error(e.message))
+      .catch(showSaveError)
       .finally(() => setSaving(false))
   }
 
@@ -233,18 +247,20 @@ export default function KeysPanel({ state, onSaved, keyOptions }: Props) {
     state.key_bindings.some((b) => b.key === editing.key && b.key !== originalKey)
 
   const toggleEnabled = (b: KeyBinding, enabled: boolean) => {
-    api.patchKey(b.key, { enabled }).then(onSaved).catch((e: Error) => Toast.error(e.message))
+    api.patchKey(b.key, { enabled }).then(saved).catch(showSaveError)
   }
 
   const toggleBlocked = (b: KeyBinding, blocked: boolean) => {
-    api.patchKey(b.key, { blocked }).then(onSaved).catch((e: Error) => Toast.error(e.message))
+    api.patchKey(b.key, { blocked }).then(saved).catch(showSaveError)
   }
+
+  const saved = (result: StateResponse) => { onSaved(result); warnAudit(result.audit) }
 
   const remove = (b: KeyBinding) => {
     Modal.confirm({
       title: '删除绑定',
       content: `确认删除 ${b.alias || maskKey(b.key)} 的绑定？`,
-      onOk: () => api.deleteKey(b.key).then(onSaved).catch((e: Error) => Toast.error(e.message)),
+      onOk: () => api.deleteKey(b.key).then(saved).catch(showSaveError),
     })
   }
 

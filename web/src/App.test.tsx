@@ -31,6 +31,15 @@ import { api, StateResponse } from './api'
 describe('App 版本展示', () => {
   beforeEach(() => { vi.clearAllMocks() })
 
+  it('S10 操作审计位于规则试跑之后', async () => {
+    vi.mocked(api.getState).mockResolvedValue({ version: 1,
+      rules: { global: '', claude: '', codex: '', openai: '' }, key_bindings: [], persisted: true })
+    render(<App />)
+    await screen.findByText('已连接')
+    expect(screen.getByText('规则试跑').compareDocumentPosition(screen.getByText('操作审计')) &
+      Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+  })
+
   // Scenario: 前端展示版本号
   it('/state 返回 plugin_version 时 footer 显示 v<version>', async () => {
     vi.mocked(api.getState).mockResolvedValue({

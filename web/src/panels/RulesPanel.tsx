@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Button, Card, Toast } from '@douyinfe/semi-ui'
-import { api, RuleSet, StateResponse } from '../api'
+import { api, RuleSet, StateResponse, type ManagementAPIError } from '../api'
 import RuleSetEditor from '../components/RuleSetEditor'
 
 interface Props {
@@ -20,8 +20,15 @@ export default function RulesPanel({ state, onSaved }: Props) {
   const save = () => {
     setSaving(true)
     api.putRules(rules)
-      .then((s) => { onSaved(s); Toast.success('规则已保存') })
-      .catch((e: Error) => Toast.error(e.message))
+      .then((s) => {
+        onSaved(s)
+        Toast.success('规则已保存')
+        if (s.audit?.recorded === false) Toast.warning(`审计结果未写入（${s.audit.operation_id}）`)
+      })
+      .catch((e: ManagementAPIError) => {
+        Toast.error(e.message)
+        if (e.audit?.recorded === false) Toast.warning(`审计结果未写入（${e.audit.operation_id}）`)
+      })
       .finally(() => setSaving(false))
   }
 

@@ -1,5 +1,41 @@
 import { getKey, clearKey } from './session'
 
+export interface AuditMeta {
+  operation_id: string
+  recorded: boolean
+  error_code?: string
+}
+export interface AuditOperation {
+  operation_id: string
+  actor: string
+  action: string
+  object_type: string
+  object_ref: string
+  started_at: string
+  finished_at?: string
+  outcome: 'running' | 'succeeded' | 'failed' | 'unknown'
+  changed: boolean | null
+  changes: Record<string, { before?: unknown; after?: unknown }>
+  error_code?: string
+}
+export interface AuditPage {
+  date: string
+  timezone: string
+  page: number
+  page_size: number
+  total: number
+  items: AuditOperation[]
+  warnings: string[]
+}
+export class ManagementAPIError extends Error {
+  audit?: AuditMeta
+  constructor(message: string, audit?: AuditMeta) {
+    super(message)
+    this.name = 'ManagementAPIError'
+    this.audit = audit
+  }
+}
+
 export interface RuleSet {
   global: string
   claude: string
@@ -43,7 +79,7 @@ export interface KeeperAuthNameUpdateResponse {
   status: 'ready' | 'not_found' | 'invalid' | 'unavailable' | 'unknown'
   item?: KeeperAuthName
   error_code?: string
-  audit?: { operation_id: string; recorded: boolean; error_code?: string }
+  audit?: AuditMeta
 }
 
 export interface KeyBinding {
@@ -63,6 +99,7 @@ export type KeeperAliasesResponse =
   | { status: 'unavailable'; items: []; error_code: 'configuration_error' | 'authentication_failed' | 'rate_limited' | 'timeout' | 'invalid_response' | 'connection_failed'; retry_after_seconds?: number }
 
 export interface StateResponse {
+  audit?: AuditMeta
   version: number
   rules: RuleSet
   key_bindings: KeyBinding[]
@@ -142,16 +179,25 @@ async function call<T>(method: string, path: string, body?: unknown): Promise<T>
   const text = await resp.text()
   if (!resp.ok) {
     let msg = `HTTP ${resp.status}`
+    let audit: AuditMeta | undefined
     try {
-      const parsed = JSON.parse(text)
-      if (parsed && typeof parsed.error === 'string') msg = unescapeHTML(parsed.error)
+      const parsed = unescapeDeep(JSON.parse(text)) as { error?: string; audit?: AuditMeta }
+      if (parsed && typeof parsed.error === 'string') msg = parsed.error
+      audit = parsed?.audit
     } catch { /* keep default */ }
-    throw new Error(msg)
+    throw new ManagementAPIError(msg, audit)
   }
   return unescapeDeep(JSON.parse(text)) as T
 }
 
 export const api = {
+  getAudit: (date?: string, page?: number, pageSize?: number) => {
+    const query = new URLSearchParams()
+    if (date) query.set('date', date)
+    if (page !== undefined) query.set('page', String(page))
+    if (pageSize !== undefined) query.set('page_size', String(pageSize))
+    return call<AuditPage>('GET', `/audit${query.size ? `?${query}` : ''}`)
+  },
   getKeeperAuthNames: () => call<KeeperAuthNamesResponse>('GET', '/keeper/auth-names'),
   refreshKeeperAuthNames: () => call<KeeperAuthNamesResponse>('POST', '/keeper/auth-names/refresh'),
   patchKeeperAuthName: (authIndex: string, alias: string) =>
