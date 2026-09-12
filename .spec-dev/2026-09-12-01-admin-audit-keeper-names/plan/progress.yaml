@@ -103,26 +103,13 @@ tasks:
       base_commit: 3bae2f217856f50c41c7e1b23fae9a24223a4ae6
       model_declaration_id: initial-20260912
 resources:
-  - "toolchain: /Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-browser-tools; owned; Playwright 1.63.0 temporary node_modules, not project dependencies; remove after evidence archive"
-  - "temp-fixture: /var/folders/gb/6mr3jmcs06dcbxm5c85pdyyw0000gp/T/TestAdminAcceptanceServe1571857478/001; owned synthetic server01 state; process ended by test timeout, directory still exists; preserve evidence then remove exact test parent directory"
-  - "worktree: /Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-t09; claim=t09-20260912-a1; created; remove after acceptance/archive; branch=impl/admin-audit-t09"
-  - "evidence: /Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-evidence/t09-a1; claim=t09-20260912-a1; archive to feature execution/t09-20260912-a1 before cleanup"
-  - "worktree: /Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-t06; claim=t06-20260912-a1; created; remove after acceptance/archive; branch=impl/admin-audit-t06"
-  - "evidence: /Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-evidence/t06-a1; claim=t06-20260912-a1; archive to feature execution/t06-20260912-a1 before cleanup"
-  - "worktree: /Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-t05; claim=t05-20260912-a1; created; remove after acceptance/archive; branch=impl/admin-audit-t05"
-  - "evidence: /Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-evidence/t05-a1; claim=t05-20260912-a1; archive to feature execution/t05-20260912-a1 before cleanup"
-  - "worktree: /Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-t04; claim=t04-20260912-a1; created; remove after acceptance/archive; branch=impl/admin-audit-t04"
-  - "evidence: /Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-evidence/t04-a1; claim=t04-20260912-a1; archive to feature execution/t04-20260912-a1 before cleanup"
-  - "worktree: /Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-t02; claim=t02-20260912-a1; created; remove after acceptance/archive; branch=impl/admin-audit-t02"
-  - "evidence: /Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-evidence/t02-a1; claim=t02-20260912-a1; archive to feature execution/t02-20260912-a1 before cleanup"
-  - "worktree: /Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-t01; claim=t01-20260912-a1; created; remove only after accepted integration and archived evidence; branch=impl/admin-audit-t01"
-  - "worktree: /Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-t03; claim=t03-20260912-a1; created; remove only after accepted integration and archived evidence; branch=impl/admin-audit-t03"
-  - "evidence: /Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-evidence/t01-a1; claim=t01-20260912-a1; archive to feature execution/t01-20260912-a1 before cleanup"
-  - "evidence: /Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-evidence/t03-a1; claim=t03-20260912-a1; archive to feature execution/t03-20260912-a1 before cleanup"
-  - "worktree: /Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-keeper-names; created by this plan; after verified merge: git worktree remove /Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-keeper-names; git branch -d plan/admin-audit-keeper-names"
-  - "service: server01 ended timeout exit1 (browser/server.log); server02 PID55709 start Sat Sep 12 15:34:03 2026, command go-build2545291484/b001/cpa-model-mapper-plus.test TestAdminAcceptanceServe; owned startup-only fixture, gracefully stop after identity check; server03 planned on same loopback port for fault/iframe acceptance."
-  - "review-evidence: /Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-reviews; owned; archive review JSON/logs into feature before cleanup"
+  - "cleanup: all seven accepted implementation worktrees removed after clean checks; implementation commits recoverable under refs/archive/admin-audit/t01,t02,t03,t04,t05,t06,t09"
+  - "cleanup: integrated worktree and plan branch removed after fast-forward merge 1aee10e; all evidence archived in feature"
+  - "cleanup: external evidence, reviews, browser toolchain and abandoned server01 synthetic temp directory moved to /Users/maverick/.Trash/cpa-admin-audit-20260912-iftg3E; recoverable, no user resources removed"
+  - "service: server01 timeout exit1; server02/server03 gracefully stopped exit0 (lifecycle-only); no active owned service"
+  - "retained: standalone CUA-created local fixture tab may remain; CUA cannot safely identify/close it, handed back without touching other tabs"
 notes:
+  - "T08 final six checks exit0: Go race216 top-level, frontend140/20; final/results.json hashes and raw logs committed. Independent critic no permanent gaps, 5 DELIVERED. Fast-forward merged 1aee10e; unrelated untracked nginx-agent.colinwoo.com.md preserved and excluded, no overlapping path. Cleanup branch deletion first attempted while removal still running and refused safely, then retried successfully."
   - "T07 run-05: 12 browser checks pass, zero pageerror, controlled audit503 expected; screenshots visually checked. server03 PID60003/start15:44:35/go-build390952819 identity verified and gracefully stopped, exit0 (startup-only, excluded from acceptance count). Independent critic and T08 full tests still gate merge/release."
   - "User added explicit delivery authorization: 完成后提交 推送 发版. This supersedes earlier no-push/no-release statements, but not host/Keeper read-only or no production deployment/name-change boundary. Verify GitHub origin, remote commits/tags, CI and release assets after QA."
   - "User explicitly approved standalone Playwright local-only acceptance after CUA extension lacked Codex auth token and native Chrome reduced page to an inaccessible menu. Use isolated headless browser, loopback fixture only; no other user tabs or project dependency modifications."
@@ -156,5 +143,5 @@ execution:
   validated_commit: 4118c40c95749a6ae61be2e3afb2978b54f911e6
   delivery:
     channel: local
-    state: implementing
+    state: merged
     source_branch: main
