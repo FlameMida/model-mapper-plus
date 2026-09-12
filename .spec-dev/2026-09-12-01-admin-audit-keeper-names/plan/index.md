@@ -66,8 +66,9 @@
 | T04 | T02, T03 | withAuditedManagement、名称读取handler | managementPatchKeeperAuthName(req pluginapi.ManagementRequest) pluginapi.ManagementResponse; GET/POST/PATCH /keeper/auth-names[/refresh] |
 | T05 | T03 | 已批准spec的名称 GET/PATCH wire 协议，T03读取投影 | api.getKeeperAuthNames/refreshKeeperAuthNames/patchKeeperAuthName; KeeperAuthNameEditor; 渠道名称显示 |
 | T06 | T02, T05 | GET /audit、mutation audit 字段 | api.getAudit(date?: string, page?: number, pageSize?: number): Promise<AuditPage>; ManagementAPIError(message: string, audit?: AuditMeta); AuditPanel |
-| T07 | T04, T06 | 完整 UI/管理 API（T06包含T05） | 本地受控浏览器验收记录 |
-| T08 | T00-T07 | 已完成前序、真实来源/资源 | 全量验证、合并、清理、sync_commit、最终状态 |
+| T09 | T06 | 已批准S4、独立复核的刷新/PATCH竞态 | 名称视图代际保护及公共组件回归 |
+| T07 | T04, T06, T09 | 完整 UI/管理 API与补修 | 本地受控浏览器验收记录 |
+| T08 | T00-T07, T09 | 已完成前序、真实来源/资源 | 全量验证、合并、清理、sync_commit、最终状态 |
 
 ## 公开协议与测试边界
 
@@ -141,6 +142,15 @@ parallel:
         - "web/src/panels/KeysPanel.tsx"
         - "web/src/panels/KeysPanel.auth-names.test.tsx"
       resources: []
+    T09:
+      writes:
+        - "web/src/components/KeeperAuthNameEditor.tsx"
+        - "web/src/components/KeeperAuthNameEditor.test.tsx"
+        - "web/src/components/ChannelTargetEditor.tsx"
+        - "web/src/components/ChannelTargetEditor.test.tsx"
+        - "web/src/panels/KeysPanel.tsx"
+        - "web/src/panels/KeysPanel.auth-names.test.tsx"
+      resources: []
 ```
 
 精确 JSON 协议直接继承 spec“接口与实现边界”。API 主测试落点为 dispatchManagement/handleManagement，React 使用可见交互；允许替換 Keeper HTTP、fetch、时钟及 Write/Sync 故障，不 mock 审计分类/匹配逻辑。表内新函数是跨任务实现接口，不要求逐一私有函数直测。
@@ -152,6 +162,8 @@ parallel:
 并发执行时，上述进度和证据归档仅由主线程实施；implementer只提交writes内文件，日志/result写入其预登记claim专属临时目录，禁止编辑.spec-dev。T03测试在公开名称服务及管理响应handler边界先取得红绿，T04以dispatchManagement验证最终路由挂载；该接线迁移仅为消除management.go写冲突，原S1/S2管理API验收仍保留。
 
 T05仅消费spec已固定的JSON协议，不编译或调用T04的Go实现，组件测试明确替换HTTP边界。因此取消T05对T04的实现完成依赖；T07显式依赖T04+T06，在真实本地端到端验收前仍等待完整后端和前端，未减少验证。
+
+收尾A维度发现同身份新刷新先完成、旧PATCH后返回的视图覆盖，经独立反驳确认。T09是原S4的修复票，不新增行为；保留T01—T06原完成记录和旧证据。T07可继续其独立检查，但在T09修复及复核完成前不置completed；T08显式纳入T09。
 
 ## 体量说明
 

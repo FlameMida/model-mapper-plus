@@ -88,6 +88,7 @@ tasks:
       model_declaration_id: initial-20260912
   T07: { status: in_progress }
   T08: { status: pending }
+  T09: { status: pending }
 resources:
   - "worktree: /Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-t06; claim=t06-20260912-a1; created; remove after acceptance/archive; branch=impl/admin-audit-t06"
   - "evidence: /Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-evidence/t06-a1; claim=t06-20260912-a1; archive to feature execution/t06-20260912-a1 before cleanup"
@@ -105,6 +106,7 @@ resources:
   - "service: T07 loopback 127.0.0.1:31819 and fake Keeper 127.0.0.1:57189; PID=33547; start=Sat Sep 12 14:39:41 2026; command=cpa-model-mapper-plus.test -test.run=^TestAdminAcceptanceServe$; owned; validate PID/start/command then SIGTERM for graceful test cleanup"
   - "review-evidence: /Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-reviews; owned; archive review JSON/logs into feature before cleanup"
 notes:
+  - "Confirmed review finding A-1: newer name refresh can be overwritten by older PATCH response; independently refuted then confirmed by different reviewer (static evidence, dynamic red not yet claimed). Added T09 within original S4 and gated T07/T08 completion on its fix/review; original completed task evidence unchanged."
   - "Review scope frozen: base=fbc63d7c0ac414200b3011fc6b2c34675e17525b head=5ccca8247eb64ff9a19d28b90462e1347e93bfe7; large tier due file durability, HTTP/cache concurrency and UI error chain (36 source/test/docs files, 3985 insertions/38 deletions excluding generated bundle/receipts from this count only). Five dimensions A/B-quality/B-simplicity/C/S; no D trigger identified."
   - "T07 server fixture state=/var/folders/gb/6mr3jmcs06dcbxm5c85pdyyw0000gp/T/TestAdminAcceptanceServe1571857478/001/state.json; Go t.TempDir auto cleanup on graceful service termination; synthetic credentials only."
   - "T07 main-thread acceptance started after T01-T06 verified integration. Browser uses available CUA native app path; no Playwright MCP installed, no new dependency required. All service data is synthetic loopback-only."
