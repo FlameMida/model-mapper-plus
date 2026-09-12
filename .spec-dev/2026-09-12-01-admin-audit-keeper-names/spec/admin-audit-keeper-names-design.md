@@ -19,7 +19,7 @@ spec_dev:
     - "web/dist/index.html"
     - "README.md"
     - "CLAUDE.md"
-  sync_commit: 72bb7caa6bc613286906e48af5a4070b517e2983
+  sync_commit: e5e91fee8cae85c21509efe1798b0ffcc94927d9
   supersedes: []
   superseded_by: null
 ---
