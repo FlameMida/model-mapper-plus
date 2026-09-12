@@ -1,0 +1,12 @@
+{
+  "tested_commit":"387865149ababac71cfe7dbead2d87c76b48080d",
+  "streams":"combined stdout/stderr; hashes are not claimed as separate streams",
+  "checks":[
+    {"command":"rtk proxy go test -race -json ./...","exit_code":0,"log":"go-race.log","sha256":"351ba0ce3acf996eae2acd4a5e9327e5427fcd447f0760c48fd717b4c800c91e","passed_top_level_tests":216,"excluded_skips":["TestAdminAcceptanceRestartReader","TestAdminAcceptanceServe"]},
+    {"command":"rtk proxy go vet ./...","exit_code":0,"log":"go-vet.log","sha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},
+    {"command":"rtk proxy npm --prefix web test","exit_code":0,"log":"frontend.log","sha256":"a36ed3e13cc212abe527e0a774a45f988d6bcf07f1d56cb118f43c6d3db9ced0","tests":140,"files":20},
+    {"command":"rtk proxy npm --prefix web run typecheck","exit_code":0,"log":"typecheck.log","sha256":"2931d9a400432def3fd841bb330563be730c1db654fa8a2246466e89bdf304c3"},
+    {"command":"rtk proxy npm --prefix web run build","exit_code":0,"log":"build.log","sha256":"3cac304ea1cf8830961e345c27371a3b886d01760778e440814f7d0e79f48a09"},
+    {"command":"rtk proxy go test -v .github/scripts/package-release.go .github/scripts/package-release_test.go","exit_code":0,"log":"package.log","sha256":"61dda920555c0fd3050a5fee3c4f874ca84cc8589f3a3549bdb728c353aebb25"}
+  ]
+}

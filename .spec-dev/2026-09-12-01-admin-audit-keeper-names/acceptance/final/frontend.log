@@ -1,0 +1,13 @@
+
+> model-mapper-plus-web@0.1.0 test
+> vitest run
+
+
+ RUN  v4.1.10 /Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-keeper-names/web
+
+
+ Test Files  20 passed (20)
+      Tests  140 passed (140)
+   Start at  16:18:33
+   Duration  15.14s (transform 28.74s, setup 79.63s, import 1.59s, tests 22.67s, environment 17.47s)
+

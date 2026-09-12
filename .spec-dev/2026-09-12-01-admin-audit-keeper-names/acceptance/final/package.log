@@ -1,0 +1,12 @@
+=== RUN   TestResolveVersionStripsLeadingV
+--- PASS: TestResolveVersionStripsLeadingV (0.00s)
+=== RUN   TestArtifactSpecsCoverFullPlatformMatrix
+--- PASS: TestArtifactSpecsCoverFullPlatformMatrix (0.00s)
+=== RUN   TestBinaryPathVersioned
+--- PASS: TestBinaryPathVersioned (0.00s)
+=== RUN   TestPackageLibraryWritesRootLibraryEntryAndChecksum
+--- PASS: TestPackageLibraryWritesRootLibraryEntryAndChecksum (0.00s)
+=== RUN   TestPackageExistingArtifactsUsesSha256sumFormat
+--- PASS: TestPackageExistingArtifactsUsesSha256sumFormat (0.01s)
+PASS
+ok  	command-line-arguments	0.764s
