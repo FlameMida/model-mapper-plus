@@ -1,5 +1,5 @@
 format_version: 1
-current: T07
+current: T08
 tasks:
   T00: { status: completed, commit: fbc63d7c0ac414200b3011fc6b2c34675e17525b, tests: pass }
   T01:
@@ -86,8 +86,8 @@ tasks:
       branch: impl/admin-audit-t06
       base_commit: 1313c90333b7e30476608c85c3ef32e234d32759
       model_declaration_id: initial-20260912
-  T07: { status: in_progress }
-  T08: { status: pending }
+  T07: { status: completed, commit: 52eb799, tests: pass }
+  T08: { status: in_progress }
   T09:
     status: completed
     commit: 4118c40c95749a6ae61be2e3afb2978b54f911e6
@@ -120,9 +120,10 @@ resources:
   - "evidence: /Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-evidence/t01-a1; claim=t01-20260912-a1; archive to feature execution/t01-20260912-a1 before cleanup"
   - "evidence: /Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-evidence/t03-a1; claim=t03-20260912-a1; archive to feature execution/t03-20260912-a1 before cleanup"
   - "worktree: /Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-keeper-names; created by this plan; after verified merge: git worktree remove /Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-keeper-names; git branch -d plan/admin-audit-keeper-names"
-  - "service: server01 ended (confirmed no PID33547/listener); original 30m test timeout exit1 preserved in browser/server.log, not acceptance PASS. Fresh loopback server02 will be registered at startup."
+  - "service: server01 ended timeout exit1 (browser/server.log); server02 PID55709 start Sat Sep 12 15:34:03 2026, command go-build2545291484/b001/cpa-model-mapper-plus.test TestAdminAcceptanceServe; owned startup-only fixture, gracefully stop after identity check; server03 planned on same loopback port for fault/iframe acceptance."
   - "review-evidence: /Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-reviews; owned; archive review JSON/logs into feature before cleanup"
 notes:
+  - "T07 run-05: 12 browser checks pass, zero pageerror, controlled audit503 expected; screenshots visually checked. server03 PID60003/start15:44:35/go-build390952819 identity verified and gracefully stopped, exit0 (startup-only, excluded from acceptance count). Independent critic and T08 full tests still gate merge/release."
   - "User added explicit delivery authorization: 完成后提交 推送 发版. This supersedes earlier no-push/no-release statements, but not host/Keeper read-only or no production deployment/name-change boundary. Verify GitHub origin, remote commits/tags, CI and release assets after QA."
   - "User explicitly approved standalone Playwright local-only acceptance after CUA extension lacked Codex auth token and native Chrome reduced page to an inaccessible menu. Use isolated headless browser, loopback fixture only; no other user tabs or project dependency modifications."
   - "T09 integrated: 8 frontend files/82 tests and typecheck exit0; real red3-failure evidence archived. Fresh-process audit persistence test passed separately (browser/restart.log), source test commit b0f7d5f."
