@@ -149,6 +149,11 @@ func readAuditDay(path string) ([]auditItem, []string, error) {
 	}
 	result := make([]auditItem, 0, len(items))
 	for _, item := range items {
+		if auditUnconfirmed[item.OperationID] == path {
+			item.Outcome, item.Changed, item.FinishedAt = "unknown", nil, nil
+			item.Changes = map[string]auditChange{}
+			item.ErrorCode = "audit_write_failed"
+		}
 		result = append(result, *item)
 	}
 	sort.Slice(result, func(i, j int) bool {

@@ -65,13 +65,13 @@ func dispatchManagement(req pluginapi.ManagementRequest) pluginapi.ManagementRes
 	case req.Method == http.MethodGet && path == managementHandleBase+"/state":
 		return managementGetState()
 	case req.Method == http.MethodPut && path == managementHandleBase+"/rules":
-		return managementPutRules(req)
+		return auditedStateManagement(req, managementPutRules)
 	case req.Method == http.MethodPost && path == managementHandleBase+"/keys":
-		return managementPostKey(req)
+		return auditedStateManagement(req, managementPostKey)
 	case req.Method == http.MethodPatch && path == managementHandleBase+"/keys":
-		return managementPatchKey(req)
+		return auditedStateManagement(req, managementPatchKey)
 	case req.Method == http.MethodDelete && path == managementHandleBase+"/keys":
-		return managementDeleteKey(req)
+		return auditedStateManagement(req, managementDeleteKey)
 	case req.Method == http.MethodPost && path == managementHandleBase+"/preview":
 		return managementPreview(req)
 	}

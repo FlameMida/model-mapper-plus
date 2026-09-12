@@ -49,6 +49,11 @@ var auditNow = time.Now
 var auditOpenFile = func(path string, flag int, perm os.FileMode) (auditFile, error) { return os.OpenFile(path, flag, perm) }
 var auditIOMu sync.Mutex
 var auditRunning = make(map[string]string)
+
+// A fully written finish can still fail Sync. Preserve that uncertainty for
+// this process without changing the append-only journal; after restart the
+// reader uses only the complete events that actually survived on disk.
+var auditUnconfirmed = make(map[string]string)
 var auditLocation = func() *time.Location {
 	location, err := time.LoadLocation("Asia/Shanghai")
 	if err != nil {
@@ -91,7 +96,11 @@ func finishAudit(ticket auditTicket, event auditEvent) error {
 	defer auditIOMu.Unlock()
 	defer delete(auditRunning, ticket.ID)
 	event.Version, event.OperationID, event.Phase, event.OccurredAt = 1, ticket.ID, "finish", auditNow().In(auditLocation)
-	return appendAuditEvent(ticket.Path, event)
+	err := appendAuditEvent(ticket.Path, event)
+	if err != nil {
+		auditUnconfirmed[ticket.ID] = ticket.Path
+	}
+	return err
 }
 
 // Call with auditIOMu held; handlers and configuration changes never run here.

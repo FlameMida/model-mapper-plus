@@ -610,7 +610,9 @@ func handlePluginReconfigure(raw []byte) ([]byte, error) {
 		logger.Error("reconfigure: invalid plugin config", "err", err)
 		return nil, err
 	}
-	// Resolve (and read from disk) outside every lock: doing it under the state
+	managementMutationMu.Lock()
+	defer managementMutationMu.Unlock()
+	// Resolve (and read from disk) outside config/state locks: doing it under the state
 	// write lock blocked all readers, and the previous two-step swap left a
 	// window where loadedHolder held a seed-only state with no key bindings —
 	// concurrent routes lost the key layer and a concurrent save persisted the
