@@ -92,6 +92,7 @@ export default function KeysPanel({ state, onSaved, keyOptions }: Props) {
   const syncRequest = useRef(0)
   const [keeperNames, setKeeperNames] = useState<KeeperAuthNamesResponse>()
   const [namesLoading, setNamesLoading] = useState(false)
+  const [namesViewRevision, setNamesViewRevision] = useState(0)
   const namesRequest = useRef(0)
   const namesRevision = useRef(0)
   const namesLoaded = useRef(false)
@@ -105,10 +106,12 @@ export default function KeysPanel({ state, onSaved, keyOptions }: Props) {
       const result = await (refresh ? api.refreshKeeperAuthNames() : api.getKeeperAuthNames())
       if (request !== namesRequest.current || revision !== namesRevision.current) return
       namesLoaded.current = true
+      setNamesViewRevision(current => current + 1)
       setKeeperNames(result)
     } catch {
       if (request === namesRequest.current && revision === namesRevision.current) {
         namesLoaded.current = true
+        setNamesViewRevision(current => current + 1)
         setKeeperNames({ status: 'unavailable', items: [], error_code: 'connection_failed' })
       }
     } finally {
@@ -396,6 +399,7 @@ export default function KeysPanel({ state, onSaved, keyOptions }: Props) {
                 onRetry={loadAuthFiles}
                 keeperNames={keeperNames}
                 keeperLoading={namesLoading}
+                keeperViewRevision={namesViewRevision}
                 onRefreshNames={() => { void loadKeeperNames(true) }}
                 onNameSaved={nameSaved}
                 onChange={(channel_target) => setEditing({ ...editing, channel_target })}

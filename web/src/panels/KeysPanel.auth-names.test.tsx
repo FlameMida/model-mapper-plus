@@ -208,6 +208,44 @@ it('S4 关闭重开会话后的迟到响应不覆盖新编辑', async () => {
   expect(screen.queryByText('迟到值')).not.toBeInTheDocument()
 })
 
+it.each(['新刷新的名称', NAME.alias])('S4 同配置同身份刷新先完成时旧 PATCH 不得覆盖名称视图：%s', async refreshedAlias => {
+  const response = deferred<Awaited<ReturnType<typeof api.patchKeeperAuthName>>>()
+  vi.mocked(api.patchKeeperAuthName).mockReturnValue(response.promise)
+  mount(); const user = await open()
+  await user.clear(input()); await user.type(input(), '旧请求的名称'); await user.click(sync())
+  await user.clear(input()); await user.type(input(), '刷新期间的手工草稿')
+  vi.mocked(api.refreshKeeperAuthNames).mockResolvedValue({ ...READY,
+    items: [{ ...NAME, alias: refreshedAlias, display_name: refreshedAlias }] })
+  await user.click(screen.getByRole('button', { name: '刷新名称' }))
+  await waitFor(() => expect(screen.getByRole('button', { name: '刷新名称' })).not.toBeDisabled())
+  expect(screen.getByText(refreshedAlias)).toBeInTheDocument()
+  expect(input()).toHaveValue('刷新期间的手工草稿')
+  await act(async () => response.resolve({ status: 'ready',
+    item: { ...NAME, alias: '旧请求的名称', display_name: '旧请求的名称' } }))
+  expect(screen.getByText(refreshedAlias)).toBeInTheDocument()
+  expect(input()).toHaveValue('刷新期间的手工草稿')
+  expect(screen.queryByText('已保存到 Keeper')).not.toBeInTheDocument()
+  expect(screen.getByLabelText('凭据 auth-a')).toBeChecked()
+})
+
+it('S4 新刷新先完成时旧 PATCH 不得覆盖名称视图', async () => {
+  const response = deferred<Awaited<ReturnType<typeof api.patchKeeperAuthName>>>()
+  vi.mocked(api.patchKeeperAuthName).mockReturnValue(response.promise)
+  mount(); const user = await open()
+  await user.clear(input()); await user.type(input(), '旧请求的名称'); await user.click(sync())
+  vi.mocked(api.refreshKeeperAuthNames).mockResolvedValue({ ...READY,
+    items: [{ ...NAME, alias: '新刷新的名称', display_name: '新刷新的名称' }] })
+  await user.click(screen.getByRole('button', { name: '刷新名称' }))
+  await screen.findByText('新刷新的名称')
+  await act(async () => response.resolve({ status: 'ready',
+    item: { ...NAME, alias: '旧请求的名称', display_name: '旧请求的名称' } }))
+  expect(screen.getByText('新刷新的名称')).toBeInTheDocument()
+  expect(screen.queryByText('已保存到 Keeper')).not.toBeInTheDocument()
+  expect(screen.getByLabelText('凭据 auth-a')).toBeChecked()
+  await user.click(cancel()); await open()
+  expect(input()).toHaveValue('新刷新的名称')
+})
+
 it('S4 较早发起的刷新响应不覆盖后来同步成功的名称', async () => {
   const response = deferred<typeof READY>()
   vi.mocked(api.refreshKeeperAuthNames).mockReturnValue(response.promise)

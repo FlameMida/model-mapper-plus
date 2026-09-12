@@ -16,6 +16,7 @@ interface Props {
   onRetry: () => void
   keeperNames?: KeeperAuthNamesResponse
   keeperLoading?: boolean
+  keeperViewRevision?: number
   onRefreshNames?: () => void
   onNameSaved?: (name: KeeperAuthName) => void
 }
@@ -41,7 +42,7 @@ function authStatus(file: CpaAuthFile) {
 }
 
 export default function ChannelTargetEditor({ value, authFiles, loading, error, onChange, onRetry,
-  keeperNames, keeperLoading, onRefreshNames, onNameSaved }: Props) {
+  keeperNames, keeperLoading, keeperViewRevision = 0, onRefreshNames, onNameSaved }: Props) {
   const [activeProvider, setActiveProvider] = useState('')
   const [search, setSearch] = useState({ provider: '', text: '' })
   const selectedSuppliers = normalizeProviders(value.suppliers)
@@ -189,7 +190,8 @@ export default function ChannelTargetEditor({ value, authFiles, loading, error, 
                   </div>
                   {file.source === 'auth-file' && file.provider === 'codex' && onNameSaved && (
                     <div className="channel-target-name-edit">
-                      {keeperName(file) ? <KeeperAuthNameEditor authIndex={file.auth_index!} name={keeperName(file)!} onSaved={onNameSaved} /> :
+                      {keeperName(file) ? <KeeperAuthNameEditor authIndex={file.auth_index!} name={keeperName(file)!}
+                        viewRevision={keeperViewRevision} onSaved={onNameSaved} /> :
                         keeperNames?.status === 'ready' ? <span>未找到唯一匹配的 Keeper 身份，无法同步名称</span> : null}
                     </div>
                   )}
