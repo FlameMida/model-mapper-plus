@@ -5,10 +5,12 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"net/http/httptest"
 	"os"
 	"path/filepath"
 	"reflect"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -269,6 +271,128 @@ func auditMetaForTest(t *testing.T, resp pluginapi.ManagementResponse) string {
 		t.Fatalf("missing recorded audit: %s", resp.Body)
 	}
 	return body.Audit.OperationID
+}
+
+func TestManagementAuditS11KeeperNameProjection(t *testing.T) {
+	t.Setenv("T04_AUDIT_PASSWORD", "keeper-password")
+	secrets := "sk-known-key keeper-password cpa-token session-cookie"
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		row := keeperIdentityFixture("17", "idx-a", secrets+" old", secrets+" old")
+		row["cookie"] = "private-upstream-cookie"
+		row["password"] = "private-upstream-password"
+		if r.Method == "GET" {
+			_ = json.NewEncoder(w).Encode(map[string]any{"identities": []any{row}})
+			return
+		}
+		row["alias"] = secrets + " new"
+		row["displayName"] = secrets + " new"
+		_ = json.NewEncoder(w).Encode(row)
+	}))
+	defer server.Close()
+	path := setupManagementTest(t, Config{UsageKeeperURL: server.URL, UsageKeeperPasswordEnv: "T04_AUDIT_PASSWORD"})
+	seed := managementPostKey(auditRequest("POST", "/keys", `{"key":"sk-known-key"}`))
+	if seed.StatusCode != 200 {
+		t.Fatalf("seed=%s", seed.Body)
+	}
+	body, _ := json.Marshal(map[string]string{"auth_index": "idx-a", "alias": "new"})
+	req := auditRequest("PATCH", "/keeper/auth-names", string(body))
+	req.Headers = http.Header{"Authorization": []string{"Bearer cpa-token"}, "Cookie": []string{"session=session-cookie"}}
+	resp := dispatchManagement(req)
+	auditMetaForTest(t, resp)
+	for _, secret := range []string{"private-upstream-cookie", "private-upstream-password", "file_path"} {
+		if strings.Contains(string(resp.Body), secret) {
+			t.Errorf("upstream secret leaked in projection: %s", secret)
+		}
+	}
+	page := auditPageForTest(t)
+	if page.Total != 1 || page.Items[0].Outcome != "succeeded" {
+		t.Fatalf("page=%+v", page)
+	}
+	if string(page.Items[0].Changes["alias"].Before) != `"[REDACTED] [REDACTED] [REDACTED] [REDACTED] old"` || string(page.Items[0].Changes["alias"].After) != `"[REDACTED] [REDACTED] [REDACTED] [REDACTED] new"` {
+		t.Fatalf("alias projection=%+v", page.Items[0].Changes)
+	}
+	files, err := filepath.Glob(filepath.Join(filepath.Dir(path), "model-mapper-plus-audit", "*.jsonl"))
+	if err != nil || len(files) != 1 {
+		t.Fatalf("files=%v err=%v", files, err)
+	}
+	raw, err := os.ReadFile(files[0])
+	if err != nil {
+		t.Fatal(err)
+	}
+	query, _ := json.Marshal(page)
+	for _, secret := range append(strings.Fields(secrets), "private-upstream-cookie", "private-upstream-password") {
+		if bytes.Contains(raw, []byte(secret)) || bytes.Contains(query, []byte(secret)) {
+			t.Errorf("audit leaked %s", secret)
+		}
+	}
+}
+
+func TestManagementAuditS11KeeperNameReconfigure(t *testing.T) {
+	entered, release := make(chan struct{}), make(chan struct{})
+	var once sync.Once
+	oldServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		row := keeperIdentityFixture("17", "idx-a", "old", "old")
+		if r.Method == "GET" {
+			_ = json.NewEncoder(w).Encode(map[string]any{"identities": []any{row}})
+			return
+		}
+		close(entered)
+		<-release
+		row["alias"] = "saved"
+		row["displayName"] = "saved"
+		_ = json.NewEncoder(w).Encode(row)
+	}))
+	defer oldServer.Close()
+	defer once.Do(func() { close(release) })
+	newServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != "GET" {
+			t.Error("PATCH crossed Keeper configuration")
+		}
+		_ = json.NewEncoder(w).Encode(map[string]any{"identities": []any{keeperIdentityFixture("19", "idx-a", "new configuration", "new configuration")}})
+	}))
+	defer newServer.Close()
+	oldPath := setupManagementTest(t, Config{UsageKeeperURL: oldServer.URL})
+	newPath := filepath.Join(t.TempDir(), "next.json")
+	saved := make(chan pluginapi.ManagementResponse, 1)
+	go func() {
+		saved <- dispatchManagement(auditRequest("PATCH", "/keeper/auth-names", `{"auth_index":"idx-a","alias":"saved"}`))
+	}()
+	<-entered
+	reconfigured := make(chan error, 1)
+	go func() {
+		raw, _ := json.Marshal(Config{UsageKeeperURL: newServer.URL, StateFile: newPath})
+		_, err := handlePluginReconfigure(raw)
+		reconfigured <- err
+	}()
+	select {
+	case err := <-reconfigured:
+		once.Do(func() { close(release) })
+		<-saved
+		t.Fatalf("reconfigure crossed mutation: %v", err)
+	case <-time.After(100 * time.Millisecond):
+	}
+	once.Do(func() { close(release) })
+	resp := <-saved
+	auditMetaForTest(t, resp)
+	if err := <-reconfigured; err != nil {
+		t.Fatal(err)
+	}
+	var names keeperAuthNamesResponse
+	decodeBody(t, dispatchManagement(auditRequest("GET", "/keeper/auth-names", "")), &names)
+	if len(names.Items) != 1 || names.Items[0].Alias != "new configuration" {
+		t.Fatalf("old name crossed config: %+v", names)
+	}
+	files, err := filepath.Glob(filepath.Join(filepath.Dir(oldPath), "model-mapper-plus-audit", "*.jsonl"))
+	if err != nil || len(files) != 1 {
+		t.Fatalf("files=%v err=%v", files, err)
+	}
+	raw, err := os.ReadFile(files[0])
+	if err != nil || bytes.Count(raw, []byte{'\n'}) != 2 {
+		t.Fatalf("split operation=%s err=%v", raw, err)
+	}
+	if _, err := os.Stat(filepath.Join(filepath.Dir(newPath), "model-mapper-plus-audit")); !os.IsNotExist(err) {
+		t.Fatalf("new config contains old audit: %v", err)
+	}
 }
 
 func TestManagementAuditS8BlocksBeforeMutation(t *testing.T) {
