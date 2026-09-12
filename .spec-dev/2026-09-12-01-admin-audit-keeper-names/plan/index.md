@@ -85,6 +85,8 @@ parallel:
       resources: []
     T02:
       writes:
+        - "audit.go"
+        - "audit_query.go"
         - "audit_management.go"
         - "management_audit_test.go"
         - "management.go"
