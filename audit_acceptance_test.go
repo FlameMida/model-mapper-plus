@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"os/exec"
 	"os/signal"
 	"strings"
 	"sync"
@@ -17,6 +18,70 @@ import (
 
 	"github.com/router-for-me/CLIProxyAPI/v7/sdk/pluginapi"
 )
+
+func TestAdminAcceptanceAuditProcessRestart(t *testing.T) {
+	statePath := setupManagementTest(t, Config{Enabled: true})
+	response := dispatchManagement(pluginapi.ManagementRequest{
+		Method: http.MethodPost, Path: managementHandleBase + "/keys",
+		Body: []byte(`{"key":"fake-restart-key","alias":"restart proof","enabled":true}`),
+	})
+	if response.StatusCode != http.StatusOK {
+		t.Fatalf("create status=%d", response.StatusCode)
+	}
+	var result struct {
+		Audit struct {
+			OperationID string `json:"operation_id"`
+			Recorded    bool   `json:"recorded"`
+		} `json:"audit"`
+	}
+	decodeBody(t, response, &result)
+	if !result.Audit.Recorded || result.Audit.OperationID == "" {
+		t.Fatal("operation was not recorded")
+	}
+	binary, err := os.Executable()
+	if err != nil {
+		t.Fatal(err)
+	}
+	child := exec.Command(binary, "-test.run=^TestAdminAcceptanceRestartReader$", "-test.v=true")
+	child.Env = append(os.Environ(), "MAPPER_AUDIT_RESTART_STATE="+statePath,
+		"MAPPER_AUDIT_RESTART_ID="+result.Audit.OperationID)
+	output, err := child.CombinedOutput()
+	if err != nil {
+		t.Fatalf("fresh process read failed: %v\n%s", err, output)
+	}
+	t.Logf("Fresh process output:\n%s", output)
+}
+
+func TestAdminAcceptanceRestartReader(t *testing.T) {
+	path := os.Getenv("MAPPER_AUDIT_RESTART_STATE")
+	if path == "" {
+		t.Skip("child-process audit reader")
+	}
+	cfg := Config{Enabled: true, StateFile: path}
+	setLoadedConfigForTest(cfg)
+	loadedStateMu.Lock()
+	loadedHolder = resolveState(cfg)
+	loadedStateMu.Unlock()
+	response := dispatchManagement(pluginapi.ManagementRequest{Method: http.MethodGet,
+		Path: managementHandleBase + "/audit"})
+	if response.StatusCode != http.StatusOK {
+		t.Fatalf("query status=%d", response.StatusCode)
+	}
+	var history auditPage
+	decodeBody(t, response, &history)
+	if history.Total != 1 || len(history.Items) != 1 || len(history.Warnings) != 0 {
+		t.Fatalf("unexpected persisted history: %+v", history)
+	}
+	item := history.Items[0]
+	if item.OperationID != os.Getenv("MAPPER_AUDIT_RESTART_ID") || item.Outcome != "succeeded" || item.Action != "create" {
+		t.Fatalf("persisted event differs: %+v", item)
+	}
+	var state stateResponse
+	decodeBody(t, managementGetState(), &state)
+	if len(state.KeyBindings) != 1 || state.KeyBindings[0].Alias != "restart proof" {
+		t.Fatal("persisted binding missing from fresh process")
+	}
+}
 
 // The fixture is opt-in and loopback-only. Its exit is not a browser assertion.
 func TestAdminAcceptanceServe(t *testing.T) {
