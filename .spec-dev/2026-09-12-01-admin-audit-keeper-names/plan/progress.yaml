@@ -77,7 +77,7 @@ tasks:
     claim:
       key: t06-20260912-a1
       owner: 01a093e8-b328-7f41-9dc0-82ef9014f0ee
-      agent_id: pending-dispatch
+      agent_id: /root/implement_t06
       worktree: /Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-t06
       branch: impl/admin-audit-t06
       base_commit: 1313c90333b7e30476608c85c3ef32e234d32759
