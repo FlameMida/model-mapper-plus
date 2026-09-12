@@ -56,7 +56,7 @@ func (c *keeperClient) request(ctx context.Context, method, path string, body []
 		return nil, &keeperError{Code: "configuration_error"}
 	}
 	req.Header.Set("Accept", "application/json")
-	if method == http.MethodPost {
+	if method == http.MethodPost || method == http.MethodPatch {
 		req.Header.Set("Content-Type", "application/json")
 		req.Header.Set("X-CPA-Usage-Keeper-Request", "fetch")
 	}
@@ -94,8 +94,10 @@ func keeperHTTPError(resp *http.Response) error {
 	}
 }
 
-func (c *keeperClient) fetch(ctx context.Context) ([]keeperAlias, error) {
-	resp, err := c.request(ctx, http.MethodGet, "/api/v1/usage/api-keys/settings", nil)
+// authenticatedRequest retries only an explicit 401, once after login. Callers
+// own the response body and share their overall deadline with login and retry.
+func (c *keeperClient) authenticatedRequest(ctx context.Context, method, path string, payload []byte) (*http.Response, error) {
+	resp, err := c.request(ctx, method, path, payload)
 	if err != nil {
 		return nil, err
 	}
@@ -116,26 +118,26 @@ func (c *keeperClient) fetch(ctx context.Context) ([]keeperAlias, error) {
 		if login.StatusCode != http.StatusOK && login.StatusCode != http.StatusNoContent {
 			return nil, keeperHTTPError(login)
 		}
-		resp, err = c.request(ctx, http.MethodGet, "/api/v1/usage/api-keys/settings", nil)
+		resp, err = c.request(ctx, method, path, payload)
 		if err != nil {
 			return nil, err
 		}
+	}
+	return resp, nil
+}
+
+func (c *keeperClient) fetch(ctx context.Context) ([]keeperAlias, error) {
+	resp, err := c.authenticatedRequest(ctx, http.MethodGet, "/api/v1/usage/api-keys/settings", nil)
+	if err != nil {
+		return nil, err
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
 		return nil, keeperHTTPError(resp)
 	}
-	// Bound the decoded data even if an upstream sends an unexpectedly large body.
-	const maxBody = 8 << 20
-	raw, err := io.ReadAll(io.LimitReader(resp.Body, maxBody+1))
+	raw, err := readKeeperBody(ctx, resp.Body)
 	if err != nil {
-		if ctx.Err() != nil {
-			return nil, &keeperError{Code: "timeout"}
-		}
-		return nil, &keeperError{Code: "connection_failed"}
-	}
-	if len(raw) > maxBody {
-		return nil, &keeperError{Code: "invalid_response"}
+		return nil, err
 	}
 	var body struct {
 		Items json.RawMessage `json:"items"`
@@ -167,4 +169,19 @@ func (c *keeperClient) fetch(ctx context.Context) ([]keeperAlias, error) {
 		aliases = append(aliases, keeperAlias{Key: *row.Key, Alias: alias})
 	}
 	return aliases, nil
+}
+
+func readKeeperBody(ctx context.Context, body io.Reader) ([]byte, error) {
+	const maxBody = 8 << 20
+	raw, err := io.ReadAll(io.LimitReader(body, maxBody+1))
+	if err != nil {
+		if ctx.Err() != nil {
+			return nil, &keeperError{Code: "timeout"}
+		}
+		return nil, &keeperError{Code: "connection_failed"}
+	}
+	if len(raw) > maxBody {
+		return nil, &keeperError{Code: "invalid_response"}
+	}
+	return raw, nil
 }

@@ -122,6 +122,9 @@ func resetKeeperAliases() {
 	keeperServices.Lock()
 	keeperServices.service = nil
 	keeperServices.Unlock()
+	keeperNameServices.Lock()
+	keeperNameServices.service = nil
+	keeperNameServices.Unlock()
 }
 
 func keeperAliasesForConfig(cfg Config, force bool) keeperAliasesResponse {

@@ -191,3 +191,47 @@ func TestKeeperClientContextDeadline(t *testing.T) {
 	_, err = client.fetch(ctx)
 	requireKeeperError(t, err, "timeout")
 }
+
+func TestKeeperClientPatchHeadersAndSingleAuthenticationRetry(t *testing.T) {
+	t.Setenv("KEEPER_PATCH_TEST_PASSWORD", "secret")
+	for _, status := range []int{200, 401, 500} {
+		t.Run(http.StatusText(status), func(t *testing.T) {
+			var patches, logins atomic.Int32
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				if r.URL.Path == "/api/v1/auth/login" {
+					logins.Add(1)
+					w.WriteHeader(204)
+					return
+				}
+				count := patches.Add(1)
+				if r.Method != "PATCH" || r.Header.Get("Content-Type") != "application/json" || r.Header.Get("X-CPA-Usage-Keeper-Request") != "fetch" {
+					t.Error("missing PATCH request headers")
+				}
+				var body struct {
+					Alias string `json:"alias"`
+				}
+				if err := json.NewDecoder(r.Body).Decode(&body); err != nil || body.Alias != "new name" {
+					t.Error("PATCH body changed")
+				}
+				if count == 1 {
+					w.WriteHeader(401)
+					return
+				}
+				w.WriteHeader(status)
+			}))
+			defer server.Close()
+			client, err := newKeeperClient(server.URL, "KEEPER_PATCH_TEST_PASSWORD")
+			if err != nil {
+				t.Fatal(err)
+			}
+			resp, err := client.authenticatedRequest(context.Background(), http.MethodPatch, "/api/v1/usage/identities/17", []byte(`{"alias":"new name"}`))
+			if err != nil {
+				t.Fatal(err)
+			}
+			defer resp.Body.Close()
+			if resp.StatusCode != status || patches.Load() != 2 || logins.Load() != 1 {
+				t.Fatalf("status=%d patches=%d logins=%d", resp.StatusCode, patches.Load(), logins.Load())
+			}
+		})
+	}
+}
