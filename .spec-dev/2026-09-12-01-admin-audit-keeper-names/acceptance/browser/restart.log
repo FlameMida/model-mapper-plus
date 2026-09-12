@@ -1,0 +1,8 @@
+=== RUN   TestAdminAcceptanceAuditProcessRestart
+    audit_acceptance_test.go:52: Fresh process output:
+        === RUN   TestAdminAcceptanceRestartReader
+        --- PASS: TestAdminAcceptanceRestartReader (0.00s)
+        PASS
+--- PASS: TestAdminAcceptanceAuditProcessRestart (0.03s)
+PASS
+ok  	github.com/FlameMida/cpa-model-mapper-plus	0.847s

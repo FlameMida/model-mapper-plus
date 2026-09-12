@@ -595,6 +595,105 @@
       "evidence_path": ".spec-dev/2026-09-12-01-admin-audit-keeper-names/execution/t06-20260912-a1/integration-typecheck.log",
       "output_sha256": "2931d9a400432def3fd841bb330563be730c1db654fa8a2246466e89bdf304c3",
       "capture": "combined stdout/stderr"
+    },
+    {
+      "task": "T09",
+      "claim": "t09-20260912-a1",
+      "commit": "bd17fdfbde0fcc4598ee57218881799cdaa48c88",
+      "phase": "baseline",
+      "command": "rtk npm --prefix web test -- src/panels/KeysPanel.auth-names.test.tsx src/components/KeeperAuthNameEditor.test.tsx src/components/ChannelTargetEditor.test.tsx src/panels/KeysPanel.alias-sync.test.tsx",
+      "exit_code": 0,
+      "evidence_path": ".spec-dev/2026-09-12-01-admin-audit-keeper-names/execution/t09-20260912-a1/baseline.log",
+      "output_sha256": "45e3ebfd5cd14113029bed8db668eb385e35b9523b9518b1db1d6677c3cca409",
+      "capture": "combined stdout/stderr"
+    },
+    {
+      "task": "T09",
+      "claim": "t09-20260912-a1",
+      "commit": "bd17fdfbde0fcc4598ee57218881799cdaa48c88",
+      "phase": "red",
+      "command": "rtk npm --prefix web test -- src/panels/KeysPanel.auth-names.test.tsx",
+      "exit_code": 1,
+      "evidence_path": ".spec-dev/2026-09-12-01-admin-audit-keeper-names/execution/t09-20260912-a1/red.log",
+      "output_sha256": "8f4f730950e9606c0ed33ead1207bfad08610732a742b1b56682f557af277c9b",
+      "capture": "combined stdout/stderr"
+    },
+    {
+      "task": "T09",
+      "claim": "t09-20260912-a1",
+      "commit": "bd17fdfbde0fcc4598ee57218881799cdaa48c88",
+      "phase": "red",
+      "command": "rtk npm --prefix web test -- src/components/KeeperAuthNameEditor.test.tsx",
+      "exit_code": 1,
+      "evidence_path": ".spec-dev/2026-09-12-01-admin-audit-keeper-names/execution/t09-20260912-a1/red-editor.log",
+      "output_sha256": "f20e25fb25f5f31dd44b8e2d7a75f8250ffc28bfcf7393fc8279e351d9af3e7f",
+      "capture": "combined stdout/stderr"
+    },
+    {
+      "task": "T09",
+      "claim": "t09-20260912-a1",
+      "commit": "bd17fdfbde0fcc4598ee57218881799cdaa48c88",
+      "phase": "red",
+      "command": "rtk proxy npm --prefix web test -- src/panels/KeysPanel.auth-names.test.tsx src/components/KeeperAuthNameEditor.test.tsx",
+      "exit_code": 1,
+      "evidence_path": ".spec-dev/2026-09-12-01-admin-audit-keeper-names/execution/t09-20260912-a1/red-raw.log",
+      "output_sha256": "76c13032daeb1aa6c4071b8c856255fb165ee88ce5a59a5686202f52698a9c9c",
+      "capture": "combined stdout/stderr"
+    },
+    {
+      "task": "T09",
+      "claim": "t09-20260912-a1",
+      "commit": "bd17fdfbde0fcc4598ee57218881799cdaa48c88",
+      "phase": "green",
+      "command": "rtk proxy npm --prefix web test -- src/panels/KeysPanel.auth-names.test.tsx src/components/KeeperAuthNameEditor.test.tsx src/components/ChannelTargetEditor.test.tsx src/panels/KeysPanel.alias-sync.test.tsx",
+      "exit_code": 0,
+      "evidence_path": ".spec-dev/2026-09-12-01-admin-audit-keeper-names/execution/t09-20260912-a1/green.log",
+      "output_sha256": "6cf939a14b489fdb53b1ac5ee84e1398291c6315126b57e55518c3477b03c27e",
+      "capture": "combined stdout/stderr"
+    },
+    {
+      "task": "T09",
+      "claim": "t09-20260912-a1",
+      "commit": "bd17fdfbde0fcc4598ee57218881799cdaa48c88",
+      "phase": "green",
+      "command": "rtk proxy npm --prefix web run typecheck",
+      "exit_code": 0,
+      "evidence_path": ".spec-dev/2026-09-12-01-admin-audit-keeper-names/execution/t09-20260912-a1/typecheck.log",
+      "output_sha256": "2931d9a400432def3fd841bb330563be730c1db654fa8a2246466e89bdf304c3",
+      "capture": "combined stdout/stderr"
+    },
+    {
+      "task": "T09",
+      "claim": "t09-20260912-a1",
+      "commit": "4118c40c95749a6ae61be2e3afb2978b54f911e6",
+      "phase": "integration",
+      "command": "rtk proxy npm --prefix web test -- src/panels/KeysPanel.auth-names.test.tsx src/components/KeeperAuthNameEditor.test.tsx src/components/ChannelTargetEditor.test.tsx src/panels/KeysPanel.alias-sync.test.tsx src/panels/AuditPanel.test.tsx src/panels/RulesPanel.test.tsx src/api.test.ts src/App.test.tsx",
+      "exit_code": 0,
+      "evidence_path": ".spec-dev/2026-09-12-01-admin-audit-keeper-names/execution/t09-20260912-a1/integration.log",
+      "output_sha256": "3d549c403e2b542ae936a8b5e19dc774ef329a070ce4fc22b17128d911d20646",
+      "capture": "combined stdout/stderr"
+    },
+    {
+      "task": "T09",
+      "claim": "t09-20260912-a1",
+      "commit": "4118c40c95749a6ae61be2e3afb2978b54f911e6",
+      "phase": "integration",
+      "command": "rtk proxy npm --prefix web run typecheck",
+      "exit_code": 0,
+      "evidence_path": ".spec-dev/2026-09-12-01-admin-audit-keeper-names/execution/t09-20260912-a1/integration-typecheck.log",
+      "output_sha256": "2931d9a400432def3fd841bb330563be730c1db654fa8a2246466e89bdf304c3",
+      "capture": "combined stdout/stderr"
+    },
+    {
+      "task": "T07",
+      "commit": "b0f7d5f28aba9ecdfbf140996dad9ccb0f2dd5dd",
+      "phase": "integration",
+      "command": "rtk proxy go test . -run ^TestAdminAcceptanceAuditProcessRestart$ -count=1 -v",
+      "exit_code": 0,
+      "evidence_path": ".spec-dev/2026-09-12-01-admin-audit-keeper-names/acceptance/browser/restart.log",
+      "output_sha256": "31006f674a7aa4606d6b4caad361c8652ad2402728da4e00e0216d2aa908636a",
+      "capture": "combined stdout/stderr",
+      "note": "Fresh process reads actual persisted operation and binding; not browser acceptance."
     }
   ]
 }
