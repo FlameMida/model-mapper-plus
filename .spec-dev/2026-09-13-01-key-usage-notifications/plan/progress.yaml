@@ -1,0 +1,24 @@
+format_version: 1
+current: null
+tasks:
+  T00: { status: pending }
+  T01: { status: pending }
+  T02: { status: pending }
+  T03: { status: pending }
+  T04: { status: pending }
+  T05: { status: pending }
+  T06: { status: pending }
+  T07: { status: pending }
+  T08: { status: pending }
+  T09: { status: pending }
+  T10: { status: pending }
+  T11: { status: pending }
+  T12: { status: pending }
+  T13: { status: pending }
+  T14: { status: pending }
+  T15: { status: pending }
+  T16: { status: pending }
+  T17: { status: pending }
+resources:
+  - "worktree: .worktrees/plan-2026-09-13-01-key-usage-notifications —— git worktree remove .worktrees/plan-2026-09-13-01-key-usage-notifications && git branch -D plan-2026-09-13-01-key-usage-notifications（T00 核实后更新为实际路径与分支）"
+notes: []
