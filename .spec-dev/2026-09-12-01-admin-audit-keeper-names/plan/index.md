@@ -64,9 +64,9 @@
 | T02 | T01 | beginAudit/finishAudit、既有四个变更 handler | withAuditedManagement(req pluginapi.ManagementRequest, run func() (pluginapi.ManagementResponse, auditResult)) pluginapi.ManagementResponse; managementMutationMu |
 | T03 | T00 | keeperClient、GET Keeper identities | keeperAuthNamesForConfig(cfg Config, force bool) keeperAuthNamesResponse; managementKeeperAuthNames(force bool) pluginapi.ManagementResponse（路由由T04挂载） |
 | T04 | T02, T03 | withAuditedManagement、名称读取handler | managementPatchKeeperAuthName(req pluginapi.ManagementRequest) pluginapi.ManagementResponse; GET/POST/PATCH /keeper/auth-names[/refresh] |
-| T05 | T03, T04 | 名称 GET/PATCH wire 协议 | api.getKeeperAuthNames/refreshKeeperAuthNames/patchKeeperAuthName; KeeperAuthNameEditor; 渠道名称显示 |
+| T05 | T03 | 已批准spec的名称 GET/PATCH wire 协议，T03读取投影 | api.getKeeperAuthNames/refreshKeeperAuthNames/patchKeeperAuthName; KeeperAuthNameEditor; 渠道名称显示 |
 | T06 | T02, T05 | GET /audit、mutation audit 字段 | api.getAudit(date?: string, page?: number, pageSize?: number): Promise<AuditPage>; ManagementAPIError(message: string, audit?: AuditMeta); AuditPanel |
-| T07 | T05, T06 | 完整 UI/管理 API | 本地受控浏览器验收记录 |
+| T07 | T04, T06 | 完整 UI/管理 API（T06包含T05） | 本地受控浏览器验收记录 |
 | T08 | T00-T07 | 已完成前序、真实来源/资源 | 全量验证、合并、清理、sync_commit、最终状态 |
 
 ## 公开协议与测试边界
@@ -148,6 +148,8 @@ parallel:
 状态提交：各票先提交实现与证据，取得真实 SHA，再用 apply_patch 更新完整 progress.yaml，保留既有 notes/resources，并单独提交进度；不写引用自身未来提交的 SHA。原子状态保存沿 executing-plans 的既有文件写入方式，不在本计划创建通用进度工具。
 
 并发执行时，上述进度和证据归档仅由主线程实施；implementer只提交writes内文件，日志/result写入其预登记claim专属临时目录，禁止编辑.spec-dev。T03测试在公开名称服务及管理响应handler边界先取得红绿，T04以dispatchManagement验证最终路由挂载；该接线迁移仅为消除management.go写冲突，原S1/S2管理API验收仍保留。
+
+T05仅消费spec已固定的JSON协议，不编译或调用T04的Go实现，组件测试明确替换HTTP边界。因此取消T05对T04的实现完成依赖；T07显式依赖T04+T06，在真实本地端到端验收前仍等待完整后端和前端，未减少验证。
 
 ## 体量说明
 
