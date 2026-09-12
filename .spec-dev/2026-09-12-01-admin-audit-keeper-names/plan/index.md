@@ -127,6 +127,8 @@ parallel:
       resources: []
     T06:
       writes:
+        - "web/src/components/KeeperAuthNameEditor.tsx"
+        - "web/src/components/KeeperAuthNameEditor.test.tsx"
         - "web/src/panels/AuditPanel.tsx"
         - "web/src/panels/AuditPanel.css"
         - "web/src/panels/AuditPanel.test.tsx"

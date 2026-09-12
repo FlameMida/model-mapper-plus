@@ -100,6 +100,7 @@ resources:
   - "worktree: /Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-keeper-names; created by this plan; after verified merge: git worktree remove /Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-keeper-names; git branch -d plan/admin-audit-keeper-names"
   - "service: T07 本地验收服务预期 127.0.0.1:31819，尚未启动；启动时登记命令、PID、开始时间和关闭方法"
 notes:
+  - "T06 write scope extended before change to KeeperAuthNameEditor.tsx and its test: preserve optional error.audit in non2xx catch under existing all-mutation warning contract; Begin503 without audit keeps ordinary error. T05 stopped, no active overlap; claim preserved."
   - "T04 accepted: precise PATCH authentication-stage handling and cache generations implemented within declared writes; interrupted httptest cleanup attempt exit130 retained, not PASS; final target/race and 78-test combined backend integration passed."
   - "Dependency refinement for authorized parallel execution: T05 consumes fixed spec JSON rather than T04 Go artifacts, so T05 now depends T03 only; T07 explicitly depends T04 and T06. T04/T05 writes are disjoint; real integration gate retained."
   - "T02 write scope extended before fix to audit.go/audit_query.go: real Finish Write-success/Sync-failure test found current-process query falsely succeeded. Existing S9 requires unknown. T01/T03 agents completed; new T02 paths have no active writer conflict. Canonical task/index in integration worktree updated; original claim preserved."
