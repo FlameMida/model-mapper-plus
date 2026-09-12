@@ -1,0 +1,35 @@
+command: rtk proxy go test . -run '^Test(KeeperNames|KeeperClientPatch)' -count=1 -timeout 30s -v
+exit_code: 1
+=== RUN   TestKeeperNamesCacheRefreshExpiryAndFailures
+    keeper_auth_names_test.go:41: cache={Status:ready Items:[{IdentityID:17 AuthIndex:idx-a Alias:A DisplayName:A}] FetchedAt:2026-09-12T01:02:03Z ErrorCode: RetryAfterSeconds:0} calls=2
+--- FAIL: TestKeeperNamesCacheRefreshExpiryAndFailures (0.00s)
+=== RUN   TestKeeperNamesCoalescesAndWaiterCanCancel
+    keeper_auth_names_test.go:120: duplicate upstream reads=2
+--- FAIL: TestKeeperNamesCoalescesAndWaiterCanCancel (0.03s)
+=== RUN   TestKeeperNamesS4ConfigurationRejectsStaleAndInflight
+    keeper_auth_names_test.go:150: late response={Status:ready Items:[{IdentityID:17 AuthIndex:idx-a Alias:OLD DisplayName:OLD}] FetchedAt:2026-09-12T05:42:50.300029Z ErrorCode: RetryAfterSeconds:0}
+--- FAIL: TestKeeperNamesS4ConfigurationRejectsStaleAndInflight (0.00s)
+=== RUN   TestKeeperNamesResetAndIndependentAliases
+    keeper_auth_names_test.go:186: names=2 aliases=1
+--- FAIL: TestKeeperNamesResetAndIndependentAliases (0.00s)
+=== RUN   TestKeeperNamesInFlightDoesNotBlockStateReadOrSave
+--- PASS: TestKeeperNamesInFlightDoesNotBlockStateReadOrSave (0.01s)
+=== RUN   TestKeeperNamesS4OneDeadlineIncludesLogin
+--- PASS: TestKeeperNamesS4OneDeadlineIncludesLogin (0.03s)
+=== RUN   TestKeeperClientPatchHeadersAndSingleAuthenticationRetry
+=== RUN   TestKeeperClientPatchHeadersAndSingleAuthenticationRetry/OK
+    keeper_client_test.go:208: missing PATCH request headers
+    keeper_client_test.go:208: missing PATCH request headers
+=== RUN   TestKeeperClientPatchHeadersAndSingleAuthenticationRetry/Unauthorized
+    keeper_client_test.go:208: missing PATCH request headers
+    keeper_client_test.go:208: missing PATCH request headers
+=== RUN   TestKeeperClientPatchHeadersAndSingleAuthenticationRetry/Internal_Server_Error
+    keeper_client_test.go:208: missing PATCH request headers
+    keeper_client_test.go:208: missing PATCH request headers
+--- FAIL: TestKeeperClientPatchHeadersAndSingleAuthenticationRetry (0.00s)
+    --- FAIL: TestKeeperClientPatchHeadersAndSingleAuthenticationRetry/OK (0.00s)
+    --- FAIL: TestKeeperClientPatchHeadersAndSingleAuthenticationRetry/Unauthorized (0.00s)
+    --- FAIL: TestKeeperClientPatchHeadersAndSingleAuthenticationRetry/Internal_Server_Error (0.00s)
+FAIL
+FAIL	github.com/FlameMida/cpa-model-mapper-plus	0.793s
+FAIL

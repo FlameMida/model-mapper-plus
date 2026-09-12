@@ -1,0 +1,70 @@
+command: rtk proxy go test . -run '^Test(KeeperNames|KeeperClientPatch)' -count=1 -timeout 30s -v
+exit_code: 1
+NOTE: valid cache/config assertions failed; deadline fixture hung in cleanup, not accepted as the final red run.
+=== RUN   TestKeeperNamesCacheRefreshExpiryAndFailures
+    keeper_auth_names_test.go:40: cache={Status:ready Items:[{IdentityID:17 AuthIndex:idx-a Alias:A DisplayName:A}] FetchedAt:2026-09-12T01:02:03Z ErrorCode: RetryAfterSeconds:0} calls=2
+--- FAIL: TestKeeperNamesCacheRefreshExpiryAndFailures (0.00s)
+=== RUN   TestKeeperNamesCoalescesAndWaiterCanCancel
+--- PASS: TestKeeperNamesCoalescesAndWaiterCanCancel (0.00s)
+=== RUN   TestKeeperNamesS4ConfigurationRejectsStaleAndInflight
+    keeper_auth_names_test.go:151: late response={Status:ready Items:[{IdentityID:17 AuthIndex:idx-a Alias:OLD DisplayName:OLD}] FetchedAt:2026-09-12T05:42:17.042252Z ErrorCode: RetryAfterSeconds:0}
+--- FAIL: TestKeeperNamesS4ConfigurationRejectsStaleAndInflight (0.00s)
+=== RUN   TestKeeperNamesResetAndIndependentAliases
+    keeper_auth_names_test.go:187: names=2 aliases=1
+--- FAIL: TestKeeperNamesResetAndIndependentAliases (0.00s)
+=== RUN   TestKeeperNamesInFlightDoesNotBlockStateReadOrSave
+--- PASS: TestKeeperNamesInFlightDoesNotBlockStateReadOrSave (0.01s)
+=== RUN   TestKeeperNamesS4OneDeadlineIncludesLogin
+2026/09/12 13:42:22 httptest.Server blocked in Close after 5 seconds, waiting for connections:
+  *net.TCPConn 0x40a35c91a180 127.0.0.1:55944 in state active
+panic: test timed out after 30s
+	running tests:
+		TestKeeperNamesS4OneDeadlineIncludesLogin (30s)
+
+goroutine 113 [running]:
+testing.(*M).startAlarm.func1()
+	/opt/homebrew/Cellar/go/1.27.1/libexec/src/testing/testing.go:2959 +0x2c4
+created by time.goFunc
+	/opt/homebrew/Cellar/go/1.27.1/libexec/src/time/sleep.go:182 +0x38
+
+goroutine 1 [chan receive]:
+testing.(*T).Run(0x40a35ca75688, {0x101371e2f?, 0x40a35ce1fa88?}, 0x1019a4290)
+	/opt/homebrew/Cellar/go/1.27.1/libexec/src/testing/testing.go:2266 +0x3cc
+testing.runTests.func1(0x40a35ca75688)
+	/opt/homebrew/Cellar/go/1.27.1/libexec/src/testing/testing.go:2742 +0x38
+testing.tRunner(0x40a35ca75688, 0x40a35ce1fbb8)
+	/opt/homebrew/Cellar/go/1.27.1/libexec/src/testing/testing.go:2193 +0xc4
+testing.runTests({0x101372ba9, 0x2a}, {0x101372ba9, 0x2a}, 0x40a35cdd6720, {0x101bdb430, 0xbe, 0xbe}, {0x40a35ce1fc58?, 0x40a35cdd9840?, ...})
+	/opt/homebrew/Cellar/go/1.27.1/libexec/src/testing/testing.go:2740 +0x400
+testing.(*M).Run(0x40a35cd119a0)
+	/opt/homebrew/Cellar/go/1.27.1/libexec/src/testing/testing.go:2600 +0x578
+main.main()
+	_testmain.go:424 +0x80
+
+goroutine 42 [sync.WaitGroup.Wait]:
+sync.runtime_SemacquireWaitGroup(0x0?, 0x0?)
+	/opt/homebrew/Cellar/go/1.27.1/libexec/src/runtime/sema.go:114 +0x38
+sync.(*WaitGroup).Wait(0x40a35cb2ac50)
+	/opt/homebrew/Cellar/go/1.27.1/libexec/src/sync/waitgroup.go:206 +0xa4
+net/http/httptest.(*Server).Close(0x40a35cb2abe0)
+	/opt/homebrew/Cellar/go/1.27.1/libexec/src/net/http/httptest/server.go:524 +0x2ac
+github.com/FlameMida/cpa-model-mapper-plus.TestKeeperNamesS4OneDeadlineIncludesLogin(0x40a35c94e6c8)
+	/Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-t03/keeper_auth_names_test.go:247 +0x278
+testing.tRunner(0x40a35c94e6c8, 0x1019a4290)
+	/opt/homebrew/Cellar/go/1.27.1/libexec/src/testing/testing.go:2193 +0xc4
+created by testing.(*T).Run in goroutine 1
+	/opt/homebrew/Cellar/go/1.27.1/libexec/src/testing/testing.go:2258 +0x3b8
+
+goroutine 45 [chan receive]:
+github.com/FlameMida/cpa-model-mapper-plus.TestKeeperNamesS4OneDeadlineIncludesLogin.func1({0x10199d3d0?, 0x40a35d01a0f0?}, 0x40a35c9abaf8?)
+	/Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-t03/keeper_auth_names_test.go:231 +0xe8
+net/http.HandlerFunc.ServeHTTP(0x1000000000000?, {0x10199d3d0?, 0x40a35d01a0f0?}, 0x40a35c9abae0?)
+	/opt/homebrew/Cellar/go/1.27.1/libexec/src/net/http/server.go:2338 +0x38
+net/http.serverHandler.ServeHTTP({0x10?}, {0x10199d3d0?, 0x40a35d01a0f0?}, 0x1?)
+	/opt/homebrew/Cellar/go/1.27.1/libexec/src/net/http/server.go:3413 +0xb0
+net/http.(*conn).serve(0x40a35c94c6c0, {0x10199df70, 0x40a35cc1f3b0})
+	/opt/homebrew/Cellar/go/1.27.1/libexec/src/net/http/server.go:2137 +0x5a0
+created by net/http.(*Server).Serve in goroutine 43
+	/opt/homebrew/Cellar/go/1.27.1/libexec/src/net/http/server.go:3581 +0x3e8
+FAIL	github.com/FlameMida/cpa-model-mapper-plus	30.960s
+FAIL

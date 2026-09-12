@@ -27,7 +27,11 @@ tasks:
       base_commit: 55d3daca9ad06409d996f13339ed72081db099c3
       model_declaration_id: initial-20260912
   T03:
-    status: in_progress
+    status: completed
+    commit: 561c14a964d120ea7602cfbe1a85f644bb90071d
+    implementation_commit: 4f1b2d01839d204007cfa5a3144da80f8fb0a9f4
+    result_path: .spec-dev/2026-09-12-01-admin-audit-keeper-names/execution/t03-20260912-a1/result.json
+    tests: pass
     claim:
       key: t03-20260912-a1
       owner: 01a093e8-b328-7f41-9dc0-82ef9014f0ee
@@ -51,6 +55,7 @@ resources:
   - "worktree: /Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-keeper-names; created by this plan; after verified merge: git worktree remove /Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-keeper-names; git branch -d plan/admin-audit-keeper-names"
   - "service: T07 本地验收服务预期 127.0.0.1:31819，尚未启动；启动时登记命令、PID、开始时间和关闭方法"
 notes:
+  - "T03 accepted: initial fixture cleanup timeout is preserved and excluded from valid-red evidence; corrected red-read/red-cache and green/race passed, combined T01+T03 integration 35 top-level tests passed."
   - "T00 baseline: Go 52 top-level tests and frontend 77 tests/14 files passed; typecheck exit0; npm ci exit0 reports existing 34 dependency advisories (not changed). Raw logs in acceptance/baseline."
   - "model-declaration/initial-20260912: main=GPT-6 (session identity), reasoning=not exposed; implementers inherit main model and reasoning; tool parameters do not override model."
   - "parallel activation: first execution authorized by user 开始并发执行; base_commit=fbc63d7c0ac414200b3011fc6b2c34675e17525b; T01/T03 and T02/T03 normalized writes do not conflict."
@@ -67,7 +72,7 @@ execution:
   integration_worktree: /Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-keeper-names
   integration_branch: plan/admin-audit-keeper-names
   base_commit: fbc63d7c0ac414200b3011fc6b2c34675e17525b
-  validated_commit: 55d3daca9ad06409d996f13339ed72081db099c3
+  validated_commit: 561c14a964d120ea7602cfbe1a85f644bb90071d
   delivery:
     channel: local
     state: implementing

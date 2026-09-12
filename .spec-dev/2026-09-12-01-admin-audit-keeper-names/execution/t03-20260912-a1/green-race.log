@@ -1,0 +1,146 @@
+command: rtk proxy go test -race . -run '^Test(Keeper|ManagementKeeper)' -count=1 -timeout 60s -v
+exit_code: 0
+=== RUN   TestKeeperAliasesCacheAndForcedRefresh
+--- PASS: TestKeeperAliasesCacheAndForcedRefresh (0.00s)
+=== RUN   TestKeeperAliasesCoalescesConcurrentRefresh
+--- PASS: TestKeeperAliasesCoalescesConcurrentRefresh (0.00s)
+=== RUN   TestKeeperAliasesFailureAndCooldown
+--- PASS: TestKeeperAliasesFailureAndCooldown (0.01s)
+=== RUN   TestKeeperAliasesConfigurationChangeDiscardsInflight
+--- PASS: TestKeeperAliasesConfigurationChangeDiscardsInflight (0.01s)
+=== RUN   TestKeeperAliasesSuccessfulWaitersShareRefresh
+--- PASS: TestKeeperAliasesSuccessfulWaitersShareRefresh (0.00s)
+=== RUN   TestKeeperNamesCacheRefreshExpiryAndFailures
+--- PASS: TestKeeperNamesCacheRefreshExpiryAndFailures (0.00s)
+=== RUN   TestKeeperNamesCoalescesAndWaiterCanCancel
+--- PASS: TestKeeperNamesCoalescesAndWaiterCanCancel (0.03s)
+=== RUN   TestKeeperNamesS4ConfigurationRejectsStaleAndInflight
+--- PASS: TestKeeperNamesS4ConfigurationRejectsStaleAndInflight (0.01s)
+=== RUN   TestKeeperNamesResetAndIndependentAliases
+--- PASS: TestKeeperNamesResetAndIndependentAliases (0.01s)
+=== RUN   TestKeeperNamesInFlightDoesNotBlockStateReadOrSave
+--- PASS: TestKeeperNamesInFlightDoesNotBlockStateReadOrSave (0.01s)
+=== RUN   TestKeeperNamesS4OneDeadlineIncludesLogin
+--- PASS: TestKeeperNamesS4OneDeadlineIncludesLogin (0.03s)
+=== RUN   TestKeeperClientReadsAndReusesSession
+--- PASS: TestKeeperClientReadsAndReusesSession (0.00s)
+=== RUN   TestKeeperClientResponseValidation
+=== RUN   TestKeeperClientResponseValidation/empty
+=== RUN   TestKeeperClientResponseValidation/deduplicate
+=== RUN   TestKeeperClientResponseValidation/conflicting
+=== RUN   TestKeeperClientResponseValidation/missing_items
+=== RUN   TestKeeperClientResponseValidation/null_items
+=== RUN   TestKeeperClientResponseValidation/missing_key
+=== RUN   TestKeeperClientResponseValidation/missing_alias
+=== RUN   TestKeeperClientResponseValidation/wrong_type
+=== RUN   TestKeeperClientResponseValidation/empty_key
+=== RUN   TestKeeperClientResponseValidation/html
+=== RUN   TestKeeperClientResponseValidation/trailing_json
+--- PASS: TestKeeperClientResponseValidation (0.01s)
+    --- PASS: TestKeeperClientResponseValidation/empty (0.00s)
+    --- PASS: TestKeeperClientResponseValidation/deduplicate (0.00s)
+    --- PASS: TestKeeperClientResponseValidation/conflicting (0.00s)
+    --- PASS: TestKeeperClientResponseValidation/missing_items (0.00s)
+    --- PASS: TestKeeperClientResponseValidation/null_items (0.00s)
+    --- PASS: TestKeeperClientResponseValidation/missing_key (0.00s)
+    --- PASS: TestKeeperClientResponseValidation/missing_alias (0.00s)
+    --- PASS: TestKeeperClientResponseValidation/wrong_type (0.00s)
+    --- PASS: TestKeeperClientResponseValidation/empty_key (0.00s)
+    --- PASS: TestKeeperClientResponseValidation/html (0.00s)
+    --- PASS: TestKeeperClientResponseValidation/trailing_json (0.00s)
+=== RUN   TestKeeperClientAuthenticationErrors
+=== RUN   TestKeeperClientAuthenticationErrors/missing_password
+=== RUN   TestKeeperClientAuthenticationErrors/wrong_password
+=== RUN   TestKeeperClientAuthenticationErrors/forbidden
+=== RUN   TestKeeperClientAuthenticationErrors/login_does_not_authorize
+=== RUN   TestKeeperClientAuthenticationErrors/rate_limited
+--- PASS: TestKeeperClientAuthenticationErrors (0.02s)
+    --- PASS: TestKeeperClientAuthenticationErrors/missing_password (0.00s)
+    --- PASS: TestKeeperClientAuthenticationErrors/wrong_password (0.00s)
+    --- PASS: TestKeeperClientAuthenticationErrors/forbidden (0.00s)
+    --- PASS: TestKeeperClientAuthenticationErrors/login_does_not_authorize (0.01s)
+    --- PASS: TestKeeperClientAuthenticationErrors/rate_limited (0.01s)
+=== RUN   TestKeeperClientRejectsURLAndRedirect
+--- PASS: TestKeeperClientRejectsURLAndRedirect (0.00s)
+=== RUN   TestKeeperClientContextDeadline
+--- PASS: TestKeeperClientContextDeadline (0.03s)
+=== RUN   TestKeeperClientPatchHeadersAndSingleAuthenticationRetry
+=== RUN   TestKeeperClientPatchHeadersAndSingleAuthenticationRetry/OK
+=== RUN   TestKeeperClientPatchHeadersAndSingleAuthenticationRetry/Unauthorized
+=== RUN   TestKeeperClientPatchHeadersAndSingleAuthenticationRetry/Internal_Server_Error
+--- PASS: TestKeeperClientPatchHeadersAndSingleAuthenticationRetry (0.01s)
+    --- PASS: TestKeeperClientPatchHeadersAndSingleAuthenticationRetry/OK (0.00s)
+    --- PASS: TestKeeperClientPatchHeadersAndSingleAuthenticationRetry/Unauthorized (0.01s)
+    --- PASS: TestKeeperClientPatchHeadersAndSingleAuthenticationRetry/Internal_Server_Error (0.00s)
+=== RUN   TestManagementKeeperNamesS1ReadsIdentity
+--- PASS: TestManagementKeeperNamesS1ReadsIdentity (0.01s)
+=== RUN   TestManagementKeeperNamesS2Validation
+=== RUN   TestManagementKeeperNamesS2Validation/empty
+=== RUN   TestManagementKeeperNamesS2Validation/filter
+=== RUN   TestManagementKeeperNamesS2Validation/duplicate_index
+=== RUN   TestManagementKeeperNamesS2Validation/duplicate_id
+=== RUN   TestManagementKeeperNamesS2Validation/identical_duplicate
+=== RUN   TestManagementKeeperNamesS2Validation/missing_id
+=== RUN   TestManagementKeeperNamesS2Validation/invalid_id
+=== RUN   TestManagementKeeperNamesS2Validation/missing_index
+=== RUN   TestManagementKeeperNamesS2Validation/empty_index
+=== RUN   TestManagementKeeperNamesS2Validation/missing_alias
+=== RUN   TestManagementKeeperNamesS2Validation/missing_display
+=== RUN   TestManagementKeeperNamesS2Validation/missing_deleted
+=== RUN   TestManagementKeeperNamesS2Validation/missing_auth_type
+=== RUN   TestManagementKeeperNamesS2Validation/missing_type
+=== RUN   TestManagementKeeperNamesS2Validation/wrong_alias
+=== RUN   TestManagementKeeperNamesS2Validation/null_list
+--- PASS: TestManagementKeeperNamesS2Validation (0.07s)
+    --- PASS: TestManagementKeeperNamesS2Validation/empty (0.01s)
+    --- PASS: TestManagementKeeperNamesS2Validation/filter (0.01s)
+    --- PASS: TestManagementKeeperNamesS2Validation/duplicate_index (0.00s)
+    --- PASS: TestManagementKeeperNamesS2Validation/duplicate_id (0.00s)
+    --- PASS: TestManagementKeeperNamesS2Validation/identical_duplicate (0.00s)
+    --- PASS: TestManagementKeeperNamesS2Validation/missing_id (0.01s)
+    --- PASS: TestManagementKeeperNamesS2Validation/invalid_id (0.00s)
+    --- PASS: TestManagementKeeperNamesS2Validation/missing_index (0.00s)
+    --- PASS: TestManagementKeeperNamesS2Validation/empty_index (0.00s)
+    --- PASS: TestManagementKeeperNamesS2Validation/missing_alias (0.01s)
+    --- PASS: TestManagementKeeperNamesS2Validation/missing_display (0.00s)
+    --- PASS: TestManagementKeeperNamesS2Validation/missing_deleted (0.00s)
+    --- PASS: TestManagementKeeperNamesS2Validation/missing_auth_type (0.00s)
+    --- PASS: TestManagementKeeperNamesS2Validation/missing_type (0.00s)
+    --- PASS: TestManagementKeeperNamesS2Validation/wrong_alias (0.00s)
+    --- PASS: TestManagementKeeperNamesS2Validation/null_list (0.00s)
+=== RUN   TestManagementKeeperNamesS2Failures
+=== RUN   TestManagementKeeperNamesS2Failures/missing_list
+=== RUN   TestManagementKeeperNamesS2Failures/html
+=== RUN   TestManagementKeeperNamesS2Failures/trailing_json
+=== RUN   TestManagementKeeperNamesS2Failures/oversized
+=== RUN   TestManagementKeeperNamesS2Failures/forbidden
+=== RUN   TestManagementKeeperNamesS2Failures/server_failure
+=== RUN   TestManagementKeeperNamesS2Failures/rate_limited
+--- PASS: TestManagementKeeperNamesS2Failures (0.10s)
+    --- PASS: TestManagementKeeperNamesS2Failures/missing_list (0.01s)
+    --- PASS: TestManagementKeeperNamesS2Failures/html (0.01s)
+    --- PASS: TestManagementKeeperNamesS2Failures/trailing_json (0.01s)
+    --- PASS: TestManagementKeeperNamesS2Failures/oversized (0.06s)
+    --- PASS: TestManagementKeeperNamesS2Failures/forbidden (0.00s)
+    --- PASS: TestManagementKeeperNamesS2Failures/server_failure (0.00s)
+    --- PASS: TestManagementKeeperNamesS2Failures/rate_limited (0.00s)
+=== RUN   TestManagementKeeperNamesS4LoginAndSession
+--- PASS: TestManagementKeeperNamesS4LoginAndSession (0.01s)
+=== RUN   TestManagementKeeperConfigurationAndRegistration
+--- PASS: TestManagementKeeperConfigurationAndRegistration (0.00s)
+=== RUN   TestManagementKeeperFailureDoesNotChangeBindingState
+--- PASS: TestManagementKeeperFailureDoesNotChangeBindingState (0.01s)
+=== RUN   TestManagementKeeperDisabledAndInvalidConfiguration
+--- PASS: TestManagementKeeperDisabledAndInvalidConfiguration (0.00s)
+=== RUN   TestKeeperLifecycleYAMLFields
+time=2026-09-12T13:43:45.245+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=false key_bindings=0
+time=2026-09-12T13:43:45.246+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=false key_bindings=0
+--- PASS: TestKeeperLifecycleYAMLFields (0.00s)
+=== RUN   TestKeeperPasswordEnvBlankUsesDefault
+--- PASS: TestKeeperPasswordEnvBlankUsesDefault (0.00s)
+=== RUN   TestKeeperAliasesRejectsSnapshotTakenBeforeReconfiguration
+--- PASS: TestKeeperAliasesRejectsSnapshotTakenBeforeReconfiguration (0.00s)
+=== RUN   TestKeeperInFlightDoesNotBlockStateReadOrSave
+--- PASS: TestKeeperInFlightDoesNotBlockStateReadOrSave (0.01s)
+PASS
+ok  	github.com/FlameMida/cpa-model-mapper-plus	1.948s

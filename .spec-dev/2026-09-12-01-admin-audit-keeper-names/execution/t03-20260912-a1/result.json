@@ -1,0 +1,79 @@
+{
+  "task_id": "T03",
+  "claim_key": "t03-20260912-a1",
+  "status": "ready",
+  "worktree": "/Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-t03",
+  "branch": "impl/admin-audit-t03",
+  "base_commit": "fbc63d7c0ac414200b3011fc6b2c34675e17525b",
+  "commits": [
+    "4f1b2d01839d204007cfa5a3144da80f8fb0a9f4"
+  ],
+  "changed_files": [
+    "keeper_aliases.go",
+    "keeper_auth_names.go",
+    "keeper_auth_names_test.go",
+    "keeper_client.go",
+    "keeper_client_test.go",
+    "management_keeper_names.go",
+    "management_keeper_names_test.go"
+  ],
+  "tests": [
+    {
+      "command": "rtk proxy go test . -run '^Test(Keeper|ManagementKeeper)' -count=1 -v",
+      "phase": "baseline",
+      "exit_code": 0,
+      "evidence_path": "/Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-evidence/t03-a1/baseline.log"
+    },
+    {
+      "command": "rtk proxy go test . -run '^TestManagementKeeperNames' -count=1 -v",
+      "phase": "red",
+      "exit_code": 1,
+      "evidence_path": "/Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-evidence/t03-a1/red-read.log"
+    },
+    {
+      "command": "rtk proxy go test . -run '^TestManagementKeeperNames' -count=1 -v",
+      "phase": "green",
+      "exit_code": 0,
+      "evidence_path": "/Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-evidence/t03-a1/green-read.log"
+    },
+    {
+      "command": "rtk proxy go test . -run '^Test(KeeperNames|KeeperClientPatch)' -count=1 -timeout 30s -v",
+      "phase": "red",
+      "exit_code": 1,
+      "evidence_path": "/Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-evidence/t03-a1/red-cache-initial-timeout.log"
+    },
+    {
+      "command": "rtk proxy go test . -run '^Test(KeeperNames|KeeperClientPatch)' -count=1 -timeout 30s -v",
+      "phase": "red",
+      "exit_code": 1,
+      "evidence_path": "/Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-evidence/t03-a1/red-cache.log"
+    },
+    {
+      "command": "rtk proxy go test . -run '^Test(Keeper|ManagementKeeper)' -count=1 -timeout 30s -v",
+      "phase": "green",
+      "exit_code": 0,
+      "evidence_path": "/Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-evidence/t03-a1/green-related.log"
+    },
+    {
+      "command": "rtk proxy go test -race . -run '^Test(Keeper|ManagementKeeper)' -count=1 -timeout 60s -v",
+      "phase": "integration",
+      "exit_code": 0,
+      "evidence_path": "/Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-evidence/t03-a1/green-race.log"
+    }
+  ],
+  "self_check": {
+    "over_under_building": "pass",
+    "contract_alignment": "pass"
+  },
+  "deviations": [
+    "遵照主线程已批准并发修订，GET/POST最终路由挂载交T04，本票测试公开名称服务及management响应handler。",
+    "第二轮首跑超时夹具未读登录body导致httptest清理挂起，原始失败日志完整保留；该超时不算有效行为红。修正夹具后red-cache.log显示缓存、重复请求、旧配置返回及PATCH头目标断言失败。"
+  ],
+  "resources": [
+    "预登记工作区 /Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-t03；分支 impl/admin-audit-t03；提交后工作区干净。",
+    "预登记证据目录 /Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-evidence/t03-a1；保留日志及本result.json，供主线程归档。",
+    "httptest本地服务及t.TempDir测试目录均由测试回收，无新增持久资源。"
+  ],
+  "blockers": [],
+  "coverage_note": "S1/S2与S4读取路径已验证：精确identity/auth_index投影、同名不同索引、重复冲突、type/auth_type/deleted过滤、null与空alias、缺字段及错误JSON/超大响应、鉴权与session复用、60秒缓存/冷却/429、并发合并/等待取消、配置迟到响应、reset以及IO不阻塞state读取保存。保留原API Key别名测试。共享客户端接口：(c *keeperClient).authenticatedRequest(ctx context.Context, method, path string, payload []byte) (*http.Response,error)，只对首次401登录后重试一次，不因5xx/网络错误自动重试，调用者关闭body；readKeeperBody(ctx context.Context, body io.Reader)([]byte,error)限制8MiB；(c *keeperClient).fetchAuthNames(ctx context.Context)([]keeperAuthName,error)。主线程/T04可复用这些接口及keeperAuthNameService。最终dispatch路由、名称PATCH业务与审计、UI、全量集成和真实线上写入不在本票验证范围。"
+}
