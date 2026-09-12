@@ -1,0 +1,4 @@
+> tsc --noEmit
+
+COMMAND: rtk npm --prefix web run typecheck
+EXIT_CODE: 0

@@ -1,0 +1,13 @@
+
+> model-mapper-plus-web@0.1.0 test
+> vitest run src/api.test.ts src/keeperAuthNames.test.ts src/components/KeeperAuthNameEditor.test.tsx src/components/ChannelTargetEditor.test.tsx src/panels/KeysPanel.auth-names.test.tsx src/panels/KeysPanel.channel-target.test.tsx src/panels/KeysPanel.alias-sync.test.tsx
+
+
+ RUN  v4.1.10 /Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-keeper-names/web
+
+
+ Test Files  7 passed (7)
+      Tests  74 passed (74)
+   Start at  14:19:29
+   Duration  8.18s (transform 18.17s, setup 31.66s, import 508ms, tests 6.25s, environment 5.20s)
+

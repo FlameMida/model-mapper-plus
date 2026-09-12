@@ -1,0 +1,67 @@
+{
+  "task_id": "T05",
+  "claim_key": "t05-20260912-a1",
+  "status": "ready",
+  "worktree": "/Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-t05",
+  "branch": "impl/admin-audit-t05",
+  "base_commit": "3cd1e52b890676f9574507a72e82589365d068e8",
+  "commits": ["7ff5dc64fe093d99f9165077b5fb0ad279ab5af5"],
+  "changed_files": [
+    "web/src/api.ts",
+    "web/src/api.test.ts",
+    "web/src/keeperAuthNames.ts",
+    "web/src/keeperAuthNames.test.ts",
+    "web/src/components/KeeperAuthNameEditor.tsx",
+    "web/src/components/KeeperAuthNameEditor.test.tsx",
+    "web/src/components/ChannelTargetEditor.tsx",
+    "web/src/components/ChannelTargetEditor.css",
+    "web/src/panels/KeysPanel.tsx",
+    "web/src/panels/KeysPanel.auth-names.test.tsx"
+  ],
+  "tests": [
+    {
+      "command": "rtk npm --prefix web test -- src/api.test.ts src/components/ChannelTargetEditor.test.tsx src/panels/KeysPanel.alias-sync.test.tsx src/panels/KeysPanel.channel-target.test.tsx",
+      "phase": "baseline",
+      "exit_code": 0,
+      "evidence_path": "/Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-evidence/t05-a1/baseline.log"
+    },
+    {
+      "command": "rtk npm --prefix web run typecheck",
+      "phase": "baseline",
+      "exit_code": 0,
+      "evidence_path": "/Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-evidence/t05-a1/baseline-typecheck.log"
+    },
+    {
+      "command": "rtk npm --prefix web test -- src/panels/KeysPanel.auth-names.test.tsx",
+      "phase": "red",
+      "exit_code": 1,
+      "evidence_path": "/Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-evidence/t05-a1/red.log"
+    },
+    {
+      "command": "rtk npm --prefix web test -- src/panels/KeysPanel.auth-names.test.tsx",
+      "phase": "green",
+      "exit_code": 0,
+      "evidence_path": "/Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-evidence/t05-a1/green-attempt-1.log"
+    },
+    {
+      "command": "rtk npm --prefix web test -- src/api.test.ts src/keeperAuthNames.test.ts src/components/KeeperAuthNameEditor.test.tsx src/components/ChannelTargetEditor.test.tsx src/panels/KeysPanel.auth-names.test.tsx src/panels/KeysPanel.channel-target.test.tsx src/panels/KeysPanel.alias-sync.test.tsx",
+      "phase": "green",
+      "exit_code": 0,
+      "evidence_path": "/Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-evidence/t05-a1/green-final.log"
+    },
+    {
+      "command": "rtk npm --prefix web run typecheck",
+      "phase": "green",
+      "exit_code": 0,
+      "evidence_path": "/Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-evidence/t05-a1/typecheck-final.log"
+    }
+  ],
+  "self_check": { "over_under_building": "pass", "contract_alignment": "pass" },
+  "deviations": [],
+  "resources": [
+    "/Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-t05/web/node_modules（复用主线程已登记资源）",
+    "/Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-evidence/t05-a1（日志与结果文件）"
+  ],
+  "blockers": [],
+  "coverage_note": "S1-S4真实KeysPanel/ChannelTargetEditor/KeeperAuthNameEditor交互与API边界覆盖；原16个缺失行为测试有效红后转绿，最终7文件74项通过、typecheck通过。验证精确auth_index唯一匹配及同名文件隔离、display_name/原label/name/id搜索、CPA勾选值不变、独立立即PATCH及空值清除、取消绑定后保留已保存映射、失败保留输入、Unicode校验、防重复提交、索引A-B-A/关闭重开/配置切换/手改/早先刷新响应隔离、unknown明确未确认和audit.recorded=false额外警告。原API Key从Keeper同步仍仅填草稿，原渠道测试通过。API提供getKeeperAuthNames/refreshKeeperAuthNames/patchKeeperAuthName；ChannelTargetEditor新增可选keeperNames/keeperLoading/onRefreshNames/onNameSaved，原选择Props不变。已完成窄提交且工作区干净；浏览器390px/主题验收及真实后端联调留T07，未访问线上或写入真实名称。"
+}

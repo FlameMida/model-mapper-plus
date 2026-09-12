@@ -1,0 +1,9 @@
+> vitest run src/api.test.ts src/keeperAuthNames.test.ts src/components/KeeperAuthNameEditor.test.tsx src/components/ChannelTargetEditor.test.tsx src/panels/KeysPanel.auth-names.test.tsx src/panels/KeysPanel.channel-target.test.tsx src/panels/KeysPanel.alias-sync.test.tsx
+ RUN  v4.1.10 /Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-t05/web
+ Test Files  7 passed (7)
+      Tests  72 passed (72)
+   Start at  14:15:08
+   Duration  8.68s (transform 21.64s, setup 36.21s, import 968ms, tests 6.25s, environment 5.01s)
+
+COMMAND: rtk npm --prefix web test -- src/api.test.ts src/keeperAuthNames.test.ts src/components/KeeperAuthNameEditor.test.tsx src/components/ChannelTargetEditor.test.tsx src/panels/KeysPanel.auth-names.test.tsx src/panels/KeysPanel.channel-target.test.tsx src/panels/KeysPanel.alias-sync.test.tsx
+EXIT_CODE: 0
