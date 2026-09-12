@@ -1,0 +1,20 @@
+Model Mapper Plus
+已连接
+state 已保存 · /var/folders/gb/6mr3jmcs06dcbxm5c85pdyyw0000gp/T/TestAdminAcceptanceServe21622264/001/state.json · v0.0.0-dev.unbuilt
+规则管理
+Key 绑定
+规则试跑
+操作审计
+保存
+映射规则（按端点分段，有序执行）
+全局
+Claude Messages
+Codex Responses
+OpenAI Completions
+本段为空
+添加映射
+添加大小写操作
+
+DSL：（空） · 后缀 (none/auto/minimal/low/medium/high/xhigh/max) 或 (8192) 预算值可直接用于规则，CPA 执行时后缀覆盖请求体强度字段
+
+state_file：/var/folders/gb/6mr3jmcs06dcbxm5c85pdyyw0000gp/T/TestAdminAcceptanceServe21622264/001/state.json（已接管）

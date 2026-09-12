@@ -1,0 +1,33 @@
+{
+  "verdict": "confirmed",
+  "reasoning": "独立尝试反驳后，确认 A 候选描述的前端旧 PATCH 回包覆盖新刷新视图可由现有调用路径发生；本结论来自冻结源码的完整状态/时序分析，不是本轮动态复现。逐项排除反驳理由：1. KeeperAuthNameEditor.tsx:25-27 的 name.alias effect 只在没有 dirty/pending 时改输入，完全不推进 version；在 PATCH pending 时甚至不改输入。NameEditor 的 React key 在 :12 只有 authIndex/identity_id。刷新返回同身份的新 alias/display_name 因此不会销毁实例或使 :34 的 isCurrent 失效。2. KeysPanel.tsx:100-116 的 loadKeeperNames 只检查读取自己的 request/revision，接纳刷新后 :108 setKeeperNames(result) 不推进 namesRevision，也没有通知编辑器废弃旧 PATCH。ChannelTargetEditor.tsx:97 的刷新按钮仅受 keeperLoading 禁用，因此用户可以在 PATCH pending 时发起刷新；:192 将新 name 传入同一个身份的编辑器。3. 旧 submit 持有的 onSaved 闭包并不只写旧快照：KeysPanel.tsx:118-122 的 nameSaved 使用函数式 setKeeperNames(current => ...)，会删除当前同 auth_index 的条目并插入旧响应 item；故 :40 检查通过后的 :44-46 会同时覆盖输入、列表名称并显示成功。namesRevision++ 仅能阻止此后到达的旧读取，无法撤销此前已生效的新刷新。4. 不需要依赖配置切换即可得到实际可达时序：浏览器 A 提交名称 A1，mapper 完成 Keeper PATCH 并退出 withAuditedManagement，但 A 的 fetch/resp.text 尚未收到完整响应；浏览器 B 经同一已登记 PATCH 接口将同一身份改为 B1；A 在同步仍 pending 时点击现有“刷新名称”，POST /keeper/auth-names/refresh 强制读回 B1 并先显示；随后 A 的旧 PATCH 正文完成，现有 guard 全部通过，nameSaved 将 B1 覆盖回 A1。两个写请求在服务端可以严格顺序执行，该问题只需要独立 HTTP 响应到达顺序不同；web/src/api.ts:167/179 对每次 fetch 及正文单独 await，没有序列化响应。5. 服务端锁不能排除此时序：audit_management.go:29-30 的 mutex 在 :61 返回时释放，management.go:48 才序列化 dispatch 结果，锁不覆盖宿主/网络到浏览器的正文交付；读刷新路由 :62-63 也不获取该 mutation 锁。keeper_auth_names.go 的 generation 保护服务器缓存中的旧读取，不能使已经构造出的旧 PATCH HTTP item 失效。6. 原候选的同 state_file 配置切换变体也未被排除：main.go:649-650 在锁内切换 loadedCfg 并重置名称服务，但前端 KeysPanel.tsx:125-134/391 只依据 state_file 重置会话。旧业务已返回并释放锁后，切换 Keeper URL 再刷新同 auth_index/identity_id 可保留旧 editor；较新的刷新返回后旧网络正文仍可覆盖。7. 既有用例不能反驳：KeysPanel.auth-names.test.tsx:140 的配置测试在 :145 明确改变 state_file，因 key 改变而重建；:211 覆盖的是旧读取晚于新 PATCH 的反向时序。手改、关闭重开及索引切换用例会改变 version 或组件实例，与同身份刷新先返回的窗口不同。建议主线程沿既有公共组件 seam 增加最小 TDD 回归：初始同身份 OLD，pending PATCH 返回 PATCHED；点击刷新先返回 REFRESHED，断言列表显示 REFRESHED；再完成旧 PATCH，断言不覆盖 REFRESHED，且不能把旧值重新注入映射。若验收同配置切换变体，保持 state_file、auth_index、identity_id 不变，只让后续刷新返回新配置名称。",
+  "evidence": [
+    "web/src/components/KeeperAuthNameEditor.tsx:12",
+    "web/src/components/KeeperAuthNameEditor.tsx:25",
+    "web/src/components/KeeperAuthNameEditor.tsx:34",
+    "web/src/components/KeeperAuthNameEditor.tsx:40",
+    "web/src/components/KeeperAuthNameEditor.tsx:44",
+    "web/src/panels/KeysPanel.tsx:100",
+    "web/src/panels/KeysPanel.tsx:108",
+    "web/src/panels/KeysPanel.tsx:118",
+    "web/src/panels/KeysPanel.tsx:125",
+    "web/src/panels/KeysPanel.tsx:391",
+    "web/src/components/ChannelTargetEditor.tsx:97",
+    "web/src/components/ChannelTargetEditor.tsx:192",
+    "web/src/api.ts:167",
+    "web/src/api.ts:179",
+    "audit_management.go:29",
+    "audit_management.go:61",
+    "management.go:48",
+    "management.go:62",
+    "main.go:613",
+    "main.go:649",
+    "keeper_auth_names.go:168",
+    "keeper_auth_names.go:297",
+    "web/src/panels/KeysPanel.auth-names.test.tsx:140",
+    "web/src/panels/KeysPanel.auth-names.test.tsx:145",
+    "web/src/panels/KeysPanel.auth-names.test.tsx:211",
+    "web/src/components/KeeperAuthNameEditor.test.tsx:39"
+  ],
+  "limitations": "未运行浏览器、网络故障注入、新测试或修改实现；未把既有成功用例重复运行。全部引用已重新核对当前源码原文，并以 git diff 确认相关源码及测试相对冻结 5ccca8247eb64ff9a19d28b90462e1347e93bfe7 无差异。缺少覆盖此特定顺序的现成动态回归，所以 confirmed 指静态可达的实现缺陷，不能标成本轮红测试已复现。未访问真实 Keeper/宿主，也未声称线上已经发生。B-质量原报告零发现是当时独立审查结果；本报告是收到 A 候选后的新增独立复核，二者不应混写为原始发现。"
+}

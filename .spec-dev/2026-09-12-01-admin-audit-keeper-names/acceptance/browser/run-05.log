@@ -1,0 +1,12 @@
+PASS 默认名称、立即同步及取消绑定独立
+PASS 清空名称恢复 Keeper 默认显示
+PASS 规则真实保存及试跑不产生审计
+PASS Key 新增、编辑、开关及删除均记录
+PASS 日志目录不可写时 UI 报错且零副作用
+PASS Keeper 写入失联返回未知而非回滚
+PASS 业务成功与审计终态写入失败分别显示
+PASS 审计日期、分页、详情和直接日文件
+PASS layout 1360-white {"nameGeometry":{"width":1360,"scrollWidth":1360,"theme":null,"dialog":[{"left":250,"right":1110,"width":860}]},"auditGeometry":{"width":1360,"scrollWidth":1360,"theme":null,"dialog":[]}}
+PASS layout 1360-dark {"nameGeometry":{"width":1360,"scrollWidth":1360,"theme":"dark","dialog":[{"left":250,"right":1110,"width":860}]},"auditGeometry":{"width":1360,"scrollWidth":1360,"theme":"dark","dialog":[]}}
+PASS layout 390-white {"nameGeometry":{"width":390,"scrollWidth":390,"theme":null,"dialog":[{"left":16,"right":374,"width":358}]},"auditGeometry":{"width":390,"scrollWidth":390,"theme":null,"dialog":[]}}
+PASS layout 390-dark {"nameGeometry":{"width":390,"scrollWidth":390,"theme":"dark","dialog":[{"left":16,"right":374,"width":358}]},"auditGeometry":{"width":390,"scrollWidth":390,"theme":"dark","dialog":[]}}

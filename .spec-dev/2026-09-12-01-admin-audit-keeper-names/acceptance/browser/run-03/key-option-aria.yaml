@@ -1,0 +1,76 @@
+- text: Model Mapper Plus
+- menu
+- text: 已连接 state 已保存 · /var/folders/gb/6mr3jmcs06dcbxm5c85pdyyw0000gp/T/TestAdminAcceptanceServe21622264/001/state.json · v0.0.0-dev.unbuilt
+- main:
+  - menu:
+    - menuitem "规则管理"
+    - menuitem "Key 绑定"
+    - menuitem "规则试跑"
+    - menuitem "操作审计"
+  - button "+ 新增绑定"
+  - heading "Key 绑定策略" [level=6]
+  - grid:
+    - rowgroup:
+      - row "API Key 别名 追加规则 渠道定向 Fast 启用规则 禁止访问":
+        - columnheader "API Key"
+        - columnheader "别名"
+        - columnheader "追加规则"
+        - columnheader "渠道定向"
+        - columnheader "Fast"
+        - columnheader "启用规则"
+        - columnheader "禁止访问"
+        - columnheader
+    - rowgroup:
+      - 'row "fake-c…-key 验收Key — 0 个供应商 · 1 个凭据 Tag: 允许 启用规则：验收Key 禁止访问：验收Key 编辑 删除"':
+        - gridcell "fake-c…-key":
+          - code: fake-c…-key
+        - gridcell "验收Key"
+        - gridcell "—"
+        - gridcell "0 个供应商 · 1 个凭据"
+        - 'gridcell "Tag: 允许"': 允许
+        - gridcell "启用规则：验收Key":
+          - switch "启用规则：验收Key" [checked]
+        - gridcell "禁止访问：验收Key":
+          - switch "禁止访问：验收Key"
+        - gridcell "编辑 删除":
+          - button "编辑"
+          - button "删除"
+  - paragraph: Key 来源：GET /v0/management/api-keys（下拉选择，也可手动输入未列出的 key）
+- alert "success type":
+  - img "tick_circle"
+  - text: 规则已保存
+  - button "close":
+    - img "close"
+- dialog "新增绑定":
+  - heading "新增绑定" [level=5]
+  - button "close":
+    - img "close"
+  - tablist:
+    - tab "基础" [selected]
+    - tab "渠道定向"
+    - tab "规则集"
+  - tabpanel "基础":
+    - text: API Key
+    - combobox "API Key" [expanded]:
+      - textbox: fake-browser-extra
+      - img
+    - text: Keeper 别名已加载
+    - button "刷新别名"
+    - textbox "绑定别名":
+      - /placeholder: 别名（可选）
+    - button "从 Keeper 同步" [disabled]
+    - text: 选择或输入 Key 后可同步别名
+    - switch "编辑绑定：启用规则" [checked]
+    - text: 启用规则
+    - switch "编辑绑定：禁止访问"
+    - text: 禁止访问
+    - switch "编辑绑定：Fast 允许" [checked]
+    - text: Fast 允许
+  - button "cancel": 取消
+  - button "confirm": 确定
+- dialog:
+  - listbox:
+    - option "tick 使用手动 Key： fake-browser-extra":
+      - img "tick"
+      - text: 使用手动 Key：
+      - mark: fake-browser-extra

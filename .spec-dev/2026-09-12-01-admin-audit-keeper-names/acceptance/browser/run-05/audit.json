@@ -1,0 +1,848 @@
+{
+  "date": "2026-09-12",
+  "timezone": "Asia/Shanghai",
+  "page": 1,
+  "page_size": 100,
+  "total": 49,
+  "items": [
+    {
+      "operation_id": "ac9e191918edbaf3c999b547430ce0f7",
+      "actor": "management_api",
+      "action": "update",
+      "object_type": "rules",
+      "object_ref": "rules",
+      "started_at": "2026-09-12T16:07:16.522239+08:00",
+      "finished_at": "2026-09-12T16:07:16.530086+08:00",
+      "outcome": "succeeded",
+      "changed": false,
+      "changes": {}
+    },
+    {
+      "operation_id": "74b242dbe5b7b7db626c5aee0324c66c",
+      "actor": "management_api",
+      "action": "update",
+      "object_type": "rules",
+      "object_ref": "rules",
+      "started_at": "2026-09-12T16:07:16.510477+08:00",
+      "finished_at": "2026-09-12T16:07:16.518153+08:00",
+      "outcome": "succeeded",
+      "changed": false,
+      "changes": {}
+    },
+    {
+      "operation_id": "eb21106aee4705db1b5709ac348b073e",
+      "actor": "management_api",
+      "action": "update",
+      "object_type": "rules",
+      "object_ref": "rules",
+      "started_at": "2026-09-12T16:07:16.499456+08:00",
+      "finished_at": "2026-09-12T16:07:16.506139+08:00",
+      "outcome": "succeeded",
+      "changed": false,
+      "changes": {}
+    },
+    {
+      "operation_id": "a6024fef8056ec6a1c19c86ad6f2152e",
+      "actor": "management_api",
+      "action": "update",
+      "object_type": "rules",
+      "object_ref": "rules",
+      "started_at": "2026-09-12T16:07:16.488604+08:00",
+      "finished_at": "2026-09-12T16:07:16.495147+08:00",
+      "outcome": "succeeded",
+      "changed": false,
+      "changes": {}
+    },
+    {
+      "operation_id": "a5c70104a704f229b191b960ab19d646",
+      "actor": "management_api",
+      "action": "update",
+      "object_type": "rules",
+      "object_ref": "rules",
+      "started_at": "2026-09-12T16:07:16.476693+08:00",
+      "finished_at": "2026-09-12T16:07:16.484176+08:00",
+      "outcome": "succeeded",
+      "changed": false,
+      "changes": {}
+    },
+    {
+      "operation_id": "50b7d0193876919dc52de76b9a4300b9",
+      "actor": "management_api",
+      "action": "update",
+      "object_type": "rules",
+      "object_ref": "rules",
+      "started_at": "2026-09-12T16:07:16.466403+08:00",
+      "finished_at": "2026-09-12T16:07:16.47317+08:00",
+      "outcome": "succeeded",
+      "changed": false,
+      "changes": {}
+    },
+    {
+      "operation_id": "cb9d39f043b10f092c1656b92d8c752b",
+      "actor": "management_api",
+      "action": "update",
+      "object_type": "rules",
+      "object_ref": "rules",
+      "started_at": "2026-09-12T16:07:16.457507+08:00",
+      "finished_at": "2026-09-12T16:07:16.464112+08:00",
+      "outcome": "succeeded",
+      "changed": false,
+      "changes": {}
+    },
+    {
+      "operation_id": "c34d8dfad20be6da0a1c0d73b69953b7",
+      "actor": "management_api",
+      "action": "update",
+      "object_type": "rules",
+      "object_ref": "rules",
+      "started_at": "2026-09-12T16:07:16.445779+08:00",
+      "finished_at": "2026-09-12T16:07:16.453186+08:00",
+      "outcome": "succeeded",
+      "changed": false,
+      "changes": {}
+    },
+    {
+      "operation_id": "ae38545d67ca1e52b11181ac0069270d",
+      "actor": "management_api",
+      "action": "update",
+      "object_type": "rules",
+      "object_ref": "rules",
+      "started_at": "2026-09-12T16:07:16.434286+08:00",
+      "finished_at": "2026-09-12T16:07:16.441198+08:00",
+      "outcome": "succeeded",
+      "changed": false,
+      "changes": {}
+    },
+    {
+      "operation_id": "bb8fa0a998505c697b5d90d9e45d004f",
+      "actor": "management_api",
+      "action": "update",
+      "object_type": "rules",
+      "object_ref": "rules",
+      "started_at": "2026-09-12T16:07:16.424402+08:00",
+      "finished_at": "2026-09-12T16:07:16.431213+08:00",
+      "outcome": "succeeded",
+      "changed": false,
+      "changes": {}
+    },
+    {
+      "operation_id": "2c79359022d21c3d19d94a8835a0f2e5",
+      "actor": "management_api",
+      "action": "update",
+      "object_type": "rules",
+      "object_ref": "rules",
+      "started_at": "2026-09-12T16:07:16.413422+08:00",
+      "finished_at": "2026-09-12T16:07:16.420194+08:00",
+      "outcome": "succeeded",
+      "changed": false,
+      "changes": {}
+    },
+    {
+      "operation_id": "4165f839c98cb7c6e9bddff7e39ecdd3",
+      "actor": "management_api",
+      "action": "update",
+      "object_type": "rules",
+      "object_ref": "rules",
+      "started_at": "2026-09-12T16:07:16.402634+08:00",
+      "finished_at": "2026-09-12T16:07:16.409224+08:00",
+      "outcome": "succeeded",
+      "changed": false,
+      "changes": {}
+    },
+    {
+      "operation_id": "8683aca1385abd25bb58ffc4fab4e2f8",
+      "actor": "management_api",
+      "action": "update",
+      "object_type": "rules",
+      "object_ref": "rules",
+      "started_at": "2026-09-12T16:07:16.392289+08:00",
+      "finished_at": "2026-09-12T16:07:16.399181+08:00",
+      "outcome": "succeeded",
+      "changed": false,
+      "changes": {}
+    },
+    {
+      "operation_id": "ae77d77f10e86ca135bec4306d551dcc",
+      "actor": "management_api",
+      "action": "update",
+      "object_type": "rules",
+      "object_ref": "rules",
+      "started_at": "2026-09-12T16:07:16.381419+08:00",
+      "finished_at": "2026-09-12T16:07:16.388154+08:00",
+      "outcome": "succeeded",
+      "changed": false,
+      "changes": {}
+    },
+    {
+      "operation_id": "965e7cc69b1a5c0555031f4d3d492374",
+      "actor": "management_api",
+      "action": "update",
+      "object_type": "rules",
+      "object_ref": "rules",
+      "started_at": "2026-09-12T16:07:16.37036+08:00",
+      "finished_at": "2026-09-12T16:07:16.377066+08:00",
+      "outcome": "succeeded",
+      "changed": false,
+      "changes": {}
+    },
+    {
+      "operation_id": "fd51a2f1ab365b00a947be48c2ac1346",
+      "actor": "management_api",
+      "action": "update",
+      "object_type": "rules",
+      "object_ref": "rules",
+      "started_at": "2026-09-12T16:07:16.361342+08:00",
+      "finished_at": "2026-09-12T16:07:16.366359+08:00",
+      "outcome": "succeeded",
+      "changed": false,
+      "changes": {}
+    },
+    {
+      "operation_id": "704396bc694c0895f4d363dffe22d4b5",
+      "actor": "management_api",
+      "action": "update",
+      "object_type": "rules",
+      "object_ref": "rules",
+      "started_at": "2026-09-12T16:07:16.353506+08:00",
+      "finished_at": "2026-09-12T16:07:16.35722+08:00",
+      "outcome": "succeeded",
+      "changed": false,
+      "changes": {}
+    },
+    {
+      "operation_id": "e0a622227a9585cae9b84ae5f6ed3ea9",
+      "actor": "management_api",
+      "action": "update",
+      "object_type": "rules",
+      "object_ref": "rules",
+      "started_at": "2026-09-12T16:07:16.341527+08:00",
+      "finished_at": "2026-09-12T16:07:16.349132+08:00",
+      "outcome": "succeeded",
+      "changed": false,
+      "changes": {}
+    },
+    {
+      "operation_id": "b27bbadeda0292451bcdce700b91396d",
+      "actor": "management_api",
+      "action": "update",
+      "object_type": "rules",
+      "object_ref": "rules",
+      "started_at": "2026-09-12T16:07:16.332622+08:00",
+      "finished_at": "2026-09-12T16:07:16.33814+08:00",
+      "outcome": "succeeded",
+      "changed": false,
+      "changes": {}
+    },
+    {
+      "operation_id": "b0e9efbe82d361e35702e69f7520e099",
+      "actor": "management_api",
+      "action": "update",
+      "object_type": "rules",
+      "object_ref": "rules",
+      "started_at": "2026-09-12T16:07:16.32095+08:00",
+      "finished_at": "2026-09-12T16:07:16.328247+08:00",
+      "outcome": "succeeded",
+      "changed": false,
+      "changes": {}
+    },
+    {
+      "operation_id": "d87a8a495456beb57e7965156803bdd5",
+      "actor": "management_api",
+      "action": "update",
+      "object_type": "rules",
+      "object_ref": "rules",
+      "started_at": "2026-09-12T16:07:16.308844+08:00",
+      "finished_at": "2026-09-12T16:07:16.317102+08:00",
+      "outcome": "succeeded",
+      "changed": false,
+      "changes": {}
+    },
+    {
+      "operation_id": "a1684adc0966f481c1e7a865d56ac183",
+      "actor": "management_api",
+      "action": "update",
+      "object_type": "keeper_auth_name",
+      "object_ref": "idx-a",
+      "started_at": "2026-09-12T16:07:16.209042+08:00",
+      "outcome": "unknown",
+      "changed": null,
+      "changes": {},
+      "error_code": "audit_write_failed"
+    },
+    {
+      "operation_id": "ec7d68e1eaa183d3429b9845547d1da3",
+      "actor": "management_api",
+      "action": "update",
+      "object_type": "keeper_auth_name",
+      "object_ref": "idx-a",
+      "started_at": "2026-09-12T16:07:10.158805+08:00",
+      "finished_at": "2026-09-12T16:07:15.163555+08:00",
+      "outcome": "unknown",
+      "changed": null,
+      "changes": {},
+      "error_code": "timeout"
+    },
+    {
+      "operation_id": "364ca04e3352f5d1d39bf0bc324f050b",
+      "actor": "management_api",
+      "action": "delete",
+      "object_type": "key_binding",
+      "object_ref": "sha256:c4d94ff428efceee2d52c05db8285dbf782ca2181615ee9dea477ec8f3de9dde masked:***",
+      "started_at": "2026-09-12T16:07:09.341147+08:00",
+      "finished_at": "2026-09-12T16:07:09.348975+08:00",
+      "outcome": "succeeded",
+      "changed": true,
+      "changes": {
+        "alias": {
+          "before": "浏览器修改",
+          "after": null
+        },
+        "blocked": {
+          "before": false,
+          "after": null
+        },
+        "channel_target": {
+          "before": {
+            "enabled": false
+          },
+          "after": null
+        },
+        "enabled": {
+          "before": false,
+          "after": null
+        },
+        "fast_allowed": {
+          "before": true,
+          "after": null
+        },
+        "rules.claude": {
+          "before": "",
+          "after": null
+        },
+        "rules.codex": {
+          "before": "",
+          "after": null
+        },
+        "rules.global": {
+          "before": "",
+          "after": null
+        },
+        "rules.openai": {
+          "before": "",
+          "after": null
+        }
+      }
+    },
+    {
+      "operation_id": "e74ff9e503070fda73483c2787dda504",
+      "actor": "management_api",
+      "action": "update",
+      "object_type": "key_binding",
+      "object_ref": "sha256:c4d94ff428efceee2d52c05db8285dbf782ca2181615ee9dea477ec8f3de9dde masked:***",
+      "started_at": "2026-09-12T16:07:09.241716+08:00",
+      "finished_at": "2026-09-12T16:07:09.24899+08:00",
+      "outcome": "succeeded",
+      "changed": true,
+      "changes": {
+        "enabled": {
+          "before": true,
+          "after": false
+        }
+      }
+    },
+    {
+      "operation_id": "3c600edbc9461ab3887a501a69054b81",
+      "actor": "management_api",
+      "action": "update",
+      "object_type": "key_binding",
+      "object_ref": "sha256:c4d94ff428efceee2d52c05db8285dbf782ca2181615ee9dea477ec8f3de9dde masked:***",
+      "started_at": "2026-09-12T16:07:09.095686+08:00",
+      "finished_at": "2026-09-12T16:07:09.10428+08:00",
+      "outcome": "succeeded",
+      "changed": true,
+      "changes": {
+        "alias": {
+          "before": "浏览器新增",
+          "after": "浏览器修改"
+        }
+      }
+    },
+    {
+      "operation_id": "ddd1edaec9e99f127dd746f1dfe02aea",
+      "actor": "management_api",
+      "action": "create",
+      "object_type": "key_binding",
+      "object_ref": "sha256:c4d94ff428efceee2d52c05db8285dbf782ca2181615ee9dea477ec8f3de9dde masked:***",
+      "started_at": "2026-09-12T16:07:08.693374+08:00",
+      "finished_at": "2026-09-12T16:07:08.701288+08:00",
+      "outcome": "succeeded",
+      "changed": true,
+      "changes": {
+        "alias": {
+          "before": null,
+          "after": "浏览器新增"
+        },
+        "blocked": {
+          "before": null,
+          "after": false
+        },
+        "channel_target": {
+          "before": null,
+          "after": {
+            "enabled": false
+          }
+        },
+        "enabled": {
+          "before": null,
+          "after": true
+        },
+        "fast_allowed": {
+          "before": null,
+          "after": true
+        },
+        "rules.claude": {
+          "before": null,
+          "after": ""
+        },
+        "rules.codex": {
+          "before": null,
+          "after": ""
+        },
+        "rules.global": {
+          "before": null,
+          "after": ""
+        },
+        "rules.openai": {
+          "before": null,
+          "after": ""
+        }
+      }
+    },
+    {
+      "operation_id": "b53ff8bfd745f60ff4005e97816b38a3",
+      "actor": "management_api",
+      "action": "update",
+      "object_type": "rules",
+      "object_ref": "rules",
+      "started_at": "2026-09-12T16:07:07.99118+08:00",
+      "finished_at": "2026-09-12T16:07:07.99842+08:00",
+      "outcome": "succeeded",
+      "changed": true,
+      "changes": {
+        "rules.global": {
+          "before": "",
+          "after": "before=>after"
+        }
+      }
+    },
+    {
+      "operation_id": "db49252de0a8cfa1f5dd5a53f2130f95",
+      "actor": "management_api",
+      "action": "update",
+      "object_type": "keeper_auth_name",
+      "object_ref": "idx-a",
+      "started_at": "2026-09-12T16:07:07.724809+08:00",
+      "finished_at": "2026-09-12T16:07:07.729488+08:00",
+      "outcome": "succeeded",
+      "changed": true,
+      "changes": {
+        "alias": {
+          "before": "浏览器验收 & 中文",
+          "after": ""
+        },
+        "display_name": {
+          "before": "浏览器验收 & 中文",
+          "after": "原名称"
+        }
+      }
+    },
+    {
+      "operation_id": "7c0cfb0cf29872d41c803e70c6ffb5bc",
+      "actor": "management_api",
+      "action": "update",
+      "object_type": "keeper_auth_name",
+      "object_ref": "idx-a",
+      "started_at": "2026-09-12T16:07:07.193129+08:00",
+      "finished_at": "2026-09-12T16:07:07.197793+08:00",
+      "outcome": "succeeded",
+      "changed": true,
+      "changes": {
+        "alias": {
+          "before": "验收订阅",
+          "after": "浏览器验收 & 中文"
+        },
+        "display_name": {
+          "before": "验收订阅",
+          "after": "浏览器验收 & 中文"
+        }
+      }
+    },
+    {
+      "operation_id": "77c735f3c619f72fbc11ae647950ae0d",
+      "actor": "management_api",
+      "action": "update",
+      "object_type": "keeper_auth_name",
+      "object_ref": "idx-a",
+      "started_at": "2026-09-12T16:07:06.397336+08:00",
+      "finished_at": "2026-09-12T16:07:06.403873+08:00",
+      "outcome": "succeeded",
+      "changed": true,
+      "changes": {
+        "alias": {
+          "before": "",
+          "after": "验收订阅"
+        },
+        "display_name": {
+          "before": "原名称",
+          "after": "验收订阅"
+        }
+      }
+    },
+    {
+      "operation_id": "194ba3cb189fe4309c0aacf979fe77d0",
+      "actor": "management_api",
+      "action": "update",
+      "object_type": "rules",
+      "object_ref": "rules",
+      "started_at": "2026-09-12T16:07:06.384374+08:00",
+      "finished_at": "2026-09-12T16:07:06.391613+08:00",
+      "outcome": "succeeded",
+      "changed": true,
+      "changes": {
+        "rules.global": {
+          "before": "before=>after",
+          "after": ""
+        }
+      }
+    },
+    {
+      "operation_id": "926981fad6aa2f7c72026f764fef79e6",
+      "actor": "management_api",
+      "action": "update",
+      "object_type": "rules",
+      "object_ref": "rules",
+      "started_at": "2026-09-12T16:01:49.105541+08:00",
+      "finished_at": "2026-09-12T16:01:49.114119+08:00",
+      "outcome": "succeeded",
+      "changed": true,
+      "changes": {
+        "rules.global": {
+          "before": "",
+          "after": "before=>after"
+        }
+      }
+    },
+    {
+      "operation_id": "755361543884b8005ff28dbf5148fe69",
+      "actor": "management_api",
+      "action": "update",
+      "object_type": "keeper_auth_name",
+      "object_ref": "idx-a",
+      "started_at": "2026-09-12T16:01:48.840305+08:00",
+      "finished_at": "2026-09-12T16:01:48.845223+08:00",
+      "outcome": "succeeded",
+      "changed": true,
+      "changes": {
+        "alias": {
+          "before": "浏览器验收 & 中文",
+          "after": ""
+        },
+        "display_name": {
+          "before": "浏览器验收 & 中文",
+          "after": "原名称"
+        }
+      }
+    },
+    {
+      "operation_id": "e42e9975a92f6663121812d6f273227a",
+      "actor": "management_api",
+      "action": "update",
+      "object_type": "keeper_auth_name",
+      "object_ref": "idx-a",
+      "started_at": "2026-09-12T16:01:48.310051+08:00",
+      "finished_at": "2026-09-12T16:01:48.315121+08:00",
+      "outcome": "succeeded",
+      "changed": true,
+      "changes": {
+        "alias": {
+          "before": "验收订阅",
+          "after": "浏览器验收 & 中文"
+        },
+        "display_name": {
+          "before": "验收订阅",
+          "after": "浏览器验收 & 中文"
+        }
+      }
+    },
+    {
+      "operation_id": "b8fbec711a4ec0d00aeb403ac4ad59bd",
+      "actor": "management_api",
+      "action": "update",
+      "object_type": "keeper_auth_name",
+      "object_ref": "idx-a",
+      "started_at": "2026-09-12T16:01:47.512352+08:00",
+      "finished_at": "2026-09-12T16:01:47.51604+08:00",
+      "outcome": "succeeded",
+      "changed": true,
+      "changes": {
+        "alias": {
+          "before": "",
+          "after": "验收订阅"
+        },
+        "display_name": {
+          "before": "原名称",
+          "after": "验收订阅"
+        }
+      }
+    },
+    {
+      "operation_id": "9ba70d8329329d0067f8d9804a9ae13f",
+      "actor": "management_api",
+      "action": "update",
+      "object_type": "rules",
+      "object_ref": "rules",
+      "started_at": "2026-09-12T16:01:47.498969+08:00",
+      "finished_at": "2026-09-12T16:01:47.507594+08:00",
+      "outcome": "succeeded",
+      "changed": true,
+      "changes": {
+        "rules.global": {
+          "before": "before=>after",
+          "after": ""
+        }
+      }
+    },
+    {
+      "operation_id": "caace85d85f2089367f2cdce7556b359",
+      "actor": "management_api",
+      "action": "update",
+      "object_type": "rules",
+      "object_ref": "rules",
+      "started_at": "2026-09-12T15:57:45.582405+08:00",
+      "finished_at": "2026-09-12T15:57:45.589178+08:00",
+      "outcome": "succeeded",
+      "changed": true,
+      "changes": {
+        "rules.global": {
+          "before": "",
+          "after": "before=>after"
+        }
+      }
+    },
+    {
+      "operation_id": "556c313a552019fd37bd977c4f8a792c",
+      "actor": "management_api",
+      "action": "update",
+      "object_type": "keeper_auth_name",
+      "object_ref": "idx-a",
+      "started_at": "2026-09-12T15:57:45.311805+08:00",
+      "finished_at": "2026-09-12T15:57:45.317126+08:00",
+      "outcome": "succeeded",
+      "changed": true,
+      "changes": {
+        "alias": {
+          "before": "浏览器验收 & 中文",
+          "after": ""
+        },
+        "display_name": {
+          "before": "浏览器验收 & 中文",
+          "after": "原名称"
+        }
+      }
+    },
+    {
+      "operation_id": "02812e0c6ef2b9a4d2d91400b15a11df",
+      "actor": "management_api",
+      "action": "update",
+      "object_type": "keeper_auth_name",
+      "object_ref": "idx-a",
+      "started_at": "2026-09-12T15:57:44.782202+08:00",
+      "finished_at": "2026-09-12T15:57:44.785817+08:00",
+      "outcome": "succeeded",
+      "changed": true,
+      "changes": {
+        "alias": {
+          "before": "验收订阅",
+          "after": "浏览器验收 & 中文"
+        },
+        "display_name": {
+          "before": "验收订阅",
+          "after": "浏览器验收 & 中文"
+        }
+      }
+    },
+    {
+      "operation_id": "c43f1b814818677146d0365c50da1f05",
+      "actor": "management_api",
+      "action": "update",
+      "object_type": "keeper_auth_name",
+      "object_ref": "idx-a",
+      "started_at": "2026-09-12T15:57:43.946666+08:00",
+      "finished_at": "2026-09-12T15:57:43.951209+08:00",
+      "outcome": "succeeded",
+      "changed": true,
+      "changes": {
+        "alias": {
+          "before": "",
+          "after": "验收订阅"
+        },
+        "display_name": {
+          "before": "原名称",
+          "after": "验收订阅"
+        }
+      }
+    },
+    {
+      "operation_id": "342714825202702b47e5fbb3ddd1cdc8",
+      "actor": "management_api",
+      "action": "update",
+      "object_type": "rules",
+      "object_ref": "rules",
+      "started_at": "2026-09-12T15:57:43.93358+08:00",
+      "finished_at": "2026-09-12T15:57:43.941509+08:00",
+      "outcome": "succeeded",
+      "changed": true,
+      "changes": {
+        "rules.global": {
+          "before": "before=>after",
+          "after": ""
+        }
+      }
+    },
+    {
+      "operation_id": "4e3473a369583941bbc9107ab5d4262c",
+      "actor": "management_api",
+      "action": "update",
+      "object_type": "rules",
+      "object_ref": "rules",
+      "started_at": "2026-09-12T15:54:21.865241+08:00",
+      "finished_at": "2026-09-12T15:54:21.872672+08:00",
+      "outcome": "succeeded",
+      "changed": true,
+      "changes": {
+        "rules.global": {
+          "before": "",
+          "after": "before=>after"
+        }
+      }
+    },
+    {
+      "operation_id": "c5fff20be2e96fde30cc5ef93af5866c",
+      "actor": "management_api",
+      "action": "update",
+      "object_type": "keeper_auth_name",
+      "object_ref": "idx-a",
+      "started_at": "2026-09-12T15:54:21.56429+08:00",
+      "finished_at": "2026-09-12T15:54:21.568933+08:00",
+      "outcome": "succeeded",
+      "changed": true,
+      "changes": {
+        "alias": {
+          "before": "浏览器验收 & 中文",
+          "after": ""
+        },
+        "display_name": {
+          "before": "浏览器验收 & 中文",
+          "after": "原名称"
+        }
+      }
+    },
+    {
+      "operation_id": "f48d87ccf6bf1c65a1fd6d09869c2b47",
+      "actor": "management_api",
+      "action": "update",
+      "object_type": "keeper_auth_name",
+      "object_ref": "idx-a",
+      "started_at": "2026-09-12T15:54:21.033462+08:00",
+      "finished_at": "2026-09-12T15:54:21.038142+08:00",
+      "outcome": "succeeded",
+      "changed": true,
+      "changes": {
+        "alias": {
+          "before": "验收订阅",
+          "after": "浏览器验收 & 中文"
+        },
+        "display_name": {
+          "before": "验收订阅",
+          "after": "浏览器验收 & 中文"
+        }
+      }
+    },
+    {
+      "operation_id": "1484f7208e55f92182a7905aa3fbc5d2",
+      "actor": "management_api",
+      "action": "update",
+      "object_type": "keeper_auth_name",
+      "object_ref": "idx-a",
+      "started_at": "2026-09-12T15:54:20.235597+08:00",
+      "finished_at": "2026-09-12T15:54:20.238954+08:00",
+      "outcome": "succeeded",
+      "changed": true,
+      "changes": {
+        "alias": {
+          "before": "",
+          "after": "验收订阅"
+        },
+        "display_name": {
+          "before": "原名称",
+          "after": "验收订阅"
+        }
+      }
+    },
+    {
+      "operation_id": "5b1f52aca57b01b65ed587dd93540c31",
+      "actor": "management_api",
+      "action": "update",
+      "object_type": "rules",
+      "object_ref": "rules",
+      "started_at": "2026-09-12T15:54:20.222284+08:00",
+      "finished_at": "2026-09-12T15:54:20.231594+08:00",
+      "outcome": "succeeded",
+      "changed": false,
+      "changes": {}
+    },
+    {
+      "operation_id": "ab3734207a3eb67612e0787f5531657f",
+      "actor": "management_api",
+      "action": "update",
+      "object_type": "keeper_auth_name",
+      "object_ref": "idx-a",
+      "started_at": "2026-09-12T15:49:49.10301+08:00",
+      "finished_at": "2026-09-12T15:49:49.106978+08:00",
+      "outcome": "succeeded",
+      "changed": true,
+      "changes": {
+        "alias": {
+          "before": "浏览器验收 & 中文",
+          "after": ""
+        },
+        "display_name": {
+          "before": "浏览器验收 & 中文",
+          "after": "原名称"
+        }
+      }
+    },
+    {
+      "operation_id": "a442863a40b46523be9aa7e335769886",
+      "actor": "management_api",
+      "action": "update",
+      "object_type": "keeper_auth_name",
+      "object_ref": "idx-a",
+      "started_at": "2026-09-12T15:49:48.537665+08:00",
+      "finished_at": "2026-09-12T15:49:48.541448+08:00",
+      "outcome": "succeeded",
+      "changed": true,
+      "changes": {
+        "alias": {
+          "before": "验收订阅",
+          "after": "浏览器验收 & 中文"
+        },
+        "display_name": {
+          "before": "验收订阅",
+          "after": "浏览器验收 & 中文"
+        }
+      }
+    }
+  ],
+  "warnings": []
+}

@@ -1,0 +1,36 @@
+Model Mapper Plus
+已连接
+state 已保存 · /var/folders/gb/6mr3jmcs06dcbxm5c85pdyyw0000gp/T/TestAdminAcceptanceServe21622264/001/state.json · v0.0.0-dev.unbuilt
+规则管理
+Key 绑定
+规则试跑
+操作审计
++ 新增绑定
+Key 绑定策略
+API Key	别名	追加规则	渠道定向	Fast	启用规则	禁止访问	
+fake-c…-key	验收Key	—	0 个供应商 · 1 个凭据	
+允许
+	
+	
+	
+编辑
+ 
+删除
+
+Key 来源：GET /v0/management/api-keys（下拉选择，也可手动输入未列出的 key）
+
+新增绑定
+基础
+渠道定向
+规则集
+API Key
+fake-b…xtra
+Keeper 别名已加载
+刷新别名
+从 Keeper 同步
+同步会替换输入框内容，保存绑定后生效
+ 启用规则
+ 禁止访问
+ Fast 允许
+取消
+确定

@@ -1,0 +1,14 @@
+{
+  "findings": [
+    {
+      "file": "web/src/components/KeeperAuthNameEditor.tsx",
+      "line": 40,
+      "severity": "中",
+      "confidence": 88,
+      "category": "Bug",
+      "description": "静态调用链确认：旧名称 PATCH 的响应只检查组件存活和输入 version，刷新返回的新名称不会推进 version（25–27），组件身份也只含 auth_index/identity_id（12）。KeysPanel 的配置隔离仅比较 state.state_file（125–134、391）。因此 Keeper URL/密码环境热切换但 state_file 不变时，若旧 PATCH 已在旧 Keeper 完成但其 HTTP 响应延迟，用户刷新名称取得新 Keeper 的同 auth_index/identity_id 后，旧响应仍会通过此处检查，并在44–46行覆盖刚取得的新名称及显示“已保存到 Keeper”。即使不换配置，较新刷新读到其他管理员改名后也可被该迟到响应覆盖。S4 对配置切换后迟到响应的保护在这个有效场景失效；当前测试仅覆盖 state_file 改变、索引改变及手工输入改变，未覆盖该时序。本发现未声称本轮动态复现。",
+      "fix_suggestion": "将名称读取/刷新建立的视图代际纳入 PATCH 响应有效性判断，并在新配置或较新刷新生效时废弃旧编辑器响应；不要仅用 state_file 和身份 ID 判断配置身份。可在父组件刷新生命周期中传递并推进编辑器代际，在保持既定 wire 字段不变的前提下阻止旧 onSaved 覆盖新视图。补充同 state_file、同 identity_id/auth_index 的刷新先完成、旧 PATCH 后返回的组件交互用例。"
+    }
+  ],
+  "coverage_note": "维度 A 独立只读审查，固定 diff fbc63d7c0ac414200b3011fc6b2c34675e17525b...5ccca8247eb64ff9a19d28b90462e1347e93bfe7；末次核对生产 Go/web/src 与冻结 SHA 无差异。已审 audit.go、audit_management.go、audit_query.go、management.go、main.go 重配段、keeper_aliases.go 重置段、keeper_client.go、keeper_auth_names.go、management_keeper_names.go，以及 web/src/api.ts、keeperAuthNames.ts、App.tsx、ChannelTargetEditor.tsx、KeeperAuthNameEditor.tsx、KeysPanel.tsx、RulesPanel.tsx、AuditPanel.tsx。核对 active spec 与 plan/index，风险覆盖 S1–S11 的精确关联、PATCH 阶段及重试/超时、名称缓存及迟到响应、审计 Begin/Finish/零副作用、结果 unknown、白名单脱敏、目录重配和 React 错误链。读取相关既有测试及日志，执行 facts.json 全部54项合并 stdout/stderr 原文件 SHA-256 校验，全部匹配；T01–T06 integration 回执均 exit=0，T02/T03/T04 race 回执 exit=0；T05集成7文件74项、T06集成7文件64项通过。证据根为 .spec-dev/2026-09-12-01-admin-audit-keeper-names/execution/，重点 t04-20260912-a1/green-race.log、t05-20260912-a1/integration.log、t06-20260912-a1/integration.log。原非零、夹具挂起和绿尝试失败保留为原失败，不作为PASS；因现有成功回执覆盖本轮文件而未重复全量，未新增/修改测试或生产源码。此报告唯一发现是源代码和响应时序分析，未声称本轮测试复现。未审浏览器视觉、可访问性、dist打包一致性、线上 Keeper 或最终T07/T08结果；这些由对应验收/最终任务承担，未以进行中状态推定已交付缺证。"
+}

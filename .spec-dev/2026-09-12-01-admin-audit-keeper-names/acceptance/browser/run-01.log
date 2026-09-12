@@ -1,0 +1,6 @@
+PASS 默认名称、立即同步及取消绑定独立
+PASS 清空名称恢复 Keeper 默认显示
+FAIL 规则真实保存及试跑不产生审计 locator.click: Timeout 15000ms exceeded.
+Call log:
+[2m  - waiting for locator('#mapper').contentFrame().getByRole('button', { name: '添加映射', exact: true })[22m
+

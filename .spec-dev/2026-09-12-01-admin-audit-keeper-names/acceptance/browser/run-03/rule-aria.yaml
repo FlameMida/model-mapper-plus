@@ -1,0 +1,26 @@
+- text: Model Mapper Plus
+- menu
+- text: 已连接 state 已保存 · /var/folders/gb/6mr3jmcs06dcbxm5c85pdyyw0000gp/T/TestAdminAcceptanceServe21622264/001/state.json · v0.0.0-dev.unbuilt
+- main:
+  - menu:
+    - menuitem "规则管理"
+    - menuitem "Key 绑定"
+    - menuitem "规则试跑"
+    - menuitem "操作审计"
+  - button "保存"
+  - heading "映射规则（按端点分段，有序执行）" [level=6]
+  - tablist:
+    - tab "全局" [selected]
+    - tab "Claude Messages"
+    - tab "Codex Responses"
+    - tab "OpenAI Completions"
+  - tabpanel "全局"
+  - text: 本段为空
+  - button "plus 添加映射":
+    - img "plus"
+    - text: 添加映射
+  - button "plus 添加大小写操作":
+    - img "plus"
+    - text: 添加大小写操作
+  - paragraph: DSL：（空） · 后缀 (none/auto/minimal/low/medium/high/xhigh/max) 或 (8192) 预算值可直接用于规则，CPA 执行时后缀覆盖请求体强度字段
+  - text: state_file：/var/folders/gb/6mr3jmcs06dcbxm5c85pdyyw0000gp/T/TestAdminAcceptanceServe21622264/001/state.json（已接管）

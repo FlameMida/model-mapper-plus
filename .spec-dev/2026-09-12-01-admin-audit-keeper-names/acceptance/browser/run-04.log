@@ -1,0 +1,14 @@
+PASS 默认名称、立即同步及取消绑定独立
+PASS 清空名称恢复 Keeper 默认显示
+PASS 规则真实保存及试跑不产生审计
+FAIL Key 新增、编辑、开关及删除均记录 expect(locator).toBeVisible() failed
+
+Locator: locator('#mapper').contentFrame().getByRole('row').filter({ hasText: '浏览器新增' })
+Expected: visible
+Timeout: 5000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" locator('#mapper').contentFrame().getByRole('row').filter({ hasText: '浏览器新增' }) with timeout 5000ms
+  - waiting for locator('#mapper').contentFrame().getByRole('row').filter({ hasText: '浏览器新增' })
+

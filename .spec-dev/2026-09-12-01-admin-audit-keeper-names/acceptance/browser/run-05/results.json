@@ -1,0 +1,1004 @@
+{
+  "browser": "153.0.8010.36",
+  "run": "run-05",
+  "records": [
+    {
+      "name": "默认名称、立即同步及取消绑定独立",
+      "result": "pass"
+    },
+    {
+      "name": "清空名称恢复 Keeper 默认显示",
+      "result": "pass"
+    },
+    {
+      "name": "规则真实保存及试跑不产生审计",
+      "result": "pass"
+    },
+    {
+      "name": "Key 新增、编辑、开关及删除均记录",
+      "result": "pass"
+    },
+    {
+      "name": "日志目录不可写时 UI 报错且零副作用",
+      "result": "pass"
+    },
+    {
+      "name": "Keeper 写入失联返回未知而非回滚",
+      "result": "pass"
+    },
+    {
+      "name": "业务成功与审计终态写入失败分别显示",
+      "result": "pass"
+    },
+    {
+      "name": "审计日期、分页、详情和直接日文件",
+      "result": "pass"
+    },
+    {
+      "name": "布局 1360-white",
+      "result": "pass",
+      "nameGeometry": {
+        "width": 1360,
+        "scrollWidth": 1360,
+        "theme": null,
+        "dialog": [
+          {
+            "left": 250,
+            "right": 1110,
+            "width": 860
+          }
+        ]
+      },
+      "auditGeometry": {
+        "width": 1360,
+        "scrollWidth": 1360,
+        "theme": null,
+        "dialog": []
+      }
+    },
+    {
+      "name": "布局 1360-dark",
+      "result": "pass",
+      "nameGeometry": {
+        "width": 1360,
+        "scrollWidth": 1360,
+        "theme": "dark",
+        "dialog": [
+          {
+            "left": 250,
+            "right": 1110,
+            "width": 860
+          }
+        ]
+      },
+      "auditGeometry": {
+        "width": 1360,
+        "scrollWidth": 1360,
+        "theme": "dark",
+        "dialog": []
+      }
+    },
+    {
+      "name": "布局 390-white",
+      "result": "pass",
+      "nameGeometry": {
+        "width": 390,
+        "scrollWidth": 390,
+        "theme": null,
+        "dialog": [
+          {
+            "left": 16,
+            "right": 374,
+            "width": 358
+          }
+        ]
+      },
+      "auditGeometry": {
+        "width": 390,
+        "scrollWidth": 390,
+        "theme": null,
+        "dialog": []
+      }
+    },
+    {
+      "name": "布局 390-dark",
+      "result": "pass",
+      "nameGeometry": {
+        "width": 390,
+        "scrollWidth": 390,
+        "theme": "dark",
+        "dialog": [
+          {
+            "left": 16,
+            "right": 374,
+            "width": 358
+          }
+        ]
+      },
+      "auditGeometry": {
+        "width": 390,
+        "scrollWidth": 390,
+        "theme": "dark",
+        "dialog": []
+      }
+    }
+  ],
+  "errors": [
+    {
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    }
+  ],
+  "network": [
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/fixture?theme=white",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/resource/plugins/model-mapper-plus/index.html",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/plugins/model-mapper-plus/keeper/key-aliases",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/api-keys",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/plugins/model-mapper-plus/state",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/api-keys",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/plugins/model-mapper-plus/keeper/auth-names",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/auth-files",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/gemini-api-key",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/interactions-api-key",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/codex-api-key",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/claude-api-key",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/xai-api-key",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/openai-compatibility",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/vertex-api-key",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "url": "http://127.0.0.1:31819/v0/management/plugins/model-mapper-plus/channel-credentials",
+      "phase": "request"
+    },
+    {
+      "method": "POST",
+      "url": "http://127.0.0.1:31819/v0/management/plugins/model-mapper-plus/channel-credentials",
+      "status": 200
+    },
+    {
+      "method": "PATCH",
+      "url": "http://127.0.0.1:31819/v0/management/plugins/model-mapper-plus/keeper/auth-names",
+      "phase": "request"
+    },
+    {
+      "method": "PATCH",
+      "url": "http://127.0.0.1:31819/v0/management/plugins/model-mapper-plus/keeper/auth-names",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/auth-files",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/gemini-api-key",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/interactions-api-key",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/claude-api-key",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/codex-api-key",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/xai-api-key",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/openai-compatibility",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/vertex-api-key",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "url": "http://127.0.0.1:31819/v0/management/plugins/model-mapper-plus/channel-credentials",
+      "phase": "request"
+    },
+    {
+      "method": "POST",
+      "url": "http://127.0.0.1:31819/v0/management/plugins/model-mapper-plus/channel-credentials",
+      "status": 200
+    },
+    {
+      "method": "PATCH",
+      "url": "http://127.0.0.1:31819/v0/management/plugins/model-mapper-plus/keeper/auth-names",
+      "phase": "request"
+    },
+    {
+      "method": "PATCH",
+      "url": "http://127.0.0.1:31819/v0/management/plugins/model-mapper-plus/keeper/auth-names",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/api-keys",
+      "status": 200
+    },
+    {
+      "method": "PUT",
+      "url": "http://127.0.0.1:31819/v0/management/plugins/model-mapper-plus/rules",
+      "phase": "request"
+    },
+    {
+      "method": "PUT",
+      "url": "http://127.0.0.1:31819/v0/management/plugins/model-mapper-plus/rules",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/api-keys",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/plugins/model-mapper-plus/keeper/auth-names",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/gemini-api-key",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/auth-files",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/interactions-api-key",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/claude-api-key",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/codex-api-key",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/xai-api-key",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/openai-compatibility",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/vertex-api-key",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "url": "http://127.0.0.1:31819/v0/management/plugins/model-mapper-plus/channel-credentials",
+      "phase": "request"
+    },
+    {
+      "method": "POST",
+      "url": "http://127.0.0.1:31819/v0/management/plugins/model-mapper-plus/channel-credentials",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "url": "http://127.0.0.1:31819/v0/management/plugins/model-mapper-plus/keys",
+      "phase": "request"
+    },
+    {
+      "method": "POST",
+      "url": "http://127.0.0.1:31819/v0/management/plugins/model-mapper-plus/keys",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/auth-files",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/gemini-api-key",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/interactions-api-key",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/claude-api-key",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/codex-api-key",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/xai-api-key",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/openai-compatibility",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/vertex-api-key",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "url": "http://127.0.0.1:31819/v0/management/plugins/model-mapper-plus/channel-credentials",
+      "phase": "request"
+    },
+    {
+      "method": "POST",
+      "url": "http://127.0.0.1:31819/v0/management/plugins/model-mapper-plus/channel-credentials",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "url": "http://127.0.0.1:31819/v0/management/plugins/model-mapper-plus/keys",
+      "phase": "request"
+    },
+    {
+      "method": "POST",
+      "url": "http://127.0.0.1:31819/v0/management/plugins/model-mapper-plus/keys",
+      "status": 200
+    },
+    {
+      "method": "PATCH",
+      "url": "http://127.0.0.1:31819/v0/management/plugins/model-mapper-plus/keys?key=fake-browser-extra",
+      "phase": "request"
+    },
+    {
+      "method": "PATCH",
+      "url": "http://127.0.0.1:31819/v0/management/plugins/model-mapper-plus/keys?key=fake-browser-extra",
+      "status": 200
+    },
+    {
+      "method": "DELETE",
+      "url": "http://127.0.0.1:31819/v0/management/plugins/model-mapper-plus/keys?key=fake-browser-extra",
+      "phase": "request"
+    },
+    {
+      "method": "DELETE",
+      "url": "http://127.0.0.1:31819/v0/management/plugins/model-mapper-plus/keys?key=fake-browser-extra",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/api-keys",
+      "status": 200
+    },
+    {
+      "method": "PUT",
+      "url": "http://127.0.0.1:31819/v0/management/plugins/model-mapper-plus/rules",
+      "phase": "request"
+    },
+    {
+      "method": "PUT",
+      "url": "http://127.0.0.1:31819/v0/management/plugins/model-mapper-plus/rules",
+      "status": 503
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/api-keys",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/plugins/model-mapper-plus/keeper/auth-names",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/interactions-api-key",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/gemini-api-key",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/auth-files",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/claude-api-key",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/codex-api-key",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/xai-api-key",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/openai-compatibility",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/vertex-api-key",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "url": "http://127.0.0.1:31819/v0/management/plugins/model-mapper-plus/channel-credentials",
+      "phase": "request"
+    },
+    {
+      "method": "POST",
+      "url": "http://127.0.0.1:31819/v0/management/plugins/model-mapper-plus/channel-credentials",
+      "status": 200
+    },
+    {
+      "method": "PATCH",
+      "url": "http://127.0.0.1:31819/v0/management/plugins/model-mapper-plus/keeper/auth-names",
+      "phase": "request"
+    },
+    {
+      "method": "PATCH",
+      "url": "http://127.0.0.1:31819/v0/management/plugins/model-mapper-plus/keeper/auth-names",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/auth-files",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/gemini-api-key",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/claude-api-key",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/codex-api-key",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/interactions-api-key",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/openai-compatibility",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/xai-api-key",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/vertex-api-key",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "url": "http://127.0.0.1:31819/v0/management/plugins/model-mapper-plus/channel-credentials",
+      "phase": "request"
+    },
+    {
+      "method": "POST",
+      "url": "http://127.0.0.1:31819/v0/management/plugins/model-mapper-plus/channel-credentials",
+      "status": 200
+    },
+    {
+      "method": "PATCH",
+      "url": "http://127.0.0.1:31819/v0/management/plugins/model-mapper-plus/keeper/auth-names",
+      "phase": "request"
+    },
+    {
+      "method": "PATCH",
+      "url": "http://127.0.0.1:31819/v0/management/plugins/model-mapper-plus/keeper/auth-names",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/api-keys",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/plugins/model-mapper-plus/audit?page=1&page_size=20",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/plugins/model-mapper-plus/audit?date=2026-09-12&page=2&page_size=20",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/plugins/model-mapper-plus/audit?date=2001-01-01&page=1&page_size=20",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/plugins/model-mapper-plus/audit?date=2026-09-12&page=1&page_size=20",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/fixture?theme=white",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/resource/plugins/model-mapper-plus/index.html",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/plugins/model-mapper-plus/keeper/key-aliases",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/api-keys",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/plugins/model-mapper-plus/state",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/api-keys",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/plugins/model-mapper-plus/keeper/auth-names",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/auth-files",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/gemini-api-key",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/interactions-api-key",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/claude-api-key",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/codex-api-key",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/xai-api-key",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/openai-compatibility",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/vertex-api-key",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "url": "http://127.0.0.1:31819/v0/management/plugins/model-mapper-plus/channel-credentials",
+      "phase": "request"
+    },
+    {
+      "method": "POST",
+      "url": "http://127.0.0.1:31819/v0/management/plugins/model-mapper-plus/channel-credentials",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/api-keys",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/plugins/model-mapper-plus/audit?page=1&page_size=20",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/fixture?theme=dark",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/resource/plugins/model-mapper-plus/index.html",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/plugins/model-mapper-plus/keeper/key-aliases",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/api-keys",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/plugins/model-mapper-plus/state",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/api-keys",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/plugins/model-mapper-plus/keeper/auth-names",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/auth-files",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/gemini-api-key",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/interactions-api-key",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/claude-api-key",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/codex-api-key",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/xai-api-key",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/openai-compatibility",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/vertex-api-key",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "url": "http://127.0.0.1:31819/v0/management/plugins/model-mapper-plus/channel-credentials",
+      "phase": "request"
+    },
+    {
+      "method": "POST",
+      "url": "http://127.0.0.1:31819/v0/management/plugins/model-mapper-plus/channel-credentials",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/api-keys",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/plugins/model-mapper-plus/audit?page=1&page_size=20",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/fixture?theme=white",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/resource/plugins/model-mapper-plus/index.html",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/plugins/model-mapper-plus/keeper/key-aliases",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/api-keys",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/plugins/model-mapper-plus/state",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/api-keys",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/plugins/model-mapper-plus/keeper/auth-names",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/gemini-api-key",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/interactions-api-key",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/codex-api-key",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/claude-api-key",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/auth-files",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/xai-api-key",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/openai-compatibility",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/vertex-api-key",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "url": "http://127.0.0.1:31819/v0/management/plugins/model-mapper-plus/channel-credentials",
+      "phase": "request"
+    },
+    {
+      "method": "POST",
+      "url": "http://127.0.0.1:31819/v0/management/plugins/model-mapper-plus/channel-credentials",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/api-keys",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/plugins/model-mapper-plus/audit?page=1&page_size=20",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/fixture?theme=dark",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/resource/plugins/model-mapper-plus/index.html",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/plugins/model-mapper-plus/keeper/key-aliases",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/api-keys",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/plugins/model-mapper-plus/state",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/api-keys",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/plugins/model-mapper-plus/keeper/auth-names",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/interactions-api-key",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/gemini-api-key",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/auth-files",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/claude-api-key",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/codex-api-key",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/openai-compatibility",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/xai-api-key",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/vertex-api-key",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "url": "http://127.0.0.1:31819/v0/management/plugins/model-mapper-plus/channel-credentials",
+      "phase": "request"
+    },
+    {
+      "method": "POST",
+      "url": "http://127.0.0.1:31819/v0/management/plugins/model-mapper-plus/channel-credentials",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/api-keys",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:31819/v0/management/plugins/model-mapper-plus/audit?page=1&page_size=20",
+      "status": 200
+    }
+  ]
+}

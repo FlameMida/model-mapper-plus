@@ -1,0 +1,7 @@
+PASS 默认名称、立即同步及取消绑定独立
+PASS 清空名称恢复 Keeper 默认显示
+PASS 规则真实保存及试跑不产生审计
+FAIL Key 新增、编辑、开关及删除均记录 locator.click: Timeout 15000ms exceeded.
+Call log:
+[2m  - waiting for locator('#mapper').contentFrame().getByRole('option', { name: /使用手动 Key：fake-browser-extra/ })[22m
+
