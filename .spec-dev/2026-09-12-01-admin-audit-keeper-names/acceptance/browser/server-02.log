@@ -1,0 +1,5 @@
+=== RUN   TestAdminAcceptanceServe
+    audit_acceptance_test.go:166: UI=http://127.0.0.1:31819/v0/resource/plugins/model-mapper-plus/index.html state=/var/folders/gb/6mr3jmcs06dcbxm5c85pdyyw0000gp/T/TestAdminAcceptanceServe2206865776/001/state.json keeper=http://127.0.0.1:59390
+--- PASS: TestAdminAcceptanceServe (627.45s)
+PASS
+ok  	github.com/FlameMida/cpa-model-mapper-plus	628.330s
