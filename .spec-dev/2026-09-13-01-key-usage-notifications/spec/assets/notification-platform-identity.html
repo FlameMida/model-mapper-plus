@@ -1,0 +1,57 @@
+<h2>已定稿：平台身份配置 = 明文回显（A 的可见性，无脱敏）</h2>
+<p class="subtitle">
+  spec 已同步：管理响应<b>明文返回</b> Webhook 与签名密钥，页面即普通可编辑 Input，「替换」按钮取消（CPA 管理鉴权保护管理界面）。
+  通知正文变量、投递日志、审计投影仍一律脱敏；完整 API Key 维持既有掩码行为。
+</p>
+
+<div class="section">
+  <h3>飞书面板 · 定稿形态</h3>
+  <div class="mockup">
+    <div class="mockup-header"><span class="dots"></span>编辑通知：日报用量 — 平台身份配置 · 飞书</div>
+    <div class="mockup-body" style="background:#fff">
+      <div style="display:flex; align-items:center; gap:8px; margin-bottom:14px">
+        <span style="width:28px; height:16px; border-radius:8px; background:#0064fa; display:inline-flex; align-items:center; justify-content:flex-end; padding:0 2px"><span style="width:12px; height:12px; border-radius:50%; background:#fff"></span></span>
+        <span style="font-size:13px; color:#1c1f23; font-weight:600">启用飞书通知</span>
+      </div>
+      <div style="margin-bottom:14px">
+        <div style="font-size:12px; color:rgba(28,31,35,.8); margin-bottom:6px">Webhook 地址</div>
+        <div style="height:32px; border:1px solid rgba(28,31,35,.15); border-radius:3px; display:flex; align-items:center; padding:0 10px; font-size:13px; color:#1c1f23">https://open.feishu.cn/open-apis/bot/v2/hook/6a7b91f2-4c8e-4a1d-9b3f-2e7d5a8c1f40</div>
+      </div>
+      <div style="margin-bottom:14px">
+        <div style="font-size:12px; color:rgba(28,31,35,.8); margin-bottom:6px">用户唯一 ID <span style="color:rgba(28,31,35,.45)">（外部群仅支持 Open ID，ou_ 开头）</span></div>
+        <div style="height:32px; border:1px solid rgba(28,31,35,.15); border-radius:3px; display:flex; align-items:center; padding:0 10px; font-size:13px; color:#1c1f23">ou_8f7e21c04b93d6a1</div>
+      </div>
+      <div style="margin-bottom:4px">
+        <div style="font-size:12px; color:rgba(28,31,35,.8); margin-bottom:6px">签名密钥 <span style="color:rgba(28,31,35,.45)">（机器人开启签名校验时填写）</span></div>
+        <div style="height:32px; border:1px solid rgba(28,31,35,.15); border-radius:3px; display:flex; align-items:center; padding:0 10px; font-size:13px; color:#1c1f23">2cF9kQ7wXm1bN4tR8vZ5pL3yH6sJ0dG</div>
+      </div>
+      <p style="font-size:11px; color:rgba(28,31,35,.45); margin:8px 0 0">管理页面明文展示；预览、测试发送与投递日志仍不携带/展示这些秘密。</p>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>待确认（上一屏没答）：企业微信的「签名密钥」字段</h3>
+  <p class="subtitle" style="margin-bottom:10px">
+    spec 原文要求「每个平台独立保存 Webhook、用户唯一 ID、签名密钥和启用状态」，但企业微信群机器人没有独立加签机制（凭据就是 Webhook 自身的 key）。两种处理：
+  </p>
+  <div class="options">
+    <div class="option" data-choice="qy-no-sign" onclick="toggleSelect(this)">
+      <div class="letter">A</div>
+      <div class="content">
+        <h3>企微面板不渲染签名密钥字段，spec 微调为「按平台支持情况保存」</h3>
+        <p>企微面板显示说明行「此平台无签名密钥」；不造一个永远用不上的输入框，符合「不伪造」口径。</p>
+      </div>
+    </div>
+    <div class="option" data-choice="qy-uniform" onclick="toggleSelect(this)">
+      <div class="letter">B</div>
+      <div class="content">
+        <h3>三平台保留统一字段结构</h3>
+        <p>企微也渲染签名密钥输入框（留空即可，后端忽略）。结构最统一，代价是出现一个无效字段。</p>
+      </div>
+    </div>
+  </div>
+  <p class="subtitle" style="margin-top:12px">
+    确认后「平台身份配置」页签收尾，下一屏出 Key 弹窗「通知」页签的列表设计（列、行操作、测试发送入口位置）。
+  </p>
+</div>

@@ -1,0 +1,112 @@
+<h2>消息正文风格：同一份数据，三种排版（点选其一）</h2>
+<p class="subtitle">
+  三平台的最大公约数是行式文本（企微/钉钉 markdown 均不支持表格），所以比的是排版风格而非组件。
+  三个版本用同一组数据：渠道明细（Token K/M/B 缩写 + 占比 + USD 折算）、占比未知、历史缺失标注、Weekly 窗口、重置卡。
+  spec 硬性口径已内嵌：<b>占比未知不显示 0%</b>、缺失日期明确标注、金额标注为折算。
+</p>
+
+<div class="section">
+  <h3>风格 A · 紧凑清单（推荐）</h3>
+  <div class="mockup" data-choice="style-compact" onclick="toggleSelect(this)" style="cursor:pointer; max-width:640px">
+    <div class="mockup-header"><span class="dots"></span>群消息 · 预览</div>
+    <div class="mockup-body" style="background:rgba(28,31,35,.03)">
+      <div style="display:flex; gap:10px">
+        <div style="flex:none; width:36px; height:36px; border-radius:6px; background:#0064fa; color:#fff; font-size:12px; display:flex; align-items:center; justify-content:center">UB</div>
+        <div style="flex:1; background:#fff; border-radius:0 8px 8px 8px; padding:12px 14px; font-size:13px; line-height:1.75; color:#1c1f23">
+          <b>日报用量通知</b><br>
+          研发主账号 · Pro 20x<br>
+          <b>【日 · 本期累计 09-13】</b><br>
+          Claude：800.00K tokens · 40.00% · ≈$12.34<br>
+          Codex：1.20M tokens · 60.00% · ≈$18.90<br>
+          Grok：12.00K tokens · 占比未知 · ≈$0.21<br>
+          <b>【年 · 本期累计 2026】</b><br>
+          合计 8.64M tokens · ≈$132.50（⚠ 01-01~04 历史数据不完整）<br>
+          <b>【Weekly】</b>已用 2.40M tokens · 09-17 00:00 重置 · 还剩 3 天 12 小时<br>
+          <b>【重置卡】</b>2 张 · 最近 09-13 19:00 过期 · 还剩 0 天 2 小时<br>
+          <span style="color:rgba(28,31,35,.45)">金额为 Keeper 价格折算，非上游账单</span>
+        </div>
+      </div>
+      <p style="font-size:12px; color:rgba(28,31,35,.65); margin-top:10px">一行一渠道，模块一行标题；消息最短，手机上不用大量滚动。</p>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>风格 B · 分节详情</h3>
+  <div class="mockup" data-choice="style-sectioned" onclick="toggleSelect(this)" style="cursor:pointer; max-width:640px">
+    <div class="mockup-header"><span class="dots"></span>群消息 · 预览</div>
+    <div class="mockup-body" style="background:rgba(28,31,35,.03)">
+      <div style="display:flex; gap:10px">
+        <div style="flex:none; width:36px; height:36px; border-radius:6px; background:#0064fa; color:#fff; font-size:12px; display:flex; align-items:center; justify-content:center">UB</div>
+        <div style="flex:1; background:#fff; border-radius:0 8px 8px 8px; padding:12px 14px; font-size:13px; line-height:1.8; color:#1c1f23">
+          <b>日报用量通知</b><br>
+          研发主账号 · Pro 20x<br>
+          <br>
+          <b>▍日统计 · 本期累计（09-13）</b><br>
+          Claude<br>
+          用量 800.00K tokens · 占比 40.00% · 折算 ≈ $12.34<br>
+          Codex<br>
+          用量 1.20M tokens · 占比 60.00% · 折算 ≈ $18.90<br>
+          Grok<br>
+          用量 12.00K tokens · 占比未知 · 折算 ≈ $0.21<br>
+          <br>
+          <b>▍年统计 · 本期累计（2026）</b><br>
+          合计 8.64M tokens · 折算 ≈ $132.50<br>
+          ⚠ 2026-01-01 至 01-04 历史数据不完整<br>
+          <br>
+          <b>▍Weekly 窗口</b><br>
+          已用 2.40M tokens · 09-17 00:00 重置（还剩 3 天 12 小时）<br>
+          <br>
+          <b>▍重置卡（2 张）</b><br>
+          09-13 19:00 过期 · 还剩 0 天 2 小时<br>
+          <span style="color:rgba(28,31,35,.45)">注：金额为 Keeper 价格折算，非上游账单</span>
+        </div>
+      </div>
+      <p style="font-size:12px; color:rgba(28,31,35,.65); margin-top:10px">每渠道独立成组、字段分行；最易读，但消息最长，渠道多时明显膨胀。</p>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>风格 C · Emoji 图标</h3>
+  <div class="mockup" data-choice="style-emoji" onclick="toggleSelect(this)" style="cursor:pointer; max-width:640px">
+    <div class="mockup-header"><span class="dots"></span>群消息 · 预览</div>
+    <div class="mockup-body" style="background:rgba(28,31,35,.03)">
+      <div style="display:flex; gap:10px">
+        <div style="flex:none; width:36px; height:36px; border-radius:6px; background:#0064fa; color:#fff; font-size:12px; display:flex; align-items:center; justify-content:center">UB</div>
+        <div style="flex:1; background:#fff; border-radius:0 8px 8px 8px; padding:12px 14px; font-size:13px; line-height:1.8; color:#1c1f23">
+          📊 <b>日报用量通知</b><br>
+          👤 研发主账号 · Pro 20x<br>
+          <br>
+          📅 <b>日统计（09-13）</b><br>
+          • Claude 800.00K tok｜40.00%｜≈$12.34<br>
+          • Codex 1.20M tok｜60.00%｜≈$18.90<br>
+          • Grok 12.00K tok｜占比未知｜≈$0.21<br>
+          📅 <b>年统计（2026）</b><br>
+          • 合计 8.64M tok｜≈$132.50<br>
+          ⚠️ 01-01~04 历史数据不完整<br>
+          🔄 <b>Weekly</b>：2.40M tok｜还剩 3 天 12 小时<br>
+          🃏 <b>重置卡 ×2</b>：最近 19:00 过期（还剩 0 天 2 小时）<br>
+          <span style="color:rgba(28,31,35,.45)">💰 金额为折算参考，非上游账单</span>
+        </div>
+      </div>
+      <p style="font-size:12px; color:rgba(28,31,35,.65); margin-top:10px">图标增强扫读；但符号占用宽度、「｜」分隔在窄屏可能折行错位，且风格偏轻。</p>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>三平台适配差异（静态说明，不用选）</h3>
+  <div class="mock-table" style="max-width:760px">
+    <table style="width:100%; border-collapse:collapse; font-size:13px">
+      <tr><th style="text-align:left; padding:8px 12px; border-bottom:2px solid rgba(28,31,35,.1)">平台</th><th style="text-align:left; padding:8px 12px; border-bottom:2px solid rgba(28,31,35,.1)">消息类型</th><th style="text-align:left; padding:8px 12px; border-bottom:2px solid rgba(28,31,35,.1)">@ 实现</th></tr>
+      <tr><td style="padding:8px 12px; border-bottom:1px solid rgba(28,31,35,.06)">企业微信</td><td style="padding:8px 12px; border-bottom:1px solid rgba(28,31,35,.06)">markdown（标签白名单受限）</td><td style="padding:8px 12px; border-bottom:1px solid rgba(28,31,35,.06)">mentioned_list / mentioned_mobile_list</td></tr>
+      <tr><td style="padding:8px 12px; border-bottom:1px solid rgba(28,31,35,.06)">飞书</td><td style="padding:8px 12px; border-bottom:1px solid rgba(28,31,35,.06)">text / post</td><td style="padding:8px 12px; border-bottom:1px solid rgba(28,31,35,.06)">open_id 内联 @（外部群仅 Open ID）</td></tr>
+      <tr><td style="padding:8px 12px; border-bottom:1px solid rgba(28,31,35,.06)">钉钉</td><td style="padding:8px 12px; border-bottom:1px solid rgba(28,31,35,.06)">markdown</td><td style="padding:8px 12px; border-bottom:1px solid rgba(28,31,35,.06)">atUserIdList（内部群）</td></tr>
+    </table>
+  </div>
+  <p class="subtitle" style="margin-top:12px">
+    选定风格后：通知模板模块排序决定模块出现顺序，渠道明细格式在实现计划中按所选风格展开；
+    定稿 mockup 将归档到 spec/assets/ 入库。
+  </p>
+</div>

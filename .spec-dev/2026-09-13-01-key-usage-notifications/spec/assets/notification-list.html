@@ -1,0 +1,88 @@
+<h2>Key 弹窗「通知」页签：列表设计 + 两个入口问题</h2>
+<p class="subtitle">
+  「平台身份配置」已按你的选择收尾（企微不渲染签名密钥字段，spec 已同步）。
+  现在是 Key 编辑弹窗里的「通知」页签本体：列表形态沿用 Semi <b>Table</b>（与主表格一致），行内开关直接启停通知。
+  下面 mockup 是推荐形态，请再点选两个入口问题。
+</p>
+
+<div class="section">
+  <h3>「通知」页签 · 推荐形态</h3>
+  <div class="mockup">
+    <div class="mockup-header"><span class="dots"></span>Key 编辑弹窗（860px）— 通知页签</div>
+    <div class="mockup-body" style="background:#fff">
+      <div style="display:flex; gap:4px; padding:0 0 0 0; border-bottom:1px solid rgba(28,31,35,.08); margin-bottom:14px">
+        <span style="padding:10px 4px; margin-right:12px; font-size:14px; color:rgba(28,31,35,.65)">基础</span>
+        <span style="padding:10px 4px; margin-right:12px; font-size:14px; color:rgba(28,31,35,.65)">渠道定向</span>
+        <span style="padding:10px 4px; margin-right:12px; font-size:14px; color:rgba(28,31,35,.65)">规则集</span>
+        <span style="padding:10px 4px; font-size:14px; font-weight:600; color:#0064fa; border-bottom:2px solid #0064fa">通知（2）</span>
+        <span style="margin-left:auto; font-size:13px; color:#fff; background:#0064fa; border-radius:3px; padding:5px 12px; align-self:center; margin-bottom:6px">＋ 新增通知</span>
+      </div>
+      <table style="width:100%; border-collapse:collapse; font-size:13px">
+        <tr style="background:rgba(28,31,35,.03)">
+          <th style="text-align:left; padding:8px 10px; font-weight:600; color:rgba(28,31,35,.75); border-bottom:1px solid rgba(28,31,35,.08)">通知名称</th>
+          <th style="text-align:left; padding:8px 10px; font-weight:600; color:rgba(28,31,35,.75); border-bottom:1px solid rgba(28,31,35,.08)">启用</th>
+          <th style="text-align:left; padding:8px 10px; font-weight:600; color:rgba(28,31,35,.75); border-bottom:1px solid rgba(28,31,35,.08)">发送计划</th>
+          <th style="text-align:left; padding:8px 10px; font-weight:600; color:rgba(28,31,35,.75); border-bottom:1px solid rgba(28,31,35,.08)">平台</th>
+          <th style="text-align:left; padding:8px 10px; font-weight:600; color:rgba(28,31,35,.75); border-bottom:1px solid rgba(28,31,35,.08)">最近投递</th>
+          <th style="text-align:left; padding:8px 10px; font-weight:600; color:rgba(28,31,35,.75); border-bottom:1px solid rgba(28,31,35,.08)">操作</th>
+        </tr>
+        <tr>
+          <td style="padding:9px 10px; border-bottom:1px solid rgba(28,31,35,.06)">日报用量</td>
+          <td style="padding:9px 10px; border-bottom:1px solid rgba(28,31,35,.06)"><span style="display:inline-flex; width:26px; height:15px; border-radius:8px; background:#0064fa; align-items:center; justify-content:flex-end; padding:0 2px"><span style="width:11px; height:11px; border-radius:50%; background:#fff"></span></span></td>
+          <td style="padding:9px 10px; border-bottom:1px solid rgba(28,31,35,.06)">每隔 1 天 · 09:00</td>
+          <td style="padding:9px 10px; border-bottom:1px solid rgba(28,31,35,.06)"><span style="font-size:11px; border:1px solid rgba(28,31,35,.15); border-radius:3px; padding:1px 6px; margin-right:4px">企微</span><span style="font-size:11px; border:1px solid rgba(28,31,35,.15); border-radius:3px; padding:1px 6px">飞书</span></td>
+          <td style="padding:9px 10px; border-bottom:1px solid rgba(28,31,35,.06)"><span style="font-size:12px; color:#2ea44f">✓ 今日 09:00 已受理</span></td>
+          <td style="padding:9px 10px; border-bottom:1px solid rgba(28,31,35,.06)"><span style="font-size:12px; color:#1c1f23; border:1px solid rgba(28,31,35,.15); border-radius:3px; padding:2px 8px; margin-right:4px">编辑</span><span style="font-size:12px; color:#1c1f23; border:1px solid rgba(28,31,35,.15); border-radius:3px; padding:2px 8px; margin-right:4px">测试发送</span><span style="font-size:12px; color:#d4380e; border:1px solid rgba(212,56,14,.35); border-radius:3px; padding:2px 8px">删除</span></td>
+        </tr>
+        <tr>
+          <td style="padding:9px 10px; border-bottom:1px solid rgba(28,31,35,.06)">月报汇总</td>
+          <td style="padding:9px 10px; border-bottom:1px solid rgba(28,31,35,.06)"><span style="display:inline-flex; width:26px; height:15px; border-radius:8px; background:#0064fa; align-items:center; justify-content:flex-end; padding:0 2px"><span style="width:11px; height:11px; border-radius:50%; background:#fff"></span></span></td>
+          <td style="padding:9px 10px; border-bottom:1px solid rgba(28,31,35,.06)">每月 · 月末 23:59</td>
+          <td style="padding:9px 10px; border-bottom:1px solid rgba(28,31,35,.06)"><span style="font-size:11px; border:1px solid rgba(28,31,35,.15); border-radius:3px; padding:1px 6px">钉钉</span></td>
+          <td style="padding:9px 10px; border-bottom:1px solid rgba(28,31,35,.06)"><span style="font-size:12px; color:#d4380e">✗ 08-31 限流退避中</span></td>
+          <td style="padding:9px 10px; border-bottom:1px solid rgba(28,31,35,.06)"><span style="font-size:12px; color:#1c1f23; border:1px solid rgba(28,31,35,.15); border-radius:3px; padding:2px 8px; margin-right:4px">编辑</span><span style="font-size:12px; color:#1c1f23; border:1px solid rgba(28,31,35,.15); border-radius:3px; padding:2px 8px; margin-right:4px">测试发送</span><span style="font-size:12px; color:#d4380e; border:1px solid rgba(212,56,14,.35); border-radius:3px; padding:2px 8px">删除</span></td>
+        </tr>
+      </table>
+      <p style="font-size:11px; color:rgba(28,31,35,.45); margin:10px 0 0">
+        行内启用开关即时生效（走通知 patch 接口）；「最近投递」列给出该通知全部平台目标的最后投递状态摘要（成功受理 / 失败原因 / unknown）。
+      </p>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>问题一：测试发送入口放哪？</h3>
+  <p class="subtitle">spec 口径：test-send 显式发送「当前已保存」的通知；抽屉里编辑中的草稿要先用「预览」验证、保存后才能测试。</p>
+  <div class="options">
+    <div class="option" data-choice="test-send-row" onclick="toggleSelect(this)">
+      <div class="letter">A</div>
+      <div class="content"><h3>列表行内按钮（mockup 当前形态）</h3><p>针对已保存通知，语义最干净；入口直接可见。</p></div>
+    </div>
+    <div class="option" data-choice="test-send-drawer" onclick="toggleSelect(this)">
+      <div class="letter">B</div>
+      <div class="content"><h3>抽屉 footer</h3><p>编辑时顺手，但容易和「预览」混淆；草稿未保存时需要禁用并解释，多一层状态。</p></div>
+    </div>
+    <div class="option" data-choice="test-send-both" onclick="toggleSelect(this)">
+      <div class="letter">C</div>
+      <div class="content"><h3>两处都有</h3><p>行内发已保存版，抽屉 footer 发已保存版（草稿时禁用+提示先保存）。方便但入口重复。</p></div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>问题二：投递记录（GET /notifications/deliveries）在哪看？</h3>
+  <div class="options">
+    <div class="option" data-choice="deliveries-expand" onclick="toggleSelect(this)">
+      <div class="letter">A</div>
+      <div class="content"><h3>列表行展开（Table expand 行）</h3><p>该通知的投递记录内联展开：时间、平台、周期、状态、合并次数；贴近列表语境。</p></div>
+    </div>
+    <div class="option" data-choice="deliveries-drawer-tab" onclick="toggleSelect(this)">
+      <div class="letter">B</div>
+      <div class="content"><h3>编辑抽屉加第三个 Tab「投递记录」</h3><p>与模板、平台配置并列；但「查看记录」要进「编辑」入口，语义有点绕。</p></div>
+    </div>
+    <div class="option" data-choice="deliveries-panel" onclick="toggleSelect(this)">
+      <div class="letter">C</div>
+      <div class="content"><h3>面板级独立查询区</h3><p>Key 管理页新开一块投递查询（按 Key/通知/平台/状态筛选），发挥 deliveries 查询接口的全部能力；适合排查全局问题，离单条通知稍远。</p></div>
+    </div>
+  </div>
+</div>

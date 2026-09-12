@@ -1,0 +1,79 @@
+<h2>全局通知 v2：一条完整的「全局默认通知」实体</h2>
+<p class="subtitle">
+  按你的确认收敛：全局 = <b>一条完整通知实体</b>（名称、模板、计划、平台身份），作用于所有未配置任何专属通知的 Key；
+  Key 配置 ≥1 条专属通知后它对该 Key 停止，不叠加。专属通知的平台身份仍必配于自身、不引用全局素材。
+  上一屏的「全局默认模板 + 全局默认计划」两个区块因此合并升级为「全局默认通知」实体编辑器。
+</p>
+
+<div class="section">
+  <h3>「通知」面板 · v2 结构</h3>
+  <div class="mockup">
+    <div class="mockup-header"><span class="dots"></span>Model Mapper Plus — 通知面板（导航同上一屏）</div>
+    <div class="mockup-body" style="background:#fff; padding:14px 16px; display:flex; flex-direction:column; gap:12px; background:rgba(28,31,35,.015)">
+      <!-- 全局默认通知实体 -->
+      <div style="border:1px solid rgba(28,31,35,.12); border-radius:6px; padding:12px 14px; background:#fff">
+        <div style="font-size:13px; font-weight:600; color:#1c1f23; margin-bottom:8px">全局默认通知 <span style="font-weight:400; font-size:12px; color:rgba(28,31,35,.45)">— 对未配置任何专属通知的 Key 生效；一条完整通知实体</span></div>
+        <div style="display:flex; gap:14px; flex-wrap:wrap; align-items:flex-start">
+          <div style="flex:1; min-width:220px">
+            <div style="font-size:12px; color:rgba(28,31,35,.8); margin-bottom:6px">通知名称 <span style="color:rgba(28,31,35,.45)">（消息标题）</span></div>
+            <div style="height:32px; border:1px solid rgba(28,31,35,.15); border-radius:3px; display:flex; align-items:center; padding:0 10px; font-size:13px; color:#1c1f23">用量通知</div>
+            <div style="font-size:12px; color:rgba(28,31,35,.8); margin:10px 0 6px">发送计划</div>
+            <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap">
+              <span style="font-size:12px; color:#1c1f23; border:1px solid rgba(28,31,35,.15); border-radius:3px; padding:5px 10px">每隔 ▾</span>
+              <span style="font-size:12px; color:#1c1f23; border:1px solid rgba(28,31,35,.15); border-radius:3px; padding:5px 8px; width:36px; text-align:center">1</span>
+              <span style="font-size:12px; color:#1c1f23; border:1px solid rgba(28,31,35,.15); border-radius:3px; padding:5px 10px">天 ▾</span>
+              <span style="font-size:12px; color:#1c1f23; border:1px solid rgba(28,31,35,.15); border-radius:3px; padding:5px 10px">🕐 09:00:00</span>
+            </div>
+          </div>
+          <div style="flex:1.2; min-width:260px">
+            <div style="font-size:12px; color:rgba(28,31,35,.8); margin-bottom:6px">模板模块 <span style="color:rgba(28,31,35,.45)">（编辑器同抽屉）</span></div>
+            <div style="border:1px solid rgba(28,31,35,.15); border-radius:6px; padding:8px 10px; font-size:12px; color:#1c1f23">
+              ⠿ ✓ 日统计（本期累计）<br>
+              ⠿ ✓ 年统计（本期累计）<br>
+              ⠿ ✓ Weekly · ⠿ ✓ 重置卡
+            </div>
+          </div>
+        </div>
+        <div style="margin-top:12px">
+          <div style="font-size:12px; color:rgba(28,31,35,.8); margin-bottom:6px">平台身份 <span style="color:rgba(28,31,35,.45)">（本实体自持；与通知抽屉内同构：启用的平台必配完整身份）</span></div>
+          <div style="display:flex; gap:6px">
+            <span style="font-size:12px; color:#1c1f23; border:1px solid rgba(28,31,35,.15); border-bottom:none; border-radius:6px 6px 0 0; padding:5px 12px; background:rgba(28,31,35,.04)">企业微信 <span style="color:#2ea44f">启用</span></span>
+            <span style="font-size:12px; color:#1c1f23; border:1px solid rgba(28,31,35,.15); border-bottom:1px solid #fff; border-radius:6px 6px 0 0; padding:5px 12px; background:#fff; margin-bottom:-1px">飞书 <span style="color:#2ea44f">启用</span></span>
+            <span style="font-size:12px; color:rgba(28,31,35,.5); border:1px solid rgba(28,31,35,.15); border-bottom:none; border-radius:6px 6px 0 0; padding:5px 12px; background:rgba(28,31,35,.04)">钉钉 <span style="color:rgba(28,31,35,.4)">未配置</span></span>
+          </div>
+          <div style="border:1px solid rgba(28,31,35,.15); border-radius:0 6px 6px 6px; padding:10px 12px; font-size:12px; color:rgba(28,31,35,.55)">
+            飞书：Webhook 明文回显 · 用户唯一 ID ou_8f7e…（必填校验同通知抽屉）· 签名密钥
+          </div>
+        </div>
+      </div>
+      <!-- 服务状态 + 投递记录 -->
+      <div style="border:1px dashed rgba(28,31,35,.2); border-radius:6px; padding:10px 14px; font-size:12px; color:rgba(28,31,35,.55); background:#fff">
+        「通知服务」状态卡与「投递记录」总查询同上一屏，位置保持不变。
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>联动：Key 弹窗通知列表的空态提示</h3>
+  <div class="mockup" style="max-width:720px">
+    <div class="mockup-header"><span class="dots"></span>Key 编辑弹窗 — 通知页签（0 条专属通知）</div>
+    <div class="mockup-body" style="background:#fff">
+      <div style="display:flex; gap:20px; padding:0; border-bottom:1px solid rgba(28,31,35,.08); margin-bottom:14px; font-size:14px">
+        <span style="padding:10px 4px; margin-right:12px; color:rgba(28,31,35,.65)">基础</span>
+        <span style="padding:10px 4px; margin-right:12px; color:rgba(28,31,35,.65)">渠道定向</span>
+        <span style="padding:10px 4px; margin-right:12px; color:rgba(28,31,35,.65)">规则集</span>
+        <span style="padding:10px 4px; font-weight:600; color:#0064fa; border-bottom:2px solid #0064fa">通知</span>
+      </div>
+      <div style="border:1px dashed rgba(28,31,35,.25); border-radius:8px; padding:20px; text-align:center; background:rgba(28,31,35,.015)">
+        <p style="font-size:13px; color:#1c1f23; margin:0 0 6px">该 Key 尚未配置专属通知</p>
+        <p style="font-size:12px; color:rgba(28,31,35,.55); margin:0 0 12px">当前按<b>全局默认通知「用量通知」</b>发送（每隔 1 天 09:00）——新增第一条专属通知后，全局默认通知即对本 Key 停止。</p>
+        <span style="font-size:13px; color:#fff; background:#0064fa; border-radius:3px; padding:6px 14px">＋ 新增通知</span>
+      </div>
+    </div>
+  </div>
+  <p class="subtitle" style="margin-top:10px">
+    空态直接告知当前生效中的全局通知及其计划，避免「为什么这个 Key 也在收消息」的困惑；
+    提示中同时预告切换语义（新增专属 → 全局停止），与 spec 新增的两个 Scenario 一致。
+  </p>
+</div>

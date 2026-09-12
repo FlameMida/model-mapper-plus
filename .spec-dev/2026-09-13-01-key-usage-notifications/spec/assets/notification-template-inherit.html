@@ -1,0 +1,156 @@
+<h2>「通知模板」v2：继承全局、计划三态、校验与预览状态</h2>
+<p class="subtitle">
+  在上一版（名称/启用/模块/计划）基础上补四件事：
+  ① 模板与计划各自有「跟随全局默认」开关——spec「未配置专属模板或计划时分别回退全局默认值」落到 UI；
+  ② 发送计划三态字段 + 下次发送时间预览；
+  ③ 通知名称同 Key 内唯一校验；
+  ④ 预览过期提示（表单变更后）。
+  模块拖拽沿用已选的 dnd-kit 方案。看完可开标注模式指出还缺的参数。
+</p>
+
+<div class="section">
+  <h3>编辑抽屉 · 通知模板页签（自定义态）</h3>
+  <div class="mockup">
+    <div class="mockup-header"><span class="dots"></span>Semi SideSheet — 编辑通知：日报用量 · 通知模板</div>
+    <div class="mockup-body" style="background:#fff; padding:16px 24px">
+      <!-- 名称 + 启用 -->
+      <div style="display:flex; gap:16px; margin-bottom:4px">
+        <div style="flex:1">
+          <div style="font-size:12px; color:rgba(28,31,35,.8); margin-bottom:6px">通知名称 <span style="color:rgba(28,31,35,.45)">（同 Key 内唯一；也是消息标题）</span></div>
+          <div style="height:32px; border:1px solid rgba(28,31,35,.15); border-radius:3px; display:flex; align-items:center; padding:0 10px; font-size:13px; color:#1c1f23">日报用量通知</div>
+          <div style="font-size:11px; color:rgba(28,31,35,.4); margin-top:4px">改为「月报用量」时将在此处出现红字：同名通知已存在</div>
+        </div>
+        <div style="flex:none; display:flex; flex-direction:column; justify-content:center">
+          <div style="display:flex; align-items:center; gap:8px; margin-top:18px">
+            <span style="width:28px; height:16px; border-radius:8px; background:#0064fa; display:inline-flex; align-items:center; justify-content:flex-end; padding:0 2px"><span style="width:12px; height:12px; border-radius:50%; background:#fff"></span></span>
+            <span style="font-size:13px; color:#1c1f23">启用通知</span>
+          </div>
+          <div style="font-size:11px; color:rgba(28,31,35,.45); margin-top:4px">关闭只停发，不删除配置</div>
+        </div>
+      </div>
+
+      <!-- 模板块 -->
+      <div style="margin-top:16px; border:1px solid rgba(28,31,35,.1); border-radius:8px; padding:14px">
+        <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px">
+          <span style="font-size:13px; font-weight:600; color:#1c1f23">模板模块</span>
+          <span style="margin-left:auto; display:flex; align-items:center; gap:6px">
+            <span style="font-size:12px; color:rgba(28,31,35,.65)">跟随全局默认模板</span>
+            <span style="display:inline-flex; width:28px; height:16px; border-radius:8px; background:rgba(28,31,35,.18); align-items:center; padding:0 2px; justify-content:flex-start"><span style="width:12px; height:12px; border-radius:50%; background:#fff"></span></span>
+          </span>
+        </div>
+        <div style="border:1px solid rgba(28,31,35,.15); border-radius:6px; overflow:hidden">
+          <div style="padding:5px 10px; font-size:11px; color:rgba(28,31,35,.45); background:rgba(28,31,35,.03); border-bottom:1px solid rgba(28,31,35,.06)">统计周期（周期 = 本期累计 / 上一完整周期）</div>
+          <div style="display:flex; align-items:center; gap:8px; padding:6px 10px; border-bottom:1px solid rgba(28,31,35,.06)">
+            <span style="font-size:14px; color:#0064fa; cursor:grab">⠿</span>
+            <span style="width:14px; height:14px; border-radius:2px; background:#0064fa; color:#fff; font-size:10px; display:inline-flex; align-items:center; justify-content:center">✓</span>
+            <span style="font-size:13px; color:#1c1f23; flex:1">日统计</span>
+            <span style="font-size:12px; color:#1c1f23; border:1px solid rgba(28,31,35,.15); border-radius:3px; padding:3px 8px">本期累计 ▾</span>
+          </div>
+          <div style="display:flex; align-items:center; gap:8px; padding:6px 10px; border-bottom:1px solid rgba(28,31,35,.06)">
+            <span style="font-size:14px; color:rgba(28,31,35,.45); cursor:grab">⠿</span>
+            <span style="width:14px; height:14px; border-radius:2px; border:1px solid rgba(28,31,35,.25); display:inline-block"></span>
+            <span style="font-size:13px; color:rgba(28,31,35,.5); flex:1">月统计</span>
+            <span style="font-size:12px; color:rgba(28,31,35,.4); border:1px solid rgba(28,31,35,.1); border-radius:3px; padding:3px 8px; background:rgba(28,31,35,.03)">禁用 ▾</span>
+          </div>
+          <div style="display:flex; align-items:center; gap:8px; padding:6px 10px; border-bottom:1px solid rgba(28,31,35,.06)">
+            <span style="font-size:14px; color:#0064fa; cursor:grab">⠿</span>
+            <span style="width:14px; height:14px; border-radius:2px; background:#0064fa; color:#fff; font-size:10px; display:inline-flex; align-items:center; justify-content:center">✓</span>
+            <span style="font-size:13px; color:#1c1f23; flex:1">年统计</span>
+            <span style="font-size:12px; color:#1c1f23; border:1px solid rgba(28,31,35,.15); border-radius:3px; padding:3px 8px">本期累计 ▾</span>
+          </div>
+          <div style="display:flex; align-items:center; gap:8px; padding:6px 10px; border-bottom:1px solid rgba(28,31,35,.06)">
+            <span style="font-size:14px; color:rgba(28,31,35,.45); cursor:grab">⠿</span>
+            <span style="width:14px; height:14px; border-radius:2px; border:1px solid rgba(28,31,35,.25); display:inline-block"></span>
+            <span style="font-size:13px; color:rgba(28,31,35,.5); flex:1">半年统计 <span style="font-size:11px">（1—6 月 / 7—12 月边界）</span></span>
+            <span style="font-size:12px; color:rgba(28,31,35,.4); border:1px solid rgba(28,31,35,.1); border-radius:3px; padding:3px 8px; background:rgba(28,31,35,.03)">禁用 ▾</span>
+          </div>
+          <div style="padding:5px 10px; font-size:11px; color:rgba(28,31,35,.45); background:rgba(28,31,35,.03); border-top:1px solid rgba(28,31,35,.06); border-bottom:1px solid rgba(28,31,35,.06)">渠道窗口（Keeper 返回对应窗口时才出现在消息中）</div>
+          <div style="display:flex; align-items:center; gap:8px; padding:6px 10px; border-bottom:1px solid rgba(28,31,35,.06)">
+            <span style="font-size:14px; color:#0064fa; cursor:grab">⠿</span>
+            <span style="width:14px; height:14px; border-radius:2px; background:#0064fa; color:#fff; font-size:10px; display:inline-flex; align-items:center; justify-content:center">✓</span>
+            <span style="font-size:13px; color:#1c1f23; flex:1">Weekly 窗口</span>
+          </div>
+          <div style="display:flex; align-items:center; gap:8px; padding:6px 10px; border-bottom:1px solid rgba(28,31,35,.06)">
+            <span style="font-size:14px; color:rgba(28,31,35,.45); cursor:grab">⠿</span>
+            <span style="width:14px; height:14px; border-radius:2px; border:1px solid rgba(28,31,35,.25); display:inline-block"></span>
+            <span style="font-size:13px; color:rgba(28,31,35,.5); flex:1">5H 窗口</span>
+          </div>
+          <div style="display:flex; align-items:center; gap:8px; padding:6px 10px">
+            <span style="font-size:14px; color:rgba(28,31,35,.45); cursor:grab">⠿</span>
+            <span style="width:14px; height:14px; border-radius:2px; background:#0064fa; color:#fff; font-size:10px; display:inline-flex; align-items:center; justify-content:center">✓</span>
+            <span style="font-size:13px; color:#1c1f23; flex:1">重置卡 <span style="font-size:11px">（每张卡显示过期时间与剩余）</span></span>
+          </div>
+        </div>
+        <p style="font-size:11px; color:rgba(28,31,35,.45); margin:8px 0 0">仅启用的模块参与排序（未启用行手柄置灰）；拖拽只改变启用模块在消息中的出现顺序。</p>
+      </div>
+
+      <!-- 计划块 -->
+      <div style="margin-top:14px; border:1px solid rgba(28,31,35,.1); border-radius:8px; padding:14px">
+        <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px">
+          <span style="font-size:13px; font-weight:600; color:#1c1f23">发送计划</span>
+          <span style="margin-left:auto; display:flex; align-items:center; gap:6px">
+            <span style="font-size:12px; color:rgba(28,31,35,.65)">跟随全局默认计划</span>
+            <span style="display:inline-flex; width:28px; height:16px; border-radius:8px; background:rgba(28,31,35,.18); align-items:center; padding:0 2px; justify-content:flex-start"><span style="width:12px; height:12px; border-radius:50%; background:#fff"></span></span>
+          </span>
+        </div>
+        <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap">
+          <span style="font-size:12px; color:rgba(28,31,35,.65)">周期类型</span>
+          <span style="font-size:12px; color:#1c1f23; border:1px solid rgba(28,31,35,.15); border-radius:3px; padding:5px 10px">每月 ▾</span>
+          <span style="font-size:12px; color:#1c1f23; border:1px solid rgba(28,31,35,.15); border-radius:3px; padding:5px 10px">月末 ▾</span>
+          <span style="font-size:12px; color:rgba(28,31,35,.65)">发送时间</span>
+          <span style="font-size:12px; color:#1c1f23; border:1px solid rgba(28,31,35,.15); border-radius:3px; padding:5px 10px">🕐 23:59:59</span>
+        </div>
+        <div style="font-size:11px; color:rgba(28,31,35,.45); margin-top:8px">下次发送预计 <b style="color:rgba(28,31,35,.65)">2026-09-30 23:59:59</b> · 计划随类型切换实时重算（每年 2/29 等无效日期跳过并显示下一次有效时间）</div>
+      </div>
+
+      <!-- 预览过期提示 -->
+      <div style="display:flex; align-items:center; gap:8px; border:1px solid rgba(255,196,0,.5); background:rgba(255,196,0,.08); border-radius:4px; padding:8px 12px; margin-top:14px">
+        <span style="color:#ed7b2f; font-size:13px">↻</span>
+        <span style="font-size:12px; color:rgba(28,31,35,.8)">配置自上次预览后已修改——预览结果可能过期，发送前请重新预览。</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>对照：「跟随全局」态（模板 / 计划任一开关打开时）</h3>
+  <div class="mockup" style="max-width:640px">
+    <div class="mockup-header"><span class="dots"></span>开关打开 → 对应区块变只读</div>
+    <div class="mockup-body" style="background:#fff; padding:14px 20px">
+      <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px">
+        <span style="font-size:13px; font-weight:600; color:#1c1f23">模板模块</span>
+        <span style="margin-left:auto; display:flex; align-items:center; gap:6px">
+          <span style="font-size:12px; color:#0064fa">跟随全局默认模板</span>
+          <span style="display:inline-flex; width:28px; height:16px; border-radius:8px; background:#0064fa; align-items:center; justify-content:flex-end; padding:0 2px"><span style="width:12px; height:12px; border-radius:50%; background:#fff"></span></span>
+        </span>
+      </div>
+      <div style="border:1px dashed rgba(28,31,35,.2); border-radius:6px; padding:10px 12px; background:rgba(28,31,35,.02)">
+        <p style="font-size:12px; color:rgba(28,31,35,.65); margin:0 0 6px">来源：全局默认模板 · 模块序列只读展示</p>
+        <p style="font-size:12px; color:rgba(28,31,35,.5); margin:0">日统计(本期累计) → 年统计(本期累计) → Weekly → 重置卡</p>
+      </div>
+      <div style="display:flex; align-items:center; gap:8px; margin:12px 0 8px">
+        <span style="font-size:13px; font-weight:600; color:#1c1f23">发送计划</span>
+        <span style="margin-left:auto; display:flex; align-items:center; gap:6px">
+          <span style="font-size:12px; color:rgba(28,31,35,.65)">跟随全局默认计划</span>
+          <span style="display:inline-flex; width:28px; height:16px; border-radius:8px; background:rgba(28,31,35,.18); align-items:center; padding:0 2px; justify-content:flex-start"><span style="width:12px; height:12px; border-radius:50%; background:#fff"></span></span>
+        </span>
+      </div>
+      <div style="border:1px solid rgba(28,31,35,.15); border-radius:6px; padding:10px 12px; font-size:12px; color:#1c1f23">全局计划：每天 09:00:00 · 下次发送预计 2026-09-14 09:00:00</div>
+    </div>
+  </div>
+  <p class="subtitle" style="margin-top:10px">两个开关独立：可以模板自定义而计划跟随全局（反之亦然）——对应 spec「分别回退」。</p>
+</div>
+
+<div class="section">
+  <h3>问题：新建一条通知时，模板/计划的默认态？</h3>
+  <div class="options">
+    <div class="option" data-choice="new-follow-global" onclick="toggleSelect(this)">
+      <div class="letter">A</div>
+      <div class="content"><h3>默认「跟随全局」（推荐）</h3><p>新建即继承全局模板与计划，开箱即用；全局改版自动惠及所有继承者。要个性再关开关定制。</p></div>
+    </div>
+    <div class="option" data-choice="new-copy-global" onclick="toggleSelect(this)">
+      <div class="letter">B</div>
+      <div class="content"><h3>默认「复制全局为专属」</h3><p>新建时把全局当前值拷贝成专属配置，之后与全局互不影响；改全局不会波及存量通知，但全局改版要逐条手动同步。</p></div>
+    </div>
+  </div>
+</div>

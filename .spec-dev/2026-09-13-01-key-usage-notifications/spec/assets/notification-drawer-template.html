@@ -1,0 +1,192 @@
+<h2>方案 C 落地：SideSheet 抽屉与「通知模板」页签布局</h2>
+<p class="subtitle">
+  组件选型：编辑通知用 Semi <b>SideSheet size="medium"（684px）</b>，带 footer（预览 / 取消 / 保存）；
+  页签用 <b>Tabs type="line"</b>；表单沿用 Semi 基础组件（Input / Select / Switch / TimePicker，label 上置）。
+  下方「统计模块区」有两种交互方案，看完点选其一。
+</p>
+
+<div class="section">
+  <h3>抽屉整体预览</h3>
+  <div class="mockup">
+    <div class="mockup-header"><span class="dots"></span>Semi SideSheet（placement=right，width 684）</div>
+    <div class="mockup-body" style="display:flex; padding:0; background:rgba(28,31,35,.35)">
+      <!-- 遮罩下的 Key 弹窗一角 -->
+      <div style="flex:none; width:150px; padding:14px 10px; background:#f2f2f5; opacity:.75; border-right:1px solid rgba(0,0,0,.08)">
+        <p class="label" style="margin:0 0 8px">Key 编辑弹窗（被遮罩）</p>
+        <div style="height:8px" class="mock-line w-75"></div>
+        <div style="height:8px" class="mock-line w-50"></div>
+        <div style="height:8px" class="mock-line w-100"></div>
+      </div>
+      <!-- 抽屉本体 -->
+      <div style="flex:1; background:#fff; min-width:0">
+        <!-- header -->
+        <div style="padding:14px 24px; border-bottom:1px solid rgba(28,31,35,.08)">
+          <div style="font-size:17px; font-weight:600; color:#1c1f23">编辑通知：日报用量</div>
+          <div style="font-size:12px; color:rgba(28,31,35,.62); margin-top:2px">Key：研发主账号（Sk-1R…c9）</div>
+        </div>
+        <!-- Tabs -->
+        <div style="display:flex; gap:4px; padding:0 24px; border-bottom:1px solid rgba(28,31,35,.08)">
+          <span style="padding:10px 4px; margin-right:12px; font-size:14px; font-weight:600; color:#0064fa; border-bottom:2px solid #0064fa">通知模板</span>
+          <span style="padding:10px 4px; font-size:14px; color:rgba(28,31,35,.65)">平台身份配置</span>
+        </div>
+        <!-- 表单 -->
+        <div style="padding:16px 24px">
+          <!-- 名称 + 启用 -->
+          <div style="display:flex; gap:16px; margin-bottom:16px">
+            <div style="flex:1">
+              <div style="font-size:12px; color:rgba(28,31,35,.8); margin-bottom:6px">通知名称</div>
+              <div class="mock-input" style="height:32px; border:1px solid rgba(28,31,35,.15); border-radius:3px; display:flex; align-items:center; padding:0 10px; color:#1c1f23">日报用量通知</div>
+            </div>
+            <div style="flex:none; display:flex; flex-direction:column; justify-content:center">
+              <div style="display:flex; align-items:center; gap:8px; margin-top:18px">
+                <span style="width:28px; height:16px; border-radius:8px; background:#0064fa; display:inline-flex; align-items:center; justify-content:flex-end; padding:0 2px"><span style="width:12px; height:12px; border-radius:50%; background:#fff"></span></span>
+                <span style="font-size:13px; color:#1c1f23">启用通知</span>
+              </div>
+              <div style="font-size:11px; color:rgba(28,31,35,.45); margin-top:4px">关闭只停发，不删除配置</div>
+            </div>
+          </div>
+          <!-- 统计模块（行式预览） -->
+          <div style="margin-bottom:16px">
+            <div style="font-size:12px; color:rgba(28,31,35,.8); margin-bottom:6px">统计模块 <span style="color:rgba(28,31,35,.45)">（勾选启用 · 行序即消息中的出现顺序）</span></div>
+            <div style="border:1px solid rgba(28,31,35,.15); border-radius:6px; overflow:hidden">
+              <div style="padding:5px 10px; font-size:11px; color:rgba(28,31,35,.45); background:rgba(28,31,35,.03); border-bottom:1px solid rgba(28,31,35,.06)">统计周期</div>
+              <div style="display:flex; align-items:center; gap:8px; padding:6px 10px; border-bottom:1px solid rgba(28,31,35,.06)">
+                <span style="width:14px; height:14px; border-radius:2px; background:#0064fa; color:#fff; font-size:10px; display:inline-flex; align-items:center; justify-content:center">✓</span>
+                <span style="font-size:13px; color:#1c1f23; flex:1">日统计</span>
+                <span style="font-size:12px; color:#1c1f23; border:1px solid rgba(28,31,35,.15); border-radius:3px; padding:3px 8px">本期累计 ▾</span>
+                <span style="display:inline-flex; gap:2px"><span style="width:20px; height:20px; border:1px solid rgba(28,31,35,.15); border-radius:3px; display:inline-flex; align-items:center; justify-content:center; font-size:10px; color:rgba(28,31,35,.45)">↑</span><span style="width:20px; height:20px; border:1px solid rgba(28,31,35,.15); border-radius:3px; display:inline-flex; align-items:center; justify-content:center; font-size:10px; color:#1c1f23">↓</span></span>
+              </div>
+              <div style="display:flex; align-items:center; gap:8px; padding:6px 10px; border-bottom:1px solid rgba(28,31,35,.06)">
+                <span style="width:14px; height:14px; border-radius:2px; background:#0064fa; color:#fff; font-size:10px; display:inline-flex; align-items:center; justify-content:center">✓</span>
+                <span style="font-size:13px; color:#1c1f23; flex:1">月统计</span>
+                <span style="font-size:12px; color:#1c1f23; border:1px solid rgba(28,31,35,.15); border-radius:3px; padding:3px 8px">上一完整周期 ▾</span>
+                <span style="display:inline-flex; gap:2px"><span style="width:20px; height:20px; border:1px solid rgba(28,31,35,.15); border-radius:3px; display:inline-flex; align-items:center; justify-content:center; font-size:10px; color:#1c1f23">↑</span><span style="width:20px; height:20px; border:1px solid rgba(28,31,35,.15); border-radius:3px; display:inline-flex; align-items:center; justify-content:center; font-size:10px; color:rgba(28,31,35,.45)">↓</span></span>
+              </div>
+              <div style="display:flex; align-items:center; gap:8px; padding:6px 10px; border-bottom:1px solid rgba(28,31,35,.06); background:rgba(28,31,35,.015)">
+                <span style="width:14px; height:14px; border-radius:2px; border:1px solid rgba(28,31,35,.25); display:inline-block"></span>
+                <span style="font-size:13px; color:rgba(28,31,35,.5); flex:1">半年统计</span>
+                <span style="font-size:12px; color:rgba(28,31,35,.4); border:1px solid rgba(28,31,35,.1); border-radius:3px; padding:3px 8px; background:rgba(28,31,35,.03)">本期累计 ▾（禁用）</span>
+                <span style="display:inline-flex; gap:2px; opacity:.35"><span style="width:20px; height:20px; border:1px solid rgba(28,31,35,.15); border-radius:3px; display:inline-flex; align-items:center; justify-content:center; font-size:10px">↑</span><span style="width:20px; height:20px; border:1px solid rgba(28,31,35,.15); border-radius:3px; display:inline-flex; align-items:center; justify-content:center; font-size:10px">↓</span></span>
+              </div>
+              <div style="display:flex; align-items:center; gap:8px; padding:6px 10px">
+                <span style="width:14px; height:14px; border-radius:2px; background:#0064fa; color:#fff; font-size:10px; display:inline-flex; align-items:center; justify-content:center">✓</span>
+                <span style="font-size:13px; color:#1c1f23; flex:1">年统计</span>
+                <span style="font-size:12px; color:#1c1f23; border:1px solid rgba(28,31,35,.15); border-radius:3px; padding:3px 8px">本期累计 ▾</span>
+                <span style="display:inline-flex; gap:2px; opacity:.35"><span style="width:20px; height:20px; border:1px solid rgba(28,31,35,.15); border-radius:3px; display:inline-flex; align-items:center; justify-content:center; font-size:10px">↑</span><span style="width:20px; height:20px; border:1px solid rgba(28,31,35,.15); border-radius:3px; display:inline-flex; align-items:center; justify-content:center; font-size:10px">↓</span></span>
+              </div>
+              <div style="padding:5px 10px; font-size:11px; color:rgba(28,31,35,.45); background:rgba(28,31,35,.03); border-top:1px solid rgba(28,31,35,.06); border-bottom:1px solid rgba(28,31,35,.06)">渠道窗口</div>
+              <div style="display:flex; align-items:center; gap:8px; padding:6px 10px; border-bottom:1px solid rgba(28,31,35,.06)">
+                <span style="width:14px; height:14px; border-radius:2px; border:1px solid rgba(28,31,35,.25); display:inline-block"></span>
+                <span style="font-size:13px; color:rgba(28,31,35,.5); flex:1">5H 窗口 <span style="font-size:11px; color:rgba(28,31,35,.4)">（Keeper 返回时才出现在消息里）</span></span>
+              </div>
+              <div style="display:flex; align-items:center; gap:8px; padding:6px 10px; border-bottom:1px solid rgba(28,31,35,.06)">
+                <span style="width:14px; height:14px; border-radius:2px; background:#0064fa; color:#fff; font-size:10px; display:inline-flex; align-items:center; justify-content:center">✓</span>
+                <span style="font-size:13px; color:#1c1f23; flex:1">Weekly 窗口</span>
+              </div>
+              <div style="display:flex; align-items:center; gap:8px; padding:6px 10px">
+                <span style="width:14px; height:14px; border-radius:2px; border:1px solid rgba(28,31,35,.25); display:inline-block"></span>
+                <span style="font-size:13px; color:rgba(28,31,35,.5); flex:1">重置卡（每张卡显示过期时间与剩余）</span>
+              </div>
+            </div>
+          </div>
+          <!-- 发送计划 -->
+          <div>
+            <div style="font-size:12px; color:rgba(28,31,35,.8); margin-bottom:6px">发送计划</div>
+            <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap">
+              <span style="font-size:12px; color:rgba(28,31,35,.65)">周期类型</span>
+              <span style="font-size:12px; color:#1c1f23; border:1px solid rgba(28,31,35,.15); border-radius:3px; padding:5px 10px">每隔 ▾</span>
+              <span style="font-size:12px; color:rgba(28,31,35,.65)">间隔</span>
+              <span style="font-size:12px; color:#1c1f23; border:1px solid rgba(28,31,35,.15); border-radius:3px; padding:5px 8px; width:40px; text-align:center">1</span>
+              <span style="font-size:12px; color:#1c1f23; border:1px solid rgba(28,31,35,.15); border-radius:3px; padding:5px 10px">天 ▾</span>
+            </div>
+            <div style="font-size:11px; color:rgba(28,31,35,.45); margin-top:6px">下次发送预计 2026-09-14 09:00:00 · 计划留空时回退全局默认计划</div>
+          </div>
+        </div>
+        <!-- footer -->
+        <div style="display:flex; align-items:center; padding:12px 24px; border-top:1px solid rgba(28,31,35,.08)">
+          <span style="font-size:13px; color:#1c1f23; border:1px solid rgba(28,31,35,.15); border-radius:3px; padding:5px 12px">预览消息</span>
+          <span style="margin-left:auto; font-size:13px; color:#1c1f23; border:1px solid rgba(28,31,35,.15); border-radius:3px; padding:5px 12px; margin-right:8px">取消</span>
+          <span style="font-size:13px; color:#fff; background:#0064fa; border-radius:3px; padding:5px 16px">保存</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>统计模块区：行式上下移 vs 拖拽排序（点选其一）</h3>
+  <div class="split">
+    <div class="mockup" data-choice="module-rows" onclick="toggleSelect(this)" style="cursor:pointer">
+      <div class="mockup-header"><span class="dots"></span>A · 行式 + 上下移按钮</div>
+      <div class="mockup-body" style="background:#fff">
+        <div style="display:flex; align-items:center; gap:8px; padding:6px 10px; border:1px solid rgba(28,31,35,.15); border-radius:6px 6px 0 0; border-bottom:none">
+          <span style="width:14px; height:14px; border-radius:2px; background:#0064fa; color:#fff; font-size:10px; display:inline-flex; align-items:center; justify-content:center">✓</span>
+          <span style="font-size:13px; color:#1c1f23; flex:1">日统计</span>
+          <span style="font-size:12px; color:#1c1f23; border:1px solid rgba(28,31,35,.15); border-radius:3px; padding:3px 8px">本期累计 ▾</span>
+          <span style="display:inline-flex; gap:2px"><span style="width:20px; height:20px; border:1px solid rgba(28,31,35,.15); border-radius:3px; display:inline-flex; align-items:center; justify-content:center; font-size:10px">↑</span><span style="width:20px; height:20px; border:1px solid rgba(28,31,35,.15); border-radius:3px; display:inline-flex; align-items:center; justify-content:center; font-size:10px">↓</span></span>
+        </div>
+        <div style="display:flex; align-items:center; gap:8px; padding:6px 10px; border:1px solid rgba(28,31,35,.15)">
+          <span style="width:14px; height:14px; border-radius:2px; background:#0064fa; color:#fff; font-size:10px; display:inline-flex; align-items:center; justify-content:center">✓</span>
+          <span style="font-size:13px; color:#1c1f23; flex:1">年统计</span>
+          <span style="font-size:12px; color:#1c1f23; border:1px solid rgba(28,31,35,.15); border-radius:3px; padding:3px 8px">本期累计 ▾</span>
+          <span style="display:inline-flex; gap:2px"><span style="width:20px; height:20px; border:1px solid rgba(28,31,35,.15); border-radius:3px; display:inline-flex; align-items:center; justify-content:center; font-size:10px">↑</span><span style="width:20px; height:20px; border:1px solid rgba(28,31,35,.15); border-radius:3px; display:inline-flex; align-items:center; justify-content:center; font-size:10px">↓</span></span>
+        </div>
+        <div style="display:flex; align-items:center; gap:8px; padding:6px 10px; border:1px solid rgba(28,31,35,.15); border-radius:0 0 6px 6px; opacity:.55">
+          <span style="width:14px; height:14px; border-radius:2px; border:1px solid rgba(28,31,35,.25); display:inline-block"></span>
+          <span style="font-size:13px; color:rgba(28,31,35,.6); flex:1">半年统计</span>
+          <span style="font-size:12px; border:1px solid rgba(28,31,35,.1); border-radius:3px; padding:3px 8px; background:rgba(28,31,35,.03)">禁用</span>
+          <span style="display:inline-flex; gap:2px; opacity:.35"><span style="width:20px; height:20px; border:1px solid rgba(28,31,35,.15); border-radius:3px; display:inline-flex; align-items:center; justify-content:center; font-size:10px">↑</span><span style="width:20px; height:20px; border:1px solid rgba(28,31,35,.15); border-radius:3px; display:inline-flex; align-items:center; justify-content:center; font-size:10px">↓</span></span>
+        </div>
+        <p style="font-size:12px; color:rgba(28,31,35,.65); margin-top:10px">顺序调整 = 点 ↑↓；一次移动一行，移动路径可见。</p>
+      </div>
+    </div>
+    <div class="mockup" data-choice="module-dnd" onclick="toggleSelect(this)" style="cursor:pointer">
+      <div class="mockup-header"><span class="dots"></span>B · 拖拽排序列表</div>
+      <div class="mockup-body" style="background:#fff">
+        <div style="display:flex; align-items:center; gap:8px; padding:6px 10px; border:1px solid rgba(28,31,35,.15); border-radius:6px 6px 0 0; border-bottom:none; background:rgba(0,100,250,.04)">
+          <span style="font-size:14px; color:rgba(28,31,35,.45); cursor:grab">⠿</span>
+          <span style="width:14px; height:14px; border-radius:2px; background:#0064fa; color:#fff; font-size:10px; display:inline-flex; align-items:center; justify-content:center">✓</span>
+          <span style="font-size:13px; color:#1c1f23; flex:1">日统计</span>
+          <span style="font-size:12px; color:#1c1f23; border:1px solid rgba(28,31,35,.15); border-radius:3px; padding:3px 8px">本期累计 ▾</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:8px; padding:6px 10px; border:1px solid rgba(28,31,35,.15)">
+          <span style="font-size:14px; color:rgba(28,31,35,.45); cursor:grab">⠿</span>
+          <span style="width:14px; height:14px; border-radius:2px; background:#0064fa; color:#fff; font-size:10px; display:inline-flex; align-items:center; justify-content:center">✓</span>
+          <span style="font-size:13px; color:#1c1f23; flex:1">年统计</span>
+          <span style="font-size:12px; color:#1c1f23; border:1px solid rgba(28,31,35,.15); border-radius:3px; padding:3px 8px">本期累计 ▾</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:8px; padding:6px 10px; border:1px solid rgba(28,31,35,.15); border-radius:0 0 6px 6px; opacity:.55">
+          <span style="font-size:14px; color:rgba(28,31,35,.3)">⠿</span>
+          <span style="width:14px; height:14px; border-radius:2px; border:1px solid rgba(28,31,35,.25); display:inline-block"></span>
+          <span style="font-size:13px; color:rgba(28,31,35,.6); flex:1">半年统计</span>
+          <span style="font-size:12px; border:1px solid rgba(28,31,35,.1); border-radius:3px; padding:3px 8px; background:rgba(28,31,35,.03)">禁用</span>
+        </div>
+        <p style="font-size:12px; color:rgba(28,31,35,.65); margin-top:10px">按住 ⠿ 拖动整行换位，一步到位；灰色行不可拖。</p>
+      </div>
+    </div>
+  </div>
+  <div style="display:flex; gap:16px; margin-top:10px">
+    <div style="flex:1; font-size:13px; color:rgba(28,31,35,.75)">
+      <b>A · 行式上下移</b>：零新增依赖（现仓库只有 semi-ui / semi-icons）；键盘可达、jsdom 行为测试直接。缺点是模块多时连续点按稍繁琐。
+    </div>
+    <div style="flex:1; font-size:13px; color:rgba(28,31,35,.75)">
+      <b>B · 拖拽排序</b>：调整顺序最直观。但 Semi 没有 SortableList，需要新增 dnd-kit 依赖，且拖拽行为在 jsdom 里难以测真、单文件 UI 体积也会增大。
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>发送计划：三种周期类型的字段（随「周期类型」Select 切换）</h3>
+  <div class="mock-table" style="max-width:760px">
+    <table style="width:100%; border-collapse:collapse; font-size:13px">
+      <tr><th style="text-align:left; padding:8px 12px; border-bottom:2px solid rgba(28,31,35,.1)">周期类型</th><th style="text-align:left; padding:8px 12px; border-bottom:2px solid rgba(28,31,35,.1)">出现的字段</th><th style="text-align:left; padding:8px 12px; border-bottom:2px solid rgba(28,31,35,.1)">组件</th></tr>
+      <tr><td style="padding:8px 12px; border-bottom:1px solid rgba(28,31,35,.06)">每隔</td><td style="padding:8px 12px; border-bottom:1px solid rgba(28,31,35,.06)">间隔值 + 单位（秒 / 分 / 时 / 天）</td><td style="padding:8px 12px; border-bottom:1px solid rgba(28,31,35,.06)">InputNumber + Select</td></tr>
+      <tr><td style="padding:8px 12px; border-bottom:1px solid rgba(28,31,35,.06)">每月</td><td style="padding:8px 12px; border-bottom:1px solid rgba(28,31,35,.06)">月初 / 月末 + 发送时间</td><td style="padding:8px 12px; border-bottom:1px solid rgba(28,31,35,.06)">Select + TimePicker（HH:mm:ss）</td></tr>
+      <tr><td style="padding:8px 12px; border-bottom:1px solid rgba(28,31,35,.06)">每年</td><td style="padding:8px 12px; border-bottom:1px solid rgba(28,31,35,.06)">月份 + 日期 + 发送时间（2月29日在非闰年跳过并提示下一次有效时间）</td><td style="padding:8px 12px; border-bottom:1px solid rgba(28,31,35,.06)">Select + Select + TimePicker（HH:mm:ss）</td></tr>
+    </table>
+  </div>
+  <p class="subtitle" style="margin-top:12px">
+    已按 spec 固化的口径：日历定时只有 每隔 / 每月 / 每年 三类（无每天、每周）；每月只能选月初或月末；时间一律秒级 TimePicker。
+    计划留空时回退全局默认计划。
+  </p>
+</div>
