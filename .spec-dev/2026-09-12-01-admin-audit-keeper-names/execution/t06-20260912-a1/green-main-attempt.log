@@ -1,0 +1,2851 @@
+> vitest run src/App.test.tsx src/api.test.ts src/panels/AuditPanel.test.tsx src/panels/RulesPanel.test.tsx
+ RUN  v4.1.10 /Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-t06/web
+ ❯ src/panels/RulesPanel.test.tsx (3 tests | 1 failed) 1267ms
+   × S9 HTTP400 保存结果和审计失败分别展示 1038ms
+ ❯ src/panels/AuditPanel.test.tsx (5 tests | 4 failed) 3337ms
+   × S10 默认采用服务端北京时间日期，分页、刷新并安全展示差异 1252ms
+   × S9/S10 running、unknown、failed、无变化和损坏行警告可辨认 32ms
+   × S10 读取失败与只有损坏数据都不伪报正常空日：false 1006ms
+   × S10 读取失败与只有损坏数据都不伪报正常空日：true 1007ms
+ Test Files  2 failed | 2 passed (4)
+      Tests  5 failed | 26 passed (31)
+   Start at  14:27:49
+   Duration  7.78s (transform 10.26s, setup 15.30s, import 167ms, tests 4.68s, environment 1.89s)
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 5 ⎯⎯⎯⎯⎯⎯⎯
+ FAIL  src/panels/AuditPanel.test.tsx > S10 默认采用服务端北京时间日期，分页、刷新并安全展示差异
+TestingLibraryElementError: Unable to find an element with the text: second-page. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+Ignored nodes: comments, script, style
+[36m<body[39m
+  [33mstyle[39m=[32m"overflow: hidden; width: calc(100% - 0px);"[39m
+[36m>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33maria-busy[39m=[32m"false"[39m
+      [33mclass[39m=[32m"semi-card audit-panel semi-card-bordered"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"semi-card-header semi-card-header-bordered"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"semi-card-header-wrapper"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"semi-card-header-wrapper-title"[39m
+          [36m>[39m
+            [36m<h6[39m
+              [33mclass[39m=[32m"semi-typography semi-typography-ellipsis semi-typography-ellipsis-single-line semi-typography-ellipsis-overflow-ellipsis semi-typography-primary semi-typography-normal semi-typography-h6"[39m
+              [33mx-semi-prop[39m=[32m"title"[39m
+            [36m>[39m
+              [36m<span>[39m
+                [0m操作审计[0m
+              [36m</span>[39m
+            [36m</h6>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+      [36m</div>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"semi-card-body"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"audit-toolbar"[39m
+        [36m>[39m
+          [36m<label[39m
+            [33mclass[39m=[32m"audit-date"[39m
+          [36m>[39m
+            [0m日期[0m
+            [36m<div[39m
+              [33mclass[39m=[32m"semi-input-wrapper semi-input-wrapper-default"[39m
+            [36m>[39m
+              [36m<input[39m
+                [33maria-label[39m=[32m"审计日期"[39m
+                [33mclass[39m=[32m"semi-input semi-input-default"[39m
+                [33mplaceholder[39m=[32m""[39m
+                [33mtype[39m=[32m"date"[39m
+                [33mvalue[39m=[32m"2026-09-12"[39m
+              [36m/>[39m
+            [36m</div>[39m
+          [36m</label>[39m
+          [36m<span>[39m
+            [0m北京时间（Asia/Shanghai）[0m
+          [36m</span>[39m
+          [36m<button[39m
+            [33maria-disabled[39m=[32m"false"[39m
+            [33mclass[39m=[32m"semi-button semi-button-primary semi-button-light"[39m
+            [33mtype[39m=[32m"button"[39m
+          [36m>[39m
+            [36m<span[39m
+              [33mclass[39m=[32m"semi-button-content"[39m
+              [33mx-semi-prop[39m=[32m"children"[39m
+            [36m>[39m
+              [0m刷新[0m
+            [36m</span>[39m
+          [36m</button>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"audit-table-scroll"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"semi-table-wrapper semi-table-wrapper-undefined"[39m
+            [33mdata-column-fixed[39m=[32m"false"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"semi-spin semi-spin-large semi-spin-block semi-spin-hidden"[39m
+            [36m>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"semi-spin-children"[39m
+                [33mx-semi-prop[39m=[32m"children"[39m
+              [36m>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"semi-table-scroll-position-left semi-table-scroll-position-right"[39m
+                [36m>[39m
+                  [36m<div[39m
+                    [33mclass[39m=[32m"semi-table-container"[39m
+                  [36m>[39m
+                    [36m<div[39m
+                      [33mclass[39m=[32m"semi-table-body"[39m
+                    [36m>[39m
+                      [36m<table[39m
+                        [33maria-colcount[39m=[32m"5"[39m
+                        [33maria-rowcount[39m=[32m"1"[39m
+                        [33mclass[39m=[32m"semi-table"[39m
+                        [33mrole[39m=[32m"grid"[39m
+                      [36m>[39m
+                        [36m<colgroup[39m
+                          [33mclass[39m=[32m"semi-table-colgroup"[39m
+                        [36m>[39m
+                          [36m<col[39m
+                            [33mclass[39m=[32m"semi-table-col"[39m
+                            [33mstyle[39m=[32m"width: 180px; min-width: 180px;"[39m
+                          [36m/>[39m
+                          [36m<col[39m
+                            [33mclass[39m=[32m"semi-table-col"[39m
+                            [33mstyle[39m=[32m"width: 80px; min-width: 80px;"[39m
+                          [36m/>[39m
+                          [36m<col[39m
+                            [33mclass[39m=[32m"semi-table-col"[39m
+                          [36m/>[39m
+                          [36m<col[39m
+                            [33mclass[39m=[32m"semi-table-col"[39m
+                            [33mstyle[39m=[32m"width: 120px; min-width: 120px;"[39m
+                          [36m/>[39m
+                          [36m<col[39m
+                            [33mclass[39m=[32m"semi-table-col"[39m
+                            [33mstyle[39m=[32m"width: 100px; min-width: 100px;"[39m
+                          [36m/>[39m
+                        [36m</colgroup>[39m
+                        [36m<thead[39m
+                          [33mclass[39m=[32m"semi-table-thead"[39m
+                        [36m>[39m
+                          [36m<tr[39m
+                            [33maria-rowindex[39m=[32m"1"[39m
+                            [33mclass[39m=[32m"semi-table-row"[39m
+                            [33mrole[39m=[32m"row"[39m
+                          [36m>[39m
+                            [36m<th[39m
+                              [33maria-colindex[39m=[32m"1"[39m
+                              [33mclass[39m=[32m"semi-table-row-head"[39m
+                              [33mcolspan[39m=[32m"1"[39m
+                              [33mrole[39m=[32m"columnheader"[39m
+                              [33mrowspan[39m=[32m"1"[39m
+                              [33mtitle[39m=[32m"时间（北京）"[39m
+                            [36m>[39m
+                              [0m时间（北京）[0m
+                            [36m</th>[39m
+                            [36m<th[39m
+                              [33maria-colindex[39m=[32m"2"[39m
+                              [33mclass[39m=[32m"semi-table-row-head"[39m
+                              [33mcolspan[39m=[32m"1"[39m
+                              [33mrole[39m=[32m"columnheader"[39m
+                              [33mrowspan[39m=[32m"1"[39m
+                              [33mtitle[39m=[32m"动作"[39m
+                            [36m>[39m
+                              [0m动作[0m
+                            [36m</th>[39m
+                            [36m<th[39m
+                              [33maria-colindex[39m=[32m"3"[39m
+                              [33mclass[39m=[32m"semi-table-row-head"[39m
+                              [33mcolspan[39m=[32m"1"[39m
+                              [33mrole[39m=[32m"columnheader"[39m
+                              [33mrowspan[39m=[32m"1"[39m
+                              [33mtitle[39m=[32m"对象"[39m
+                            [36m>[39m
+                              [0m对象[0m
+                            [36m</th>[39m
+                            [36m<th[39m
+                              [33maria-colindex[39m=[32m"4"[39m
+                              [33mclass[39m=[32m"semi-table-row-head"[39m
+                              [33mcolspan[39m=[32m"1"[39m
+                              [33mrole[39m=[32m"columnheader"[39m
+                              [33mrowspan[39m=[32m"1"[39m
+                              [33mtitle[39m=[32m"结果"[39m
+                            [36m>[39m
+                              [0m结果[0m
+                            [36m</th>[39m
+                            [36m<th[39m
+                              [33maria-colindex[39m=[32m"5"[39m
+                              [33mclass[39m=[32m"semi-table-row-head"[39m
+                              [33mcolspan[39m=[32m"1"[39m
+                              [33mrole[39m=[32m"columnheader"[39m
+                              [33mrowspan[39m=[32m"1"[39m
+                              [33mtitle[39m=[32m"详情"[39m
+                            [36m>[39m
+                              [0m详情[0m
+                            [36m</th>[39m
+                          [36m</tr>[39m
+                        [36m</thead>[39m
+                        [36m<tbody[39m
+                          [33mclass[39m=[32m"semi-table-tbody"[39m
+                        [36m>[39m
+                          [36m<tr[39m
+                            [33maria-rowindex[39m=[32m"1"[39m
+                            [33mclass[39m=[32m"semi-table-row"[39m
+                            [33mdata-row-key[39m=[32m"op-two"[39m
+                            [33mrole[39m=[32m"row"[39m
+                          [36m>[39m
+                            [36m<td[39m
+                              [33maria-colindex[39m=[32m"1"[39m
+                              [33mclass[39m=[32m"semi-table-row-cell"[39m
+                              [33mrole[39m=[32m"gridcell"[39m
+                              [33mtitle[39m=[32m"2026/9/12 00:03:00"[39m
+                            [36m>[39m
+                              [0m2026/9/12 00:03:00[0m
+                            [36m</td>[39m
+                            [36m<td[39m
+                              [33maria-colindex[39m=[32m"2"[39m
+                              [33mclass[39m=[32m"semi-table-row-cell"[39m
+                              [33mrole[39m=[32m"gridcell"[39m
+                              [33mtitle[39m=[32m"更新"[39m
+                            [36m>[39m
+                              [0m更新[0m
+                            [36m</td>[39m
+                            [36m<td[39m
+                              [33maria-colindex[39m=[32m"3"[39m
+                              [33mclass[39m=[32m"semi-table-row-cell"[39m
+                              [33mrole[39m=[32m"gridcell"[39m
+                            [36m>[39m
+                              [36m<span>[39m
+                                [0mrules[0m
+                                [0m · [0m
+                                [0msecond-page[0m
+                              [36m</span>[39m
+                            [36m</td>[39m
+                            [36m<td[39m
+                              [33maria-colindex[39m=[32m"4"[39m
+                              [33mclass[39m=[32m"semi-table-row-cell"[39m
+                              [33mrole[39m=[32m"gridcell"[39m
+                            [36m>[39m
+                              [36m<div[39m
+                                [33maria-label[39m=[32m"Tag: 成功"[39m
+                                [33mclass[39m=[32m"semi-tag semi-tag-default semi-tag-square semi-tag-light semi-tag-green-light"[39m
+                              [36m>[39m
+                                [36m<div[39m
+                                  [33mclass[39m=[32m"semi-tag-content semi-tag-content-ellipsis"[39m
+                                [36m>[39m
+                                  [0m成功[0m
+                                [36m</div>[39m
+                              [36m</div>[39m
+                            [36m</td>[39m
+                            [36m<td[39m
+                              [33maria-colindex[39m=[32m"5"[39m
+                              [33mclass[39m=[32m"semi-table-row-cell"[39m
+                              [33mrole[39m=[32m"gridcell"[39m
+                            [36m>[39m
+                              [36m<button[39m
+                                [33maria-disabled[39m=[32m"false"[39m
+                                [33mclass[39m=[32m"semi-button semi-button-primary semi-button-light"[39m
+                                [33mtype[39m=[32m"button"[39m
+                              [36m>[39m
+                                [36m<span[39m
+                                  [33mclass[39m=[32m"semi-button-content"[39m
+                                  [33mx-semi-prop[39m=[32m"children"[39m
+                                [36m>[39m
+                                  [0m查看详情[0m
+                                [36m</span>[39m
+                              [36m</button>[39m
+                            [36m</td>[39m
+                          [36m</tr>[39m
+                        [36m</tbody>[39m
+                      [36m</table>[39m
+                    [36m</div>[39m
+                  [36m</div>[39m
+                [36m</div>[39m
+              [36m</div>[39m
+            [36m</div>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"audit-pagination"[39m
+        [36m>[39m
+          [36m<span>[39m
+            [0m共 [0m
+            [0m21[0m
+            [0m 项 · 第 [0m
+            [0m2[0m
+            [0m 页[0m
+          [36m</span>[39m
+          [36m<div[39m
+            [33maria-activedescendant[39m=[32m"xah2wi2-option-0"[39m
+            [33maria-controls[39m=[32m"semi-select-xkmowbv"[39m
+            [33maria-disabled[39m=[32m"false"[39m
+            [33maria-expanded[39m=[32m"false"[39m
+            [33maria-haspopup[39m=[32m"listbox"[39m
+            [33maria-label[39m=[32m"selected"[39m
+            [33mclass[39m=[32m"semi-select semi-select-single"[39m
+            [33mdata-popupid[39m=[32m"8tdozmu"[39m
+            [33mid[39m=[32m"xah2wi2"[39m
+            [33mrole[39m=[32m"combobox"[39m
+            [33mtabindex[39m=[32m"0"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"semi-select-selection"[39m
+            [36m>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"semi-select-content-wrapper"[39m
+              [36m>[39m
+                [36m<span[39m
+                  [33mclass[39m=[32m"semi-select-selection-text"[39m
+                  [33mx-semi-prop[39m=[32m"placeholder"[39m
+                [36m>[39m
+                  [0m20 条/页[0m
+                [36m</span>[39m
+              [36m</div>[39m
+            [36m</div>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"semi-select-arrow"[39m
+              [33mx-semi-prop[39m=[32m"arrowIcon"[39m
+            [36m>[39m
+              [36m<span[39m
+                [33maria-label[39m=[32m""[39m
+                [33mclass[39m=[32m"semi-icon semi-icon-default semi-icon-chevron_down"[39m
+                [33mrole[39m=[32m"img"[39m
+              [36m>[39m
+                [36m<svg[39m
+                  [33maria-hidden[39m=[32m"true"[39m
+                  [33mfill[39m=[32m"none"[39m
+                  [33mfocusable[39m=[32m"false"[39m
+                  [33mheight[39m=[32m"1em"[39m
+                  [33mviewBox[39m=[32m"0 0 24 24"[39m
+                  [33mwidth[39m=[32m"1em"[39m
+                  [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+                [36m>[39m
+                  [36m<path[39m
+                    [33mclip-rule[39m=[32m"evenodd"[39m
+                    [33md[39m=[32m"M4.08 7.6a1.5 1.5 0 0 1 2.12 0l5.66 5.65 5.66-5.65a1.5 1.5 0 1 1 2.12 2.12l-6.72 6.72a1.5 1.5 0 0 1-2.12 0L4.08 9.72a1.5 1.5 0 0 1 0-2.12Z"[39m
+                    [33mfill[39m=[32m"currentColor"[39m
+                    [33mfill-rule[39m=[32m"evenodd"[39m
+                  [36m/>[39m
+                [36m</svg>[39m
+              [36m</span>[39m
+            [36m</div>[39m
+          [36m</div>[39m
+          [36m<button[39m
+            [33maria-disabled[39m=[32m"false"[39m
+            [33mclass[39m=[32m"semi-button semi-button-primary semi-button-light"[39m
+            [33mtype[39m=[32m"button"[39m
+          [36m>[39m
+            [36m<span[39m
+              [33mclass[39m=[32m"semi-button-content"[39m
+              [33mx-semi-prop[39m=[32m"children"[39m
+            [36m>[39m
+              [0m上一页[0m
+            [36m</span>[39m
+          [36m</button>[39m
+          [36m<button[39m
+            [33maria-disabled[39m=[32m"true"[39m
+            [33mclass[39m=[32m"semi-button semi-button-disabled semi-button-light semi-button-primary-disabled"[39m
+            [33mdisabled[39m=[32m""[39m
+            [33mtype[39m=[32m"button"[39m
+          [36m>[39m
+            [36m<span[39m
+              [33mclass[39m=[32m"semi-button-content"[39m
+              [33mx-semi-prop[39m=[32m"children"[39m
+            [36m>[39m
+              [0m下一页[0m
+            [36m</span>[39m
+          [36m</button>[39m
+        [36m</div>[39m
+      [36m</div>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+  [36m<div[39m
+    [33mclass[39m=[32m"semi-portal"[39m
+    [33mstyle[39m=[32m"z-index: 1000;"[39m
+  [36m>[39m
+    [0m [0m
+    [36m<div[39m
+      [33mclass[39m=[32m""[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"semi-modal-mask semi-modal-mask-animate-hide"[39m
+      [36m/>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"semi-modal-wrap"[39m
+        [33mrole[39m=[32m"none"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"semi-modal semi-modal-small"[39m
+          [33mid[39m=[32m"dialog-0"[39m
+          [33mstyle[39m=[32m"max-width: calc(100vw - 32px); width: 720px;"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33maria-describedby[39m=[32m"semi-modal-body"[39m
+            [33maria-labelledby[39m=[32m"semi-modal-title"[39m
+            [33maria-modal[39m=[32m"true"[39m
+            [33mclass[39m=[32m"semi-modal-content semi-modal-content-animate-hide undefined"[39m
+            [33mrole[39m=[32m"dialog"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"semi-modal-header"[39m
+            [36m>[39m
+              [36m<h5[39m
+                [33mclass[39m=[32m"semi-typography semi-modal-title semi-typography-primary semi-typography-normal semi-typography-h5"[39m
+                [33mid[39m=[32m"semi-modal-title"[39m
+                [33mx-semi-prop[39m=[32m"title"[39m
+              [36m>[39m
+                [0m操作详情[0m
+              [36m</h5>[39m
+              [36m<button[39m
+                [33maria-disabled[39m=[32m"false"[39m
+                [33maria-label[39m=[32m"close"[39m
+                [33mclass[39m=[32m"semi-button semi-button-tertiary semi-button-size-small semi-button-borderless semi-modal-close semi-button-with-icon semi-button-with-icon-only"[39m
+                [33mtype[39m=[32m"button"[39m
+              [36m>[39m
+                [36m<span[39m
+                  [33mclass[39m=[32m"semi-button-content"[39m
+                [36m>[39m
+                  [36m<span[39m
+                    [33maria-label[39m=[32m"close"[39m
+                    [33mclass[39m=[32m"semi-icon semi-icon-default semi-icon-close"[39m
+                    [33mrole[39m=[32m"img"[39m
+                    [33mx-semi-prop[39m=[32m"closeIcon"[39m
+                  [36m>[39m
+                    [36m<svg[39m
+                      [33maria-hidden[39m=[32m"true"[39m
+                      [33mfill[39m=[32m"none"[39m
+                      [33mfocusable[39m=[32m"false"[39m
+                      [33mheight[39m=[32m"1em"[39m
+                      [33mviewBox[39m=[32m"0 0 24 24"[39m
+                      [33mwidth[39m=[32m"1em"[39m
+                      [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+                    [36m>[39m
+                      [36m<path[39m
+                        [33md[39m=[32m"M17.66 19.78a1.5 1.5 0 0 0 2.12-2.12L14.12 12l5.66-5.66a1.5 1.5 0 0 0-2.12-2.12L12 9.88 6.34 4.22a1.5 1.5 0 1 0-2.12 2.12L9.88 12l-5.66 5.66a1.5 1.5 0 0 0 2.12 2.12L12 14.12l5.66 5.66Z"[39m
+                        [33mfill[39m=[32m"currentColor"[39m
+                      [36m/>[39m
+                    [36m</svg>[39m
+                  [36m</span>[39m
+                [36m</span>[39m
+              [36m</button>[39m
+            [36m</div>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"semi-modal-body"[39m
+              [33mid[39m=[32m"semi-modal-body"[39m
+              [33mx-semi-prop[39m=[32m"children"[39m
+            [36m/>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"semi-modal-footer"[39m
+              [33mx-semi-prop[39m=[32m"footer"[39m
+            [36m>[39m
+              [36m<button[39m
+                [33maria-disabled[39m=[32m"false"[39m
+                [33mclass[39m=[32m"semi-button semi-button-primary semi-button-light"[39m
+                [33mtype[39m=[32m"button"[39m
+              [36m>[39m
+                [36m<span[39m
+                  [33mclass[39m=[32m"semi-button-content"[39m
+                  [33mx-semi-prop[39m=[32m"children"[39m
+                [36m>[39m
+                  [0m关闭[0m
+                [36m</span>[39m
+              [36m</button>[39m
+            [36m</div>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+      [36m</div>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+[36m</body>[39m
+Ignored nodes: comments, script, style
+[36m<body[39m
+  [33mstyle[39m=[32m"overflow: hidden; width: calc(100% - 0px);"[39m
+[36m>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33maria-busy[39m=[32m"false"[39m
+      [33mclass[39m=[32m"semi-card audit-panel semi-card-bordered"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"semi-card-header semi-card-header-bordered"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"semi-card-header-wrapper"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"semi-card-header-wrapper-title"[39m
+          [36m>[39m
+            [36m<h6[39m
+              [33mclass[39m=[32m"semi-typography semi-typography-ellipsis semi-typography-ellipsis-single-line semi-typography-ellipsis-overflow-ellipsis semi-typography-primary semi-typography-normal semi-typography-h6"[39m
+              [33mx-semi-prop[39m=[32m"title"[39m
+            [36m>[39m
+              [36m<span>[39m
+                [0m操作审计[0m
+              [36m</span>[39m
+            [36m</h6>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+      [36m</div>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"semi-card-body"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"audit-toolbar"[39m
+        [36m>[39m
+          [36m<label[39m
+            [33mclass[39m=[32m"audit-date"[39m
+          [36m>[39m
+            [0m日期[0m
+            [36m<div[39m
+              [33mclass[39m=[32m"semi-input-wrapper semi-input-wrapper-default"[39m
+            [36m>[39m
+              [36m<input[39m
+                [33maria-label[39m=[32m"审计日期"[39m
+                [33mclass[39m=[32m"semi-input semi-input-default"[39m
+                [33mplaceholder[39m=[32m""[39m
+                [33mtype[39m=[32m"date"[39m
+                [33mvalue[39m=[32m"2026-09-12"[39m
+              [36m/>[39m
+            [36m</div>[39m
+          [36m</label>[39m
+          [36m<span>[39m
+            [0m北京时间（Asia/Shanghai）[0m
+          [36m</span>[39m
+          [36m<button[39m
+            [33maria-disabled[39m=[32m"false"[39m
+            [33mclass[39m=[32m"semi-button semi-button-primary semi-button-light"[39m
+            [33mtype[39m=[32m"button"[39m
+          [36m>[39m
+            [36m<span[39m
+              [33mclass[39m=[32m"semi-button-content"[39m
+              [33mx-semi-prop[39m=[32m"children"[39m
+            [36m>[39m
+              [0m刷新[0m
+            [36m</span>[39m
+          [36m</button>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"audit-table-scroll"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"semi-table-wrapper semi-table-wrapper-undefined"[39m
+            [33mdata-column-fixed[39m=[32m"false"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"semi-spin semi-spin-large semi-spin-block semi-spin-hidden"[39m
+            [36m>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"semi-spin-children"[39m
+                [33mx-semi-prop[39m=[32m"children"[39m
+              [36m>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"semi-table-scroll-position-left semi-table-scroll-position-right"[39m
+                [36m>[39m
+                  [36m<div[39m
+                    [33mclass[39m=[32m"semi-table-container"[39m
+                  [36m>[39m
+                    [36m<div[39m
+                      [33mclass[39m=[32m"semi-table-body"[39m
+                    [36m>[39m
+                      [36m<table[39m
+                        [33maria-colcount[39m=[32m"5"[39m
+                        [33maria-rowcount[39m=[32m"1"[39m
+                        [33mclass[39m=[32m"semi-table"[39m
+                        [33mrole[39m=[32m"grid"[39m
+                      [36m>[39m
+                        [36m<colgroup[39m
+                          [33mclass[39m=[32m"semi-table-colgroup"[39m
+                        [36m>[39m
+                          [36m<col[39m
+                            [33mclass[39m=[32m"semi-table-col"[39m
+                            [33mstyle[39m=[32m"width: 180px; min-width: 180px;"[39m
+                          [36m/>[39m
+                          [36m<col[39m
+                            [33mclass[39m=[32m"semi-table-col"[39m
+                            [33mstyle[39m=[32m"width: 80px; min-width: 80px;"[39m
+                          [36m/>[39m
+                          [36m<col[39m
+                            [33mclass[39m=[32m"semi-table-col"[39m
+                          [36m/>[39m
+                          [36m<col[39m
+                            [33mclass[39m=[32m"semi-table-col"[39m
+                            [33mstyle[39m=[32m"width: 120px; min-width: 120px;"[39m
+                          [36m/>[39m
+                          [36m<col[39m
+                            [33mclass[39m=[32m"semi-table-col"[39m
+                            [33mstyle[39m=[32m"width: 100px; min-width: 100px;"[39m
+                          [36m/>[39m
+                        [36m</colgroup>[39m
+                        [36m<thead[39m
+                          [33mclass[39m=[32m"semi-table-thead"[39m
+                        [36m>[39m
+                          [36m<tr[39m
+                            [33maria-rowindex[39m=[32m"1"[39m
+                            [33mclass[39m=[32m"semi-table-row"[39m
+                            [33mrole[39m=[32m"row"[39m
+                          [36m>[39m
+                            [36m<th[39m
+                              [33maria-colindex[39m=[32m"1"[39m
+                              [33mclass[39m=[32m"semi-table-row-head"[39m
+                              [33mcolspan[39m=[32m"1"[39m
+                              [33mrole[39m=[32m"columnheader"[39m
+                              [33mrowspan[39m=[32m"1"[39m
+                              [33mtitle[39m=[32m"时间（北京）"[39m
+                            [36m>[39m
+                              [0m时间（北京）[0m
+                            [36m</th>[39m
+                            [36m<th[39m
+                              [33maria-colindex[39m=[32m"2"[39m
+                              [33mclass[39m=[32m"semi-table-row-head"[39m
+                              [33mcolspan[39m=[32m"1"[39m
+                              [33mrole[39m=[32m"columnheader"[39m
+                              [33mrowspan[39m=[32m"1"[39m
+                              [33mtitle[39m=[32m"动作"[39m
+                            [36m>[39m
+                              [0m动作[0m
+                            [36m</th>[39m
+                            [36m<th[39m
+                              [33maria-colindex[39m=[32m"3"[39m
+                              [33mclass[39m=[32m"semi-table-row-head"[39m
+                              [33mcolspan[39m=[32m"1"[39m
+                              [33mrole[39m=[32m"columnheader"[39m
+                              [33mrowspan[39m=[32m"1"[39m
+                              [33mtitle[39m=[32m"对象"[39m
+                            [36m>[39m
+                              [0m对象[0m
+                            [36m</th>[39m
+                            [36m<th[39m
+                              [33maria-colindex[39m=[32m"4"[39m
+                              [33mclass[39m=[32m"semi-table-row-head"[39m
+                              [33mcolspan[39m=[32m"1"[39m
+                              [33mrole[39m=[32m"columnheader"[39m
+                              [33mrowspan[39m=[32m"1"[39m
+                              [33mtitle[39m=[32m"结果"[39m
+                            [36m>[39m
+                              [0m结果[0m
+                            [36m</th>[39m
+                            [36m<th[39m
+                              [33maria-colindex[39m=[32m"5"[39m
+                              [33mclass[39m=[32m"semi-table-row-head"[39m
+                              [33mcolspan[39m=[32m"1"[39m
+                              [33mrole[39m=[32m"columnheader"[39m
+                              [33mrowspan[39m=[32m"1"[39m
+                              [33mtitle[39m=[32m"详情"[39m
+                            [36m>[39m
+                              [0m详情[0m
+                            [36m</th>[39m
+                          [36m</tr>[39m
+                        [36m</thead>[39m
+                        [36m<tbody[39m
+                          [33mclass[39m=[32m"semi-table-tbody"[39m
+                        [36m>[39m
+                          [36m<tr[39m
+                            [33maria-rowindex[39m=[32m"1"[39m
+                            [33mclass[39m=[32m"semi-table-row"[39m
+                            [33mdata-row-key[39m=[32m"op-two"[39m
+                            [33mrole[39m=[32m"row"[39m
+                          [36m>[39m
+                            [36m<td[39m
+                              [33maria-colindex[39m=[32m"1"[39m
+                              [33mclass[39m=[32m"semi-table-row-cell"[39m
+                              [33mrole[39m=[32m"gridcell"[39m
+                              [33mtitle[39m=[32m"2026/9/12 00:03:00"[39m
+                            [36m>[39m
+                              [0m2026/9/12 00:03:00[0m
+                            [36m</td>[39m
+                            [36m<td[39m
+                              [33maria-colindex[39m=[32m"2"[39m
+                              [33mclass[39m=[32m"semi-table-row-cell"[39m
+                              [33mrole[39m=[32m"gridcell"[39m
+                              [33mtitle[39m=[32m"更新"[39m
+                            [36m>[39m
+                              [0m更新[0m
+                            [36m</td>[39m
+                            [36m<td[39m
+                              [33maria-colindex[39m=[32m"3"[39m
+                              [33mclass[39m=[32m"semi-table-row-cell"[39m
+                              [33mrole[39m=[32m"gridcell"[39m
+                            [36m>[39m
+                              [36m<span>[39m
+                                [0mrules[0m
+                                [0m · [0m
+                                [0msecond-page[0m
+                              [36m</span>[39m
+                            [36m</td>[39m
+                            [36m<td[39m
+                              [33maria-colindex[39m=[32m"4"[39m
+                              [33mclass[39m=[32m"semi-table-row-cell"[39m
+                              [33mrole[39m=[32m"gridcell"[39m
+                            [36m>[39m
+                              [36m<div[39m
+                                [33maria-label[39m=[32m"Tag: 成功"[39m
+                                [33mclass[39m=[32m"semi-tag semi-tag-default semi-tag-square semi-tag-light semi-tag-green-light"[39m
+                              [36m>[39m
+                                [36m<div[39m
+                                  [33mclass[39m=[32m"semi-tag-content semi-tag-content-ellipsis"[39m
+                                [36m>[39m
+                                  [0m成功[0m
+                                [36m</div>[39m
+                              [36m</div>[39m
+                            [36m</td>[39m
+                            [36m<td[39m
+                              [33maria-colindex[39m=[32m"5"[39m
+                              [33mclass[39m=[32m"semi-table-row-cell"[39m
+                              [33mrole[39m=[32m"gridcell"[39m
+                            [36m>[39m
+                              [36m<button[39m
+                                [33maria-disabled[39m=[32m"false"[39m
+                                [33mclass[39m=[32m"semi-button semi-button-primary semi-button-light"[39m
+                                [33mtype[39m=[32m"button"[39m
+                              [36m>[39m
+                                [36m<span[39m
+                                  [33mclass[39m=[32m"semi-button-content"[39m
+                                  [33mx-semi-prop[39m=[32m"children"[39m
+                                [36m>[39m
+                                  [0m查看详情[0m
+                                [36m</span>[39m
+                              [36m</button>[39m
+                            [36m</td>[39m
+                          [36m</tr>[39m
+                        [36m</tbody>[39m
+                      [36m</table>[39m
+                    [36m</div>[39m
+                  [36m</div>[39m
+                [36m</div>[39m
+              [36m</div>[39m
+            [36m</div>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"audit-pagination"[39m
+        [36m>[39m
+          [36m<span>[39m
+            [0m共 [0m
+            [0m21[0m
+            [0m 项 · 第 [0m
+            [0m2[0m
+            [0m 页[0m
+          [36m</span>[39m
+          [36m<div[39m
+            [33maria-activedescendant[39m=[32m"xah2wi2-option-0"[39m
+            [33maria-controls[39m=[32m"semi-select-xkmowbv"[39m
+            [33maria-disabled[39m=[32m"false"[39m
+            [33maria-expanded[39m=[32m"false"[39m
+            [33maria-haspopup[39m=[32m"listbox"[39m
+            [33maria-label[39m=[32m"selected"[39m
+            [33mclass[39m=[32m"semi-select semi-select-single"[39m
+            [33mdata-popupid[39m=[32m"8tdozmu"[39m
+            [33mid[39m=[32m"xah2wi2"[39m
+            [33mrole[39m=[32m"combobox"[39m
+            [33mtabindex[39m=[32m"0"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"semi-select-selection"[39m
+            [36m>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"semi-select-content-wrapper"[39m
+              [36m>[39m
+                [36m<span[39m
+                  [33mclass[39m=[32m"semi-select-selection-text"[39m
+                  [33mx-semi-prop[39m=[32m"placeholder"[39m
+                [36m>[39m
+                  [0m20 条/页[0m
+                [36m</span>[39m
+              [36m</div>[39m
+            [36m</div>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"semi-select-arrow"[39m
+              [33mx-semi-prop[39m=[32m"arrowIcon"[39m
+            [36m>[39m
+              [36m<span[39m
+                [33maria-label[39m=[32m""[39m
+                [33mclass[39m=[32m"semi-icon semi-icon-default semi-icon-chevron_down"[39m
+                [33mrole[39m=[32m"img"[39m
+              [36m>[39m
+                [36m<svg[39m
+                  [33maria-hidden[39m=[32m"true"[39m
+                  [33mfill[39m=[32m"none"[39m
+                  [33mfocusable[39m=[32m"false"[39m
+                  [33mheight[39m=[32m"1em"[39m
+                  [33mviewBox[39m=[32m"0 0 24 24"[39m
+                  [33mwidth[39m=[32m"1em"[39m
+                  [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+                [36m>[39m
+                  [36m<path[39m
+                    [33mclip-rule[39m=[32m"evenodd"[39m
+                    [33md[39m=[32m"M4.08 7.6a1.5 1.5 0 0 1 2.12 0l5.66 5.65 5.66-5.65a1.5 1.5 0 1 1 2.12 2.12l-6.72 6.72a1.5 1.5 0 0 1-2.12 0L4.08 9.72a1.5 1.5 0 0 1 0-2.12Z"[39m
+                    [33mfill[39m=[32m"currentColor"[39m
+                    [33mfill-rule[39m=[32m"evenodd"[39m
+                  [36m/>[39m
+                [36m</svg>[39m
+              [36m</span>[39m
+            [36m</div>[39m
+          [36m</div>[39m
+          [36m<button[39m
+            [33maria-disabled[39m=[32m"false"[39m
+            [33mclass[39m=[32m"semi-button semi-button-primary semi-button-light"[39m
+            [33mtype[39m=[32m"button"[39m
+          [36m>[39m
+            [36m<span[39m
+              [33mclass[39m=[32m"semi-button-content"[39m
+              [33mx-semi-prop[39m=[32m"children"[39m
+            [36m>[39m
+              [0m上一页[0m
+            [36m</span>[39m
+          [36m</button>[39m
+          [36m<button[39m
+            [33maria-disabled[39m=[32m"true"[39m
+            [33mclass[39m=[32m"semi-button semi-button-disabled semi-button-light semi-button-primary-disabled"[39m
+            [33mdisabled[39m=[32m""[39m
+            [33mtype[39m=[32m"button"[39m
+          [36m>[39m
+            [36m<span[39m
+              [33mclass[39m=[32m"semi-button-content"[39m
+              [33mx-semi-prop[39m=[32m"children"[39m
+            [36m>[39m
+              [0m下一页[0m
+            [36m</span>[39m
+          [36m</button>[39m
+        [36m</div>[39m
+      [36m</div>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+  [36m<div[39m
+    [33mclass[39m=[32m"semi-portal"[39m
+    [33mstyle[39m=[32m"z-index: 1000;"[39m
+  [36m>[39m
+    [0m [0m
+    [36m<div[39m
+      [33mclass[39m=[32m""[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"semi-modal-mask semi-modal-mask-animate-hide"[39m
+      [36m/>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"semi-modal-wrap"[39m
+        [33mrole[39m=[32m"none"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"semi-modal semi-modal-small"[39m
+          [33mid[39m=[32m"dialog-0"[39m
+          [33mstyle[39m=[32m"max-width: calc(100vw - 32px); width: 720px;"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33maria-describedby[39m=[32m"semi-modal-body"[39m
+            [33maria-labelledby[39m=[32m"semi-modal-title"[39m
+            [33maria-modal[39m=[32m"true"[39m
+            [33mclass[39m=[32m"semi-modal-content semi-modal-content-animate-hide undefined"[39m
+            [33mrole[39m=[32m"dialog"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"semi-modal-header"[39m
+            [36m>[39m
+              [36m<h5[39m
+                [33mclass[39m=[32m"semi-typography semi-modal-title semi-typography-primary semi-typography-normal semi-typography-h5"[39m
+                [33mid[39m=[32m"semi-modal-title"[39m
+                [33mx-semi-prop[39m=[32m"title"[39m
+              [36m>[39m
+                [0m操作详情[0m
+              [36m</h5>[39m
+              [36m<button[39m
+                [33maria-disabled[39m=[32m"false"[39m
+                [33maria-label[39m=[32m"close"[39m
+                [33mclass[39m=[32m"semi-button semi-button-tertiary semi-button-size-small semi-button-borderless semi-modal-close semi-button-with-icon semi-button-with-icon-only"[39m
+                [33mtype[39m=[32m"button"[39m
+              [36m>[39m
+                [36m<span[39m
+                  [33mclass[39m=[32m"semi-button-content"[39m
+                [36m>[39m
+                  [36m<span[39m
+                    [33maria-label[39m=[32m"close"[39m
+                    [33mclass[39m=[32m"semi-icon semi-icon-default semi-icon-close"[39m
+                    [33mrole[39m=[32m"img"[39m
+                    [33mx-semi-prop[39m=[32m"closeIcon"[39m
+                  [36m>[39m
+                    [36m<svg[39m
+                      [33maria-hidden[39m=[32m"true"[39m
+                      [33mfill[39m=[32m"none"[39m
+                      [33mfocusable[39m=[32m"false"[39m
+                      [33mheight[39m=[32m"1em"[39m
+                      [33mviewBox[39m=[32m"0 0 24 24"[39m
+                      [33mwidth[39m=[32m"1em"[39m
+                      [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+                    [36m>[39m
+                      [36m<path[39m
+                        [33md[39m=[32m"M17.66 19.78a1.5 1.5 0 0 0 2.12-2.12L14.12 12l5.66-5.66a1.5 1.5 0 0 0-2.12-2.12L12 9.88 6.34 4.22a1.5 1.5 0 1 0-2.12 2.12L9.88 12l-5.66 5.66a1.5 1.5 0 0 0 2.12 2.12L12 14.12l5.66 5.66Z"[39m
+                        [33mfill[39m=[32m"currentColor"[39m
+                      [36m/>[39m
+                    [36m</svg>[39m
+                  [36m</span>[39m
+                [36m</span>[39m
+              [36m</button>[39m
+            [36m</div>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"semi-modal-body"[39m
+              [33mid[39m=[32m"semi-modal-body"[39m
+              [33mx-semi-prop[39m=[32m"children"[39m
+            [36m/>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"semi-modal-footer"[39m
+              [33mx-semi-prop[39m=[32m"footer"[39m
+            [36m>[39m
+              [36m<button[39m
+                [33maria-disabled[39m=[32m"false"[39m
+                [33mclass[39m=[32m"semi-button semi-button-primary semi-button-light"[39m
+                [33mtype[39m=[32m"button"[39m
+              [36m>[39m
+                [36m<span[39m
+                  [33mclass[39m=[32m"semi-button-content"[39m
+                  [33mx-semi-prop[39m=[32m"children"[39m
+                [36m>[39m
+                  [0m关闭[0m
+                [36m</span>[39m
+              [36m</button>[39m
+            [36m</div>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+      [36m</div>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+[36m</body>[39m
+ ❯ waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ src/panels/AuditPanel.test.tsx:32:23
+     30|   await user.click(within(details).getByRole('button', { name: '关闭' }))
+     31|   await user.click(screen.getByRole('button', { name: '下一页' }))
+     32|   expect(await screen.findByText('second-page')).toBeInTheDocument()
+       |                       ^
+     33|   await user.click(screen.getByRole('button', { name: '刷新' }))
+     34|   expect(requests.at(-1)).toContain('date=2026-09-12&page=2&page_size=…
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/5]⎯
+ FAIL  src/panels/AuditPanel.test.tsx > S9/S10 running、unknown、failed、无变化和损坏行警告可辨认
+TestingLibraryElementError: Found multiple elements with the role "alert"
+Here are the matching elements:
+Ignored nodes: comments, script, style
+[36m<div[39m
+  [33mrole[39m=[32m"alert"[39m
+[36m>[39m
+  [36m<div[39m
+    [33mclass[39m=[32m"semi-banner semi-banner-warning semi-banner-full"[39m
+    [33mrole[39m=[32m"alert"[39m
+  [36m>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"semi-banner-content-wrapper"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"semi-banner-content"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"semi-banner-icon"[39m
+          [33mx-semi-prop[39m=[32m"icon"[39m
+        [36m>[39m
+          [36m<span[39m
+            [33maria-label[39m=[32m"warning"[39m
+            [33mclass[39m=[32m"semi-icon semi-icon-large semi-icon-alert_triangle"[39m
+            [33mrole[39m=[32m"img"[39m
+          [36m>[39m
+            [36m<svg[39m
+              [33maria-hidden[39m=[32m"true"[39m
+              [33mfill[39m=[32m"none"[39m
+              [33mfocusable[39m=[32m"false"[39m
+              [33mheight[39m=[32m"1em"[39m
+              [33mviewBox[39m=[32m"0 0 24 24"[39m
+              [33mwidth[39m=[32m"1em"[39m
+              [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+            [36m>[39m
+              [36m<path[39m
+                [33mclip-rule[39m=[32m"evenodd"[39m
+                [33md[39m=[32m"m10.23 2.4-8.7 16.67A2 2 0 0 0 3.3 22h17.4a2 2 0 0 0 1.77-2.93L13.77 2.4a2 2 0 0 0-3.54 0ZM13.14 14a1.15 1.15 0 0 1-2.28 0l-.58-4.03a1.73 1.73 0 1 1 3.44 0l-.58 4.03Zm.36 4.49a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Z"[39m
+                [33mfill[39m=[32m"currentColor"[39m
+                [33mfill-rule[39m=[32m"evenodd"[39m
+              [36m/>[39m
+            [36m</svg>[39m
+          [36m</span>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"semi-banner-content-body"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"semi-typography semi-banner-title semi-typography-primary semi-typography-normal semi-typography-h5"[39m
+            [33mx-semi-prop[39m=[32m"title"[39m
+          [36m>[39m
+            [0m审计数据不完整[0m
+          [36m</div>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"semi-typography semi-banner-description semi-typography-paragraph semi-typography-primary semi-typography-normal"[39m
+            [33mx-semi-prop[39m=[32m"description"[39m
+          [36m>[39m
+            [0mline 8: truncated_line[0m
+          [36m</div>[39m
+        [36m</div>[39m
+      [36m</div>[39m
+      [36m<button[39m
+        [33maria-disabled[39m=[32m"false"[39m
+        [33maria-label[39m=[32m"Close"[39m
+        [33mclass[39m=[32m"semi-button semi-button-tertiary semi-button-size-small semi-button-borderless semi-banner-close semi-button-with-icon semi-button-with-icon-only"[39m
+        [33mtype[39m=[32m"button"[39m
+      [36m>[39m
+        [36m<span[39m
+          [33mclass[39m=[32m"semi-button-content"[39m
+        [36m>[39m
+          [36m<span[39m
+            [33maria-hidden[39m=[32m"true"[39m
+            [33maria-label[39m=[32m"close"[39m
+            [33mclass[39m=[32m"semi-icon semi-icon-default semi-icon-close"[39m
+            [33mrole[39m=[32m"img"[39m
+            [33mx-semi-prop[39m=[32m"closeIcon"[39m
+          [36m>[39m
+            [36m<svg[39m
+              [33maria-hidden[39m=[32m"true"[39m
+              [33mfill[39m=[32m"none"[39m
+              [33mfocusable[39m=[32m"false"[39m
+              [33mheight[39m=[32m"1em"[39m
+              [33mviewBox[39m=[32m"0 0 24 24"[39m
+              [33mwidth[39m=[32m"1em"[39m
+              [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+            [36m>[39m
+              [36m<path[39m
+                [33md[39m=[32m"M17.66 19.78a1.5 1.5 0 0 0 2.12-2.12L14.12 12l5.66-5.66a1.5 1.5 0 0 0-2.12-2.12L12 9.88 6.34 4.22a1.5 1.5 0 1 0-2.12 2.12L9.88 12l-5.66 5.66a1.5 1.5 0 0 0 2.12 2.12L12 14.12l5.66 5.66Z"[39m
+                [33mfill[39m=[32m"currentColor"[39m
+              [36m/>[39m
+            [36m</svg>[39m
+          [36m</span>[39m
+        [36m</span>[39m
+      [36m</button>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+[36m</div>[39m
+Ignored nodes: comments, script, style
+[36m<div[39m
+  [33mclass[39m=[32m"semi-banner semi-banner-warning semi-banner-full"[39m
+  [33mrole[39m=[32m"alert"[39m
+[36m>[39m
+  [36m<div[39m
+    [33mclass[39m=[32m"semi-banner-content-wrapper"[39m
+  [36m>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"semi-banner-content"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"semi-banner-icon"[39m
+        [33mx-semi-prop[39m=[32m"icon"[39m
+      [36m>[39m
+        [36m<span[39m
+          [33maria-label[39m=[32m"warning"[39m
+          [33mclass[39m=[32m"semi-icon semi-icon-large semi-icon-alert_triangle"[39m
+          [33mrole[39m=[32m"img"[39m
+        [36m>[39m
+          [36m<svg[39m
+            [33maria-hidden[39m=[32m"true"[39m
+            [33mfill[39m=[32m"none"[39m
+            [33mfocusable[39m=[32m"false"[39m
+            [33mheight[39m=[32m"1em"[39m
+            [33mviewBox[39m=[32m"0 0 24 24"[39m
+            [33mwidth[39m=[32m"1em"[39m
+            [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+          [36m>[39m
+            [36m<path[39m
+              [33mclip-rule[39m=[32m"evenodd"[39m
+              [33md[39m=[32m"m10.23 2.4-8.7 16.67A2 2 0 0 0 3.3 22h17.4a2 2 0 0 0 1.77-2.93L13.77 2.4a2 2 0 0 0-3.54 0ZM13.14 14a1.15 1.15 0 0 1-2.28 0l-.58-4.03a1.73 1.73 0 1 1 3.44 0l-.58 4.03Zm.36 4.49a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Z"[39m
+              [33mfill[39m=[32m"currentColor"[39m
+              [33mfill-rule[39m=[32m"evenodd"[39m
+            [36m/>[39m
+          [36m</svg>[39m
+        [36m</span>[39m
+      [36m</div>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"semi-banner-content-body"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"semi-typography semi-banner-title semi-typography-primary semi-typography-normal semi-typography-h5"[39m
+          [33mx-semi-prop[39m=[32m"title"[39m
+        [36m>[39m
+          [0m审计数据不完整[0m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"semi-typography semi-banner-description semi-typography-paragraph semi-typography-primary semi-typography-normal"[39m
+          [33mx-semi-prop[39m=[32m"description"[39m
+        [36m>[39m
+          [0mline 8: truncated_line[0m
+        [36m</div>[39m
+      [36m</div>[39m
+    [36m</div>[39m
+    [36m<button[39m
+      [33maria-disabled[39m=[32m"false"[39m
+      [33maria-label[39m=[32m"Close"[39m
+      [33mclass[39m=[32m"semi-button semi-button-tertiary semi-button-size-small semi-button-borderless semi-banner-close semi-button-with-icon semi-button-with-icon-only"[39m
+      [33mtype[39m=[32m"button"[39m
+    [36m>[39m
+      [36m<span[39m
+        [33mclass[39m=[32m"semi-button-content"[39m
+      [36m>[39m
+        [36m<span[39m
+          [33maria-hidden[39m=[32m"true"[39m
+          [33maria-label[39m=[32m"close"[39m
+          [33mclass[39m=[32m"semi-icon semi-icon-default semi-icon-close"[39m
+          [33mrole[39m=[32m"img"[39m
+          [33mx-semi-prop[39m=[32m"closeIcon"[39m
+        [36m>[39m
+          [36m<svg[39m
+            [33maria-hidden[39m=[32m"true"[39m
+            [33mfill[39m=[32m"none"[39m
+            [33mfocusable[39m=[32m"false"[39m
+            [33mheight[39m=[32m"1em"[39m
+            [33mviewBox[39m=[32m"0 0 24 24"[39m
+            [33mwidth[39m=[32m"1em"[39m
+            [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+          [36m>[39m
+            [36m<path[39m
+              [33md[39m=[32m"M17.66 19.78a1.5 1.5 0 0 0 2.12-2.12L14.12 12l5.66-5.66a1.5 1.5 0 0 0-2.12-2.12L12 9.88 6.34 4.22a1.5 1.5 0 1 0-2.12 2.12L9.88 12l-5.66 5.66a1.5 1.5 0 0 0 2.12 2.12L12 14.12l5.66 5.66Z"[39m
+              [33mfill[39m=[32m"currentColor"[39m
+            [36m/>[39m
+          [36m</svg>[39m
+        [36m</span>[39m
+      [36m</span>[39m
+    [36m</button>[39m
+  [36m</div>[39m
+[36m</div>[39m
+(If this is intentional, then use the `*AllBy*` variant of the query (like `queryAllByText`, `getAllByText`, or `findAllByText`)).
+Ignored nodes: comments, script, style
+[36m<body[39m
+  [33mstyle[39m=[32m""[39m
+[36m>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33maria-busy[39m=[32m"false"[39m
+      [33mclass[39m=[32m"semi-card audit-panel semi-card-bordered"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"semi-card-header semi-card-header-bordered"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"semi-card-header-wrapper"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"semi-card-header-wrapper-title"[39m
+          [36m>[39m
+            [36m<h6[39m
+              [33mclass[39m=[32m"semi-typography semi-typography-ellipsis semi-typography-ellipsis-single-line semi-typography-ellipsis-overflow-ellipsis semi-typography-primary semi-typography-normal semi-typography-h6"[39m
+              [33mx-semi-prop[39m=[32m"title"[39m
+            [36m>[39m
+              [36m<span>[39m
+                [0m操作审计[0m
+              [36m</span>[39m
+            [36m</h6>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+      [36m</div>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"semi-card-body"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"audit-toolbar"[39m
+        [36m>[39m
+          [36m<label[39m
+            [33mclass[39m=[32m"audit-date"[39m
+          [36m>[39m
+            [0m日期[0m
+            [36m<div[39m
+              [33mclass[39m=[32m"semi-input-wrapper semi-input-wrapper-default"[39m
+            [36m>[39m
+              [36m<input[39m
+                [33maria-label[39m=[32m"审计日期"[39m
+                [33mclass[39m=[32m"semi-input semi-input-default"[39m
+                [33mplaceholder[39m=[32m""[39m
+                [33mtype[39m=[32m"date"[39m
+                [33mvalue[39m=[32m"2026-09-12"[39m
+              [36m/>[39m
+            [36m</div>[39m
+          [36m</label>[39m
+          [36m<span>[39m
+            [0m北京时间（Asia/Shanghai）[0m
+          [36m</span>[39m
+          [36m<button[39m
+            [33maria-disabled[39m=[32m"false"[39m
+            [33mclass[39m=[32m"semi-button semi-button-primary semi-button-light"[39m
+            [33mtype[39m=[32m"button"[39m
+          [36m>[39m
+            [36m<span[39m
+              [33mclass[39m=[32m"semi-button-content"[39m
+              [33mx-semi-prop[39m=[32m"children"[39m
+            [36m>[39m
+              [0m刷新[0m
+            [36m</span>[39m
+          [36m</button>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mrole[39m=[32m"alert"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"semi-banner semi-banner-warning semi-banner-full"[39m
+            [33mrole[39m=[32m"alert"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"semi-banner-content-wrapper"[39m
+            [36m>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"semi-banner-content"[39m
+              [36m>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"semi-banner-icon"[39m
+                  [33mx-semi-prop[39m=[32m"icon"[39m
+                [36m>[39m
+                  [36m<span[39m
+                    [33maria-label[39m=[32m"warning"[39m
+                    [33mclass[39m=[32m"semi-icon semi-icon-large semi-icon-alert_triangle"[39m
+                    [33mrole[39m=[32m"img"[39m
+                  [36m>[39m
+                    [36m<svg[39m
+                      [33maria-hidden[39m=[32m"true"[39m
+                      [33mfill[39m=[32m"none"[39m
+                      [33mfocusable[39m=[32m"false"[39m
+                      [33mheight[39m=[32m"1em"[39m
+                      [33mviewBox[39m=[32m"0 0 24 24"[39m
+                      [33mwidth[39m=[32m"1em"[39m
+                      [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+                    [36m>[39m
+                      [36m<path[39m
+                        [33mclip-rule[39m=[32m"evenodd"[39m
+                        [33md[39m=[32m"m10.23 2.4-8.7 16.67A2 2 0 0 0 3.3 22h17.4a2 2 0 0 0 1.77-2.93L13.77 2.4a2 2 0 0 0-3.54 0ZM13.14 14a1.15 1.15 0 0 1-2.28 0l-.58-4.03a1.73 1.73 0 1 1 3.44 0l-.58 4.03Zm.36 4.49a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Z"[39m
+                        [33mfill[39m=[32m"currentColor"[39m
+                        [33mfill-rule[39m=[32m"evenodd"[39m
+                      [36m/>[39m
+                    [36m</svg>[39m
+                  [36m</span>[39m
+                [36m</div>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"semi-banner-content-body"[39m
+                [36m>[39m
+                  [36m<div[39m
+                    [33mclass[39m=[32m"semi-typography semi-banner-title semi-typography-primary semi-typography-normal semi-typography-h5"[39m
+                    [33mx-semi-prop[39m=[32m"title"[39m
+                  [36m>[39m
+                    [0m审计数据不完整[0m
+                  [36m</div>[39m
+                  [36m<div[39m
+                    [33mclass[39m=[32m"semi-typography semi-banner-description semi-typography-paragraph semi-typography-primary semi-typography-normal"[39m
+                    [33mx-semi-prop[39m=[32m"description"[39m
+                  [36m>[39m
+                    [0mline 8: truncated_line[0m
+                  [36m</div>[39m
+                [36m</div>[39m
+              [36m</div>[39m
+              [36m<button[39m
+                [33maria-disabled[39m=[32m"false"[39m
+                [33maria-label[39m=[32m"Close"[39m
+                [33mclass[39m=[32m"semi-button semi-button-tertiary semi-button-size-small semi-button-borderless semi-banner-close semi-button-with-icon semi-button-with-icon-only"[39m
+                [33mtype[39m=[32m"button"[39m
+              [36m>[39m
+                [36m<span[39m
+                  [33mclass[39m=[32m"semi-button-content"[39m
+                [36m>[39m
+                  [36m<span[39m
+                    [33maria-hidden[39m=[32m"true"[39m
+                    [33maria-label[39m=[32m"close"[39m
+                    [33mclass[39m=[32m"semi-icon semi-icon-default semi-icon-close"[39m
+                    [33mrole[39m=[32m"img"[39m
+                    [33mx-semi-prop[39m=[32m"closeIcon"[39m
+                  [36m>[39m
+                    [36m<svg[39m
+                      [33maria-hidden[39m=[32m"true"[39m
+                      [33mfill[39m=[32m"none"[39m
+                      [33mfocusable[39m=[32m"false"[39m
+                      [33mheight[39m=[32m"1em"[39m
+                      [33mviewBox[39m=[32m"0 0 24 24"[39m
+                      [33mwidth[39m=[32m"1em"[39m
+                      [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+                    [36m>[39m
+                      [36m...
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ getElementError node_modules/@testing-library/dom/dist/query-helpers.js:20:35
+ ❯ getMultipleElementsFoundError node_modules/@testing-library/dom/dist/query-helpers.js:23:10
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:55:13
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ src/panels/AuditPanel.test.tsx:60:17
+     58|   render(<AuditPanel />)
+     59|   for (const label of ['进行中', '结果未确认', '失败', '成功']) expect(await scree…
+     60|   expect(screen.getByRole('alert')).toHaveTextContent('line 8: truncat…
+       |                 ^
+     61|   await userEvent.setup().click(screen.getAllByRole('button', { name: …
+     62|   expect(within(screen.getByRole('dialog')).getByText('变更未确认')).toBeIn…
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/5]⎯
+ FAIL  src/panels/AuditPanel.test.tsx > S10 读取失败与只有损坏数据都不伪报正常空日：false
+TestingLibraryElementError: Found multiple elements with the role "alert"
+Here are the matching elements:
+Ignored nodes: comments, script, style
+[36m<div[39m
+  [33mrole[39m=[32m"alert"[39m
+[36m>[39m
+  [36m<div[39m
+    [33mclass[39m=[32m"semi-banner semi-banner-danger semi-banner-full"[39m
+    [33mrole[39m=[32m"alert"[39m
+  [36m>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"semi-banner-content-wrapper"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"semi-banner-content"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"semi-banner-icon"[39m
+          [33mx-semi-prop[39m=[32m"icon"[39m
+        [36m>[39m
+          [36m<span[39m
+            [33maria-label[39m=[32m"danger"[39m
+            [33mclass[39m=[32m"semi-icon semi-icon-large semi-icon-alert_circle"[39m
+            [33mrole[39m=[32m"img"[39m
+          [36m>[39m
+            [36m<svg[39m
+              [33maria-hidden[39m=[32m"true"[39m
+              [33mfill[39m=[32m"none"[39m
+              [33mfocusable[39m=[32m"false"[39m
+              [33mheight[39m=[32m"1em"[39m
+              [33mviewBox[39m=[32m"0 0 24 24"[39m
+              [33mwidth[39m=[32m"1em"[39m
+              [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+            [36m>[39m
+              [36m<path[39m
+                [33mclip-rule[39m=[32m"evenodd"[39m
+                [33md[39m=[32m"M23 12a11 11 0 1 1-22 0 11 11 0 0 1 22 0Zm-9.5 5.5a1.5 1.5 0 1 0-3 0 1.5 1.5 0 0 0 3 0ZM12 5a1.9 1.9 0 0 0-1.89 2l.3 5.5a1.59 1.59 0 0 0 3.17 0l.3-5.5c.07-1.09-.8-2-1.88-2Z"[39m
+                [33mfill[39m=[32m"currentColor"[39m
+                [33mfill-rule[39m=[32m"evenodd"[39m
+              [36m/>[39m
+            [36m</svg>[39m
+          [36m</span>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"semi-banner-content-body"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"semi-typography semi-banner-title semi-typography-primary semi-typography-normal semi-typography-h5"[39m
+            [33mx-semi-prop[39m=[32m"title"[39m
+          [36m>[39m
+            [0m审计读取失败[0m
+          [36m</div>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"semi-typography semi-banner-description semi-typography-paragraph semi-typography-primary semi-typography-normal"[39m
+            [33mx-semi-prop[39m=[32m"description"[39m
+          [36m>[39m
+            [0maudit_unavailable[0m
+          [36m</div>[39m
+        [36m</div>[39m
+      [36m</div>[39m
+      [36m<button[39m
+        [33maria-disabled[39m=[32m"false"[39m
+        [33maria-label[39m=[32m"Close"[39m
+        [33mclass[39m=[32m"semi-button semi-button-tertiary semi-button-size-small semi-button-borderless semi-banner-close semi-button-with-icon semi-button-with-icon-only"[39m
+        [33mtype[39m=[32m"button"[39m
+      [36m>[39m
+        [36m<span[39m
+          [33mclass[39m=[32m"semi-button-content"[39m
+        [36m>[39m
+          [36m<span[39m
+            [33maria-hidden[39m=[32m"true"[39m
+            [33maria-label[39m=[32m"close"[39m
+            [33mclass[39m=[32m"semi-icon semi-icon-default semi-icon-close"[39m
+            [33mrole[39m=[32m"img"[39m
+            [33mx-semi-prop[39m=[32m"closeIcon"[39m
+          [36m>[39m
+            [36m<svg[39m
+              [33maria-hidden[39m=[32m"true"[39m
+              [33mfill[39m=[32m"none"[39m
+              [33mfocusable[39m=[32m"false"[39m
+              [33mheight[39m=[32m"1em"[39m
+              [33mviewBox[39m=[32m"0 0 24 24"[39m
+              [33mwidth[39m=[32m"1em"[39m
+              [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+            [36m>[39m
+              [36m<path[39m
+                [33md[39m=[32m"M17.66 19.78a1.5 1.5 0 0 0 2.12-2.12L14.12 12l5.66-5.66a1.5 1.5 0 0 0-2.12-2.12L12 9.88 6.34 4.22a1.5 1.5 0 1 0-2.12 2.12L9.88 12l-5.66 5.66a1.5 1.5 0 0 0 2.12 2.12L12 14.12l5.66 5.66Z"[39m
+                [33mfill[39m=[32m"currentColor"[39m
+              [36m/>[39m
+            [36m</svg>[39m
+          [36m</span>[39m
+        [36m</span>[39m
+      [36m</button>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+[36m</div>[39m
+Ignored nodes: comments, script, style
+[36m<div[39m
+  [33mclass[39m=[32m"semi-banner semi-banner-danger semi-banner-full"[39m
+  [33mrole[39m=[32m"alert"[39m
+[36m>[39m
+  [36m<div[39m
+    [33mclass[39m=[32m"semi-banner-content-wrapper"[39m
+  [36m>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"semi-banner-content"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"semi-banner-icon"[39m
+        [33mx-semi-prop[39m=[32m"icon"[39m
+      [36m>[39m
+        [36m<span[39m
+          [33maria-label[39m=[32m"danger"[39m
+          [33mclass[39m=[32m"semi-icon semi-icon-large semi-icon-alert_circle"[39m
+          [33mrole[39m=[32m"img"[39m
+        [36m>[39m
+          [36m<svg[39m
+            [33maria-hidden[39m=[32m"true"[39m
+            [33mfill[39m=[32m"none"[39m
+            [33mfocusable[39m=[32m"false"[39m
+            [33mheight[39m=[32m"1em"[39m
+            [33mviewBox[39m=[32m"0 0 24 24"[39m
+            [33mwidth[39m=[32m"1em"[39m
+            [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+          [36m>[39m
+            [36m<path[39m
+              [33mclip-rule[39m=[32m"evenodd"[39m
+              [33md[39m=[32m"M23 12a11 11 0 1 1-22 0 11 11 0 0 1 22 0Zm-9.5 5.5a1.5 1.5 0 1 0-3 0 1.5 1.5 0 0 0 3 0ZM12 5a1.9 1.9 0 0 0-1.89 2l.3 5.5a1.59 1.59 0 0 0 3.17 0l.3-5.5c.07-1.09-.8-2-1.88-2Z"[39m
+              [33mfill[39m=[32m"currentColor"[39m
+              [33mfill-rule[39m=[32m"evenodd"[39m
+            [36m/>[39m
+          [36m</svg>[39m
+        [36m</span>[39m
+      [36m</div>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"semi-banner-content-body"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"semi-typography semi-banner-title semi-typography-primary semi-typography-normal semi-typography-h5"[39m
+          [33mx-semi-prop[39m=[32m"title"[39m
+        [36m>[39m
+          [0m审计读取失败[0m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"semi-typography semi-banner-description semi-typography-paragraph semi-typography-primary semi-typography-normal"[39m
+          [33mx-semi-prop[39m=[32m"description"[39m
+        [36m>[39m
+          [0maudit_unavailable[0m
+        [36m</div>[39m
+      [36m</div>[39m
+    [36m</div>[39m
+    [36m<button[39m
+      [33maria-disabled[39m=[32m"false"[39m
+      [33maria-label[39m=[32m"Close"[39m
+      [33mclass[39m=[32m"semi-button semi-button-tertiary semi-button-size-small semi-button-borderless semi-banner-close semi-button-with-icon semi-button-with-icon-only"[39m
+      [33mtype[39m=[32m"button"[39m
+    [36m>[39m
+      [36m<span[39m
+        [33mclass[39m=[32m"semi-button-content"[39m
+      [36m>[39m
+        [36m<span[39m
+          [33maria-hidden[39m=[32m"true"[39m
+          [33maria-label[39m=[32m"close"[39m
+          [33mclass[39m=[32m"semi-icon semi-icon-default semi-icon-close"[39m
+          [33mrole[39m=[32m"img"[39m
+          [33mx-semi-prop[39m=[32m"closeIcon"[39m
+        [36m>[39m
+          [36m<svg[39m
+            [33maria-hidden[39m=[32m"true"[39m
+            [33mfill[39m=[32m"none"[39m
+            [33mfocusable[39m=[32m"false"[39m
+            [33mheight[39m=[32m"1em"[39m
+            [33mviewBox[39m=[32m"0 0 24 24"[39m
+            [33mwidth[39m=[32m"1em"[39m
+            [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+          [36m>[39m
+            [36m<path[39m
+              [33md[39m=[32m"M17.66 19.78a1.5 1.5 0 0 0 2.12-2.12L14.12 12l5.66-5.66a1.5 1.5 0 0 0-2.12-2.12L12 9.88 6.34 4.22a1.5 1.5 0 1 0-2.12 2.12L9.88 12l-5.66 5.66a1.5 1.5 0 0 0 2.12 2.12L12 14.12l5.66 5.66Z"[39m
+              [33mfill[39m=[32m"currentColor"[39m
+            [36m/>[39m
+          [36m</svg>[39m
+        [36m</span>[39m
+      [36m</span>[39m
+    [36m</button>[39m
+  [36m</div>[39m
+[36m</div>[39m
+(If this is intentional, then use the `*AllBy*` variant of the query (like `queryAllByText`, `getAllByText`, or `findAllByText`)).
+Ignored nodes: comments, script, style
+[36m<body[39m
+  [33mstyle[39m=[32m""[39m
+[36m>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33maria-busy[39m=[32m"false"[39m
+      [33mclass[39m=[32m"semi-card audit-panel semi-card-bordered"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"semi-card-header semi-card-header-bordered"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"semi-card-header-wrapper"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"semi-card-header-wrapper-title"[39m
+          [36m>[39m
+            [36m<h6[39m
+              [33mclass[39m=[32m"semi-typography semi-typography-ellipsis semi-typography-ellipsis-single-line semi-typography-ellipsis-overflow-ellipsis semi-typography-primary semi-typography-normal semi-typography-h6"[39m
+              [33mx-semi-prop[39m=[32m"title"[39m
+            [36m>[39m
+              [36m<span>[39m
+                [0m操作审计[0m
+              [36m</span>[39m
+            [36m</h6>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+      [36m</div>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"semi-card-body"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"audit-toolbar"[39m
+        [36m>[39m
+          [36m<label[39m
+            [33mclass[39m=[32m"audit-date"[39m
+          [36m>[39m
+            [0m日期[0m
+            [36m<div[39m
+              [33mclass[39m=[32m"semi-input-wrapper semi-input-wrapper-default"[39m
+            [36m>[39m
+              [36m<input[39m
+                [33maria-label[39m=[32m"审计日期"[39m
+                [33mclass[39m=[32m"semi-input semi-input-default"[39m
+                [33mplaceholder[39m=[32m""[39m
+                [33mtype[39m=[32m"date"[39m
+                [33mvalue[39m=[32m""[39m
+              [36m/>[39m
+            [36m</div>[39m
+          [36m</label>[39m
+          [36m<span>[39m
+            [0m北京时间（Asia/Shanghai）[0m
+          [36m</span>[39m
+          [36m<button[39m
+            [33maria-disabled[39m=[32m"false"[39m
+            [33mclass[39m=[32m"semi-button semi-button-primary semi-button-light"[39m
+            [33mtype[39m=[32m"button"[39m
+          [36m>[39m
+            [36m<span[39m
+              [33mclass[39m=[32m"semi-button-content"[39m
+              [33mx-semi-prop[39m=[32m"children"[39m
+            [36m>[39m
+              [0m刷新[0m
+            [36m</span>[39m
+          [36m</button>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mrole[39m=[32m"alert"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"semi-banner semi-banner-danger semi-banner-full"[39m
+            [33mrole[39m=[32m"alert"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"semi-banner-content-wrapper"[39m
+            [36m>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"semi-banner-content"[39m
+              [36m>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"semi-banner-icon"[39m
+                  [33mx-semi-prop[39m=[32m"icon"[39m
+                [36m>[39m
+                  [36m<span[39m
+                    [33maria-label[39m=[32m"danger"[39m
+                    [33mclass[39m=[32m"semi-icon semi-icon-large semi-icon-alert_circle"[39m
+                    [33mrole[39m=[32m"img"[39m
+                  [36m>[39m
+                    [36m<svg[39m
+                      [33maria-hidden[39m=[32m"true"[39m
+                      [33mfill[39m=[32m"none"[39m
+                      [33mfocusable[39m=[32m"false"[39m
+                      [33mheight[39m=[32m"1em"[39m
+                      [33mviewBox[39m=[32m"0 0 24 24"[39m
+                      [33mwidth[39m=[32m"1em"[39m
+                      [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+                    [36m>[39m
+                      [36m<path[39m
+                        [33mclip-rule[39m=[32m"evenodd"[39m
+                        [33md[39m=[32m"M23 12a11 11 0 1 1-22 0 11 11 0 0 1 22 0Zm-9.5 5.5a1.5 1.5 0 1 0-3 0 1.5 1.5 0 0 0 3 0ZM12 5a1.9 1.9 0 0 0-1.89 2l.3 5.5a1.59 1.59 0 0 0 3.17 0l.3-5.5c.07-1.09-.8-2-1.88-2Z"[39m
+                        [33mfill[39m=[32m"currentColor"[39m
+                        [33mfill-rule[39m=[32m"evenodd"[39m
+                      [36m/>[39m
+                    [36m</svg>[39m
+                  [36m</span>[39m
+                [36m</div>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"semi-banner-content-body"[39m
+                [36m>[39m
+                  [36m<div[39m
+                    [33mclass[39m=[32m"semi-typography semi-banner-title semi-typography-primary semi-typography-normal semi-typography-h5"[39m
+                    [33mx-semi-prop[39m=[32m"title"[39m
+                  [36m>[39m
+                    [0m审计读取失败[0m
+                  [36m</div>[39m
+                  [36m<div[39m
+                    [33mclass[39m=[32m"semi-typography semi-banner-description semi-typography-paragraph semi-typography-primary semi-typography-normal"[39m
+                    [33mx-semi-prop[39m=[32m"description"[39m
+                  [36m>[39m
+                    [0maudit_unavailable[0m
+                  [36m</div>[39m
+                [36m</div>[39m
+              [36m</div>[39m
+              [36m<button[39m
+                [33maria-disabled[39m=[32m"false"[39m
+                [33maria-label[39m=[32m"Close"[39m
+                [33mclass[39m=[32m"semi-button semi-button-tertiary semi-button-size-small semi-button-borderless semi-banner-close semi-button-with-icon semi-button-with-icon-only"[39m
+                [33mtype[39m=[32m"button"[39m
+              [36m>[39m
+                [36m<span[39m
+                  [33mclass[39m=[32m"semi-button-content"[39m
+                [36m>[39m
+                  [36m<span[39m
+                    [33maria-hidden[39m=[32m"true"[39m
+                    [33maria-label[39m=[32m"close"[39m
+                    [33mclass[39m=[32m"semi-icon semi-icon-default semi-icon-close"[39m
+                    [33mrole[39m=[32m"img"[39m
+                    [33mx-semi-prop[39m=[32m"closeIcon"[39m
+                  [36m>[39m
+                    [36m<svg[39m
+                      [33maria-hidden[39m=[32m"true"[39m
+                      [33mfill[39m=[32m"none"[39m
+                      [33mfocusable[39m=[32m"false"[39m
+                      [33mheight[39m=[32m"1em"[39m
+                      [33mviewBox[39m=[32m"0 0 24 24"[39m
+                      [33mwidth[39m=[32m"1em"[39m
+                      [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+                    [36m>[39m
+                      [36m<path[39m
+                        [33md[39m=[32m"M17.66 19.78a1.5 1.5 0 0 0 2.12-2.12L14.12 12l5.66-5.66a1.5 1.5 0 0 0-2.12-2.12L12 9.88 6.34 4.22a1.5 1.5 0 1 0-2.12 2.12L9.88 12l-5.66 5.66a1.5 1.5 0 0 0 2.12 2.12L12 14.12l5.66 5.66Z"[39m
+                        [33mfill[39m=[32m"currentColor"[39m
+                      [36m/>[39m
+                    [36m</svg>[39m
+                  [36m</span>[39m
+                [36m</span>[39m
+              [36m</button>[39m
+            [36m</div>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+      [36m</div>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+[36m</body>[39m
+Ignored nodes: comments, script, style
+[36m<body[39m
+  [33mstyle[39m=[32m""[39m
+[36m>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33maria-busy[39m=[32m"false"[39m
+      [33mclass[39m=[32m"semi-card audit-panel semi-card-bordered"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"semi-card-header semi-card-header-bordered"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"semi-card-header-wrapper"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"semi-card-header-wrapper-title"[39m
+          [36m>[39m
+            [36m<h6[39m
+              [33mclass[39m=[32m"semi-typography semi-typography-ellipsis semi-typography-ellipsis-single-line semi-typography-ellipsis-overflow-ellipsis semi-typography-primary semi-typography-normal semi-typography-h6"[39m
+              [33mx-semi-prop[39m=[32m"title"[39m
+            [36m>[39m
+              [36m<span>[39m
+                [0m操作审计[0m
+              [36m</span>[39m
+            [36m</h6>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+      [36m</div>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"semi-card-body"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"audit-toolbar"[39m
+        [36m>[39m
+          [36m<label[39m
+            [33mclass[39m=[32m"audit-date"[39m
+          [36m>[39m
+            [0m日期[0m
+            [36m<div[39m
+              [33mclass[39m=[32m"semi-input-wrapper semi-input-wrapper-default"[39m
+            [36m>[39m
+              [36m<input[39m
+                [33maria-label[39m=[32m"审计日期"[39m
+                [33mclass[39m=[32m"semi-input semi-input-default"[39m
+                [33mplaceholder[39m=[32m""[39m
+                [33mtype[39m=[32m"date"[39m
+                [33mvalue[39m=[32m""[39m
+              [36m/>[39m
+            [36m</div>[39m
+          [36m</label>[39m
+          [36m<span>[39m
+            [0m北京时间（Asia/Shanghai）[0m
+          [36m</span>[39m
+          [36m<button[39m
+            [33maria-disabled[39m=[32m"false"[39m
+            [33mclass[39m=[32m"semi-button semi-button-primary semi-button-light"[39m
+            [33mtype[39m=[32m"button"[39m
+          [36m>[39m
+            [36m<span[39m
+              [33mclass[39m=[32m"semi-button-content"[39m
+              [33mx-semi-prop[39m=[32m"children"[39m
+            [36m>[39m
+              [0m刷新[0m
+            [36m</span>[39m
+          [36m</button>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mrole[39m=[32m"alert"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"semi-banner semi-banner-danger semi-banner-full"[39m
+            [33mrole[39m=[32m"alert"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"semi-banner-content-wrapper"[39m
+            [36m>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"semi-banner-content"[39m
+              [36m>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"semi-banner-icon"[39m
+                  [33mx-semi-prop[39m=[32m"icon"[39m
+                [36m>[39m
+                  [36m<span[39m
+                    [33maria-label[39m=[32m"danger"[39m
+                    [33mclass[39m=[32m"semi-icon semi-icon-large semi-icon-alert_circle"[39m
+                    [33mrole[39m=[32m"img"[39m
+                  [36m>[39m
+                    [36m<svg[39m
+                      [33maria-hidden[39m=[32m"true"[39m
+                      [33mfill[39m=[32m"none"[39m
+                      [33mfocusable[39m=[32m"false"[39m
+                      [33mheight[39m=[32m"1em"[39m
+                      [33mviewBox[39m=[32m"0 0 24 24"[39m
+                      [33mwidth[39m=[32m"1em"[39m
+                      [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+                    [36m>[39m
+                      [36m<path[39m
+                        [33mclip-rule[39m=[32m"evenodd"[39m
+                        [33md[39m=[32m"M23 12a11 11 0 1 1-22 0 11 11 0 0 1 22 0Zm-9.5 5.5a1.5 1.5 0 1 0-3 0 1.5 1.5 0 0 0 3 0ZM12 5a1.9 1.9 0 0 0-1.89 2l.3 5.5a1.59 1.59 0 0 0 3.17 0l.3-5.5c.07-1.09-.8-2-1.88-2Z"[39m
+                        [33mfill[39m=[32m"currentColor"[39m
+                        [33mfill-rule[39m=[32m"evenodd"[39m
+                      [36m/>[39m
+                    [36m</svg>[39m
+                  [36m</span>[39m
+                [36m</div>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"semi-banner-content-body"[39m
+                [36m>[39m
+                  [36m<div[39m
+                    [33mclass[39m=[32m"semi-typography semi-banner-title semi-typography-primary semi-typography-normal semi-typography-h5"[39m
+                    [33mx-semi-prop[39m=[32m"title"[39m
+                  [36m>[39m
+                    [0m审计读取失败[0m
+                  [36m</div>[39m
+                  [36m<div[39m
+                    [33mclass[39m=[32m"semi-typography semi-banner-description semi-typography-paragraph semi-typography-primary semi-typography-normal"[39m
+                    [33mx-semi-prop[39m=[32m"description"[39m
+                  [36m>[39m
+                    [0maudit_unavailable[0m
+                  [36m</div>[39m
+                [36m</div>[39m
+              [36m</div>[39m
+              [36m<button[39m
+                [33maria-disabled[39m=[32m"false"[39m
+                [33maria-label[39m=[32m"Close"[39m
+                [33mclass[39m=[32m"semi-button semi-button-tertiary semi-button-size-small semi-button-borderless semi-banner-close semi-button-with-icon semi-button-with-icon-only"[39m
+                [33mtype[39m=[32m"button"[39m
+              [36m>[39m
+                [36m<span[39m
+                  [33mclass[39m=[32m"semi-button-content"[39m
+                [36m>[39m
+                  [36m<span[39m
+                    [33maria-hidden[39m=[32m"true"[39m
+                    [33maria-label[39m=[32m"close"[39m
+                    [33mclass[39m=[32m"semi-icon semi-icon-default semi-icon-close"[39m
+                    [33mrole[39m=[32m"img"[39m
+                    [33mx-semi-prop[39m=[32m"closeIcon"[39m
+                  [36m>[39m
+                    [36m<svg[39m
+                      [33maria-hidden[39m=[32m"true"[39m
+                      [33mfill[39m=[32m"none"[39m
+                      [33mfocusable[39m=[32m"false"[39m
+                      [33mheight[39m=[32m"1em"[39m
+                      [33mviewBox[39m=[32m"0 0 24 24"[39m
+                      [33mwidth[39m=[32m"1em"[39m
+                      [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+                    [36m>[39m
+                      [36m<path[39m
+                        [33md[39m=[32m"M17.66 19.78a1.5 1.5 0 0 0 2.12-2.12L14.12 12l5.66-5.66a1.5 1.5 0 0 0-2.12-2.12L12 9.88 6.34 4.22a1.5 1.5 0 1 0-2.12 2.12L9.88 12l-5.66 5.66a1.5 1.5 0 0 0 2.12 2.12L12 14.12l5.66 5.66Z"[39m
+                        [33mfill[39m=[32m"currentColor"[39m
+                      [36m/>[39m
+                    [36m</svg>[39m
+                  [36m</span>[39m
+                [36m</span>[39m
+              [36m</button>[39m
+            [36m</div>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+      [36m</div>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+[36m</body>[39m
+ ❯ waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ src/panels/AuditPanel.test.tsx:69:23
+     67|     response({ error: 'audit_unavailable' }, 503)))
+     68|   render(<AuditPanel />)
+     69|   expect(await screen.findByRole('alert')).toHaveTextContent(warning ?…
+       |                       ^
+     70|   expect(screen.queryByText('当天暂无操作记录')).not.toBeInTheDocument()
+     71| })
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/5]⎯
+ FAIL  src/panels/AuditPanel.test.tsx > S10 读取失败与只有损坏数据都不伪报正常空日：true
+TestingLibraryElementError: Found multiple elements with the role "alert"
+Here are the matching elements:
+Ignored nodes: comments, script, style
+[36m<div[39m
+  [33mrole[39m=[32m"alert"[39m
+[36m>[39m
+  [36m<div[39m
+    [33mclass[39m=[32m"semi-banner semi-banner-warning semi-banner-full"[39m
+    [33mrole[39m=[32m"alert"[39m
+  [36m>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"semi-banner-content-wrapper"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"semi-banner-content"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"semi-banner-icon"[39m
+          [33mx-semi-prop[39m=[32m"icon"[39m
+        [36m>[39m
+          [36m<span[39m
+            [33maria-label[39m=[32m"warning"[39m
+            [33mclass[39m=[32m"semi-icon semi-icon-large semi-icon-alert_triangle"[39m
+            [33mrole[39m=[32m"img"[39m
+          [36m>[39m
+            [36m<svg[39m
+              [33maria-hidden[39m=[32m"true"[39m
+              [33mfill[39m=[32m"none"[39m
+              [33mfocusable[39m=[32m"false"[39m
+              [33mheight[39m=[32m"1em"[39m
+              [33mviewBox[39m=[32m"0 0 24 24"[39m
+              [33mwidth[39m=[32m"1em"[39m
+              [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+            [36m>[39m
+              [36m<path[39m
+                [33mclip-rule[39m=[32m"evenodd"[39m
+                [33md[39m=[32m"m10.23 2.4-8.7 16.67A2 2 0 0 0 3.3 22h17.4a2 2 0 0 0 1.77-2.93L13.77 2.4a2 2 0 0 0-3.54 0ZM13.14 14a1.15 1.15 0 0 1-2.28 0l-.58-4.03a1.73 1.73 0 1 1 3.44 0l-.58 4.03Zm.36 4.49a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Z"[39m
+                [33mfill[39m=[32m"currentColor"[39m
+                [33mfill-rule[39m=[32m"evenodd"[39m
+              [36m/>[39m
+            [36m</svg>[39m
+          [36m</span>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"semi-banner-content-body"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"semi-typography semi-banner-title semi-typography-primary semi-typography-normal semi-typography-h5"[39m
+            [33mx-semi-prop[39m=[32m"title"[39m
+          [36m>[39m
+            [0m审计数据不完整[0m
+          [36m</div>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"semi-typography semi-banner-description semi-typography-paragraph semi-typography-primary semi-typography-normal"[39m
+            [33mx-semi-prop[39m=[32m"description"[39m
+          [36m>[39m
+            [0mline 1: invalid_event[0m
+          [36m</div>[39m
+        [36m</div>[39m
+      [36m</div>[39m
+      [36m<button[39m
+        [33maria-disabled[39m=[32m"false"[39m
+        [33maria-label[39m=[32m"Close"[39m
+        [33mclass[39m=[32m"semi-button semi-button-tertiary semi-button-size-small semi-button-borderless semi-banner-close semi-button-with-icon semi-button-with-icon-only"[39m
+        [33mtype[39m=[32m"button"[39m
+      [36m>[39m
+        [36m<span[39m
+          [33mclass[39m=[32m"semi-button-content"[39m
+        [36m>[39m
+          [36m<span[39m
+            [33maria-hidden[39m=[32m"true"[39m
+            [33maria-label[39m=[32m"close"[39m
+            [33mclass[39m=[32m"semi-icon semi-icon-default semi-icon-close"[39m
+            [33mrole[39m=[32m"img"[39m
+            [33mx-semi-prop[39m=[32m"closeIcon"[39m
+          [36m>[39m
+            [36m<svg[39m
+              [33maria-hidden[39m=[32m"true"[39m
+              [33mfill[39m=[32m"none"[39m
+              [33mfocusable[39m=[32m"false"[39m
+              [33mheight[39m=[32m"1em"[39m
+              [33mviewBox[39m=[32m"0 0 24 24"[39m
+              [33mwidth[39m=[32m"1em"[39m
+              [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+            [36m>[39m
+              [36m<path[39m
+                [33md[39m=[32m"M17.66 19.78a1.5 1.5 0 0 0 2.12-2.12L14.12 12l5.66-5.66a1.5 1.5 0 0 0-2.12-2.12L12 9.88 6.34 4.22a1.5 1.5 0 1 0-2.12 2.12L9.88 12l-5.66 5.66a1.5 1.5 0 0 0 2.12 2.12L12 14.12l5.66 5.66Z"[39m
+                [33mfill[39m=[32m"currentColor"[39m
+              [36m/>[39m
+            [36m</svg>[39m
+          [36m</span>[39m
+        [36m</span>[39m
+      [36m</button>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+[36m</div>[39m
+Ignored nodes: comments, script, style
+[36m<div[39m
+  [33mclass[39m=[32m"semi-banner semi-banner-warning semi-banner-full"[39m
+  [33mrole[39m=[32m"alert"[39m
+[36m>[39m
+  [36m<div[39m
+    [33mclass[39m=[32m"semi-banner-content-wrapper"[39m
+  [36m>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"semi-banner-content"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"semi-banner-icon"[39m
+        [33mx-semi-prop[39m=[32m"icon"[39m
+      [36m>[39m
+        [36m<span[39m
+          [33maria-label[39m=[32m"warning"[39m
+          [33mclass[39m=[32m"semi-icon semi-icon-large semi-icon-alert_triangle"[39m
+          [33mrole[39m=[32m"img"[39m
+        [36m>[39m
+          [36m<svg[39m
+            [33maria-hidden[39m=[32m"true"[39m
+            [33mfill[39m=[32m"none"[39m
+            [33mfocusable[39m=[32m"false"[39m
+            [33mheight[39m=[32m"1em"[39m
+            [33mviewBox[39m=[32m"0 0 24 24"[39m
+            [33mwidth[39m=[32m"1em"[39m
+            [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+          [36m>[39m
+            [36m<path[39m
+              [33mclip-rule[39m=[32m"evenodd"[39m
+              [33md[39m=[32m"m10.23 2.4-8.7 16.67A2 2 0 0 0 3.3 22h17.4a2 2 0 0 0 1.77-2.93L13.77 2.4a2 2 0 0 0-3.54 0ZM13.14 14a1.15 1.15 0 0 1-2.28 0l-.58-4.03a1.73 1.73 0 1 1 3.44 0l-.58 4.03Zm.36 4.49a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Z"[39m
+              [33mfill[39m=[32m"currentColor"[39m
+              [33mfill-rule[39m=[32m"evenodd"[39m
+            [36m/>[39m
+          [36m</svg>[39m
+        [36m</span>[39m
+      [36m</div>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"semi-banner-content-body"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"semi-typography semi-banner-title semi-typography-primary semi-typography-normal semi-typography-h5"[39m
+          [33mx-semi-prop[39m=[32m"title"[39m
+        [36m>[39m
+          [0m审计数据不完整[0m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"semi-typography semi-banner-description semi-typography-paragraph semi-typography-primary semi-typography-normal"[39m
+          [33mx-semi-prop[39m=[32m"description"[39m
+        [36m>[39m
+          [0mline 1: invalid_event[0m
+        [36m</div>[39m
+      [36m</div>[39m
+    [36m</div>[39m
+    [36m<button[39m
+      [33maria-disabled[39m=[32m"false"[39m
+      [33maria-label[39m=[32m"Close"[39m
+      [33mclass[39m=[32m"semi-button semi-button-tertiary semi-button-size-small semi-button-borderless semi-banner-close semi-button-with-icon semi-button-with-icon-only"[39m
+      [33mtype[39m=[32m"button"[39m
+    [36m>[39m
+      [36m<span[39m
+        [33mclass[39m=[32m"semi-button-content"[39m
+      [36m>[39m
+        [36m<span[39m
+          [33maria-hidden[39m=[32m"true"[39m
+          [33maria-label[39m=[32m"close"[39m
+          [33mclass[39m=[32m"semi-icon semi-icon-default semi-icon-close"[39m
+          [33mrole[39m=[32m"img"[39m
+          [33mx-semi-prop[39m=[32m"closeIcon"[39m
+        [36m>[39m
+          [36m<svg[39m
+            [33maria-hidden[39m=[32m"true"[39m
+            [33mfill[39m=[32m"none"[39m
+            [33mfocusable[39m=[32m"false"[39m
+            [33mheight[39m=[32m"1em"[39m
+            [33mviewBox[39m=[32m"0 0 24 24"[39m
+            [33mwidth[39m=[32m"1em"[39m
+            [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+          [36m>[39m
+            [36m<path[39m
+              [33md[39m=[32m"M17.66 19.78a1.5 1.5 0 0 0 2.12-2.12L14.12 12l5.66-5.66a1.5 1.5 0 0 0-2.12-2.12L12 9.88 6.34 4.22a1.5 1.5 0 1 0-2.12 2.12L9.88 12l-5.66 5.66a1.5 1.5 0 0 0 2.12 2.12L12 14.12l5.66 5.66Z"[39m
+              [33mfill[39m=[32m"currentColor"[39m
+            [36m/>[39m
+          [36m</svg>[39m
+        [36m</span>[39m
+      [36m</span>[39m
+    [36m</button>[39m
+  [36m</div>[39m
+[36m</div>[39m
+(If this is intentional, then use the `*AllBy*` variant of the query (like `queryAllByText`, `getAllByText`, or `findAllByText`)).
+Ignored nodes: comments, script, style
+[36m<body[39m
+  [33mstyle[39m=[32m""[39m
+[36m>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33maria-busy[39m=[32m"false"[39m
+      [33mclass[39m=[32m"semi-card audit-panel semi-card-bordered"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"semi-card-header semi-card-header-bordered"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"semi-card-header-wrapper"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"semi-card-header-wrapper-title"[39m
+          [36m>[39m
+            [36m<h6[39m
+              [33mclass[39m=[32m"semi-typography semi-typography-ellipsis semi-typography-ellipsis-single-line semi-typography-ellipsis-overflow-ellipsis semi-typography-primary semi-typography-normal semi-typography-h6"[39m
+              [33mx-semi-prop[39m=[32m"title"[39m
+            [36m>[39m
+              [36m<span>[39m
+                [0m操作审计[0m
+              [36m</span>[39m
+            [36m</h6>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+      [36m</div>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"semi-card-body"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"audit-toolbar"[39m
+        [36m>[39m
+          [36m<label[39m
+            [33mclass[39m=[32m"audit-date"[39m
+          [36m>[39m
+            [0m日期[0m
+            [36m<div[39m
+              [33mclass[39m=[32m"semi-input-wrapper semi-input-wrapper-default"[39m
+            [36m>[39m
+              [36m<input[39m
+                [33maria-label[39m=[32m"审计日期"[39m
+                [33mclass[39m=[32m"semi-input semi-input-default"[39m
+                [33mplaceholder[39m=[32m""[39m
+                [33mtype[39m=[32m"date"[39m
+                [33mvalue[39m=[32m"2026-09-12"[39m
+              [36m/>[39m
+            [36m</div>[39m
+          [36m</label>[39m
+          [36m<span>[39m
+            [0m北京时间（Asia/Shanghai）[0m
+          [36m</span>[39m
+          [36m<button[39m
+            [33maria-disabled[39m=[32m"false"[39m
+            [33mclass[39m=[32m"semi-button semi-button-primary semi-button-light"[39m
+            [33mtype[39m=[32m"button"[39m
+          [36m>[39m
+            [36m<span[39m
+              [33mclass[39m=[32m"semi-button-content"[39m
+              [33mx-semi-prop[39m=[32m"children"[39m
+            [36m>[39m
+              [0m刷新[0m
+            [36m</span>[39m
+          [36m</button>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mrole[39m=[32m"alert"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"semi-banner semi-banner-warning semi-banner-full"[39m
+            [33mrole[39m=[32m"alert"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"semi-banner-content-wrapper"[39m
+            [36m>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"semi-banner-content"[39m
+              [36m>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"semi-banner-icon"[39m
+                  [33mx-semi-prop[39m=[32m"icon"[39m
+                [36m>[39m
+                  [36m<span[39m
+                    [33maria-label[39m=[32m"warning"[39m
+                    [33mclass[39m=[32m"semi-icon semi-icon-large semi-icon-alert_triangle"[39m
+                    [33mrole[39m=[32m"img"[39m
+                  [36m>[39m
+                    [36m<svg[39m
+                      [33maria-hidden[39m=[32m"true"[39m
+                      [33mfill[39m=[32m"none"[39m
+                      [33mfocusable[39m=[32m"false"[39m
+                      [33mheight[39m=[32m"1em"[39m
+                      [33mviewBox[39m=[32m"0 0 24 24"[39m
+                      [33mwidth[39m=[32m"1em"[39m
+                      [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+                    [36m>[39m
+                      [36m<path[39m
+                        [33mclip-rule[39m=[32m"evenodd"[39m
+                        [33md[39m=[32m"m10.23 2.4-8.7 16.67A2 2 0 0 0 3.3 22h17.4a2 2 0 0 0 1.77-2.93L13.77 2.4a2 2 0 0 0-3.54 0ZM13.14 14a1.15 1.15 0 0 1-2.28 0l-.58-4.03a1.73 1.73 0 1 1 3.44 0l-.58 4.03Zm.36 4.49a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Z"[39m
+                        [33mfill[39m=[32m"currentColor"[39m
+                        [33mfill-rule[39m=[32m"evenodd"[39m
+                      [36m/>[39m
+                    [36m</svg>[39m
+                  [36m</span>[39m
+                [36m</div>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"semi-banner-content-body"[39m
+                [36m>[39m
+                  [36m<div[39m
+                    [33mclass[39m=[32m"semi-typography semi-banner-title semi-typography-primary semi-typography-normal semi-typography-h5"[39m
+                    [33mx-semi-prop[39m=[32m"title"[39m
+                  [36m>[39m
+                    [0m审计数据不完整[0m
+                  [36m</div>[39m
+                  [36m<div[39m
+                    [33mclass[39m=[32m"semi-typography semi-banner-description semi-typography-paragraph semi-typography-primary semi-typography-normal"[39m
+                    [33mx-semi-prop[39m=[32m"description"[39m
+                  [36m>[39m
+                    [0mline 1: invalid_event[0m
+                  [36m</div>[39m
+                [36m</div>[39m
+              [36m</div>[39m
+              [36m<button[39m
+                [33maria-disabled[39m=[32m"false"[39m
+                [33maria-label[39m=[32m"Close"[39m
+                [33mclass[39m=[32m"semi-button semi-button-tertiary semi-button-size-small semi-button-borderless semi-banner-close semi-button-with-icon semi-button-with-icon-only"[39m
+                [33mtype[39m=[32m"button"[39m
+              [36m>[39m
+                [36m<span[39m
+                  [33mclass[39m=[32m"semi-button-content"[39m
+                [36m>[39m
+                  [36m<span[39m
+                    [33maria-hidden[39m=[32m"true"[39m
+                    [33maria-label[39m=[32m"close"[39m
+                    [33mclass[39m=[32m"semi-icon semi-icon-default semi-icon-close"[39m
+                    [33mrole[39m=[32m"img"[39m
+                    [33mx-semi-prop[39m=[32m"closeIcon"[39m
+                  [36m>[39m
+                    [36m<svg[39m
+                      [33maria-hidden[39m=[32m"true"[39m
+                      [33mfill[39m=[32m"none"[39m
+                      [33mfocusable[39m=[32m"false"[39m
+                      [33mheight[39m=[32m"1em"[39m
+                      [33mviewBox[39m=[32m"0 0 24 24"[39m
+                      [33mwidth[39m=[32m"1em"[39m
+                      [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+                    [36m>[39m
+                      [36m<path[39m
+                        [33md[39m=[32m"M17.66 19.78a1.5 1.5 0 0 0 2.12-2.12L14.12 12l5.66-5.66a1.5 1.5 0 0 0-2.12-2.12L12 9.88 6.34 4.22a1.5 1.5 0 1 0-2.12 2.12L9.88 12l-5.66 5.66a1.5 1.5 0 0 0 2.12 2.12L12 14.12l5.66 5.66Z"[39m
+                        [33mfill[39m=[32m"currentColor"[39m
+                      [36m/>[39m
+                    [36m</svg>[39m
+                  [36m</span>[39m
+                [36m</span>[39m
+              [36m</button>[39m
+            [36m</div>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+        [36m<p>[39m
+          [0m没有可展示的有效记录，请检查上述审计警告[0m
+        [36m</p>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"audit-pagination"[39m
+        [36m>[39m
+          [36m<span>[39m
+            [0m共 [0m
+            [0m0[0m
+            [0m 项 · 第 [0m
+            [0m1[0m
+            [0m 页[0m
+          [36m</span>[39m
+          [36m<div[39m
+            [33maria-activedescendant[39m=[32m"bd2ebpw-option-0"[39m
+            [33maria-controls[39m=[32m"semi-select-rzu86ly"[39m
+            [33maria-disabled[39m=[32m"false"[39m
+            [33maria-expanded[39m=[32m"false"[39m
+            [33maria-haspopup[39m=[32m"listbox"[39m
+            [33maria-label[39m=[32m"selected"[39m
+            [33mclass[39m=[32m"semi-select semi-select-single"[39m
+            [33mdata-popupid[39m=[32m"d6352k9"[39m
+            [33mid[39m=[32m"bd2ebpw"[39m
+            [33mrole[39m=[32m"combobox"[39m
+            [33mtabindex[39m=[32m"0"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"semi-select-selection"[39m
+            [36m>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"semi-select-content-wrapper"[39m
+              [36m>[39m
+                [36m<span[39m
+                  [33mclass[39m=[32m"semi-select-selection-text"[39m
+                  [33mx-semi-prop[39m=[32m"placeholder"[39m
+                [36m>[39m
+                  [0m20 条/页[0m
+                [36m</span>[39m
+              [36m</div>[39m
+            [36m</div>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"semi-select-arrow"[39m
+              [33mx-semi-prop[39m=[32m"arrowIcon"[39m
+            [36m>[39m
+              [36m<span[39m
+                [33maria-label[39m=[32m""[39m
+                [33mclass[39m=[32m"semi-icon semi-icon-default semi-icon-chevron_down"[39m
+                [33mrole[39m=[32m"img"[39m
+              [36m>[39m
+                [36m<svg[39m
+                  [33maria-hidden[39m=[32m"true"[39m
+                  [33mfill[39m=[32m"none"[39m
+                  [33mfocusable[39m=[32m"false"[39m
+                  [33mheight[39m=[32m"1em"[39m
+                  [33mviewBox[39m=[32m"0 0 24 24"[39m
+                  [33mwidth[39m=[32m"1em"[39m
+                  [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+                [36m>[39m
+                  [36m<path[39m
+                    [33mclip-rule[39m=[32m"evenodd"[39m
+                    [33md[39m=[32m"M4.08 7.6a1.5 1.5 0 0 1 2.12 0l5.66 5.65 5.66-5.65a1.5 1.5 0 1 1 2.12 2.12l-6.72 6.72a1.5 1.5 0 0 1-2.12 0L4.08 9.72a1.5 1.5 0 0 1 0-2.12Z"[39m
+                    [33mfill[39m=[32m"currentColor"[39m
+                    [33mfill-rule[39m=[32m"evenodd"[39m
+                  [36m/>[39m
+                [36m</svg>[39m
+              [36m</span>[39m
+            [36m</div>[39m
+          [36m</div>[39m
+          [36m<button[39m
+            [33maria-disabled[39m=[32m"true"[39m
+            [33mclass[39m=[32m"semi-button semi-button-disabled semi-button-light semi-button-primary-disabled"[39m
+            [33mdisabled[39m=[32m""[39m
+            [33mtype[39m=[32m"button"[39m
+          [36m>[39m
+            [36m<span[39m
+              [33mclass[39m=[32m"semi-button-content"[39m
+              [33mx-semi-prop[39m=[32m"children"[39m
+            [36m>[39m
+              [0m上一页[0m
+            [36m</span>[39m
+          [36m</button>[39m
+          [36m<button[39m
+            [33maria-disabled[39m=[32m"true"[39m
+            [33mclass[39m=[32m"semi-button semi-button-disabled semi-button-light semi-button-primary-disabled"[39m
+            [33mdisabled[39m=[32m""[39m
+            [33mtype[39m=[32m"button"[39m
+          [36m>[39m
+            [36m<span[39m
+              [33mclass[39m=[32m"semi-button-content"[39m
+              [33mx-semi-prop[39m=[32m"children"[39m
+            [36m>[39m
+              [0m下一页[0m
+            [36m</span>[39m
+          [36m</button>[39m
+        [36m</div>[39m
+      [36m</div>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+[36m</body>[39m
+Ignored nodes: comments, script, style
+[36m<body[39m
+  [33mstyle[39m=[32m""[39m
+[36m>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33maria-busy[39m=[32m"false"[39m
+      [33mclass[39m=[32m"semi-card audit-panel semi-card-bordered"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"semi-card-header semi-card-header-bordered"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"semi-card-header-wrapper"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"semi-card-header-wrapper-title"[39m
+          [36m>[39m
+            [36m<h6[39m
+              [33mclass[39m=[32m"semi-typography semi-typography-ellipsis semi-typography-ellipsis-single-line semi-typography-ellipsis-overflow-ellipsis semi-typography-primary semi-typography-normal semi-typography-h6"[39m
+              [33mx-semi-prop[39m=[32m"title"[39m
+            [36m>[39m
+              [36m<span>[39m
+                [0m操作审计[0m
+              [36m</span>[39m
+            [36m</h6>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+      [36m</div>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"semi-card-body"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"audit-toolbar"[39m
+        [36m>[39m
+          [36m<label[39m
+            [33mclass[39m=[32m"audit-date"[39m
+          [36m>[39m
+            [0m日期[0m
+            [36m<div[39m
+              [33mclass[39m=[32m"semi-input-wrapper semi-input-wrapper-default"[39m
+            [36m>[39m
+              [36m<input[39m
+                [33maria-label[39m=[32m"审计日期"[39m
+                [33mclass[39m=[32m"semi-input semi-input-default"[39m
+                [33mplaceholder[39m=[32m""[39m
+                [33mtype[39m=[32m"date"[39m
+                [33mvalue[39m=[32m"2026-09-12"[39m
+              [36m/>[39m
+            [36m</div>[39m
+          [36m</label>[39m
+          [36m<span>[39m
+            [0m北京时间（Asia/Shanghai）[0m
+          [36m</span>[39m
+          [36m<button[39m
+            [33maria-disabled[39m=[32m"false"[39m
+            [33mclass[39m=[32m"semi-button semi-button-primary semi-button-light"[39m
+            [33mtype[39m=[32m"button"[39m
+          [36m>[39m
+            [36m<span[39m
+              [33mclass[39m=[32m"semi-button-content"[39m
+              [33mx-semi-prop[39m=[32m"children"[39m
+            [36m>[39m
+              [0m刷新[0m
+            [36m</span>[39m
+          [36m</button>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mrole[39m=[32m"alert"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"semi-banner semi-banner-warning semi-banner-full"[39m
+            [33mrole[39m=[32m"alert"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"semi-banner-content-wrapper"[39m
+            [36m>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"semi-banner-content"[39m
+              [36m>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"semi-banner-icon"[39m
+                  [33mx-semi-prop[39m=[32m"icon"[39m
+                [36m>[39m
+                  [36m<span[39m
+                    [33maria-label[39m=[32m"warning"[39m
+                    [33mclass[39m=[32m"semi-icon semi-icon-large semi-icon-alert_triangle"[39m
+                    [33mrole[39m=[32m"img"[39m
+                  [36m>[39m
+                    [36m<svg[39m
+                      [33maria-hidden[39m=[32m"true"[39m
+                      [33mfill[39m=[32m"none"[39m
+                      [33mfocusable[39m=[32m"false"[39m
+                      [33mheight[39m=[32m"1em"[39m
+                      [33mviewBox[39m=[32m"0 0 24 24"[39m
+                      [33mwidth[39m=[32m"1em"[39m
+                      [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+                    [36m>[39m
+                      [36m<path[39m
+                        [33mclip-rule[39m=[32m"evenodd"[39m
+                        [33md[39m=[32m"m10.23 2.4-8.7 16.67A2 2 0 0 0 3.3 22h17.4a2 2 0 0 0 1.77-2.93L13.77 2.4a2 2 0 0 0-3.54 0ZM13.14 14a1.15 1.15 0 0 1-2.28 0l-.58-4.03a1.73 1.73 0 1 1 3.44 0l-.58 4.03Zm.36 4.49a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Z"[39m
+                        [33mfill[39m=[32m"currentColor"[39m
+                        [33mfill-rule[39m=[32m"evenodd"[39m
+                      [36m/>[39m
+                    [36m</svg>[39m
+                  [36m</span>[39m
+                [36m</div>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"semi-banner-content-body"[39m
+                [36m>[39m
+                  [36m<div[39m
+                    [33mclass[39m=[32m"semi-typography semi-banner-title semi-typography-primary semi-typography-normal semi-typography-h5"[39m
+                    [33mx-semi-prop[39m=[32m"title"[39m
+                  [36m>[39m
+                    [0m审计数据不完整[0m
+                  [36m</div>[39m
+                  [36m<div[39m
+                    [33mclass[39m=[32m"semi-typography semi-banner-description semi-typography-paragraph semi-typography-primary semi-typography-normal"[39m
+                    [33mx-semi-prop[39m=[32m"description"[39m
+                  [36m>[39m
+                    [0mline 1: invalid_event[0m
+                  [36m</div>[39m
+                [36m</div>[39m
+              [36m</div>[39m
+              [36m<button[39m
+                [33maria-disabled[39m=[32m"false"[39m
+                [33maria-label[39m=[32m"Close"[39m
+                [33mclass[39m=[32m"semi-button semi-button-tertiary semi-button-size-small semi-button-borderless semi-banner-close semi-button-with-icon semi-button-with-icon-only"[39m
+                [33mtype[39m=[32m"button"[39m
+              [36m>[39m
+                [36m<span[39m
+                  [33mclass[39m=[32m"semi-button-content"[39m
+                [36m>[39m
+                  [36m<span[39m
+                    [33maria-hidden[39m=[32m"true"[39m
+                    [33maria-label[39m=[32m"close"[39m
+                    [33mclass[39m=[32m"semi-icon semi-icon-default semi-icon-close"[39m
+                    [33mrole[39m=[32m"img"[39m
+                    [33mx-semi-prop[39m=[32m"closeIcon"[39m
+                  [36m>[39m
+                    [36m<svg[39m
+                      [33maria-hidden[39m=[32m"true"[39m
+                      [33mfill[39m=[32m"none"[39m
+                      [33mfocusable[39m=[32m"false"[39m
+                      [33mheight[39m=[32m"1em"[39m
+                      [33mviewBox[39m=[32m"0 0 24 24"[39m
+                      [33mwidth[39m=[32m"1em"[39m
+                      [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+                    [36m>[39m
+                      [36m<path[39m
+                        [33md[39m=[32m"M17.66 19.78a1.5 1.5 0 0 0 2.12-2.12L14.12 12l5.66-5.66a1.5 1.5 0 0 0-2.12-2.12L12 9.88 6.34 4.22a1.5 1.5 0 1 0-2.12 2.12L9.88 12l-5.66 5.66a1.5 1.5 0 0 0 2.12 2.12L12 14.12l5.66 5.66Z"[39m
+                        [33mfill[39m=[32m"currentColor"[39m
+                      [36m/>[39m
+                    [36m</svg>[39m
+                  [36m</span>[39m
+                [36m</span>[39m
+              [36m</button>[39m
+            [36m</div>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+        [36m<p>[39m
+          [0m没有可展示的有效记录，请检查上述审计警告[0m
+        [36m</p>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"audit-pagination"[39m
+        [36m>[39m
+          [36m<span>[39m
+            [0m共 [0m
+            [0m0[0m
+            [0m 项 · 第 [0m
+            [0m1[0m
+            [0m 页[0m
+          [36m</span>[39m
+          [36m<div[39m
+            [33maria-activedescendant[39m=[32m"bd2ebpw-option-0"[39m
+            [33maria-controls[39m=[32m"semi-select-rzu86ly"[39m
+            [33maria-disabled[39m=[32m"false"[39m
+            [33maria-expanded[39m=[32m"false"[39m
+            [33maria-haspopup[39m=[32m"listbox"[39m
+            [33maria-label[39m=[32m"selected"[39m
+            [33mclass[39m=[32m"semi-select semi-select-single"[39m
+            [33mdata-popupid[39m=[32m"d6352k9"[39m
+            [33mid[39m=[32m"bd2ebpw"[39m
+            [33mrole[39m=[32m"combobox"[39m
+            [33mtabindex[39m=[32m"0"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"semi-select-selection"[39m
+            [36m>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"semi-select-content-wrapper"[39m
+              [36m>[39m
+                [36m<span[39m
+                  [33mclass[39m=[32m"semi-select-selection-text"[39m
+                  [33mx-semi-prop[39m=[32m"placeholder"[39m
+                [36m>[39m
+                  [0m20 条/页[0m
+                [36m</span>[39m
+              [36m</div>[39m
+            [36m</div>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"semi-select-arrow"[39m
+              [33mx-semi-prop[39m=[32m"arrowIcon"[39m
+            [36m>[39m
+              [36m<span[39m
+                [33maria-label[39m=[32m""[39m
+                [33mclass[39m=[32m"semi-icon semi-icon-default semi-icon-chevron_down"[39m
+                [33mrole[39m=[32m"img"[39m
+              [36m>[39m
+                [36m<svg[39m
+                  [33maria-hidden[39m=[32m"true"[39m
+                  [33mfill[39m=[32m"none"[39m
+                  [33mfocusable[39m=[32m"false"[39m
+                  [33mheight[39m=[32m"1em"[39m
+                  [33mviewBox[39m=[32m"0 0 24 24"[39m
+                  [33mwidth[39m=[32m"1em"[39m
+                  [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+                [36m>[39m
+                  [36m<path[39m
+                    [33mclip-rule[39m=[32m"evenodd"[39m
+                    [33md[39m=[32m"M4.08 7.6a1.5 1.5 0 0 1 2.12 0l5.66 5.65 5.66-5.65a1.5 1.5 0 1 1 2.12 2.12l-6.72 6.72a1.5 1.5 0 0 1-2.12 0L4.08 9.72a1.5 1.5 0 0 1 0-2.12Z"[39m
+                    [33mfill[39m=[32m"currentColor"[39m
+                    [33mfill-rule[39m=[32m"evenodd"[39m
+                  [36m/>[39m
+                [36m</svg>[39m
+              [36m</span>[39m
+            [36m</div>[39m
+          [36m</div>[39m
+          [36m<button[39m
+            [33maria-disabled[39m=[32m"true"[39m
+            [33mclass[39m=[32m"semi-button semi-button-disabled semi-button-light semi-button-primary-disabled"[39m
+            [33mdisabled[39m=[32m""[39m
+            [33mtype[39m=[32m"button"[39m
+          [36m>[39m
+            [36m<span[39m
+              [33mclass[39m=[32m"semi-button-content"[39m
+              [33mx-semi-prop[39m=[32m"children"[39m
+            [36m>[39m
+              [0m上一页[0m
+            [36m</span>[39m
+          [36m</button>[39m
+          [36m<button[39m
+            [33maria-disabled[39m=[32m"true"[39m
+            [33mclass[39m=[32m"semi-button semi-button-disabled semi-button-light semi-button-primary-disabled"[39m
+            [33mdisabled[39m=[32m""[39m
+            [33mtype[39m=[32m"button"[39m
+          [36m>[39m
+            [36m<span[39m
+              [33mclass[39m=[32m"semi-button-content"[39m
+              [33mx-semi-prop[39m=[32m"children"[39m
+            [36m>[39m
+              [0m下一页[0m
+            [36m</span>[39m
+          [36m</button>[39m
+        [36m</div>[39m
+      [36m</div>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+[36m</body>[39m
+ ❯ waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ src/panels/AuditPanel.test.tsx:69:23
+     67|     response({ error: 'audit_unavailable' }, 503)))
+     68|   render(<AuditPanel />)
+     69|   expect(await screen.findByRole('alert')).toHaveTextContent(warning ?…
+       |                       ^
+     70|   expect(screen.queryByText('当天暂无操作记录')).not.toBeInTheDocument()
+     71| })
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/5]⎯
+ FAIL  src/panels/RulesPanel.test.tsx > S9 HTTP400 保存结果和审计失败分别展示
+TestingLibraryElementError: Found multiple elements with the text: /审计结果未写入/
+Here are the matching elements:
+Ignored nodes: comments, script, style
+[36m<span[39m
+  [33mclass[39m=[32m"semi-toast-content-text"[39m
+  [33mstyle[39m=[32m"max-width: 450px;"[39m
+  [33mx-semi-prop[39m=[32m"content"[39m
+[36m>[39m
+  [0m审计结果未写入（rule-op）[0m
+[36m</span>[39m
+Ignored nodes: comments, script, style
+[36m<span[39m
+  [33mclass[39m=[32m"semi-toast-content-text"[39m
+  [33mstyle[39m=[32m"max-width: 450px;"[39m
+  [33mx-semi-prop[39m=[32m"content"[39m
+[36m>[39m
+  [0m审计结果未写入（rule-op）[0m
+[36m</span>[39m
+(If this is intentional, then use the `*AllBy*` variant of the query (like `queryAllByText`, `getAllByText`, or `findAllByText`)).
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div[39m
+    [33mclass[39m=[32m"semi-toast-wrapper"[39m
+    [33mid[39m=[32m"toast-wrapper-178919447375"[39m
+    [33mstyle[39m=[32m"z-index: 1010;"[39m
+  [36m>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"semi-toast-innerWrapper"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33maria-label[39m=[32m"warning type"[39m
+        [33mclass[39m=[32m"semi-toast semi-toast-animation-hide semi-toast-warning"[39m
+        [33mrole[39m=[32m"alert"[39m
+        [33mstyle[39m=[32m"transform: translate3d(0,0,0px);"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"semi-toast-content"[39m
+        [36m>[39m
+          [36m<span[39m
+            [33maria-label[39m=[32m"alert_triangle"[39m
+            [33mclass[39m=[32m"semi-icon semi-icon-large semi-icon-alert_triangle semi-toast-icon semi-toast-icon-warning"[39m
+            [33mrole[39m=[32m"img"[39m
+          [36m>[39m
+            [36m<svg[39m
+              [33maria-hidden[39m=[32m"true"[39m
+              [33mfill[39m=[32m"none"[39m
+              [33mfocusable[39m=[32m"false"[39m
+              [33mheight[39m=[32m"1em"[39m
+              [33mviewBox[39m=[32m"0 0 24 24"[39m
+              [33mwidth[39m=[32m"1em"[39m
+              [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+            [36m>[39m
+              [36m<path[39m
+                [33mclip-rule[39m=[32m"evenodd"[39m
+                [33md[39m=[32m"m10.23 2.4-8.7 16.67A2 2 0 0 0 3.3 22h17.4a2 2 0 0 0 1.77-2.93L13.77 2.4a2 2 0 0 0-3.54 0ZM13.14 14a1.15 1.15 0 0 1-2.28 0l-.58-4.03a1.73 1.73 0 1 1 3.44 0l-.58 4.03Zm.36 4.49a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Z"[39m
+                [33mfill[39m=[32m"currentColor"[39m
+                [33mfill-rule[39m=[32m"evenodd"[39m
+              [36m/>[39m
+            [36m</svg>[39m
+          [36m</span>[39m
+          [36m<span[39m
+            [33mclass[39m=[32m"semi-toast-content-text"[39m
+            [33mstyle[39m=[32m"max-width: 450px;"[39m
+            [33mx-semi-prop[39m=[32m"content"[39m
+          [36m>[39m
+            [0m审计结果未写入（rule-op）[0m
+          [36m</span>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"semi-toast-close-button"[39m
+          [36m>[39m
+            [36m<button[39m
+              [33maria-disabled[39m=[32m"false"[39m
+              [33mclass[39m=[32m"semi-button semi-button-tertiary semi-button-size-small semi-button-borderless semi-button-with-icon semi-button-with-icon-only"[39m
+              [33mtype[39m=[32m"button"[39m
+            [36m>[39m
+              [36m<span[39m
+                [33mclass[39m=[32m"semi-button-content"[39m
+              [36m>[39m
+                [36m<span[39m
+                  [33maria-label[39m=[32m"close"[39m
+                  [33mclass[39m=[32m"semi-icon semi-icon-default semi-icon-close"[39m
+                  [33mrole[39m=[32m"img"[39m
+                  [33mx-semi-prop[39m=[32m"icon"[39m
+                [36m>[39m
+                  [36m<svg[39m
+                    [33maria-hidden[39m=[32m"true"[39m
+                    [33mfill[39m=[32m"none"[39m
+                    [33mfocusable[39m=[32m"false"[39m
+                    [33mheight[39m=[32m"1em"[39m
+                    [33mviewBox[39m=[32m"0 0 24 24"[39m
+                    [33mwidth[39m=[32m"1em"[39m
+                    [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+                  [36m>[39m
+                    [36m<path[39m
+                      [33md[39m=[32m"M17.66 19.78a1.5 1.5 0 0 0 2.12-2.12L14.12 12l5.66-5.66a1.5 1.5 0 0 0-2.12-2.12L12 9.88 6.34 4.22a1.5 1.5 0 1 0-2.12 2.12L9.88 12l-5.66 5.66a1.5 1.5 0 0 0 2.12 2.12L12 14.12l5.66 5.66Z"[39m
+                      [33mfill[39m=[32m"currentColor"[39m
+                    [36m/>[39m
+                  [36m</svg>[39m
+                [36m</span>[39m
+              [36m</span>[39m
+            [36m</button>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+      [36m</div>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33maria-busy[39m=[32m"false"[39m
+      [33mclass[39m=[32m"semi-card semi-card-bordered"[39m
+      [33mstyle[39m=[32m"margin: 16px;"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"semi-card-header semi-card-header-bordered"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"semi-card-header-wrapper"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"semi-card-header-wrapper-extra"[39m
+            [33mx-semi-prop[39m=[32m"headerExtraContent"[39m
+          [36m>[39m
+            [36m<button[39m
+              [33maria-disabled[39m=[32m"false"[39m
+              [33mclass[39m=[32m"semi-button semi-button-primary semi-button-solid"[39m
+              [33mtype[39m=[32m"button"[39m
+            [36m>[39m
+              [36m<span[39m
+                [33mclass[39m=[32m"semi-button-content"[39m
+                [33mx-semi-prop[39m=[32m"children"[39m
+              [36m>[39m
+                [0m保存[0m
+              [36m</span>[39m
+            [36m</button>[39m
+          [36m</div>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"semi-card-header-wrapper-title semi-card-header-wrapper-spacing"[39m
+          [36m>[39m
+            [36m<h6[39m
+              [33mclass[39m=[32m"semi-typography semi-typography-ellipsis semi-typography-ellipsis-single-line semi-typography-ellipsis-overflow-ellipsis semi-typography-primary semi-typography-normal semi-typography-h6"[39m
+              [33mx-semi-prop[39m=[32m"title"[39m
+            [36m>[39m
+              [36m<span>[39m
+                [0m映射规则（按端点分段，有序执行）[0m
+              [36m</span>[39m
+            [36m</h6>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+      [36m</div>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"semi-card-body"[39m
+      [36m>[39m
+        [36m<div>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"semi-tabs semi-tabs-top"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33maria-orientation[39m=[32m"horizontal"[39m
+              [33mclass[39m=[32m"semi-tabs-bar semi-tabs-bar-line semi-tabs-bar-top"[39m
+              [33mdata-uuid[39m=[32m"30b0645a-e5a6-49c9-be32-62e8a9b9d700"[39m
+              [33mrole[39m=[32m"tablist"[39m
+            [36m>[39m
+              [36m<div[39m
+                [33maria-controls[39m=[32m"semiTabPanelglobal"[39m
+                [33maria-disabled[39m=[32m"false"[39m
+                [33maria-selected[39m=[32m"true"[39m
+                [33mclass[39m=[32m"semi-tabs-tab semi-tabs-tab-line semi-tabs-tab-top semi-tabs-tab-single semi-tabs-tab-active"[39m
+                [33mdata-tabkey[39m=[32m"semiTabglobal"[39...
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div[39m
+    [33mclass[39m=[32m"semi-toast-wrapper"[39m
+    [33mid[39m=[32m"toast-wrapper-178919447375"[39m
+    [33mstyle[39m=[32m"z-index: 1010;"[39m
+  [36m>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"semi-toast-innerWrapper"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33maria-label[39m=[32m"warning type"[39m
+        [33mclass[39m=[32m"semi-toast semi-toast-animation-hide semi-toast-warning"[39m
+        [33mrole[39m=[32m"alert"[39m
+        [33mstyle[39m=[32m"transform: translate3d(0,0,0px);"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"semi-toast-content"[39m
+        [36m>[39m
+          [36m<span[39m
+            [33maria-label[39m=[32m"alert_triangle"[39m
+            [33mclass[39m=[32m"semi-icon semi-icon-large semi-icon-alert_triangle semi-toast-icon semi-toast-icon-warning"[39m
+            [33mrole[39m=[32m"img"[39m
+          [36m>[39m
+            [36m<svg[39m
+              [33maria-hidden[39m=[32m"true"[39m
+              [33mfill[39m=[32m"none"[39m
+              [33mfocusable[39m=[32m"false"[39m
+              [33mheight[39m=[32m"1em"[39m
+              [33mviewBox[39m=[32m"0 0 24 24"[39m
+              [33mwidth[39m=[32m"1em"[39m
+              [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+            [36m>[39m
+              [36m<path[39m
+                [33mclip-rule[39m=[32m"evenodd"[39m
+                [33md[39m=[32m"m10.23 2.4-8.7 16.67A2 2 0 0 0 3.3 22h17.4a2 2 0 0 0 1.77-2.93L13.77 2.4a2 2 0 0 0-3.54 0ZM13.14 14a1.15 1.15 0 0 1-2.28 0l-.58-4.03a1.73 1.73 0 1 1 3.44 0l-.58 4.03Zm.36 4.49a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Z"[39m
+                [33mfill[39m=[32m"currentColor"[39m
+                [33mfill-rule[39m=[32m"evenodd"[39m
+              [36m/>[39m
+            [36m</svg>[39m
+          [36m</span>[39m
+          [36m<span[39m
+            [33mclass[39m=[32m"semi-toast-content-text"[39m
+            [33mstyle[39m=[32m"max-width: 450px;"[39m
+            [33mx-semi-prop[39m=[32m"content"[39m
+          [36m>[39m
+            [0m审计结果未写入（rule-op）[0m
+          [36m</span>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"semi-toast-close-button"[39m
+          [36m>[39m
+            [36m<button[39m
+              [33maria-disabled[39m=[32m"false"[39m
+              [33mclass[39m=[32m"semi-button semi-button-tertiary semi-button-size-small semi-button-borderless semi-button-with-icon semi-button-with-icon-only"[39m
+              [33mtype[39m=[32m"button"[39m
+            [36m>[39m
+              [36m<span[39m
+                [33mclass[39m=[32m"semi-button-content"[39m
+              [36m>[39m
+                [36m<span[39m
+                  [33maria-label[39m=[32m"close"[39m
+                  [33mclass[39m=[32m"semi-icon semi-icon-default semi-icon-close"[39m
+                  [33mrole[39m=[32m"img"[39m
+                  [33mx-semi-prop[39m=[32m"icon"[39m
+                [36m>[39m
+                  [36m<svg[39m
+                    [33maria-hidden[39m=[32m"true"[39m
+                    [33mfill[39m=[32m"none"[39m
+                    [33mfocusable[39m=[32m"false"[39m
+                    [33mheight[39m=[32m"1em"[39m
+                    [33mviewBox[39m=[32m"0 0 24 24"[39m
+                    [33mwidth[39m=[32m"1em"[39m
+                    [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+                  [36m>[39m
+                    [36m<path[39m
+                      [33md[39m=[32m"M17.66 19.78a1.5 1.5 0 0 0 2.12-2.12L14.12 12l5.66-5.66a1.5 1.5 0 0 0-2.12-2.12L12 9.88 6.34 4.22a1.5 1.5 0 1 0-2.12 2.12L9.88 12l-5.66 5.66a1.5 1.5 0 0 0 2.12 2.12L12 14.12l5.66 5.66Z"[39m
+                      [33mfill[39m=[32m"currentColor"[39m
+                    [36m/>[39m
+                  [36m</svg>[39m
+                [36m</span>[39m
+              [36m</span>[39m
+            [36m</button>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+      [36m</div>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33maria-busy[39m=[32m"false"[39m
+      [33mclass[39m=[32m"semi-card semi-card-bordered"[39m
+      [33mstyle[39m=[32m"margin: 16px;"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"semi-card-header semi-card-header-bordered"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"semi-card-header-wrapper"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"semi-card-header-wrapper-extra"[39m
+            [33mx-semi-prop[39m=[32m"headerExtraContent"[39m
+          [36m>[39m
+            [36m<button[39m
+              [33maria-disabled[39m=[32m"false"[39m
+              [33mclass[39m=[32m"semi-button semi-button-primary semi-button-solid"[39m
+              [33mtype[39m=[32m"button"[39m
+            [36m>[39m
+              [36m<span[39m
+                [33mclass[39m=[32m"semi-button-content"[39m
+                [33mx-semi-prop[39m=[32m"children"[39m
+              [36m>[39m
+                [0m保存[0m
+              [36m</span>[39m
+            [36m</button>[39m
+          [36m</div>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"semi-card-header-wrapper-title semi-card-header-wrapper-spacing"[39m
+          [36m>[39m
+            [36m<h6[39m
+              [33mclass[39m=[32m"semi-typography semi-typography-ellipsis semi-typography-ellipsis-single-line semi-typography-ellipsis-overflow-ellipsis semi-typography-primary semi-typography-normal semi-typography-h6"[39m
+              [33mx-semi-prop[39m=[32m"title"[39m
+            [36m>[39m
+              [36m<span>[39m
+                [0m映射规则（按端点分段，有序执行）[0m
+              [36m</span>[39m
+            [36m</h6>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+      [36m</div>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"semi-card-body"[39m
+      [36m>[39m
+        [36m<div>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"semi-tabs semi-tabs-top"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33maria-orientation[39m=[32m"horizontal"[39m
+              [33mclass[39m=[32m"semi-tabs-bar semi-tabs-bar-line semi-tabs-bar-top"[39m
+              [33mdata-uuid[39m=[32m"30b0645a-e5a6-49c9-be32-62e8a9b9d700"[39m
+              [33mrole[39m=[32m"tablist"[39m
+            [36m>[39m
+              [36m<div[39m
+                [33maria-controls[39m=[32m"semiTabPanelglobal"[39m
+                [33maria-disabled[39m=[32m"false"[39m
+                [33maria-selected[39m=[32m"true"[39m
+                [33mclass[39m=[32m"semi-tabs-tab semi-tabs-tab-line semi-tabs-tab-top semi-tabs-tab-single semi-tabs-tab-active"[39m
+                [33mdata-tabkey[39m=[32m"semiTabglobal"[39...
+ ❯ waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ src/panels/RulesPanel.test.tsx:36:23
+     34|   render(<RulesPanel state={EMPTY_STATE} onSaved={onSaved} />)
+     35|   await userEvent.setup().click(screen.getByRole('button', { name: '保存…
+     36|   expect(await screen.findByText(/审计结果未写入/)).toBeInTheDocument()
+       |                       ^
+     37|   if (status === 200) {
+     38|     expect(onSaved).toHaveBeenCalledOnce()
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/5]⎯
+
+exit_code=1

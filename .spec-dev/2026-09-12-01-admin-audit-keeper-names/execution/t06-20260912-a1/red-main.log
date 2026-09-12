@@ -1,0 +1,1288 @@
+> vitest run src/App.test.tsx src/api.test.ts src/panels/AuditPanel.test.tsx src/panels/RulesPanel.test.tsx
+ RUN  v4.1.10 /Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-t06/web
+ ❯ src/api.test.ts (20 tests | 1 failed) 11ms
+   × S9 业务失败保留审计元数据及已解码错误 6ms
+ ❯ src/App.test.tsx (3 tests | 1 failed) 57ms
+     × S10 操作审计位于规则试跑之后 39ms
+ ❯ src/panels/RulesPanel.test.tsx (3 tests | 2 failed) 2248ms
+   × S9 HTTP200 保存结果和审计失败分别展示 1103ms
+   × S9 HTTP400 保存结果和审计失败分别展示 1044ms
+ ❯ src/panels/AuditPanel.test.tsx (5 tests | 5 failed) 5038ms
+   × S10 默认采用服务端北京时间日期，分页、刷新并安全展示差异 1014ms
+   × S10 日期切换隔离迟到响应，空日与异常不混淆 1005ms
+   × S9/S10 running、unknown、failed、无变化和损坏行警告可辨认 1006ms
+   × S10 读取失败与只有损坏数据都不伪报正常空日：false 1006ms
+   × S10 读取失败与只有损坏数据都不伪报正常空日：true 1007ms
+ Test Files  4 failed (4)
+      Tests  9 failed | 22 passed (31)
+   Start at  14:25:48
+   Duration  9.27s (transform 8.67s, setup 14.17s, import 150ms, tests 7.35s, environment 2.24s)
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 9 ⎯⎯⎯⎯⎯⎯⎯
+ FAIL  src/App.test.tsx > App 版本展示 > S10 操作审计位于规则试跑之后
+TestingLibraryElementError: Unable to find an element with the text: 操作审计. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<section[39m
+      [33mclass[39m=[32m"semi-layout"[39m
+      [33mstyle[39m=[32m"min-height: 100vh;"[39m
+    [36m>[39m
+      [36m<header[39m
+        [33mclass[39m=[32m"semi-layout-header"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"semi-navigation semi-navigation-horizontal"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"semi-navigation-inner"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"semi-navigation-header-list-outer"[39m
+            [36m>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"semi-navigation-header"[39m
+              [36m>[39m
+                [36m<span[39m
+                  [33mclass[39m=[32m"semi-navigation-header-text"[39m
+                [36m>[39m
+                  [0mModel Mapper Plus[0m
+                [36m</span>[39m
+              [36m</div>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"semi-navigation-list-wrapper"[39m
+              [36m>[39m
+                [36m<ul[39m
+                  [33maria-orientation[39m=[32m"horizontal"[39m
+                  [33mclass[39m=[32m"semi-navigation-list"[39m
+                  [33mrole[39m=[32m"menu"[39m
+                [36m/>[39m
+              [36m</div>[39m
+            [36m</div>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"semi-navigation-footer"[39m
+            [36m>[39m
+              [36m<div[39m
+                [33maria-label[39m=[32m"Tag: 已连接"[39m
+                [33mclass[39m=[32m"semi-tag semi-tag-default semi-tag-square semi-tag-light semi-tag-green-light"[39m
+              [36m>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"semi-tag-content semi-tag-content-ellipsis"[39m
+                [36m>[39m
+                  [0m已连接[0m
+                [36m</div>[39m
+              [36m</div>[39m
+              [36m<span[39m
+                [33mclass[39m=[32m"semi-typography semi-typography-primary semi-typography-small semi-typography-normal"[39m
+                [33mstyle[39m=[32m"margin-left: 8px;"[39m
+              [36m>[39m
+                [0mstate 已保存 [0m
+              [36m</span>[39m
+            [36m</div>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+      [36m</header>[39m
+      [36m<main[39m
+        [33mclass[39m=[32m"semi-layout-content"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"semi-navigation semi-navigation-horizontal"[39m
+          [33mstyle[39m=[32m"margin-bottom: 8px;"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"semi-navigation-inner"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"semi-navigation-header-list-outer"[39m
+            [36m>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"semi-navigation-list-wrapper"[39m
+              [36m>[39m
+                [36m<ul[39m
+                  [33maria-orientation[39m=[32m"horizontal"[39m
+                  [33mclass[39m=[32m"semi-navigation-list"[39m
+                  [33mrole[39m=[32m"menu"[39m
+                [36m>[39m
+                  [36m<li[39m
+                    [33maria-disabled[39m=[32m"false"[39m
+                    [33mclass[39m=[32m"semi-navigation-item-normal semi-navigation-item"[39m
+                    [33mrole[39m=[32m"menuitem"[39m
+                    [33mtabindex[39m=[32m"0"[39m
+                  [36m>[39m
+                    [36m<span[39m
+                      [33mclass[39m=[32m"semi-navigation-item-text"[39m
+                    [36m>[39m
+                      [0m规则管理[0m
+                    [36m</span>[39m
+                  [36m</li>[39m
+                  [36m<li[39m
+                    [33maria-disabled[39m=[32m"false"[39m
+                    [33mclass[39m=[32m"semi-navigation-item-normal semi-navigation-item"[39m
+                    [33mrole[39m=[32m"menuitem"[39m
+                    [33mtabindex[39m=[32m"0"[39m
+                  [36m>[39m
+                    [36m<span[39m
+                      [33mclass[39m=[32m"semi-navigation-item-text"[39m
+                    [36m>[39m
+                      [0mKey 绑定[0m
+                    [36m</span>[39m
+                  [36m</li>[39m
+                  [36m<li[39m
+                    [33maria-disabled[39m=[32m"false"[39m
+                    [33mclass[39m=[32m"semi-navigation-item-normal semi-navigation-item"[39m
+                    [33mrole[39m=[32m"menuitem"[39m
+                    [33mtabindex[39m=[32m"0"[39m
+                  [36m>[39m
+                    [36m<span[39m
+                      [33mclass[39m=[32m"semi-navigation-item-text"[39m
+                    [36m>[39m
+                      [0m规则试跑[0m
+                    [36m</span>[39m
+                  [36m</li>[39m
+                [36m</ul>[39m
+              [36m</div>[39m
+            [36m</div>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+      [36m</main>[39m
+    [36m</section>[39m
+  [36m</div>[39m
+[36m</body>[39m
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ src/App.test.tsx:39:68
+     37|     render(<App />)
+     38|     await screen.findByText('已连接')
+     39|     expect(screen.getByText('规则试跑').compareDocumentPosition(screen.get…
+       |                                                                    ^
+     40|       Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+     41|   })
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/9]⎯
+ FAIL  src/api.test.ts > S9 业务失败保留审计元数据及已解码错误
+AssertionError: expected Error: invalid <rule> to match object { name: 'ManagementAPIError', …(2) }
+- Expected
++ Received
+- {
+-   "audit": {
+-     "error_code": "audit_write_failed",
+-     "operation_id": "failed-op",
+-     "recorded": false,
+-   },
++ Error {
+    "message": "invalid <rule>",
+-   "name": "ManagementAPIError",
+  }
+ ❯ src/api.test.ts:34:47
+     32| it('S9 业务失败保留审计元数据及已解码错误', async () => {
+     33|   stubFetch({ error: 'invalid &lt;rule&gt;', audit: { operation_id: 'f…
+     34|   await expect(api.putRules(BASE_STATE.rules)).rejects.toMatchObject({…
+       |                                               ^
+     35|     audit: { operation_id: 'failed-op', recorded: false, error_code: '…
+     36| })
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/9]⎯
+ FAIL  src/panels/AuditPanel.test.tsx > S10 默认采用服务端北京时间日期，分页、刷新并安全展示差异
+TestingLibraryElementError: Unable to find a label with the text of: 审计日期
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div />[39m
+[36m</body>[39m
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div />[39m
+[36m</body>[39m
+ ❯ waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ src/panels/AuditPanel.test.tsx:22:23
+     20|   const user = userEvent.setup()
+     21|   render(<AuditPanel />)
+     22|   expect(await screen.findByLabelText('审计日期')).toHaveValue('2026-09-12…
+       |                       ^
+     23|   expect(requests[0]).not.toContain('date=')
+     24|   expect(screen.getByText(/北京时间/)).toBeInTheDocument()
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/9]⎯
+ FAIL  src/panels/AuditPanel.test.tsx > S10 日期切换隔离迟到响应，空日与异常不混淆
+TestingLibraryElementError: Unable to find an element with the text: 成功. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div />[39m
+[36m</body>[39m
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div />[39m
+[36m</body>[39m
+ ❯ waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ src/panels/AuditPanel.test.tsx:45:16
+     43|   }))
+     44|   render(<AuditPanel />)
+     45|   await screen.findByText('成功')
+       |                ^
+     46|   fireEvent.change(screen.getByLabelText('审计日期'), { target: { value: '…
+     47|   fireEvent.change(screen.getByLabelText('审计日期'), { target: { value: '…
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/9]⎯
+ FAIL  src/panels/AuditPanel.test.tsx > S9/S10 running、unknown、failed、无变化和损坏行警告可辨认
+TestingLibraryElementError: Unable to find an element with the text: 进行中. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div />[39m
+[36m</body>[39m
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div />[39m
+[36m</body>[39m
+ ❯ waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ src/panels/AuditPanel.test.tsx:59:73
+     57|       operation_id: `op-${index}`, outcome, changed: index < 2 ? null …
+     58|   render(<AuditPanel />)
+     59|   for (const label of ['进行中', '结果未确认', '失败', '成功']) expect(await scree…
+       |                                                                         ^
+     60|   expect(screen.getByRole('alert')).toHaveTextContent('line 8: truncat…
+     61|   await userEvent.setup().click(screen.getAllByRole('button', { name: …
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/9]⎯
+ FAIL  src/panels/AuditPanel.test.tsx > S10 读取失败与只有损坏数据都不伪报正常空日：false
+ FAIL  src/panels/AuditPanel.test.tsx > S10 读取失败与只有损坏数据都不伪报正常空日：true
+TestingLibraryElementError: Unable to find role="alert"
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div />[39m
+[36m</body>[39m
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div />[39m
+[36m</body>[39m
+ ❯ waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ src/panels/AuditPanel.test.tsx:69:23
+     67|     response({ error: 'audit_unavailable' }, 503)))
+     68|   render(<AuditPanel />)
+     69|   expect(await screen.findByRole('alert')).toHaveTextContent(warning ?…
+       |                       ^
+     70|   expect(screen.queryByText('当天暂无操作记录')).not.toBeInTheDocument()
+     71| })
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/9]⎯
+ FAIL  src/panels/RulesPanel.test.tsx > S9 HTTP200 保存结果和审计失败分别展示
+TestingLibraryElementError: Unable to find an element with the text: /审计结果未写入/. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33maria-busy[39m=[32m"false"[39m
+      [33mclass[39m=[32m"semi-card semi-card-bordered"[39m
+      [33mstyle[39m=[32m"margin: 16px;"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"semi-card-header semi-card-header-bordered"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"semi-card-header-wrapper"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"semi-card-header-wrapper-extra"[39m
+            [33mx-semi-prop[39m=[32m"headerExtraContent"[39m
+          [36m>[39m
+            [36m<button[39m
+              [33maria-disabled[39m=[32m"false"[39m
+              [33mclass[39m=[32m"semi-button semi-button-primary semi-button-solid"[39m
+              [33mtype[39m=[32m"button"[39m
+            [36m>[39m
+              [36m<span[39m
+                [33mclass[39m=[32m"semi-button-content"[39m
+                [33mx-semi-prop[39m=[32m"children"[39m
+              [36m>[39m
+                [0m保存[0m
+              [36m</span>[39m
+            [36m</button>[39m
+          [36m</div>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"semi-card-header-wrapper-title semi-card-header-wrapper-spacing"[39m
+          [36m>[39m
+            [36m<h6[39m
+              [33mclass[39m=[32m"semi-typography semi-typography-ellipsis semi-typography-ellipsis-single-line semi-typography-ellipsis-overflow-ellipsis semi-typography-primary semi-typography-normal semi-typography-h6"[39m
+              [33mx-semi-prop[39m=[32m"title"[39m
+            [36m>[39m
+              [36m<span>[39m
+                [0m映射规则（按端点分段，有序执行）[0m
+              [36m</span>[39m
+            [36m</h6>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+      [36m</div>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"semi-card-body"[39m
+      [36m>[39m
+        [36m<div>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"semi-tabs semi-tabs-top"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33maria-orientation[39m=[32m"horizontal"[39m
+              [33mclass[39m=[32m"semi-tabs-bar semi-tabs-bar-line semi-tabs-bar-top"[39m
+              [33mdata-uuid[39m=[32m"8e5e3a44-7c0c-40fa-acb7-123e2bae98f1"[39m
+              [33mrole[39m=[32m"tablist"[39m
+            [36m>[39m
+              [36m<div[39m
+                [33maria-controls[39m=[32m"semiTabPanelglobal"[39m
+                [33maria-disabled[39m=[32m"false"[39m
+                [33maria-selected[39m=[32m"true"[39m
+                [33mclass[39m=[32m"semi-tabs-tab semi-tabs-tab-line semi-tabs-tab-top semi-tabs-tab-single semi-tabs-tab-active"[39m
+                [33mdata-tabkey[39m=[32m"semiTabglobal"[39m
+                [33mid[39m=[32m"semiTabglobal"[39m
+                [33mrole[39m=[32m"tab"[39m
+                [33mtabindex[39m=[32m"0"[39m
+              [36m>[39m
+                [0m全局[0m
+              [36m</div>[39m
+              [36m<div[39m
+                [33maria-controls[39m=[32m"semiTabPanelclaude"[39m
+                [33maria-disabled[39m=[32m"false"[39m
+                [33maria-selected[39m=[32m"false"[39m
+                [33mclass[39m=[32m"semi-tabs-tab semi-tabs-tab-line semi-tabs-tab-top semi-tabs-tab-single"[39m
+                [33mdata-tabkey[39m=[32m"semiTabclaude"[39m
+                [33mid[39m=[32m"semiTabclaude"[39m
+                [33mrole[39m=[32m"tab"[39m
+                [33mtabindex[39m=[32m"-1"[39m
+              [36m>[39m
+                [0mClaude Messages[0m
+              [36m</div>[39m
+              [36m<div[39m
+                [33maria-controls[39m=[32m"semiTabPanelcodex"[39m
+                [33maria-disabled[39m=[32m"false"[39m
+                [33maria-selected[39m=[32m"false"[39m
+                [33mclass[39m=[32m"semi-tabs-tab semi-tabs-tab-line semi-tabs-tab-top semi-tabs-tab-single"[39m
+                [33mdata-tabkey[39m=[32m"semiTabcodex"[39m
+                [33mid[39m=[32m"semiTabcodex"[39m
+                [33mrole[39m=[32m"tab"[39m
+                [33mtabindex[39m=[32m"-1"[39m
+              [36m>[39m
+                [0mCodex Responses[0m
+              [36m</div>[39m
+              [36m<div[39m
+                [33maria-controls[39m=[32m"semiTabPanelopenai"[39m
+                [33maria-disabled[39m=[32m"false"[39m
+                [33maria-selected[39m=[32m"false"[39m
+                [33mclass[39m=[32m"semi-tabs-tab semi-tabs-tab-line semi-tabs-tab-top semi-tabs-tab-single"[39m
+                [33mdata-tabkey[39m=[32m"semiTabopenai"[39m
+                [33mid[39m=[32m"semiTabopenai"[39m
+                [33mrole[39m=[32m"tab"[39m
+                [33mtabindex[39m=[32m"-1"[39m
+              [36m>[39m
+                [0mOpenAI Completions[0m
+              [36m</div>[39m
+            [36m</div>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"semi-tabs-content semi-tabs-content-top"[39m
+            [36m>[39m
+              [36m<div[39m
+                [33maria-hidden[39m=[32m"false"[39m
+                [33maria-labelledby[39m=[32m"semiTabglobal"[39m
+                [33mclass[39m=[32m"semi-tabs-pane-active semi-tabs-pane"[39m
+                [33mid[39m=[32m"semiTabPanelglobal"[39m
+                [33mrole[39m=[32m"tabpanel"[39m
+                [33mtabindex[39m=[32m"0"[39m
+                [33mx-semi-prop[39m=[32m"children"[39m
+              [36m>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"semi-tabs-pane-motion-overlay"[39m
+                  [33mx-semi-prop[39m=[32m"children"[39m
+                [36m/>[39m
+              [36m</div>[39m
+              [36m<div[39m
+                [33maria-hidden[39m=[32m"true"[39m
+                [33maria-labelledby[39m=[32m"semiTabclaude"[39m
+                [33mclass[39m=[32m"semi-tabs-pane-inactive semi-tabs-pane"[39m
+                [33mid[39m=[32m"semiTabPanelclaude"[39m
+                [33mrole[39m=[32m"tabpanel"[39m
+                [33mtabindex[39m=[32m"0"[39m
+                [33mx-semi-prop[39m=[32m"children"[39m
+              [36m>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"semi-tabs-pane-motion-overlay"[39m
+                  [33mx-semi-prop[39m=[32m"children"[39m
+                [36m/>[39m
+              [36m</div>[39m
+              [36m<div[39m
+                [33maria-hidden[39m=[32m"true"[39m
+                [33maria-labelledby[39m=[32m"semiTabcodex"[39m
+                [33mclass[39m=[32m"semi-tabs-pane-inactive semi-tabs-pane"[39m
+                [33mid[39m=[32m"semiTabPanelcodex"[39m
+                [33mrole[39m=[32m"tabpanel"[39m
+                [33mtabindex[39m=[32m"0"[39m
+                [33mx-semi-prop[39m=[32m"children"[39m
+              [36m>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"semi-tabs-pane-motion-overlay"[39m
+                  [33mx-semi-prop[39m=[32m"children"[39m
+                [36m/>[39m
+              [36m</div>[39m
+              [36m<div[39m
+                [33maria-hidden[39m=[32m"true"[39m
+                [33maria-labelledby[39m=[32m"semiTabopenai"[39m
+                [33mclass[39m=[32m"semi-tabs-pane-inactive semi-tabs-pane"[39m
+                [33mid[39m=[32m"semiTabPanelopenai"[39m
+                [33mrole[39m=[32m"tabpanel"[39m
+                [33mtabindex[39m=[32m"0"[39m
+                [33mx-semi-prop[39m=[32m"children"[39m
+              [36m>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"semi-tabs-pane-motion-overlay"[39m
+                  [33mx-semi-prop[39m=[32m"children"[39m
+                [36m/>[39m
+              [36m</div>[39m
+            [36m</div>[39m
+          [36m</div>[39m
+          [36m<span[39m
+            [33mclass[39m=[32m"semi-typography semi-typography-tertiary semi-typography-normal"[39m
+          [36m>[39m
+            [0m本段为空[0m
+          [36m</span>[39m
+          [36m<div[39m
+            [33mstyle[39m=[32m"display: flex; gap: 8px; margin-top: 8px;"[39m
+          [36m>[39m
+            [36m<button[39m
+              [33maria-disabled[39m=[32m"false"[39m
+              [33mclass[39m=[32m"semi-button semi-button-primary semi-button-light semi-button-with-icon"[39m
+              [33mtype[39m=[32m"button"[39m
+            [36m>[39m
+              [36m<span[39m
+                [33mclass[39m=[32m"semi-button-content"[39m
+              [36m>[39m
+                [36m<span[39m
+                  [33maria-label[39m=[32m"plus"[39m
+                  [33mclass[39m=[32m"semi-icon semi-icon-default semi-icon-plus"[39m
+                  [33mrole[39m=[32m"img"[39m
+                [36m>[39m
+                  [36m<svg[39m
+                    [33maria-hidden[39m=[32m"true"[39m
+                    [33mfill[39m=[32m"none"[39m
+                    [33mfocusable[39m=[32m"false"[39m
+                    [33mheight[39m=[32m"1em"[39m
+                    [33mviewBox[39m=[32m"0 0 24 24"[39m
+                    [33mwidth[39m=[32m"1em"[39m
+                    [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+                  [36m>[39m
+                    [36m<path[39m
+                      [33md[39m=[32m"M20.5 13.5a1.5 1.5 0 0 0 0-3h-7v-7a1.5 1.5 0 0 0-3 0v7h-7a1.5 1.5 0 0 0 0 3h7v7a1.5 1.5 0 0 0 3 0v-7h7Z"[39m
+                      [33mfill[39m=[32m"currentColor"[39m
+                    [36m/>[39m
+                  [36m</svg>[39m
+                [36m</span>[39m
+                [36m<span[39m
+                  [33mclass[39m=[32m"semi-button-content-right"[39m
+                  [33mx-semi-prop[39m=[32m"children"[39m
+                [36m>[39m
+                  [0m添加映射[0m
+                [36m</span>[39m
+              [36m</span>[39m
+            [36m</button>[39m
+            [36m<button[39m
+              [33maria-disabled[39m=[32m"false"[39m
+              [33mclass[39m=[32m"semi-button semi-button-primary semi-button-light semi-button-with-icon"[39m
+              [33mtype[39m=[32m"button"[39m
+            [36m>[39m
+              [36m<span[39m
+                [33mclass[39m=[32m"semi-button-content"[39m
+              [36m>[39m
+                [36m<span[39m
+                  [33maria-label[39m=[32m"plus"[39m
+                  [33mclass[39m=[32m"semi-icon semi-icon-default semi-icon-plus"[39m
+                  [33mrole[39m=[32m"img"[39m
+                [36m>[39m
+                  [36m<svg[39m
+                    [33maria-hidden[39m=[32m"true"[39m
+                    [33mfill[39m=[32m"none"[39m
+                    [33mfocusable[39m=[32m"false"[39m
+                    [33mheight[39m=[32m"1em"[39m
+                    [33mviewBox[39m=[32m"0 0 24 24"[39m
+                    [33mwidth[39m=[32m"1em"[39m
+                    [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+                  [36m>[39m
+                    [36m<path[39m
+                      [33md[39m=[32m"M20.5 13.5a1.5 1.5 0 0 0 0-3h-7v-7a1.5 1.5 0 0 0-3 0v7h-7a1.5 1.5 0 0 0 0 3h7v7a1.5 1.5 0 0 0 3 0v-7h7Z"[39m
+                      [33mfill[39m=[32m"currentColor"[39m
+                    [36m/>[39m
+                  [36m</svg>[39m
+                [36m</span>[39m
+                [36m<span[39m
+                  [33mclass[39m=[32m"semi-button-content-right"[39m
+                  [33mx-semi-prop[39m=[32m"children"[39m
+                [36m>[39m
+                  [0m添加大小写操作[0m
+                [36m</span>[39m
+              [36m</span>[39m
+            [36m</button>[39m
+          [36m</div>[39m
+          [36m<p[39m
+            [33mclass[39m=[32m"semi-typography semi-typography-paragraph semi-typography-tertiary semi-typography-small semi-typography-normal"[39m
+            [33mstyle[39m=[32m"margin-top: 8px;"[39m
+          [36m>[39m
+            [0mDSL：[0m
+            [0m（空）[0m
+            [0m · 后缀 (none/auto/minimal/low/medium/high/xhigh/max) 或 (8192) 预算值可直接用于规则，CPA 执行时后缀覆盖请求体强度字段[0m
+          [36m</p>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mstyle[39m=[32m"margin-top: 8px; font-size: 12px; color: var(--semi-color-text-2);"[39m
+        [36m>[39m
+          [0mstate_file：[0m
+          [0m/tmp/s.json[0m
+          [0m（已接管）[0m
+        [36m</div>[39m
+      [36m</div>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+  [36m<div[39m
+    [33mclass[39m=[32m"semi-toast-wrapper"[39m
+    [33mid[39m=[32m"toast-wrapper-178919435310"[39m
+    [33mstyle[39m=[32m"z-index: 1010;"[39m
+  [36m>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"semi-toast-innerWrapper"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33maria-label[39m=[32m"success type"[39m
+        [33mclass[39m=[32m"semi-toast semi-toast-animation-show semi-toast-success"[39m
+        [33mrole[39m=[32m"alert"[39m
+        [33mstyle[39m=[32m"transform: translate3d(0,0,0px);"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"semi-toast-content"[39m
+        [36m>[39m
+          [36m<span[39m
+            [33maria-label[39m=[32m"tick_circle"[39m
+            [33mclass[39m=[32m"semi-icon semi-icon-large semi-icon-tick_circle semi-toast-icon semi-toast-icon-success"[39m
+            [33mrole[39m=[32m"img"[39m
+          [36m>[39m
+            [36m<svg[39m
+              [33maria-hidden[39m=[32m"true"[39m
+              [33mfill[39m=[32m"none"[39m
+              [33mfocusable[39m=[32m"false"[39m
+              [33mheight[39m=[32m"1em"[39m
+              [33mviewBox[39m=[32m"0 0 24 24"[39m
+              [33mwidth[39m=[32m"1em"[39m
+              [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+            [36m>[39m
+              [36m<path[39m
+                [33mclip-rule[39m=[32m"evenodd"[39m
+                [33md[39m=[32m"M12 23a11 11 0 1 0 0-22 11 11 0 0 0 0 22Zm5.88-13.18-6.2 7.6a1.5 1.5 0 0 1-2.37 0l-3.5-4a1.5 1.5 0 1 1 2.37-1.84l2.3 2.46L15.5 8a1.5 1.5 0 1 1 2.38 1.82Z"[39m
+                [33mfill[39m=[32m"currentColor"[39m
+                [33mfill-rule[39m=[32m"evenodd"[39m
+              [36m/>[39m
+            [36m</svg>[39m
+          [36m</span>[39m
+          [36m<span[39m
+            [33mclass[39m=[32m"semi-toast-content-text"[39m
+            [33mstyle[39m=[32m"max-width: 450px;"[39m
+            [33mx-semi-prop[39m=[32m"content"[39m
+          [36m>[39m
+            [0m规则已保存[0m
+          [36m</span>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"semi-toast-close-button"[39m
+          [36m>[39m
+            [36m<button[39m
+              [33maria-disabled[39m=[32m"false"[39m
+              [33mclass[39m=[32m"semi-button semi-button-tertiary semi-button-size-small semi-button-borderless semi-button-with-icon semi-button-with-icon-only"[39m
+              [33mtype[39m=[32m"button"[39m
+            [36m>[39m
+              [36m<span[39m
+                [33mclass[39m=[32m"semi-button-content"[39m
+              [36m>[39m
+                [36m<span[39m
+                  [33maria-label[39m=[32m"close"[39m
+                  [33mclass[39m=[32m"semi-icon semi-icon-default semi-icon-close"[39m
+                  [33mrole[39m=[32m"img"[39m
+                  [33mx-semi-prop[39m=[32m"icon"[39m
+                [36m>[39m
+                  [36m<svg[39m
+                    [33maria-hidden[39m=[32m"true"[39m
+                    [33mfill[39m=[32m"none"[39m
+                    [33mfocusable[39m=[32m"false"[39m
+                    [33mheight[39m=[32m"1em"[39m
+                    [33mviewBox[39m=[32m"0 0 24 24"[39m
+                    [33mwidth[39m=[32m"1em"[39m
+                    [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+                  [36m>[39m
+                    [36m<path[39m
+                      [33md[39m=[32m"M17.66 19.78a1.5 1.5 0 0 0 2.12-2.12L14.12 12l5.66-5.66a1.5 1.5 0 0 0-2.12-2.12L12 9.88 6.34 4.22a1.5 1.5 0 1 0-2.12 2.12L9.88 12l-5.66 5.66a1.5 1.5 0 0 0 2.12 2.12L12 14.12l5.66 5.66Z"[39m
+                      [33mfill[39m=[32m"currentColor"[39m
+                    [36m/>[39m
+                  [36m</svg>[39m
+                [36m</span>[39m
+              [36m</span>[39m
+            [36m</button>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+      [36m</div>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+[36m</body>[39m
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33maria-busy[39m=[32m"false"[39m
+      [33mclass[39m=[32m"semi-card semi-card-bordered"[39m
+      [33mstyle[39m=[32m"margin: 16px;"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"semi-card-header semi-card-header-bordered"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"semi-card-header-wrapper"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"semi-card-header-wrapper-extra"[39m
+            [33mx-semi-prop[39m=[32m"headerExtraContent"[39m
+          [36m>[39m
+            [36m<button[39m
+              [33maria-disabled[39m=[32m"false"[39m
+              [33mclass[39m=[32m"semi-button semi-button-primary semi-button-solid"[39m
+              [33mtype[39m=[32m"button"[39m
+            [36m>[39m
+              [36m<span[39m
+                [33mclass[39m=[32m"semi-button-content"[39m
+                [33mx-semi-prop[39m=[32m"children"[39m
+              [36m>[39m
+                [0m保存[0m
+              [36m</span>[39m
+            [36m</button>[39m
+          [36m</div>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"semi-card-header-wrapper-title semi-card-header-wrapper-spacing"[39m
+          [36m>[39m
+            [36m<h6[39m
+              [33mclass[39m=[32m"semi-typography semi-typography-ellipsis semi-typography-ellipsis-single-line semi-typography-ellipsis-overflow-ellipsis semi-typography-primary semi-typography-normal semi-typography-h6"[39m
+              [33mx-semi-prop[39m=[32m"title"[39m
+            [36m>[39m
+              [36m<span>[39m
+                [0m映射规则（按端点分段，有序执行）[0m
+              [36m</span>[39m
+            [36m</h6>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+      [36m</div>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"semi-card-body"[39m
+      [36m>[39m
+        [36m<div>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"semi-tabs semi-tabs-top"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33maria-orientation[39m=[32m"horizontal"[39m
+              [33mclass[39m=[32m"semi-tabs-bar semi-tabs-bar-line semi-tabs-bar-top"[39m
+              [33mdata-uuid[39m=[32m"8e5e3a44-7c0c-40fa-acb7-123e2bae98f1"[39m
+              [33mrole[39m=[32m"tablist"[39m
+            [36m>[39m
+              [36m<div[39m
+                [33maria-controls[39m=[32m"semiTabPanelglobal"[39m
+                [33maria-disabled[39m=[32m"false"[39m
+                [33maria-selected[39m=[32m"true"[39m
+                [33mclass[39m=[32m"semi-tabs-tab semi-tabs-tab-line semi-tabs-tab-top semi-tabs-tab-single semi-tabs-tab-active"[39m
+                [33mdata-tabkey[39m=[32m"semiTabglobal"[39m
+                [33mid[39m=[32m"semiTabglobal"[39m
+                [33mrole[39m=[32m"tab"[39m
+                [33mtabindex[39m=[32m"0"[39m
+              [36m>[39m
+                [0m全局[0m
+              [36m</div>[39m
+              [36m<div[39m
+                [33maria-controls[39m=[32m"semiTabPanelclaude"[39m
+                [33maria-disabled[39m=[32m"false"[39m
+                [33maria-selected[39m=[32m"false"[39m
+                [33mclass[39m=[32m"semi-tabs-tab semi-tabs-tab-line semi-tabs-tab-top semi-tabs-tab-single"[39m
+                [33mdata-tabkey[39m=[32m"semiTabclaude"[39m
+                [33mid[39m=[32m"semiTabclaude"[39m
+                [33mrole[39m=[32m"tab"[39m
+                [33mtabindex[39m=[32m"-1"[39m
+              [36m>[39m
+                [0mClaude Messages[0m
+              [36m</div>[39m
+              [36m<div[39m
+                [33maria-controls[39m=[32m"semiTabPanelcodex"[39m
+                [33maria-disabled[39m=[32m"false"[39m
+                [33maria-selected[39m=[32m"false"[39m
+                [33mclass[39m=[32m"semi-tabs-tab semi-tabs-tab-line semi-tabs-tab-top semi-tabs-tab-single"[39m
+                [33mdata-tabkey[39m=[32m"semiTabcodex"[39m
+                [33mid[39m=[32m"semiTabcodex"[39m
+                [33mrole[39m=[32m"tab"[39m
+                [33mtabindex[39m=[32m"-1"[39m
+              [36m>[39m
+                [0mCodex Responses[0m
+              [36m</div>[39m
+              [36m<div[39m
+                [33maria-controls[39m=[32m"semiTabPanelopenai"[39m
+                [33maria-disabled[39m=[32m"false"[39m
+                [33maria-selected[39m=[32m"false"[39m
+                [33mclass[39m=[32m"semi-tabs-tab semi-tabs-tab-line semi-tabs-tab-top semi-tabs-tab-single"[39m
+                [33mdata-tabkey[39m=[32m"semiTabopenai"[39m
+                [33mid[39m=[32m"semiTabopenai"[39m
+                [33mrole[39m=[32m"tab"[39m
+                [33mtabindex[39m=[32m"-1"[39m
+              [36m>[39m
+                [0mOpenAI Completions[0m
+              [36m</div>[39m
+            [36m</div>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"semi-tabs-content semi-tabs-content-top"[39m
+            [36m>[39m
+              [36m<div[39m
+                [33maria-hidden[39m=[32m"false"[39m
+                [33maria-labelledby[39m=[32m"semiTabglobal"[39m
+                [33mclass[39m=[32m"semi-tabs-pane-active semi-tabs-pane"[39m
+                [33mid[39m=[32m"semiTabPanelglobal"[39m
+                [33mrole[39m=[32m"tabpanel"[39m
+                [33mtabindex[39m=[32m"0"[39m
+                [33mx-semi-prop[39m=[32m"children"[39m
+              [36m>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"semi-tabs-pane-motion-overlay"[39m
+                  [33mx-semi-prop[39m=[32m"children"[39m
+                [36m/>[39m
+              [36m</div>[39m
+              [36m<div[39m
+                [33maria-hidden[39m=[32m"true"[39m
+                [33maria-labelledby[39m=[32m"semiTabclaude"[39m
+                [33mclass[39m=[32m"semi-tabs-pane-inactive semi-tabs-pane"[39m
+                [33mid[39m=[32m"semiTabPanelclaude"[39m
+                [33mrole[39m=[32m"tabpanel"[39m
+                [33mtabindex[39m=[32m"0"[39m
+                [33mx-semi-prop[39m=[32m"children"[39m
+              [36m>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"semi-tabs-pane-motion-overlay"[39m
+                  [33mx-semi-prop[39m=[32m"children"[39m
+                [36m/>[39m
+              [36m</div>[39m
+              [36m<div[39m
+                [33maria-hidden[39m=[32m"true"[39m
+                [33maria-labelledby[39m=[32m"semiTabcodex"[39m
+                [33mclass[39m=[32m"semi-tabs-pane-inactive semi-tabs-pane"[39m
+                [33mid[39m=[32m"semiTabPanelcodex"[39m
+                [33mrole[39m=[32m"tabpanel"[39m
+                [33mtabindex[39m=[32m"0"[39m
+                [33mx-semi-prop[39m=[32m"children"[39m
+              [36m>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"semi-tabs-pane-motion-overlay"[39m
+                  [33mx-semi-prop[39m=[32m"children"[39m
+                [36m/>[39m
+              [36m</div>[39m
+              [36m<div[39m
+                [33maria-hidden[39m=[32m"true"[39m
+                [33maria-labelledby[39m=[32m"semiTabopenai"[39m
+                [33mclass[39m=[32m"semi-tabs-pane-inactive semi-tabs-pane"[39m
+                [33mid[39m=[32m"semiTabPanelopenai"[39m
+                [33mrole[39m=[32m"tabpanel"[39m
+                [33mtabindex[39m=[32m"0"[39m
+                [33mx-semi-prop[39m=[32m"children"[39m
+              [36m>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"semi-tabs-pane-motion-overlay"[39m
+                  [33mx-semi-prop[39m=[32m"children"[39m
+                [36m/>[39m
+              [36m</div>[39m
+            [36m</div>[39m
+          [36m</div>[39m
+          [36m<span[39m
+            [33mclass[39m=[32m"semi-typography semi-typography-tertiary semi-typography-normal"[39m
+          [36m>[39m
+            [0m本段为空[0m
+          [36m</span>[39m
+          [36m<div[39m
+            [33mstyle[39m=[32m"display: flex; gap: 8px; margin-top: 8px;"[39m
+          [36m>[39m
+            [36m<button[39m
+              [33maria-disabled[39m=[32m"false"[39m
+              [33mclass[39m=[32m"semi-button semi-button-primary semi-button-light semi-button-with-icon"[39m
+              [33mtype[39m=[32m"button"[39m
+            [36m>[39m
+              [36m<span[39m
+                [33mclass[39m=[32m"semi-button-content"[39m
+              [36m>[39m
+                [36m<span[39m
+                  [33maria-label[39m=[32m"plus"[39m
+                  [33mclass[39m=[32m"semi-icon semi-icon-default semi-icon-plus"[39m
+                  [33mrole[39m=[32m"img"[39m
+                [36m>[39m
+                  [36m<svg[39m
+                    [33maria-hidden[39m=[32m"true"[39m
+                    [33mfill[39m=[32m"none"[39m
+                    [33mfocusable[39m=[32m"false"[39m
+                    [33mheight[39m=[32m"1em"[39m
+                    [33mviewBox[39m=[32m"0 0 24 24"[39m
+                    [33mwidth[39m=[32m"1em"[39m
+                    [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+                  [36m>[39m
+                    [36m<path[39m
+                      [33md[39m=[32m"M20.5 13.5a1.5 1.5 0 0 0 0-3h-7v-7a1.5 1.5 0 0 0-3 0v7h-7a1.5 1.5 0 0 0 0 3h7v7a1.5 1.5 0 0 0 3 0v-7h7Z"[39m
+                      [33mfill[39m=[32m"currentColor"[39m
+                    [36m/>[39m
+                  [36m</svg>[39m
+                [36m</span>[39m
+                [36m<span[39m
+                  [33mclass[39m=[32m"semi-button-content-right"[39m
+                  [33mx-semi-prop[39m=[32m"children"[39m
+                [36m>[39m
+                  [0m添加映射[0m
+                [36m</span>[39m
+              [36m</span>[39m
+            [36m</button>[39m
+            [36m<button[39m
+              [33maria-disabled[39m=[32m"false"[39m
+              [33mclass[39m=[32m"semi-button semi-button-primary semi-button-light semi-button-with-icon"[39m
+              [33mtype[39m=[32m"button"[39m
+            [36m>[39m
+              [36m<span[39m
+                [33mclass[39m=[32m"semi-button-content"[39m
+              [36m>[39m
+                [36m<span[39m
+                  [33maria-label[39m=[32m"plus"[39m
+                  [33mclass[39m=[32m"semi-icon semi-icon-default semi-icon-plus"[39m
+                  [33mrole[39m=[32m"img"[39m
+                [36m>[39m
+                  [36m<svg[39m
+                    [33maria-hidden[39m=[32m"true"[39m
+                    [33mfill[39m=[32m"none"[39m
+                    [33mfocusable[39m=[32m"false"[39m
+                    [33mheight[39m=[32m"1em"[39m
+                    [33mviewBox[39m=[32m"0 0 24 24"[39m
+                    [33mwidth[39m=[32m"1em"[39m
+                    [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+                  [36m>[39m
+                    [36m<path[39m
+                      [33md[39m=[32m"M20.5 13.5a1.5 1.5 0 0 0 0-3h-7v-7a1.5 1.5 0 0 0-3 0v7h-7a1.5 1.5 0 0 0 0 3h7v7a1.5 1.5 0 0 0 3 0v-7h7Z"[39m
+                      [33mfill[39m=[32m"currentColor"[39m
+                    [36m/>[39m
+                  [36m</svg>[39m
+                [36m</span>[39m
+                [36m<span[39m
+                  [33mclass[39m=[32m"semi-button-content-right"[39m
+                  [33mx-semi-prop[39m=[32m"children"[39m
+                [36m>[39m
+                  [0m添加大小写操作[0m
+                [36m</span>[39m
+              [36m</span>[39m
+            [36m</button>[39m
+          [36m</div>[39m
+          [36m<p[39m
+            [33mclass[39m=[32m"semi-typography semi-typography-paragraph semi-typography-tertiary semi-typography-small semi-typography-normal"[39m
+            [33mstyle[39m=[32m"margin-top: 8px;"[39m
+          [36m>[39m
+            [0mDSL：[0m
+            [0m（空）[0m
+            [0m · 后缀 (none/auto/minimal/low/medium/high/xhigh/max) 或 (8192) 预算值可直接用于规则，CPA 执行时后缀覆盖请求体强度字段[0m
+          [36m</p>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mstyle[39m=[32m"margin-top: 8px; font-size: 12px; color: var(--semi-color-text-2);"[39m
+        [36m>[39m
+          [0mstate_file：[0m
+          [0m/tmp/s.json[0m
+          [0m（已接管）[0m
+        [36m</div>[39m
+      [36m</div>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+  [36m<div[39m
+    [33mclass[39m=[32m"semi-toast-wrapper"[39m
+    [33mid[39m=[32m"toast-wrapper-178919435310"[39m
+    [33mstyle[39m=[32m"z-index: 1010;"[39m
+  [36m>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"semi-toast-innerWrapper"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33maria-label[39m=[32m"success type"[39m
+        [33mclass[39m=[32m"semi-toast semi-toast-animation-show semi-toast-success"[39m
+        [33mrole[39m=[32m"alert"[39m
+        [33mstyle[39m=[32m"transform: translate3d(0,0,0px);"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"semi-toast-content"[39m
+        [36m>[39m
+          [36m<span[39m
+            [33maria-label[39m=[32m"tick_circle"[39m
+            [33mclass[39m=[32m"semi-icon semi-icon-large semi-icon-tick_circle semi-toast-icon semi-toast-icon-success"[39m
+            [33mrole[39m=[32m"img"[39m
+          [36m>[39m
+            [36m<svg[39m
+              [33maria-hidden[39m=[32m"true"[39m
+              [33mfill[39m=[32m"none"[39m
+              [33mfocusable[39m=[32m"false"[39m
+              [33mheight[39m=[32m"1em"[39m
+              [33mviewBox[39m=[32m"0 0 24 24"[39m
+              [33mwidth[39m=[32m"1em"[39m
+              [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+            [36m>[39m
+              [36m<path[39m
+                [33mclip-rule[39m=[32m"evenodd"[39m
+                [33md[39m=[32m"M12 23a11 11 0 1 0 0-22 11 11 0 0 0 0 22Zm5.88-13.18-6.2 7.6a1.5 1.5 0 0 1-2.37 0l-3.5-4a1.5 1.5 0 1 1 2.37-1.84l2.3 2.46L15.5 8a1.5 1.5 0 1 1 2.38 1.82Z"[39m
+                [33mfill[39m=[32m"currentColor"[39m
+                [33mfill-rule[39m=[32m"evenodd"[39m
+              [36m/>[39m
+            [36m</svg>[39m
+          [36m</span>[39m
+          [36m<span[39m
+            [33mclass[39m=[32m"semi-toast-content-text"[39m
+            [33mstyle[39m=[32m"max-width: 450px;"[39m
+            [33mx-semi-prop[39m=[32m"content"[39m
+          [36m>[39m
+            [0m规则已保存[0m
+          [36m</span>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"semi-toast-close-button"[39m
+          [36m>[39m
+            [36m<button[39m
+              [33maria-disabled[39m=[32m"false"[39m
+              [33mclass[39m=[32m"semi-button semi-button-tertiary semi-button-size-small semi-button-borderless semi-button-with-icon semi-button-with-icon-only"[39m
+              [33mtype[39m=[32m"button"[39m
+            [36m>[39m
+              [36m<span[39m
+                [33mclass[39m=[32m"semi-button-content"[39m
+              [36m>[39m
+                [36m<span[39m
+                  [33maria-label[39m=[32m"close"[39m
+                  [33mclass[39m=[32m"semi-icon semi-icon-default semi-icon-close"[39m
+                  [33mrole[39m=[32m"img"[39m
+                  [33mx-semi-prop[39m=[32m"icon"[39m
+                [36m>[39m
+                  [36m<svg[39m
+                    [33maria-hidden[39m=[32m"true"[39m
+                    [33mfill[39m=[32m"none"[39m
+                    [33mfocusable[39m=[32m"false"[39m
+                    [33mheight[39m=[32m"1em"[39m
+                    [33mviewBox[39m=[32m"0 0 24 24"[39m
+                    [33mwidth[39m=[32m"1em"[39m
+                    [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+                  [36m>[39m
+                    [36m<path[39m
+                      [33md[39m=[32m"M17.66 19.78a1.5 1.5 0 0 0 2.12-2.12L14.12 12l5.66-5.66a1.5 1.5 0 0 0-2.12-2.12L12 9.88 6.34 4.22a1.5 1.5 0 1 0-2.12 2.12L9.88 12l-5.66 5.66a1.5 1.5 0 0 0 2.12 2.12L12 14.12l5.66 5.66Z"[39m
+                      [33mfill[39m=[32m"currentColor"[39m
+                    [36m/>[39m
+                  [36m</svg>[39m
+                [36m</span>[39m
+              [36m</span>[39m
+            [36m</button>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+      [36m</div>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+[36m</body>[39m
+ ❯ waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ src/panels/RulesPanel.test.tsx:34:23
+     32|   render(<RulesPanel state={EMPTY_STATE} onSaved={onSaved} />)
+     33|   await userEvent.setup().click(screen.getByRole('button', { name: '保存…
+     34|   expect(await screen.findByText(/审计结果未写入/)).toBeInTheDocument()
+       |                       ^
+     35|   if (status === 200) {
+     36|     expect(onSaved).toHaveBeenCalledOnce()
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/9]⎯
+ FAIL  src/panels/RulesPanel.test.tsx > S9 HTTP400 保存结果和审计失败分别展示
+TestingLibraryElementError: Unable to find an element with the text: /审计结果未写入/. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div[39m
+    [33mclass[39m=[32m"semi-toast-wrapper"[39m
+    [33mid[39m=[32m"toast-wrapper-178919435310"[39m
+    [33mstyle[39m=[32m"z-index: 1010;"[39m
+  [36m>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"semi-toast-innerWrapper"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33maria-label[39m=[32m"success type"[39m
+        [33mclass[39m=[32m"semi-toast semi-toast-animation-show semi-toast-success"[39m
+        [33mrole[39m=[32m"alert"[39m
+        [33mstyle[39m=[32m"transform: translate3d(0,0,-10px);"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"semi-toast-content"[39m
+        [36m>[39m
+          [36m<span[39m
+            [33maria-label[39m=[32m"tick_circle"[39m
+            [33mclass[39m=[32m"semi-icon semi-icon-large semi-icon-tick_circle semi-toast-icon semi-toast-icon-success"[39m
+            [33mrole[39m=[32m"img"[39m
+          [36m>[39m
+            [36m<svg[39m
+              [33maria-hidden[39m=[32m"true"[39m
+              [33mfill[39m=[32m"none"[39m
+              [33mfocusable[39m=[32m"false"[39m
+              [33mheight[39m=[32m"1em"[39m
+              [33mviewBox[39m=[32m"0 0 24 24"[39m
+              [33mwidth[39m=[32m"1em"[39m
+              [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+            [36m>[39m
+              [36m<path[39m
+                [33mclip-rule[39m=[32m"evenodd"[39m
+                [33md[39m=[32m"M12 23a11 11 0 1 0 0-22 11 11 0 0 0 0 22Zm5.88-13.18-6.2 7.6a1.5 1.5 0 0 1-2.37 0l-3.5-4a1.5 1.5 0 1 1 2.37-1.84l2.3 2.46L15.5 8a1.5 1.5 0 1 1 2.38 1.82Z"[39m
+                [33mfill[39m=[32m"currentColor"[39m
+                [33mfill-rule[39m=[32m"evenodd"[39m
+              [36m/>[39m
+            [36m</svg>[39m
+          [36m</span>[39m
+          [36m<span[39m
+            [33mclass[39m=[32m"semi-toast-content-text"[39m
+            [33mstyle[39m=[32m"max-width: 450px;"[39m
+            [33mx-semi-prop[39m=[32m"content"[39m
+          [36m>[39m
+            [0m规则已保存[0m
+          [36m</span>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"semi-toast-close-button"[39m
+          [36m>[39m
+            [36m<button[39m
+              [33maria-disabled[39m=[32m"false"[39m
+              [33mclass[39m=[32m"semi-button semi-button-tertiary semi-button-size-small semi-button-borderless semi-button-with-icon semi-button-with-icon-only"[39m
+              [33mtype[39m=[32m"button"[39m
+            [36m>[39m
+              [36m<span[39m
+                [33mclass[39m=[32m"semi-button-content"[39m
+              [36m>[39m
+                [36m<span[39m
+                  [33maria-label[39m=[32m"close"[39m
+                  [33mclass[39m=[32m"semi-icon semi-icon-default semi-icon-close"[39m
+                  [33mrole[39m=[32m"img"[39m
+                  [33mx-semi-prop[39m=[32m"icon"[39m
+                [36m>[39m
+                  [36m<svg[39m
+                    [33maria-hidden[39m=[32m"true"[39m
+                    [33mfill[39m=[32m"none"[39m
+                    [33mfocusable[39m=[32m"false"[39m
+                    [33mheight[39m=[32m"1em"[39m
+                    [33mviewBox[39m=[32m"0 0 24 24"[39m
+                    [33mwidth[39m=[32m"1em"[39m
+                    [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+                  [36m>[39m
+                    [36m<path[39m
+                      [33md[39m=[32m"M17.66 19.78a1.5 1.5 0 0 0 2.12-2.12L14.12 12l5.66-5.66a1.5 1.5 0 0 0-2.12-2.12L12 9.88 6.34 4.22a1.5 1.5 0 1 0-2.12 2.12L9.88 12l-5.66 5.66a1.5 1.5 0 0 0 2.12 2.12L12 14.12l5.66 5.66Z"[39m
+                      [33mfill[39m=[32m"currentColor"[39m
+                    [36m/>[39m
+                  [36m</svg>[39m
+                [36m</span>[39m
+              [36m</span>[39m
+            [36m</button>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+      [36m</div>[39m
+      [36m<div[39m
+        [33maria-label[39m=[32m"error type"[39m
+        [33mclass[39m=[32m"semi-toast semi-toast-animation-show semi-toast-error"[39m
+        [33mrole[39m=[32m"alert"[39m
+        [33mstyle[39m=[32m"transform: translate3d(0,0,0px);"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"semi-toast-content"[39m
+        [36m>[39m
+          [36m<span[39m
+            [33maria-label[39m=[32m"alert_circle"[39m
+            [33mclass[39m=[32m"semi-icon semi-icon-large semi-icon-alert_circle semi-toast-icon semi-toast-icon-error"[39m
+            [33mrole[39m=[32m"img"[39m
+          [36m>[39m
+            [36m<svg[39m
+              [33maria-hidden[39m=[32m"true"[39m
+              [33mfill[39m=[32m"none"[39m
+              [33mfocusable[39m=[32m"false"[39m
+              [33mheight[39m=[32m"1em"[39m
+              [33mviewBox[39m=[32m"0 0 24 24"[39m
+              [33mwidth[39m=[32m"1em"[39m
+              [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+            [36m>[39m
+              [36m<path[39m
+                [33mclip-rule[39m=[32m"evenodd"[39m
+                [33md[39m=[32m"M23 12a11 11 0 1 1-22 0 11 11 0 0 1 22 0Zm-9.5 5.5a1.5 1.5 0 1 0-3 0 1.5 1.5 0 0 0 3 0ZM12 5a1.9 1.9 0 0 0-1.89 2l.3 5.5a1.59 1.59 0 0 0 3.17 0l.3-5.5c.07-1.09-.8-2-1.88-2Z"[39m
+                [33mfill[39m=[32m"currentColor"[39m
+                [33mfill-rule[39m=[32m"evenodd"[39m
+              [36m/>[39m
+            [36m</svg>[39m
+          [36m</span>[39m
+          [36m<span[39m
+            [33mclass[39m=[32m"semi-toast-content-text"[39m
+            [33mstyle[39m=[32m"max-width: 450px;"[39m
+            [33mx-semi-prop[39m=[32m"content"[39m
+          [36m>[39m
+            [0m规则校验失败[0m
+          [36m</span>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"semi-toast-close-button"[39m
+          [36m>[39m
+            [36m<button[39m
+              [33maria-disabled[39m=[32m"false"[39m
+              [33mclass[39m=[32m"semi-button semi-button-tertiary semi-button-size-small semi-button-borderless semi-button-with-icon semi-button-with-icon-only"[39m
+              [33mtype[39m=[32m"button"[39m
+            [36m>[39m
+              [36m<span[39m
+                [33mclass[39m=[32m"semi-button-content"[39m
+              [36m>[39m
+                [36m<span[39m
+                  [33maria-label[39m=[32m"close"[39m
+                  [33mclass[39m=[32m"semi-icon semi-icon-default semi-icon-close"[39m
+                  [33mrole[39m=[32m"img"[39m
+                  [33mx-semi-prop[39m=[32m"icon"[39m
+                [36m>[39m
+                  [36m<svg[39m
+                    [33maria-hidden[39m=[32m"true"[39m
+                    [33mfill[39m=[32m"none"[39m
+                    [33mfocusable[39m=[32m"false"[39m
+             ...
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div[39m
+    [33mclass[39m=[32m"semi-toast-wrapper"[39m
+    [33mid[39m=[32m"toast-wrapper-178919435310"[39m
+    [33mstyle[39m=[32m"z-index: 1010;"[39m
+  [36m>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"semi-toast-innerWrapper"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33maria-label[39m=[32m"success type"[39m
+        [33mclass[39m=[32m"semi-toast semi-toast-animation-show semi-toast-success"[39m
+        [33mrole[39m=[32m"alert"[39m
+        [33mstyle[39m=[32m"transform: translate3d(0,0,-10px);"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"semi-toast-content"[39m
+        [36m>[39m
+          [36m<span[39m
+            [33maria-label[39m=[32m"tick_circle"[39m
+            [33mclass[39m=[32m"semi-icon semi-icon-large semi-icon-tick_circle semi-toast-icon semi-toast-icon-success"[39m
+            [33mrole[39m=[32m"img"[39m
+          [36m>[39m
+            [36m<svg[39m
+              [33maria-hidden[39m=[32m"true"[39m
+              [33mfill[39m=[32m"none"[39m
+              [33mfocusable[39m=[32m"false"[39m
+              [33mheight[39m=[32m"1em"[39m
+              [33mviewBox[39m=[32m"0 0 24 24"[39m
+              [33mwidth[39m=[32m"1em"[39m
+              [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+            [36m>[39m
+              [36m<path[39m
+                [33mclip-rule[39m=[32m"evenodd"[39m
+                [33md[39m=[32m"M12 23a11 11 0 1 0 0-22 11 11 0 0 0 0 22Zm5.88-13.18-6.2 7.6a1.5 1.5 0 0 1-2.37 0l-3.5-4a1.5 1.5 0 1 1 2.37-1.84l2.3 2.46L15.5 8a1.5 1.5 0 1 1 2.38 1.82Z"[39m
+                [33mfill[39m=[32m"currentColor"[39m
+                [33mfill-rule[39m=[32m"evenodd"[39m
+              [36m/>[39m
+            [36m</svg>[39m
+          [36m</span>[39m
+          [36m<span[39m
+            [33mclass[39m=[32m"semi-toast-content-text"[39m
+            [33mstyle[39m=[32m"max-width: 450px;"[39m
+            [33mx-semi-prop[39m=[32m"content"[39m
+          [36m>[39m
+            [0m规则已保存[0m
+          [36m</span>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"semi-toast-close-button"[39m
+          [36m>[39m
+            [36m<button[39m
+              [33maria-disabled[39m=[32m"false"[39m
+              [33mclass[39m=[32m"semi-button semi-button-tertiary semi-button-size-small semi-button-borderless semi-button-with-icon semi-button-with-icon-only"[39m
+              [33mtype[39m=[32m"button"[39m
+            [36m>[39m
+              [36m<span[39m
+                [33mclass[39m=[32m"semi-button-content"[39m
+              [36m>[39m
+                [36m<span[39m
+                  [33maria-label[39m=[32m"close"[39m
+                  [33mclass[39m=[32m"semi-icon semi-icon-default semi-icon-close"[39m
+                  [33mrole[39m=[32m"img"[39m
+                  [33mx-semi-prop[39m=[32m"icon"[39m
+                [36m>[39m
+                  [36m<svg[39m
+                    [33maria-hidden[39m=[32m"true"[39m
+                    [33mfill[39m=[32m"none"[39m
+                    [33mfocusable[39m=[32m"false"[39m
+                    [33mheight[39m=[32m"1em"[39m
+                    [33mviewBox[39m=[32m"0 0 24 24"[39m
+                    [33mwidth[39m=[32m"1em"[39m
+                    [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+                  [36m>[39m
+                    [36m<path[39m
+                      [33md[39m=[32m"M17.66 19.78a1.5 1.5 0 0 0 2.12-2.12L14.12 12l5.66-5.66a1.5 1.5 0 0 0-2.12-2.12L12 9.88 6.34 4.22a1.5 1.5 0 1 0-2.12 2.12L9.88 12l-5.66 5.66a1.5 1.5 0 0 0 2.12 2.12L12 14.12l5.66 5.66Z"[39m
+                      [33mfill[39m=[32m"currentColor"[39m
+                    [36m/>[39m
+                  [36m</svg>[39m
+                [36m</span>[39m
+              [36m</span>[39m
+            [36m</button>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+      [36m</div>[39m
+      [36m<div[39m
+        [33maria-label[39m=[32m"error type"[39m
+        [33mclass[39m=[32m"semi-toast semi-toast-animation-show semi-toast-error"[39m
+        [33mrole[39m=[32m"alert"[39m
+        [33mstyle[39m=[32m"transform: translate3d(0,0,0px);"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"semi-toast-content"[39m
+        [36m>[39m
+          [36m<span[39m
+            [33maria-label[39m=[32m"alert_circle"[39m
+            [33mclass[39m=[32m"semi-icon semi-icon-large semi-icon-alert_circle semi-toast-icon semi-toast-icon-error"[39m
+            [33mrole[39m=[32m"img"[39m
+          [36m>[39m
+            [36m<svg[39m
+              [33maria-hidden[39m=[32m"true"[39m
+              [33mfill[39m=[32m"none"[39m
+              [33mfocusable[39m=[32m"false"[39m
+              [33mheight[39m=[32m"1em"[39m
+              [33mviewBox[39m=[32m"0 0 24 24"[39m
+              [33mwidth[39m=[32m"1em"[39m
+              [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+            [36m>[39m
+              [36m<path[39m
+                [33mclip-rule[39m=[32m"evenodd"[39m
+                [33md[39m=[32m"M23 12a11 11 0 1 1-22 0 11 11 0 0 1 22 0Zm-9.5 5.5a1.5 1.5 0 1 0-3 0 1.5 1.5 0 0 0 3 0ZM12 5a1.9 1.9 0 0 0-1.89 2l.3 5.5a1.59 1.59 0 0 0 3.17 0l.3-5.5c.07-1.09-.8-2-1.88-2Z"[39m
+                [33mfill[39m=[32m"currentColor"[39m
+                [33mfill-rule[39m=[32m"evenodd"[39m
+              [36m/>[39m
+            [36m</svg>[39m
+          [36m</span>[39m
+          [36m<span[39m
+            [33mclass[39m=[32m"semi-toast-content-text"[39m
+            [33mstyle[39m=[32m"max-width: 450px;"[39m
+            [33mx-semi-prop[39m=[32m"content"[39m
+          [36m>[39m
+            [0m规则校验失败[0m
+          [36m</span>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"semi-toast-close-button"[39m
+          [36m>[39m
+            [36m<button[39m
+              [33maria-disabled[39m=[32m"false"[39m
+              [33mclass[39m=[32m"semi-button semi-button-tertiary semi-button-size-small semi-button-borderless semi-button-with-icon semi-button-with-icon-only"[39m
+              [33mtype[39m=[32m"button"[39m
+            [36m>[39m
+              [36m<span[39m
+                [33mclass[39m=[32m"semi-button-content"[39m
+              [36m>[39m
+                [36m<span[39m
+                  [33maria-label[39m=[32m"close"[39m
+                  [33mclass[39m=[32m"semi-icon semi-icon-default semi-icon-close"[39m
+                  [33mrole[39m=[32m"img"[39m
+                  [33mx-semi-prop[39m=[32m"icon"[39m
+                [36m>[39m
+                  [36m<svg[39m
+                    [33maria-hidden[39m=[32m"true"[39m
+                    [33mfill[39m=[32m"none"[39m
+                    [33mfocusable[39m=[32m"false"[39m
+             ...
+ ❯ waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ src/panels/RulesPanel.test.tsx:34:23
+     32|   render(<RulesPanel state={EMPTY_STATE} onSaved={onSaved} />)
+     33|   await userEvent.setup().click(screen.getByRole('button', { name: '保存…
+     34|   expect(await screen.findByText(/审计结果未写入/)).toBeInTheDocument()
+       |                       ^
+     35|   if (status === 200) {
+     36|     expect(onSaved).toHaveBeenCalledOnce()
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/9]⎯
+
+exit_code=1

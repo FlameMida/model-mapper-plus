@@ -73,7 +73,11 @@ tasks:
       base_commit: 3cd1e52b890676f9574507a72e82589365d068e8
       model_declaration_id: initial-20260912
   T06:
-    status: in_progress
+    status: completed
+    commit: 3bae2f217856f50c41c7e1b23fae9a24223a4ae6
+    implementation_commit: 2134a4503405dd151f636eb055f1b263a1fa69d2
+    result_path: .spec-dev/2026-09-12-01-admin-audit-keeper-names/execution/t06-20260912-a1/result.json
+    tests: pass
     claim:
       key: t06-20260912-a1
       owner: 01a093e8-b328-7f41-9dc0-82ef9014f0ee
@@ -100,6 +104,7 @@ resources:
   - "worktree: /Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-keeper-names; created by this plan; after verified merge: git worktree remove /Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-keeper-names; git branch -d plan/admin-audit-keeper-names"
   - "service: T07 本地验收服务预期 127.0.0.1:31819，尚未启动；启动时登记命令、PID、开始时间和关闭方法"
 notes:
+  - "During T06, plugin cache 8.6.0 was removed and 8.7.0 installed externally. Main read and verified implementation-result schema and parallel verifyResult fields remain compatible, used 8.7.0 tools for T06 reception. Approved spec/plan behavior unchanged; historical 8.6.0 receipts retained."
   - "T06 write scope extended before change to KeeperAuthNameEditor.tsx and its test: preserve optional error.audit in non2xx catch under existing all-mutation warning contract; Begin503 without audit keeps ordinary error. T05 stopped, no active overlap; claim preserved."
   - "T04 accepted: precise PATCH authentication-stage handling and cache generations implemented within declared writes; interrupted httptest cleanup attempt exit130 retained, not PASS; final target/race and 78-test combined backend integration passed."
   - "Dependency refinement for authorized parallel execution: T05 consumes fixed spec JSON rather than T04 Go artifacts, so T05 now depends T03 only; T07 explicitly depends T04 and T06. T04/T05 writes are disjoint; real integration gate retained."
@@ -121,7 +126,7 @@ execution:
   integration_worktree: /Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-keeper-names
   integration_branch: plan/admin-audit-keeper-names
   base_commit: fbc63d7c0ac414200b3011fc6b2c34675e17525b
-  validated_commit: 1313c90333b7e30476608c85c3ef32e234d32759
+  validated_commit: 3bae2f217856f50c41c7e1b23fae9a24223a4ae6
   delivery:
     channel: local
     state: implementing

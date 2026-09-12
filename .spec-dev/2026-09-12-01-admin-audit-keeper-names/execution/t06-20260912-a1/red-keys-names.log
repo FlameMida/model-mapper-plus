@@ -1,0 +1,2150 @@
+> vitest run src/panels/KeysPanel.auth-names.test.tsx src/components/KeeperAuthNameEditor.test.tsx
+ RUN  v4.1.10 /Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-t06/web
+ ❯ src/components/KeeperAuthNameEditor.test.tsx (6 tests | 2 failed) 2197ms
+   × S9 非2xx显示原错误，仅存在audit时提示审计失败：false 1090ms
+   × S9 非2xx显示原错误，仅存在audit时提示审计失败：true 1019ms
+ ❯ src/panels/KeysPanel.auth-names.test.tsx (21 tests | 3 failed) 5388ms
+   × S9 Key 重命名逐项保留 POST 与 DELETE 的审计警告并完成保存 1407ms
+   × S9 Key 开关 HTTP200 保留业务结果和独立审计警告 1030ms
+   × S9 Key 开关 HTTP400 保留业务结果和独立审计警告 1034ms
+ Test Files  2 failed (2)
+      Tests  5 failed | 22 passed (27)
+   Start at  14:27:48
+   Duration  10.75s (transform 6.30s, setup 9.43s, import 176ms, tests 7.59s, environment 935ms)
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 5 ⎯⎯⎯⎯⎯⎯⎯
+ FAIL  src/panels/KeysPanel.auth-names.test.tsx > S9 Key 重命名逐项保留 POST 与 DELETE 的审计警告并完成保存
+TestingLibraryElementError: Unable to find an element with the text: /审计结果未写入.*op-create/. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+Ignored nodes: comments, script, style
+[36m<body[39m
+  [33mdata-position[39m=[32m"static"[39m
+  [33mstyle[39m=[32m"overflow: hidden; width: calc(100% - 0px);"[39m
+[36m>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33maria-busy[39m=[32m"false"[39m
+      [33mclass[39m=[32m"semi-card semi-card-bordered"[39m
+      [33mstyle[39m=[32m"margin: 16px;"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"semi-card-header semi-card-header-bordered"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"semi-card-header-wrapper"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"semi-card-header-wrapper-extra"[39m
+            [33mx-semi-prop[39m=[32m"headerExtraContent"[39m
+          [36m>[39m
+            [36m<button[39m
+              [33maria-disabled[39m=[32m"false"[39m
+              [33mclass[39m=[32m"semi-button semi-button-primary semi-button-solid"[39m
+              [33mtype[39m=[32m"button"[39m
+            [36m>[39m
+              [36m<span[39m
+                [33mclass[39m=[32m"semi-button-content"[39m
+                [33mx-semi-prop[39m=[32m"children"[39m
+              [36m>[39m
+                [0m+ 新增绑定[0m
+              [36m</span>[39m
+            [36m</button>[39m
+          [36m</div>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"semi-card-header-wrapper-title semi-card-header-wrapper-spacing"[39m
+          [36m>[39m
+            [36m<h6[39m
+              [33mclass[39m=[32m"semi-typography semi-typography-ellipsis semi-typography-ellipsis-single-line semi-typography-ellipsis-overflow-ellipsis semi-typography-primary semi-typography-normal semi-typography-h6"[39m
+              [33mx-semi-prop[39m=[32m"title"[39m
+            [36m>[39m
+              [36m<span>[39m
+                [0mKey 绑定策略[0m
+              [36m</span>[39m
+            [36m</h6>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+      [36m</div>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"semi-card-body"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"semi-table-wrapper semi-table-wrapper-undefined"[39m
+          [33mdata-column-fixed[39m=[32m"false"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"semi-spin semi-spin-large semi-spin-block semi-spin-hidden"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"semi-spin-children"[39m
+              [33mx-semi-prop[39m=[32m"children"[39m
+            [36m>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"semi-table-scroll-position-left semi-table-scroll-position-right"[39m
+              [36m>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"semi-table-container"[39m
+                [36m>[39m
+                  [36m<div[39m
+                    [33mclass[39m=[32m"semi-table-body"[39m
+                  [36m>[39m
+                    [36m<table[39m
+                      [33maria-colcount[39m=[32m"8"[39m
+                      [33maria-rowcount[39m=[32m"1"[39m
+                      [33mclass[39m=[32m"semi-table"[39m
+                      [33mrole[39m=[32m"grid"[39m
+                    [36m>[39m
+                      [36m<colgroup[39m
+                        [33mclass[39m=[32m"semi-table-colgroup"[39m
+                      [36m>[39m
+                        [36m<col[39m
+                          [33mclass[39m=[32m"semi-table-col"[39m
+                        [36m/>[39m
+                        [36m<col[39m
+                          [33mclass[39m=[32m"semi-table-col"[39m
+                        [36m/>[39m
+                        [36m<col[39m
+                          [33mclass[39m=[32m"semi-table-col"[39m
+                        [36m/>[39m
+                        [36m<col[39m
+                          [33mclass[39m=[32m"semi-table-col"[39m
+                        [36m/>[39m
+                        [36m<col[39m
+                          [33mclass[39m=[32m"semi-table-col"[39m
+                        [36m/>[39m
+                        [36m<col[39m
+                          [33mclass[39m=[32m"semi-table-col"[39m
+                        [36m/>[39m
+                        [36m<col[39m
+                          [33mclass[39m=[32m"semi-table-col"[39m
+                        [36m/>[39m
+                        [36m<col[39m
+                          [33mclass[39m=[32m"semi-table-col"[39m
+                        [36m/>[39m
+                      [36m</colgroup>[39m
+                      [36m<thead[39m
+                        [33mclass[39m=[32m"semi-table-thead"[39m
+                      [36m>[39m
+                        [36m<tr[39m
+                          [33maria-rowindex[39m=[32m"1"[39m
+                          [33mclass[39m=[32m"semi-table-row"[39m
+                          [33mrole[39m=[32m"row"[39m
+                        [36m>[39m
+                          [36m<th[39m
+                            [33maria-colindex[39m=[32m"1"[39m
+                            [33mclass[39m=[32m"semi-table-row-head"[39m
+                            [33mcolspan[39m=[32m"1"[39m
+                            [33mrole[39m=[32m"columnheader"[39m
+                            [33mrowspan[39m=[32m"1"[39m
+                            [33mtitle[39m=[32m"API Key"[39m
+                          [36m>[39m
+                            [0mAPI Key[0m
+                          [36m</th>[39m
+                          [36m<th[39m
+                            [33maria-colindex[39m=[32m"2"[39m
+                            [33mclass[39m=[32m"semi-table-row-head"[39m
+                            [33mcolspan[39m=[32m"1"[39m
+                            [33mrole[39m=[32m"columnheader"[39m
+                            [33mrowspan[39m=[32m"1"[39m
+                            [33mtitle[39m=[32m"别名"[39m
+                          [36m>[39m
+                            [0m别名[0m
+                          [36m</th>[39m
+                          [36m<th[39m
+                            [33maria-colindex[39m=[32m"3"[39m
+                            [33mclass[39m=[32m"semi-table-row-head"[39m
+                            [33mcolspan[39m=[32m"1"[39m
+                            [33mrole[39m=[32m"columnheader"[39m
+                            [33mrowspan[39m=[32m"1"[39m
+                            [33mtitle[39m=[32m"追加规则"[39m
+                          [36m>[39m
+                            [0m追加规则[0m
+                          [36m</th>[39m
+                          [36m<th[39m
+                            [33maria-colindex[39m=[32m"4"[39m
+                            [33mclass[39m=[32m"semi-table-row-head"[39m
+                            [33mcolspan[39m=[32m"1"[39m
+                            [33mrol...
+Ignored nodes: comments, script, style
+[36m<body[39m
+  [33mdata-position[39m=[32m"static"[39m
+  [33mstyle[39m=[32m"overflow: hidden; width: calc(100% - 0px);"[39m
+[36m>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33maria-busy[39m=[32m"false"[39m
+      [33mclass[39m=[32m"semi-card semi-card-bordered"[39m
+      [33mstyle[39m=[32m"margin: 16px;"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"semi-card-header semi-card-header-bordered"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"semi-card-header-wrapper"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"semi-card-header-wrapper-extra"[39m
+            [33mx-semi-prop[39m=[32m"headerExtraContent"[39m
+          [36m>[39m
+            [36m<button[39m
+              [33maria-disabled[39m=[32m"false"[39m
+              [33mclass[39m=[32m"semi-button semi-button-primary semi-button-solid"[39m
+              [33mtype[39m=[32m"button"[39m
+            [36m>[39m
+              [36m<span[39m
+                [33mclass[39m=[32m"semi-button-content"[39m
+                [33mx-semi-prop[39m=[32m"children"[39m
+              [36m>[39m
+                [0m+ 新增绑定[0m
+              [36m</span>[39m
+            [36m</button>[39m
+          [36m</div>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"semi-card-header-wrapper-title semi-card-header-wrapper-spacing"[39m
+          [36m>[39m
+            [36m<h6[39m
+              [33mclass[39m=[32m"semi-typography semi-typography-ellipsis semi-typography-ellipsis-single-line semi-typography-ellipsis-overflow-ellipsis semi-typography-primary semi-typography-normal semi-typography-h6"[39m
+              [33mx-semi-prop[39m=[32m"title"[39m
+            [36m>[39m
+              [36m<span>[39m
+                [0mKey 绑定策略[0m
+              [36m</span>[39m
+            [36m</h6>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+      [36m</div>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"semi-card-body"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"semi-table-wrapper semi-table-wrapper-undefined"[39m
+          [33mdata-column-fixed[39m=[32m"false"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"semi-spin semi-spin-large semi-spin-block semi-spin-hidden"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"semi-spin-children"[39m
+              [33mx-semi-prop[39m=[32m"children"[39m
+            [36m>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"semi-table-scroll-position-left semi-table-scroll-position-right"[39m
+              [36m>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"semi-table-container"[39m
+                [36m>[39m
+                  [36m<div[39m
+                    [33mclass[39m=[32m"semi-table-body"[39m
+                  [36m>[39m
+                    [36m<table[39m
+                      [33maria-colcount[39m=[32m"8"[39m
+                      [33maria-rowcount[39m=[32m"1"[39m
+                      [33mclass[39m=[32m"semi-table"[39m
+                      [33mrole[39m=[32m"grid"[39m
+                    [36m>[39m
+                      [36m<colgroup[39m
+                        [33mclass[39m=[32m"semi-table-colgroup"[39m
+                      [36m>[39m
+                        [36m<col[39m
+                          [33mclass[39m=[32m"semi-table-col"[39m
+                        [36m/>[39m
+                        [36m<col[39m
+                          [33mclass[39m=[32m"semi-table-col"[39m
+                        [36m/>[39m
+                        [36m<col[39m
+                          [33mclass[39m=[32m"semi-table-col"[39m
+                        [36m/>[39m
+                        [36m<col[39m
+                          [33mclass[39m=[32m"semi-table-col"[39m
+                        [36m/>[39m
+                        [36m<col[39m
+                          [33mclass[39m=[32m"semi-table-col"[39m
+                        [36m/>[39m
+                        [36m<col[39m
+                          [33mclass[39m=[32m"semi-table-col"[39m
+                        [36m/>[39m
+                        [36m<col[39m
+                          [33mclass[39m=[32m"semi-table-col"[39m
+                        [36m/>[39m
+                        [36m<col[39m
+                          [33mclass[39m=[32m"semi-table-col"[39m
+                        [36m/>[39m
+                      [36m</colgroup>[39m
+                      [36m<thead[39m
+                        [33mclass[39m=[32m"semi-table-thead"[39m
+                      [36m>[39m
+                        [36m<tr[39m
+                          [33maria-rowindex[39m=[32m"1"[39m
+                          [33mclass[39m=[32m"semi-table-row"[39m
+                          [33mrole[39m=[32m"row"[39m
+                        [36m>[39m
+                          [36m<th[39m
+                            [33maria-colindex[39m=[32m"1"[39m
+                            [33mclass[39m=[32m"semi-table-row-head"[39m
+                            [33mcolspan[39m=[32m"1"[39m
+                            [33mrole[39m=[32m"columnheader"[39m
+                            [33mrowspan[39m=[32m"1"[39m
+                            [33mtitle[39m=[32m"API Key"[39m
+                          [36m>[39m
+                            [0mAPI Key[0m
+                          [36m</th>[39m
+                          [36m<th[39m
+                            [33maria-colindex[39m=[32m"2"[39m
+                            [33mclass[39m=[32m"semi-table-row-head"[39m
+                            [33mcolspan[39m=[32m"1"[39m
+                            [33mrole[39m=[32m"columnheader"[39m
+                            [33mrowspan[39m=[32m"1"[39m
+                            [33mtitle[39m=[32m"别名"[39m
+                          [36m>[39m
+                            [0m别名[0m
+                          [36m</th>[39m
+                          [36m<th[39m
+                            [33maria-colindex[39m=[32m"3"[39m
+                            [33mclass[39m=[32m"semi-table-row-head"[39m
+                            [33mcolspan[39m=[32m"1"[39m
+                            [33mrole[39m=[32m"columnheader"[39m
+                            [33mrowspan[39m=[32m"1"[39m
+                            [33mtitle[39m=[32m"追加规则"[39m
+                          [36m>[39m
+                            [0m追加规则[0m
+                          [36m</th>[39m
+                          [36m<th[39m
+                            [33maria-colindex[39m=[32m"4"[39m
+                            [33mclass[39m=[32m"semi-table-row-head"[39m
+                            [33mcolspan[39m=[32m"1"[39m
+                            [33mrol...
+ ❯ waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ src/panels/KeysPanel.auth-names.test.tsx:66:23
+     64|   await user.click(await screen.findByRole('option', { name: /使用手动 Key…
+     65|   await user.click(within(screen.getByRole('dialog')).getByRole('butto…
+     66|   expect(await screen.findByText(/审计结果未写入.*op-create/)).toBeInTheDocum…
+       |                       ^
+     67|   expect(await screen.findByText(/审计结果未写入.*op-delete/)).toBeInTheDocum…
+     68|   expect(onSaved).toHaveBeenCalledOnce()
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/5]⎯
+ FAIL  src/panels/KeysPanel.auth-names.test.tsx > S9 Key 开关 HTTP200 保留业务结果和独立审计警告
+TestingLibraryElementError: Unable to find an element with the text: /审计结果未写入.*op-toggle/. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+Ignored nodes: comments, script, style
+[36m<body[39m
+  [33mdata-position[39m=[32m"static"[39m
+  [33mstyle[39m=[32m""[39m
+[36m>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33maria-busy[39m=[32m"false"[39m
+      [33mclass[39m=[32m"semi-card semi-card-bordered"[39m
+      [33mstyle[39m=[32m"margin: 16px;"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"semi-card-header semi-card-header-bordered"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"semi-card-header-wrapper"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"semi-card-header-wrapper-extra"[39m
+            [33mx-semi-prop[39m=[32m"headerExtraContent"[39m
+          [36m>[39m
+            [36m<button[39m
+              [33maria-disabled[39m=[32m"false"[39m
+              [33mclass[39m=[32m"semi-button semi-button-primary semi-button-solid"[39m
+              [33mtype[39m=[32m"button"[39m
+            [36m>[39m
+              [36m<span[39m
+                [33mclass[39m=[32m"semi-button-content"[39m
+                [33mx-semi-prop[39m=[32m"children"[39m
+              [36m>[39m
+                [0m+ 新增绑定[0m
+              [36m</span>[39m
+            [36m</button>[39m
+          [36m</div>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"semi-card-header-wrapper-title semi-card-header-wrapper-spacing"[39m
+          [36m>[39m
+            [36m<h6[39m
+              [33mclass[39m=[32m"semi-typography semi-typography-ellipsis semi-typography-ellipsis-single-line semi-typography-ellipsis-overflow-ellipsis semi-typography-primary semi-typography-normal semi-typography-h6"[39m
+              [33mx-semi-prop[39m=[32m"title"[39m
+            [36m>[39m
+              [36m<span>[39m
+                [0mKey 绑定策略[0m
+              [36m</span>[39m
+            [36m</h6>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+      [36m</div>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"semi-card-body"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"semi-table-wrapper semi-table-wrapper-undefined"[39m
+          [33mdata-column-fixed[39m=[32m"false"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"semi-spin semi-spin-large semi-spin-block semi-spin-hidden"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"semi-spin-children"[39m
+              [33mx-semi-prop[39m=[32m"children"[39m
+            [36m>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"semi-table-scroll-position-left semi-table-scroll-position-right"[39m
+              [36m>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"semi-table-container"[39m
+                [36m>[39m
+                  [36m<div[39m
+                    [33mclass[39m=[32m"semi-table-body"[39m
+                  [36m>[39m
+                    [36m<table[39m
+                      [33maria-colcount[39m=[32m"8"[39m
+                      [33maria-rowcount[39m=[32m"1"[39m
+                      [33mclass[39m=[32m"semi-table"[39m
+                      [33mrole[39m=[32m"grid"[39m
+                    [36m>[39m
+                      [36m<colgroup[39m
+                        [33mclass[39m=[32m"semi-table-colgroup"[39m
+                      [36m>[39m
+                        [36m<col[39m
+                          [33mclass[39m=[32m"semi-table-col"[39m
+                        [36m/>[39m
+                        [36m<col[39m
+                          [33mclass[39m=[32m"semi-table-col"[39m
+                        [36m/>[39m
+                        [36m<col[39m
+                          [33mclass[39m=[32m"semi-table-col"[39m
+                        [36m/>[39m
+                        [36m<col[39m
+                          [33mclass[39m=[32m"semi-table-col"[39m
+                        [36m/>[39m
+                        [36m<col[39m
+                          [33mclass[39m=[32m"semi-table-col"[39m
+                        [36m/>[39m
+                        [36m<col[39m
+                          [33mclass[39m=[32m"semi-table-col"[39m
+                        [36m/>[39m
+                        [36m<col[39m
+                          [33mclass[39m=[32m"semi-table-col"[39m
+                        [36m/>[39m
+                        [36m<col[39m
+                          [33mclass[39m=[32m"semi-table-col"[39m
+                        [36m/>[39m
+                      [36m</colgroup>[39m
+                      [36m<thead[39m
+                        [33mclass[39m=[32m"semi-table-thead"[39m
+                      [36m>[39m
+                        [36m<tr[39m
+                          [33maria-rowindex[39m=[32m"1"[39m
+                          [33mclass[39m=[32m"semi-table-row"[39m
+                          [33mrole[39m=[32m"row"[39m
+                        [36m>[39m
+                          [36m<th[39m
+                            [33maria-colindex[39m=[32m"1"[39m
+                            [33mclass[39m=[32m"semi-table-row-head"[39m
+                            [33mcolspan[39m=[32m"1"[39m
+                            [33mrole[39m=[32m"columnheader"[39m
+                            [33mrowspan[39m=[32m"1"[39m
+                            [33mtitle[39m=[32m"API Key"[39m
+                          [36m>[39m
+                            [0mAPI Key[0m
+                          [36m</th>[39m
+                          [36m<th[39m
+                            [33maria-colindex[39m=[32m"2"[39m
+                            [33mclass[39m=[32m"semi-table-row-head"[39m
+                            [33mcolspan[39m=[32m"1"[39m
+                            [33mrole[39m=[32m"columnheader"[39m
+                            [33mrowspan[39m=[32m"1"[39m
+                            [33mtitle[39m=[32m"别名"[39m
+                          [36m>[39m
+                            [0m别名[0m
+                          [36m</th>[39m
+                          [36m<th[39m
+                            [33maria-colindex[39m=[32m"3"[39m
+                            [33mclass[39m=[32m"semi-table-row-head"[39m
+                            [33mcolspan[39m=[32m"1"[39m
+                            [33mrole[39m=[32m"columnheader"[39m
+                            [33mrowspan[39m=[32m"1"[39m
+                            [33mtitle[39m=[32m"追加规则"[39m
+                          [36m>[39m
+                            [0m追加规则[0m
+                          [36m</th>[39m
+                          [36m<th[39m
+                            [33maria-colindex[39m=[32m"4"[39m
+                            [33mclass[39m=[32m"semi-table-row-head"[39m
+                            [33mcolspan[39m=[32m"1"[39m
+                            [33mrole[39m=[32m"columnheader"[39m
+                            [33mrowspan[39m=[32m"1"[39m
+                            [33mtitle[39m=[32m"渠道定向"[39m
+                          [36m>[39m
+                            [0m渠道定向[0m
+                          [36m</th>[39m
+                          [36m<th[39m
+                            [33maria-colindex[39m=[32m"5"[39m
+                            [33mclass[39m=[32m"semi-table-row-head"[39m
+                            [33mcolspan[39m=[32m"1"[39m
+                            [33mrole[39m=[32m"columnheader"[39m
+                            [33mrowspan[39m=[32m"1"[39m
+                            [33mtitle[39m=[32m"Fast"[39m
+                          [36m>[39m
+                            [0mFast[0m
+                          [36m</th>[39m
+                          [36m<th[39m
+                            [33maria-colindex[39m=[32m"6"[39m
+                            [33mclass[39m=[32m"semi-table-row-head"[39m
+                            [33mcolspan[39m=[32m"1"[39m
+                            [33mrole[39m=[32m"columnheader"[39m
+                            [33mrowspan[39m=[32m"1"[39m
+                            [33mtitle[39m=[32m"启用规则"[39m
+                          [36m>[39m
+                            [0m启用规则[0m
+                          [36m</th>[39m
+                          [36m<th[39m
+                            [33maria-colindex[39m=[32m"7"[39m
+                            [33mclass[39m=[32m"semi-table-row-head"[39m
+                            [33mcolspan[39m=[32m"1"[39m
+                            [33mrole[39m=[32m"columnheader"[39m
+                            [33mrowspan[39m=[32m"1"[39m
+                            [33mtitle[39m=[32m"禁止访问"[39m
+                          [36m>[39m
+                            [0m禁止访问[0m
+                          [36m</th>[39m
+                          [36m<th[39m
+                            [33maria-colindex[39m=[32m"8"[39m
+                            [33mclass[39m=[32m"semi-table-row-head"[39m
+                            [33mcolspan[39m=[32m"1"[39m
+                            [33mrole[39m=[32m"columnheader"[39m
+                            [33mrowspan[39m=[32m"1"[39m
+                            [33mtitle[39m=[32m""[39m
+                          [36m/>[39m
+                        [36m</tr>[39m
+                      [36m</thead>[39m
+                      [36m<tbody[39m
+                        [33mclass[39m=[32m"semi-table-tbody"[39m
+                      [36m>[39m
+                        [36m<tr[39m
+                          [33maria-rowindex[39m=[32m"1"[39m
+                          [33mclass[39m=[32m"semi-table-row semi-table-row-hovered"[39m
+                          [33mdata-row-key[39m=[32m"fake-client-key"[39m
+                          [33mrole[39m=[32m"row"[39m
+                        [36m>[39m
+                          [36m<td[39m
+                            [33maria-colindex[39m=[32m"1"[39m
+                            [33mclass[39m=[32m"semi-table-row-cell"[39m
+                            [33mrole[39m=[32m"gridcell"[39m
+                          [36m>[39m
+                            [36m<span[39m
+                              [33mclass[39m=[32m"semi-typography semi-typography-primary semi-typography-normal"[39m
+                            [36m>[39m
+                              [36m<code>[39m
+                                [0mfake-c…-key[0m
+                              [36m</code>[39m
+                            [36m</span>[39m
+                          [36m</td>[39m
+                          [36m<td[39m
+                            [33maria-colindex[39m=[32m"2"[39m
+                            [33mclass[39m=[32m"semi-table-row-cell"[39m
+                            [33mrole[39m=[32m"gridcell"[39m
+                            [33mtitle[39m=[32m"K"[39m
+                          [36m>[39m
+                            [0mK[0m
+                          [36m</td>[39m
+                          [36m<td[39m
+                            [33maria-colindex[39m=[32m"3"[39m
+                            [33mclass[39m=[32m"semi-table-row-cell"[39m
+                            [33mrole[39m=[32m"gridcell"[39m
+                            [33mtitle[39m=[32m"—"[39m
+                          [36m>[39m
+                            [0m—[0m
+                          [36m</td>[39m
+                          [36m<td[39m
+                            [33maria-colindex[39m=[32m"4"[39m
+                            [33mclass[39m=[32m"semi-table-row-cell"[39m
+                            [33mrole[39m=[32m"gridcell"[39m
+                            [33mtitle[39m=[32m"0 个供应商 · 1 个凭据"[39m
+                          [36m>[39m
+                            [0m0 个供应商 · 1 个凭据[0m
+                          [36m</td>[39m
+                          [36m<td[39m
+                            [33maria-colindex[39m=[32m"5"[39m
+                            [33mclass[39m=[32m"semi-table-row-cell"[39m
+                            [33mrole[39m=[32m"gridcell"[39m
+                          [36m>[39m
+                            [36m<div[39m
+                              [33maria-label[39m=[32m"Tag: 允许"[39m
+                              [33mclass[39m=[32m"semi-tag semi-tag-default semi-tag-square semi-tag-light semi-tag-green-light"[39m
+                            [36m>[39m
+                              [36m<div[39m
+                                [33mclass[39m=[32m"semi-tag-content semi-tag-content-ellipsis"[39m
+                              [36m>[39m
+                                [0m允许[0m
+                              [36m</div>[39m
+                            [36m</div>[39m
+                          [36m</td>[39m
+                          [36m<td[39m
+                            [33maria-colindex[39m=[32m"6"[39m
+                            [33mclass[39m=[32m"semi-table-row-cell"[39m
+                            [33mrole[39m=[32m"gridcell"[39m
+                          [36m>[39m
+                            [36m<div[39m
+                              [33mclass[39m=[32m"semi-switch semi-switch-checked"[39m
+                            [36m>[39m
+                              [36m<div[39m
+                                [33maria-hidden[39m=[32m"true"[39m
+                                [33mclass[39m=[32m"semi-switch-knob"[39m
+                              [36m/>[39m
+                              [36m<input[39m
+                                [33maria-checked[39m=[32m"true"[39m
+                                [33maria-disabled[39m=[32m"false"[39m
+                                [33maria-label[39m=[32m"启用规则：K"[39m
+                                [33mchecked[39m=[32m""[39m
+                                [33mclass[39m=[32m"semi-switch-native-control"[39m
+                                [33mrole[39m=[32m"switch"[39m
+                                [33mtype[39m=[32m"checkbox"[39m
+                              [36m/>[39m
+                            [36m</div>[39m
+                          [36m</td>[39m
+                          [36m<td[39m
+                            [33maria-colindex[39m=[32m"7"[39m
+                            [33mclass[39m=[32m"semi-table-row-cell"[39m
+                            [33mrole[39m=[32m"gridcell"[39m
+                          [36m>[39m
+                            [36m<div[39m
+                              [33mclass[39m=[32m"semi-switch"[39m
+                            [36m>[39m
+                              [36m<div[39m
+                                [33maria-hidden[39m=[32m"true"[39m
+                                [33mclass[39m=[32m"semi-switch-knob"[39m
+                              [36m/>[39m
+                              [36m<input[39m
+                                [33maria-checked[39m=[32m"false"[39m
+                                [33maria-disabled[39m=[32m"false"[39m
+                                [33maria-label[39m=[32m"禁止访问：K"[39m
+                                [33mclass[39m=[32m"semi-switch-native-control"[39m
+                                [33mrole[39m=[32m"switch"[39m
+                                [33mtype[39m=[32m"checkbox"[39m
+                              [36m/>[39m
+                            [36m</div>[39m
+                          [36m</td>[39m
+                          [36m<td[39m
+                            [33maria-colindex[39m=[32m"8"[39m
+                            [33mclass[39m=[32m"semi-table-row-cell"[39m
+                            [33mrole[39m=[32m"gridcell"[39m
+                          [36m>[39m
+                            [36m<button[39m
+                              [33maria-disabled[39m=[32m"false"[39m
+                              [33mclass[39m=[32m"semi-button semi-button-primary semi-button-size-small semi-button-light"[39m
+                              [33mtype[39m=[32m"button"[39m
+                            [36m>[39m
+                              [36m<span[39m
+                                [33mclass[39m=[32m"semi-button-content"[39m
+                                [33mx-semi-prop[39m=[32m"children"[39m
+                              [36m>[39m
+                                [0m编辑[0m
+                              [36m</span>[39m
+                            [36m</button>[39m
+                            [0m [0m
+                            [36m<button[39m
+                              [33maria-disabled[39m=[32m"false"[39m
+                              [33mclass[39m=[32m"semi-button semi-button-danger semi-button-size-small semi-button-light"[39m
+                              [33mtype[39m=[32m"button"[39m
+                            [36m>[39m
+                              [36m<span[39m
+                                [33mclass[39m=[32m"semi-button-content"[39m
+                                [33mx-semi-prop[39m=[32m"children"[39m
+                              [36m>[39m
+                                [0m删除[0m
+                              [36m</span>[39m
+                            [36m</button>[39m
+                          [36m</td>[39m
+                        [36m</tr>[39m
+                      [36m</tbody>[39m
+                    [36m</table>[39m
+                  [36m</div>[39m
+                [36m</div>[39m
+              [36m</div>[39m
+            [36m</div>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+        [36m<p[39m
+          [33mclass[39m=[32m"semi-typography semi-typography-paragraph semi-typography-tertiary semi-typography-small semi-typography-normal"[39m
+          [33mstyle[39m=[32m"margin-top: 8px;"[39m
+        [36m>[39m
+          [0mKey 来源：GET /v0/management/api-keys（下拉选择，也可手动输入未列出的 key）[0m
+        [36m</p>[39m
+      [36m</div>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+[36m</body>[39m
+Ignored nodes: comments, script, style
+[36m<body[39m
+  [33mdata-position[39m=[32m"static"[39m
+  [33mstyle[39m=[32m""[39m
+[36m>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33maria-busy[39m=[32m"false"[39m
+      [33mclass[39m=[32m"semi-card semi-card-bordered"[39m
+      [33mstyle[39m=[32m"margin: 16px;"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"semi-card-header semi-card-header-bordered"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"semi-card-header-wrapper"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"semi-card-header-wrapper-extra"[39m
+            [33mx-semi-prop[39m=[32m"headerExtraContent"[39m
+          [36m>[39m
+            [36m<button[39m
+              [33maria-disabled[39m=[32m"false"[39m
+              [33mclass[39m=[32m"semi-button semi-button-primary semi-button-solid"[39m
+              [33mtype[39m=[32m"button"[39m
+            [36m>[39m
+              [36m<span[39m
+                [33mclass[39m=[32m"semi-button-content"[39m
+                [33mx-semi-prop[39m=[32m"children"[39m
+              [36m>[39m
+                [0m+ 新增绑定[0m
+              [36m</span>[39m
+            [36m</button>[39m
+          [36m</div>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"semi-card-header-wrapper-title semi-card-header-wrapper-spacing"[39m
+          [36m>[39m
+            [36m<h6[39m
+              [33mclass[39m=[32m"semi-typography semi-typography-ellipsis semi-typography-ellipsis-single-line semi-typography-ellipsis-overflow-ellipsis semi-typography-primary semi-typography-normal semi-typography-h6"[39m
+              [33mx-semi-prop[39m=[32m"title"[39m
+            [36m>[39m
+              [36m<span>[39m
+                [0mKey 绑定策略[0m
+              [36m</span>[39m
+            [36m</h6>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+      [36m</div>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"semi-card-body"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"semi-table-wrapper semi-table-wrapper-undefined"[39m
+          [33mdata-column-fixed[39m=[32m"false"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"semi-spin semi-spin-large semi-spin-block semi-spin-hidden"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"semi-spin-children"[39m
+              [33mx-semi-prop[39m=[32m"children"[39m
+            [36m>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"semi-table-scroll-position-left semi-table-scroll-position-right"[39m
+              [36m>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"semi-table-container"[39m
+                [36m>[39m
+                  [36m<div[39m
+                    [33mclass[39m=[32m"semi-table-body"[39m
+                  [36m>[39m
+                    [36m<table[39m
+                      [33maria-colcount[39m=[32m"8"[39m
+                      [33maria-rowcount[39m=[32m"1"[39m
+                      [33mclass[39m=[32m"semi-table"[39m
+                      [33mrole[39m=[32m"grid"[39m
+                    [36m>[39m
+                      [36m<colgroup[39m
+                        [33mclass[39m=[32m"semi-table-colgroup"[39m
+                      [36m>[39m
+                        [36m<col[39m
+                          [33mclass[39m=[32m"semi-table-col"[39m
+                        [36m/>[39m
+                        [36m<col[39m
+                          [33mclass[39m=[32m"semi-table-col"[39m
+                        [36m/>[39m
+                        [36m<col[39m
+                          [33mclass[39m=[32m"semi-table-col"[39m
+                        [36m/>[39m
+                        [36m<col[39m
+                          [33mclass[39m=[32m"semi-table-col"[39m
+                        [36m/>[39m
+                        [36m<col[39m
+                          [33mclass[39m=[32m"semi-table-col"[39m
+                        [36m/>[39m
+                        [36m<col[39m
+                          [33mclass[39m=[32m"semi-table-col"[39m
+                        [36m/>[39m
+                        [36m<col[39m
+                          [33mclass[39m=[32m"semi-table-col"[39m
+                        [36m/>[39m
+                        [36m<col[39m
+                          [33mclass[39m=[32m"semi-table-col"[39m
+                        [36m/>[39m
+                      [36m</colgroup>[39m
+                      [36m<thead[39m
+                        [33mclass[39m=[32m"semi-table-thead"[39m
+                      [36m>[39m
+                        [36m<tr[39m
+                          [33maria-rowindex[39m=[32m"1"[39m
+                          [33mclass[39m=[32m"semi-table-row"[39m
+                          [33mrole[39m=[32m"row"[39m
+                        [36m>[39m
+                          [36m<th[39m
+                            [33maria-colindex[39m=[32m"1"[39m
+                            [33mclass[39m=[32m"semi-table-row-head"[39m
+                            [33mcolspan[39m=[32m"1"[39m
+                            [33mrole[39m=[32m"columnheader"[39m
+                            [33mrowspan[39m=[32m"1"[39m
+                            [33mtitle[39m=[32m"API Key"[39m
+                          [36m>[39m
+                            [0mAPI Key[0m
+                          [36m</th>[39m
+                          [36m<th[39m
+                            [33maria-colindex[39m=[32m"2"[39m
+                            [33mclass[39m=[32m"semi-table-row-head"[39m
+                            [33mcolspan[39m=[32m"1"[39m
+                            [33mrole[39m=[32m"columnheader"[39m
+                            [33mrowspan[39m=[32m"1"[39m
+                            [33mtitle[39m=[32m"别名"[39m
+                          [36m>[39m
+                            [0m别名[0m
+                          [36m</th>[39m
+                          [36m<th[39m
+                            [33maria-colindex[39m=[32m"3"[39m
+                            [33mclass[39m=[32m"semi-table-row-head"[39m
+                            [33mcolspan[39m=[32m"1"[39m
+                            [33mrole[39m=[32m"columnheader"[39m
+                            [33mrowspan[39m=[32m"1"[39m
+                            [33mtitle[39m=[32m"追加规则"[39m
+                          [36m>[39m
+                            [0m追加规则[0m
+                          [36m</th>[39m
+                          [36m<th[39m
+                            [33maria-colindex[39m=[32m"4"[39m
+                            [33mclass[39m=[32m"semi-table-row-head"[39m
+                            [33mcolspan[39m=[32m"1"[39m
+                            [33mrole[39m=[32m"columnheader"[39m
+                            [33mrowspan[39m=[32m"1"[39m
+                            [33mtitle[39m=[32m"渠道定向"[39m
+                          [36m>[39m
+                            [0m渠道定向[0m
+                          [36m</th>[39m
+                          [36m<th[39m
+                            [33maria-colindex[39m=[32m"5"[39m
+                            [33mclass[39m=[32m"semi-table-row-head"[39m
+                            [33mcolspan[39m=[32m"1"[39m
+                            [33mrole[39m=[32m"columnheader"[39m
+                            [33mrowspan[39m=[32m"1"[39m
+                            [33mtitle[39m=[32m"Fast"[39m
+                          [36m>[39m
+                            [0mFast[0m
+                          [36m</th>[39m
+                          [36m<th[39m
+                            [33maria-colindex[39m=[32m"6"[39m
+                            [33mclass[39m=[32m"semi-table-row-head"[39m
+                            [33mcolspan[39m=[32m"1"[39m
+                            [33mrole[39m=[32m"columnheader"[39m
+                            [33mrowspan[39m=[32m"1"[39m
+                            [33mtitle[39m=[32m"启用规则"[39m
+                          [36m>[39m
+                            [0m启用规则[0m
+                          [36m</th>[39m
+                          [36m<th[39m
+                            [33maria-colindex[39m=[32m"7"[39m
+                            [33mclass[39m=[32m"semi-table-row-head"[39m
+                            [33mcolspan[39m=[32m"1"[39m
+                            [33mrole[39m=[32m"columnheader"[39m
+                            [33mrowspan[39m=[32m"1"[39m
+                            [33mtitle[39m=[32m"禁止访问"[39m
+                          [36m>[39m
+                            [0m禁止访问[0m
+                          [36m</th>[39m
+                          [36m<th[39m
+                            [33maria-colindex[39m=[32m"8"[39m
+                            [33mclass[39m=[32m"semi-table-row-head"[39m
+                            [33mcolspan[39m=[32m"1"[39m
+                            [33mrole[39m=[32m"columnheader"[39m
+                            [33mrowspan[39m=[32m"1"[39m
+                            [33mtitle[39m=[32m""[39m
+                          [36m/>[39m
+                        [36m</tr>[39m
+                      [36m</thead>[39m
+                      [36m<tbody[39m
+                        [33mclass[39m=[32m"semi-table-tbody"[39m
+                      [36m>[39m
+                        [36m<tr[39m
+                          [33maria-rowindex[39m=[32m"1"[39m
+                          [33mclass[39m=[32m"semi-table-row semi-table-row-hovered"[39m
+                          [33mdata-row-key[39m=[32m"fake-client-key"[39m
+                          [33mrole[39m=[32m"row"[39m
+                        [36m>[39m
+                          [36m<td[39m
+                            [33maria-colindex[39m=[32m"1"[39m
+                            [33mclass[39m=[32m"semi-table-row-cell"[39m
+                            [33mrole[39m=[32m"gridcell"[39m
+                          [36m>[39m
+                            [36m<span[39m
+                              [33mclass[39m=[32m"semi-typography semi-typography-primary semi-typography-normal"[39m
+                            [36m>[39m
+                              [36m<code>[39m
+                                [0mfake-c…-key[0m
+                              [36m</code>[39m
+                            [36m</span>[39m
+                          [36m</td>[39m
+                          [36m<td[39m
+                            [33maria-colindex[39m=[32m"2"[39m
+                            [33mclass[39m=[32m"semi-table-row-cell"[39m
+                            [33mrole[39m=[32m"gridcell"[39m
+                            [33mtitle[39m=[32m"K"[39m
+                          [36m>[39m
+                            [0mK[0m
+                          [36m</td>[39m
+                          [36m<td[39m
+                            [33maria-colindex[39m=[32m"3"[39m
+                            [33mclass[39m=[32m"semi-table-row-cell"[39m
+                            [33mrole[39m=[32m"gridcell"[39m
+                            [33mtitle[39m=[32m"—"[39m
+                          [36m>[39m
+                            [0m—[0m
+                          [36m</td>[39m
+                          [36m<td[39m
+                            [33maria-colindex[39m=[32m"4"[39m
+                            [33mclass[39m=[32m"semi-table-row-cell"[39m
+                            [33mrole[39m=[32m"gridcell"[39m
+                            [33mtitle[39m=[32m"0 个供应商 · 1 个凭据"[39m
+                          [36m>[39m
+                            [0m0 个供应商 · 1 个凭据[0m
+                          [36m</td>[39m
+                          [36m<td[39m
+                            [33maria-colindex[39m=[32m"5"[39m
+                            [33mclass[39m=[32m"semi-table-row-cell"[39m
+                            [33mrole[39m=[32m"gridcell"[39m
+                          [36m>[39m
+                            [36m<div[39m
+                              [33maria-label[39m=[32m"Tag: 允许"[39m
+                              [33mclass[39m=[32m"semi-tag semi-tag-default semi-tag-square semi-tag-light semi-tag-green-light"[39m
+                            [36m>[39m
+                              [36m<div[39m
+                                [33mclass[39m=[32m"semi-tag-content semi-tag-content-ellipsis"[39m
+                              [36m>[39m
+                                [0m允许[0m
+                              [36m</div>[39m
+                            [36m</div>[39m
+                          [36m</td>[39m
+                          [36m<td[39m
+                            [33maria-colindex[39m=[32m"6"[39m
+                            [33mclass[39m=[32m"semi-table-row-cell"[39m
+                            [33mrole[39m=[32m"gridcell"[39m
+                          [36m>[39m
+                            [36m<div[39m
+                              [33mclass[39m=[32m"semi-switch semi-switch-checked"[39m
+                            [36m>[39m
+                              [36m<div[39m
+                                [33maria-hidden[39m=[32m"true"[39m
+                                [33mclass[39m=[32m"semi-switch-knob"[39m
+                              [36m/>[39m
+                              [36m<input[39m
+                                [33maria-checked[39m=[32m"true"[39m
+                                [33maria-disabled[39m=[32m"false"[39m
+                                [33maria-label[39m=[32m"启用规则：K"[39m
+                                [33mchecked[39m=[32m""[39m
+                                [33mclass[39m=[32m"semi-switch-native-control"[39m
+                                [33mrole[39m=[32m"switch"[39m
+                                [33mtype[39m=[32m"checkbox"[39m
+                              [36m/>[39m
+                            [36m</div>[39m
+                          [36m</td>[39m
+                          [36m<td[39m
+                            [33maria-colindex[39m=[32m"7"[39m
+                            [33mclass[39m=[32m"semi-table-row-cell"[39m
+                            [33mrole[39m=[32m"gridcell"[39m
+                          [36m>[39m
+                            [36m<div[39m
+                              [33mclass[39m=[32m"semi-switch"[39m
+                            [36m>[39m
+                              [36m<div[39m
+                                [33maria-hidden[39m=[32m"true"[39m
+                                [33mclass[39m=[32m"semi-switch-knob"[39m
+                              [36m/>[39m
+                              [36m<input[39m
+                                [33maria-checked[39m=[32m"false"[39m
+                                [33maria-disabled[39m=[32m"false"[39m
+                                [33maria-label[39m=[32m"禁止访问：K"[39m
+                                [33mclass[39m=[32m"semi-switch-native-control"[39m
+                                [33mrole[39m=[32m"switch"[39m
+                                [33mtype[39m=[32m"checkbox"[39m
+                              [36m/>[39m
+                            [36m</div>[39m
+                          [36m</td>[39m
+                          [36m<td[39m
+                            [33maria-colindex[39m=[32m"8"[39m
+                            [33mclass[39m=[32m"semi-table-row-cell"[39m
+                            [33mrole[39m=[32m"gridcell"[39m
+                          [36m>[39m
+                            [36m<button[39m
+                              [33maria-disabled[39m=[32m"false"[39m
+                              [33mclass[39m=[32m"semi-button semi-button-primary semi-button-size-small semi-button-light"[39m
+                              [33mtype[39m=[32m"button"[39m
+                            [36m>[39m
+                              [36m<span[39m
+                                [33mclass[39m=[32m"semi-button-content"[39m
+                                [33mx-semi-prop[39m=[32m"children"[39m
+                              [36m>[39m
+                                [0m编辑[0m
+                              [36m</span>[39m
+                            [36m</button>[39m
+                            [0m [0m
+                            [36m<button[39m
+                              [33maria-disabled[39m=[32m"false"[39m
+                              [33mclass[39m=[32m"semi-button semi-button-danger semi-button-size-small semi-button-light"[39m
+                              [33mtype[39m=[32m"button"[39m
+                            [36m>[39m
+                              [36m<span[39m
+                                [33mclass[39m=[32m"semi-button-content"[39m
+                                [33mx-semi-prop[39m=[32m"children"[39m
+                              [36m>[39m
+                                [0m删除[0m
+                              [36m</span>[39m
+                            [36m</button>[39m
+                          [36m</td>[39m
+                        [36m</tr>[39m
+                      [36m</tbody>[39m
+                    [36m</table>[39m
+                  [36m</div>[39m
+                [36m</div>[39m
+              [36m</div>[39m
+            [36m</div>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+        [36m<p[39m
+          [33mclass[39m=[32m"semi-typography semi-typography-paragraph semi-typography-tertiary semi-typography-small semi-typography-normal"[39m
+          [33mstyle[39m=[32m"margin-top: 8px;"[39m
+        [36m>[39m
+          [0mKey 来源：GET /v0/management/api-keys（下拉选择，也可手动输入未列出的 key）[0m
+        [36m</p>[39m
+      [36m</div>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+[36m</body>[39m
+ ❯ waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ src/panels/KeysPanel.auth-names.test.tsx:78:23
+     76|   render(<KeysPanel state={STATE} keyOptions={createKeyOptions()} onSa…
+     77|   await userEvent.setup().click(screen.getByRole('switch', { name: '启用…
+     78|   expect(await screen.findByText(/审计结果未写入.*op-toggle/)).toBeInTheDocum…
+       |                       ^
+     79|   if (status === 200) expect(onSaved).toHaveBeenCalledOnce()
+     80|   else {
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/5]⎯
+ FAIL  src/panels/KeysPanel.auth-names.test.tsx > S9 Key 开关 HTTP400 保留业务结果和独立审计警告
+TestingLibraryElementError: Unable to find an element with the text: /审计结果未写入.*op-toggle/. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+Ignored nodes: comments, script, style
+[36m<body[39m
+  [33mdata-position[39m=[32m"static"[39m
+  [33mstyle[39m=[32m""[39m
+[36m>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33maria-busy[39m=[32m"false"[39m
+      [33mclass[39m=[32m"semi-card semi-card-bordered"[39m
+      [33mstyle[39m=[32m"margin: 16px;"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"semi-card-header semi-card-header-bordered"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"semi-card-header-wrapper"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"semi-card-header-wrapper-extra"[39m
+            [33mx-semi-prop[39m=[32m"headerExtraContent"[39m
+          [36m>[39m
+            [36m<button[39m
+              [33maria-disabled[39m=[32m"false"[39m
+              [33mclass[39m=[32m"semi-button semi-button-primary semi-button-solid"[39m
+              [33mtype[39m=[32m"button"[39m
+            [36m>[39m
+              [36m<span[39m
+                [33mclass[39m=[32m"semi-button-content"[39m
+                [33mx-semi-prop[39m=[32m"children"[39m
+              [36m>[39m
+                [0m+ 新增绑定[0m
+              [36m</span>[39m
+            [36m</button>[39m
+          [36m</div>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"semi-card-header-wrapper-title semi-card-header-wrapper-spacing"[39m
+          [36m>[39m
+            [36m<h6[39m
+              [33mclass[39m=[32m"semi-typography semi-typography-ellipsis semi-typography-ellipsis-single-line semi-typography-ellipsis-overflow-ellipsis semi-typography-primary semi-typography-normal semi-typography-h6"[39m
+              [33mx-semi-prop[39m=[32m"title"[39m
+            [36m>[39m
+              [36m<span>[39m
+                [0mKey 绑定策略[0m
+              [36m</span>[39m
+            [36m</h6>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+      [36m</div>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"semi-card-body"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"semi-table-wrapper semi-table-wrapper-undefined"[39m
+          [33mdata-column-fixed[39m=[32m"false"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"semi-spin semi-spin-large semi-spin-block semi-spin-hidden"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"semi-spin-children"[39m
+              [33mx-semi-prop[39m=[32m"children"[39m
+            [36m>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"semi-table-scroll-position-left semi-table-scroll-position-right"[39m
+              [36m>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"semi-table-container"[39m
+                [36m>[39m
+                  [36m<div[39m
+                    [33mclass[39m=[32m"semi-table-body"[39m
+                  [36m>[39m
+                    [36m<table[39m
+                      [33maria-colcount[39m=[32m"8"[39m
+                      [33maria-rowcount[39m=[32m"1"[39m
+                      [33mclass[39m=[32m"semi-table"[39m
+                      [33mrole[39m=[32m"grid"[39m
+                    [36m>[39m
+                      [36m<colgroup[39m
+                        [33mclass[39m=[32m"semi-table-colgroup"[39m
+                      [36m>[39m
+                        [36m<col[39m
+                          [33mclass[39m=[32m"semi-table-col"[39m
+                        [36m/>[39m
+                        [36m<col[39m
+                          [33mclass[39m=[32m"semi-table-col"[39m
+                        [36m/>[39m
+                        [36m<col[39m
+                          [33mclass[39m=[32m"semi-table-col"[39m
+                        [36m/>[39m
+                        [36m<col[39m
+                          [33mclass[39m=[32m"semi-table-col"[39m
+                        [36m/>[39m
+                        [36m<col[39m
+                          [33mclass[39m=[32m"semi-table-col"[39m
+                        [36m/>[39m
+                        [36m<col[39m
+                          [33mclass[39m=[32m"semi-table-col"[39m
+                        [36m/>[39m
+                        [36m<col[39m
+                          [33mclass[39m=[32m"semi-table-col"[39m
+                        [36m/>[39m
+                        [36m<col[39m
+                          [33mclass[39m=[32m"semi-table-col"[39m
+                        [36m/>[39m
+                      [36m</colgroup>[39m
+                      [36m<thead[39m
+                        [33mclass[39m=[32m"semi-table-thead"[39m
+                      [36m>[39m
+                        [36m<tr[39m
+                          [33maria-rowindex[39m=[32m"1"[39m
+                          [33mclass[39m=[32m"semi-table-row"[39m
+                          [33mrole[39m=[32m"row"[39m
+                        [36m>[39m
+                          [36m<th[39m
+                            [33maria-colindex[39m=[32m"1"[39m
+                            [33mclass[39m=[32m"semi-table-row-head"[39m
+                            [33mcolspan[39m=[32m"1"[39m
+                            [33mrole[39m=[32m"columnheader"[39m
+                            [33mrowspan[39m=[32m"1"[39m
+                            [33mtitle[39m=[32m"API Key"[39m
+                          [36m>[39m
+                            [0mAPI Key[0m
+                          [36m</th>[39m
+                          [36m<th[39m
+                            [33maria-colindex[39m=[32m"2"[39m
+                            [33mclass[39m=[32m"semi-table-row-head"[39m
+                            [33mcolspan[39m=[32m"1"[39m
+                            [33mrole[39m=[32m"columnheader"[39m
+                            [33mrowspan[39m=[32m"1"[39m
+                            [33mtitle[39m=[32m"别名"[39m
+                          [36m>[39m
+                            [0m别名[0m
+                          [36m</th>[39m
+                          [36m<th[39m
+                            [33maria-colindex[39m=[32m"3"[39m
+                            [33mclass[39m=[32m"semi-table-row-head"[39m
+                            [33mcolspan[39m=[32m"1"[39m
+                            [33mrole[39m=[32m"columnheader"[39m
+                            [33mrowspan[39m=[32m"1"[39m
+                            [33mtitle[39m=[32m"追加规则"[39m
+                          [36m>[39m
+                            [0m追加规则[0m
+                          [36m</th>[39m
+                          [36m<th[39m
+                            [33maria-colindex[39m=[32m"4"[39m
+                            [33mclass[39m=[32m"semi-table-row-head"[39m
+                            [33mcolspan[39m=[32m"1"[39m
+                            [33mrole[39m=[32m"columnheader"[39m
+                            [33mrowspan[39m=[32m"1"[39m
+                            [33mtitle[39m=[32m"渠道定向"[39m
+                          [36m>[39m
+                            [0m渠道定向[0m
+                          [36m</th>[39m
+                          [36m<th[39m
+                            [33maria-colindex[39m=[32m"5"[39m
+                            [33mclass[39m=[32m"semi-table-row-head"[39m
+                            [33mcolspan[39m=[32m"1"[39m
+                            [33mrole[39m=[32m"columnheader"[39m
+                            [33mrowspan[39m=[32m"1"[39m
+                            [33mtitle[39m=[32m"Fast"[39m
+                          [36m>[39m
+                            [0mFast[0m
+                          [36m</th>[39m
+                          [36m<th[39m
+                            [33maria-colindex[39m=[32m"6"[39m
+                            [33mclass[39m=[32m"semi-table-row-head"[39m
+                            [33mcolspan[39m=[32m"1"[39m
+                            [33mrole[39m=[32m"columnheader"[39m
+                            [33mrowspan[39m=[32m"1"[39m
+                            [33mtitle[39m=[32m"启用规则"[39m
+                          [36m>[39m
+                            [0m启用规则[0m
+                          [36m</th>[39m
+                          [36m<th[39m
+                            [33maria-colindex[39m=[32m"7"[39m
+                            [33mclass[39m=[32m"semi-table-row-head"[39m
+                            [33mcolspan[39m=[32m"1"[39m
+                            [33mrole[39m=[32m"columnheader"[39m
+                            [33mrowspan[39m=[32m"1"[39m
+                            [33mtitle[39m=[32m"禁止访问"[39m
+                          [36m>[39m
+                            [0m禁止访问[0m
+                          [36m</th>[39m
+                          [36m<th[39m
+                            [33maria-colindex[39m=[32m"8"[39m
+                            [33mclass[39m=[32m"semi-table-row-head"[39m
+                            [33mcolspan[39m=[32m"1"[39m
+                            [33mrole[39m=[32m"columnheader"[39m
+                            [33mrowspan[39m=[32m"1"[39m
+                            [33mtitle[39m=[32m""[39m
+                          [36m/>[39m
+                        [36m</tr>[39m
+                      [36m</thead>[39m
+                      [36m<tbody[39m
+                        [33mclass[39m=[32m"semi-table-tbody"[39m
+                      [36m>[39m
+                        [36m<tr[39m
+                          [33maria-rowindex[39m=[32m"1"[39m
+                          [33mclass[39m=[32m"semi-table-row semi-table-row-hovered"[39m
+                          [33mdata-row-key[39m=[32m"fake-client-key"[39m
+                          [33mrole[39m=[32m"row"[39m
+                        [36m>[39m
+                          [36m<td[39m
+                            [33maria-colindex[39m=[32m"1"[39m
+                            [33mclass[39m=[32m"semi-table-row-cell"[39m
+                            [33mrole[39m=[32m"gridcell"[39m
+                          [36m>[39m
+                            [36m<span[39m
+                              [33mclass[39m=[32m"semi-typography semi-typography-primary semi-typography-normal"[39m
+                            [36m>[39m
+                              [36m<code>[39m
+                                [0mfake-c…-key[0m
+                              [36m</code>[39m
+                            [36m</span>[39m
+                          [36m</td>[39m
+                          [36m<td[39m
+                            [33maria-colindex[39m=[32m"2"[39m
+                            [33mclass[39m=[32m"semi-table-row-cell"[39m
+                            [33mrole[39m=[32m"gridcell"[39m
+                            [33mtitle[39m=[32m"K"[39m
+                          [36m>[39m
+                            [0mK[0m
+                          [36m</td>[39m
+                          [36m<td[39m
+                            [33maria-colindex[39m=[32m"3"[39m
+                            [33mclass[39m=[32m"semi-table-row-cell"[39m
+                            [33mrole[39m=[32m"gridcell"[39m
+                            [33mtitle[39m=[32m"—"[39m
+                          [36m>[39m
+                            [0m—[0m
+                          [36m</td>[39m
+                          [36m<td[39m
+                            [33maria-colindex[39m=[32m"4"[39m
+                            [33mclass[39m=[32m"semi-table-row-cell"[39m
+                            [33mrole[39m=[32m"gridcell"[39m
+                            [33mtitle[39m=[32m"0 个供应商 · 1 个凭据"[39m
+                          [36m>[39m
+                            [0m0 个供应商 · 1 个凭据[0m
+                          [36m</td>[39m
+                          [36m<td[39m
+                            [33maria-colindex[39m=[32m"5"[39m
+                            [33mclass[39m=[32m"semi-table-row-cell"[39m
+                            [33mrole[39m=[32m"gridcell"[39m
+                          [36m>[39m
+                            [36m<div[39m
+                              [33maria-label[39m=[32m"Tag: 允许"[39m
+                              [33mclass[39m=[32m"semi-tag semi-tag-default semi-tag-square semi-tag-light semi-tag-green-light"[39m
+                            [36m>[39m
+                              [36m<div[39m
+                                [33mclass[39m=[32m"semi-tag-content semi-tag-content-ellipsis"[39m
+                              [36m>[39m
+                                [0m允许[0m
+                              [36m</div>[39m
+                            [36m</div>[39m
+                          [36m</td>[39m
+                          [36m<td[39m
+                            [33maria-colindex[39m=[32m"6"[39m
+                            [33mclass[39m=[32m"semi-table-row-cell"[39m
+                            [33mrole[39m=[32m"gridcell"[39m
+                          [36m>[39m
+                            [36m<div[39m
+                              [33mclass[39m=[32m"semi-switch semi-switch-checked"[39m
+                            [36m>[39m
+                              [36m<div[39m
+                                [33maria-hidden[39m=[32m"true"[39m
+                                [33mclass[39m=[32m"semi-switch-knob"[39m
+                              [36m/>[39m
+                              [36m<input[39m
+                                [33maria-checked[39m=[32m"true"[39m
+                                [33maria-disabled[39m=[32m"false"[39m
+                                [33maria-label[39m=[32m"启用规则：K"[39m
+                                [33mchecked[39m=[32m""[39m
+                                [33mclass[39m=[32m"semi-switch-native-control"[39m
+                                [33mrole[39m=[32m"switch"[39m
+                                [33mtype[39m=[32m"checkbox"[39m
+                              [36m/>[39m
+                            [36m</div>[39m
+                          [36m</td>[39m
+                          [36m<td[39m
+                            [33maria-colindex[39m=[32m"7"[39m
+                            [33mclass[39m=[32m"semi-table-row-cell"[39m
+                            [33mrole[39m=[32m"gridcell"[39m
+                          [36m>[39m
+                            [36m<div[39m
+                              [33mclass[39m=[32m"semi-switch"[39m
+                            [36m>[39m
+                              [36m<div[39m
+                                [33maria-hidden[39m=[32m"true"[39m
+                                [33mclass[39m=[32m"semi-switch-knob"[39m
+                              [36m/>[39m
+                              [36m<input[39m
+                                [33maria-checked[39m=[32m"false"[39m
+                                [33maria-disabled[39m=[32m"false"[39m
+                                [33maria-label[39m=[32m"禁止访问：K"[39m
+                                [33mclass[39m=[32m"semi-switch-native-control"[39m
+                                [33mrole[39m=[32m"switch"[39m
+                                [33mtype[39m=[32m"checkbox"[39m
+                              [36m/>[39m
+                            [36m</div>[39m
+                          [36m</td>[39m
+                          [36m<td[39m
+                            [33maria-colindex[39m=[32m"8"[39m
+                            [33mclass[39m=[32m"semi-table-row-cell"[39m
+                            [33mrole[39m=[32m"gridcell"[39m
+                          [36m>[39m
+                            [36m<button[39m
+                              [33maria-disabled[39m=[32m"false"[39m
+                              [33mclass[39m=[32m"semi-button semi-button-primary semi-button-size-small semi-button-light"[39m
+                              [33mtype[39m=[32m"button"[39m
+                            [36m>[39m
+                              [36m<span[39m
+                                [33mclass[39m=[32m"semi-button-content"[39m
+                                [33mx-semi-prop[39m=[32m"children"[39m
+                              [36m>[39m
+                                [0m编辑[0m
+                              [36m</span>[39m
+                            [36m</button>[39m
+                            [0m [0m
+                            [36m<button[39m
+                              [33maria-disabled[39m=[32m"false"[39m
+                              [33mclass[39m=[32m"semi-button semi-button-danger semi-button-size-small semi-button-light"[39m
+                              [33mtype[39m=[32m"button"[39m
+                            [36m>[39m
+                              [36m<span[39m
+                                [33mclass[39m=[32m"semi-button-content"[39m
+                                [33mx-semi-prop[39m=[32m"children"[39m
+                              [36m>[39m
+                                [0m删除[0m
+                              [36m</span>[39m
+                            [36m</button>[39m
+                          [36m</td>[39m
+                        [36m</tr>[39m
+                      [36m</tbody>[39m
+                    [36m</table>[39m
+                  [36m</div>[39m
+                [36m</div>[39m
+              [36m</div>[39m
+            [36m</div>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+        [36m<p[39m
+          [33mclass[39m=[32m"semi-typography semi-typography-paragraph semi-typography-tertiary semi-typography-small semi-typography-normal"[39m
+          [33mstyle[39m=[32m"margin-top: 8px;"[39m
+        [36m>[39m
+          [0mKey 来源：GET /v0/management/api-keys（下拉选择，也可手动输入未列出的 key）[0m
+        [36m</p>[39m
+      [36m</div>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+  [36m<div[39m
+    [33mclass[39m=[32m"semi-toast-wrapper"[39m
+    [33mid[39m=[32m"toast-wrapper-178919447595"[39m
+    [33mstyle[39m=[32m"z-index: 1010;"[39m
+  [36m>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"semi-toast-innerWrapper"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33maria-label[39m=[32m"error type"[39m
+        [33mclass[39m=[32m"semi-toast semi-toast-animation-show semi-toast-error"[39m
+        [33mrole[39m=[32m"alert"[39m
+        [33mstyle[39m=[32m"transform: translate3d(0,0,0px);"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"semi-toast-content"[39m
+        [36m>[39m
+          [36m<span[39m
+            [33maria-label[39m=[32m"alert_circle"[39m
+            [33mclass[39m=[32m"semi-icon semi-icon-large semi-icon-alert_circle semi-toast-icon semi-toast-icon-error"[39m
+            [33mrole[39m=[32m"img"[39m
+          [36m>[39m
+            [36m<svg[39m
+              [33maria-hidden[39m=[32m"true"[39m
+              [33mfill[39m=[32m"none"[39m
+              [33mfocusable[39m=[32m"false"[39m
+              [33mheight[39m=[32m"1em"[39m
+              [33mviewBox[39m=[32m"0 0 24 24"[39m
+              [33mwidth[39m=[32m"1em"[39m
+              [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+            [36m>[39m
+              [36m<path[39m
+                [33mclip-rule[39m=[32m"evenodd"[39m
+                [33md[39m=[32m"M23 12a11 11 0 1 1-22 0 11 11 0 0 1 22 0Zm-9.5 5.5a1.5 1.5 0 1 0-3 0 1.5 1.5 0 0 0 3 0ZM12 5a1.9 1.9 0 0 0-1.89 2l.3 5.5a1.59 1.59 0 0 0 3.17 0l.3-5.5c.07-1.09-.8-2-1.88-2Z"[39m
+                [33mfill[39m=[32m"currentColor"[39m
+                [33mfill-rule[39m=[32m"evenodd"[39m
+              [36m/>[39m
+            [36m</svg>[39m
+          [36m</span>[39m
+          [36m<span[39m
+            [33mclass[39m=[32m"semi-toast-content-text"[39m
+            [33mstyle[39m=[32m"max-width: 450px;"[39m
+            [33mx-semi-prop[39m=[32m"content"[39m
+          [36m>[39m
+            [0mKey 不存在[0m
+          [36m</span>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"semi-toast-close-button"[39m
+          [36m>[39m
+            [36m<button[39m
+              [33maria-disabled[39m=[32m"false"[39m
+              [33mclass[39m=[32m"semi-button semi-button-tertiary semi-button-size-small semi-button-borderless semi-button-with-icon semi-button-with-icon-only"[39m
+              [33mtype[39m=[32m"button"[39m
+            [36m>[39m
+              [36m<span[39m
+                [33mclass[39m=[32m"semi-button-content"[39m
+              [36m>[39m
+                [36m<span[39m
+                  [33maria-label[39m=[32m"close"[39m
+                  [33mclass[39m=[32m"semi-icon semi-icon-default semi-icon-close"[39m
+                  [33mrole[39m=[32m"img"[39m
+                  [33mx-semi-prop[39m=[32m"icon"[39m
+                [36m>[39m
+                  [36m<svg[39m
+                    [33maria-hidden[39m=[32m"true"[39m
+                    [33mfill[39m=[32m"none"[39m
+                    [33mfocusable[39m=[32m"false"[39m
+                    [33mheight[39m=[32m"1em"[39m
+                    [33mviewBox[39m=[32m"0 0 24 24"[39m
+                    [33mwidth[39m=[32m"1em"[39m
+                    [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+                  [36m>[39m
+                    [36m<path[39m
+                      [33md[39m=[32m"M17.66 19.78a1.5 1.5 0 0 0 2.12-2.12L14.12 12l5.66-5.66a1.5 1.5 0 0 0-2.12-2.12L12 9.88 6.34 4.22a1.5 1.5 0 1 0-2.12 2.12L9.88 12l-5.66 5.66a1.5 1.5 0 0 0 2.12 2.12L12 14.12l5.66 5.66Z"[39m
+                      [33mfill[39m=[32m"currentColor"[39m
+                    [36m/>[39m
+                  [36m</svg>[39m
+                [36m</span>[39m
+              [36m</span>[39m
+            [36m</button>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+      [36m</div>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+[36m</body>[39m
+Ignored nodes: comments, script, style
+[36m<body[39m
+  [33mdata-position[39m=[32m"static"[39m
+  [33mstyle[39m=[32m""[39m
+[36m>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33maria-busy[39m=[32m"false"[39m
+      [33mclass[39m=[32m"semi-card semi-card-bordered"[39m
+      [33mstyle[39m=[32m"margin: 16px;"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"semi-card-header semi-card-header-bordered"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"semi-card-header-wrapper"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"semi-card-header-wrapper-extra"[39m
+            [33mx-semi-prop[39m=[32m"headerExtraContent"[39m
+          [36m>[39m
+            [36m<button[39m
+              [33maria-disabled[39m=[32m"false"[39m
+              [33mclass[39m=[32m"semi-button semi-button-primary semi-button-solid"[39m
+              [33mtype[39m=[32m"button"[39m
+            [36m>[39m
+              [36m<span[39m
+                [33mclass[39m=[32m"semi-button-content"[39m
+                [33mx-semi-prop[39m=[32m"children"[39m
+              [36m>[39m
+                [0m+ 新增绑定[0m
+              [36m</span>[39m
+            [36m</button>[39m
+          [36m</div>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"semi-card-header-wrapper-title semi-card-header-wrapper-spacing"[39m
+          [36m>[39m
+            [36m<h6[39m
+              [33mclass[39m=[32m"semi-typography semi-typography-ellipsis semi-typography-ellipsis-single-line semi-typography-ellipsis-overflow-ellipsis semi-typography-primary semi-typography-normal semi-typography-h6"[39m
+              [33mx-semi-prop[39m=[32m"title"[39m
+            [36m>[39m
+              [36m<span>[39m
+                [0mKey 绑定策略[0m
+              [36m</span>[39m
+            [36m</h6>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+      [36m</div>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"semi-card-body"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"semi-table-wrapper semi-table-wrapper-undefined"[39m
+          [33mdata-column-fixed[39m=[32m"false"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"semi-spin semi-spin-large semi-spin-block semi-spin-hidden"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"semi-spin-children"[39m
+              [33mx-semi-prop[39m=[32m"children"[39m
+            [36m>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"semi-table-scroll-position-left semi-table-scroll-position-right"[39m
+              [36m>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"semi-table-container"[39m
+                [36m>[39m
+                  [36m<div[39m
+                    [33mclass[39m=[32m"semi-table-body"[39m
+                  [36m>[39m
+                    [36m<table[39m
+                      [33maria-colcount[39m=[32m"8"[39m
+                      [33maria-rowcount[39m=[32m"1"[39m
+                      [33mclass[39m=[32m"semi-table"[39m
+                      [33mrole[39m=[32m"grid"[39m
+                    [36m>[39m
+                      [36m<colgroup[39m
+                        [33mclass[39m=[32m"semi-table-colgroup"[39m
+                      [36m>[39m
+                        [36m<col[39m
+                          [33mclass[39m=[32m"semi-table-col"[39m
+                        [36m/>[39m
+                        [36m<col[39m
+                          [33mclass[39m=[32m"semi-table-col"[39m
+                        [36m/>[39m
+                        [36m<col[39m
+                          [33mclass[39m=[32m"semi-table-col"[39m
+                        [36m/>[39m
+                        [36m<col[39m
+                          [33mclass[39m=[32m"semi-table-col"[39m
+                        [36m/>[39m
+                        [36m<col[39m
+                          [33mclass[39m=[32m"semi-table-col"[39m
+                        [36m/>[39m
+                        [36m<col[39m
+                          [33mclass[39m=[32m"semi-table-col"[39m
+                        [36m/>[39m
+                        [36m<col[39m
+                          [33mclass[39m=[32m"semi-table-col"[39m
+                        [36m/>[39m
+                        [36m<col[39m
+                          [33mclass[39m=[32m"semi-table-col"[39m
+                        [36m/>[39m
+                      [36m</colgroup>[39m
+                      [36m<thead[39m
+                        [33mclass[39m=[32m"semi-table-thead"[39m
+                      [36m>[39m
+                        [36m<tr[39m
+                          [33maria-rowindex[39m=[32m"1"[39m
+                          [33mclass[39m=[32m"semi-table-row"[39m
+                          [33mrole[39m=[32m"row"[39m
+                        [36m>[39m
+                          [36m<th[39m
+                            [33maria-colindex[39m=[32m"1"[39m
+                            [33mclass[39m=[32m"semi-table-row-head"[39m
+                            [33mcolspan[39m=[32m"1"[39m
+                            [33mrole[39m=[32m"columnheader"[39m
+                            [33mrowspan[39m=[32m"1"[39m
+                            [33mtitle[39m=[32m"API Key"[39m
+                          [36m>[39m
+                            [0mAPI Key[0m
+                          [36m</th>[39m
+                          [36m<th[39m
+                            [33maria-colindex[39m=[32m"2"[39m
+                            [33mclass[39m=[32m"semi-table-row-head"[39m
+                            [33mcolspan[39m=[32m"1"[39m
+                            [33mrole[39m=[32m"columnheader"[39m
+                            [33mrowspan[39m=[32m"1"[39m
+                            [33mtitle[39m=[32m"别名"[39m
+                          [36m>[39m
+                            [0m别名[0m
+                          [36m</th>[39m
+                          [36m<th[39m
+                            [33maria-colindex[39m=[32m"3"[39m
+                            [33mclass[39m=[32m"semi-table-row-head"[39m
+                            [33mcolspan[39m=[32m"1"[39m
+                            [33mrole[39m=[32m"columnheader"[39m
+                            [33mrowspan[39m=[32m"1"[39m
+                            [33mtitle[39m=[32m"追加规则"[39m
+                          [36m>[39m
+                            [0m追加规则[0m
+                          [36m</th>[39m
+                          [36m<th[39m
+                            [33maria-colindex[39m=[32m"4"[39m
+                            [33mclass[39m=[32m"semi-table-row-head"[39m
+                            [33mcolspan[39m=[32m"1"[39m
+                            [33mrole[39m=[32m"columnheader"[39m
+                            [33mrowspan[39m=[32m"1"[39m
+                            [33mtitle[39m=[32m"渠道定向"[39m
+                          [36m>[39m
+                            [0m渠道定向[0m
+                          [36m</th>[39m
+                          [36m<th[39m
+                            [33maria-colindex[39m=[32m"5"[39m
+                            [33mclass[39m=[32m"semi-table-row-head"[39m
+                            [33mcolspan[39m=[32m"1"[39m
+                            [33mrole[39m=[32m"columnheader"[39m
+                            [33mrowspan[39m=[32m"1"[39m
+                            [33mtitle[39m=[32m"Fast"[39m
+                          [36m>[39m
+                            [0mFast[0m
+                          [36m</th>[39m
+                          [36m<th[39m
+                            [33maria-colindex[39m=[32m"6"[39m
+                            [33mclass[39m=[32m"semi-table-row-head"[39m
+                            [33mcolspan[39m=[32m"1"[39m
+                            [33mrole[39m=[32m"columnheader"[39m
+                            [33mrowspan[39m=[32m"1"[39m
+                            [33mtitle[39m=[32m"启用规则"[39m
+                          [36m>[39m
+                            [0m启用规则[0m
+                          [36m</th>[39m
+                          [36m<th[39m
+                            [33maria-colindex[39m=[32m"7"[39m
+                            [33mclass[39m=[32m"semi-table-row-head"[39m
+                            [33mcolspan[39m=[32m"1"[39m
+                            [33mrole[39m=[32m"columnheader"[39m
+                            [33mrowspan[39m=[32m"1"[39m
+                            [33mtitle[39m=[32m"禁止访问"[39m
+                          [36m>[39m
+                            [0m禁止访问[0m
+                          [36m</th>[39m
+                          [36m<th[39m
+                            [33maria-colindex[39m=[32m"8"[39m
+                            [33mclass[39m=[32m"semi-table-row-head"[39m
+                            [33mcolspan[39m=[32m"1"[39m
+                            [33mrole[39m=[32m"columnheader"[39m
+                            [33mrowspan[39m=[32m"1"[39m
+                            [33mtitle[39m=[32m""[39m
+                          [36m/>[39m
+                        [36m</tr>[39m
+                      [36m</thead>[39m
+                      [36m<tbody[39m
+                        [33mclass[39m=[32m"semi-table-tbody"[39m
+                      [36m>[39m
+                        [36m<tr[39m
+                          [33maria-rowindex[39m=[32m"1"[39m
+                          [33mclass[39m=[32m"semi-table-row semi-table-row-hovered"[39m
+                          [33mdata-row-key[39m=[32m"fake-client-key"[39m
+                          [33mrole[39m=[32m"row"[39m
+                        [36m>[39m
+                          [36m<td[39m
+                            [33maria-colindex[39m=[32m"1"[39m
+                            [33mclass[39m=[32m"semi-table-row-cell"[39m
+                            [33mrole[39m=[32m"gridcell"[39m
+                          [36m>[39m
+                            [36m<span[39m
+                              [33mclass[39m=[32m"semi-typography semi-typography-primary semi-typography-normal"[39m
+                            [36m>[39m
+                              [36m<code>[39m
+                                [0mfake-c…-key[0m
+                              [36m</code>[39m
+                            [36m</span>[39m
+                          [36m</td>[39m
+                          [36m<td[39m
+                            [33maria-colindex[39m=[32m"2"[39m
+                            [33mclass[39m=[32m"semi-table-row-cell"[39m
+                            [33mrole[39m=[32m"gridcell"[39m
+                            [33mtitle[39m=[32m"K"[39m
+                          [36m>[39m
+                            [0mK[0m
+                          [36m</td>[39m
+                          [36m<td[39m
+                            [33maria-colindex[39m=[32m"3"[39m
+                            [33mclass[39m=[32m"semi-table-row-cell"[39m
+                            [33mrole[39m=[32m"gridcell"[39m
+                            [33mtitle[39m=[32m"—"[39m
+                          [36m>[39m
+                            [0m—[0m
+                          [36m</td>[39m
+                          [36m<td[39m
+                            [33maria-colindex[39m=[32m"4"[39m
+                            [33mclass[39m=[32m"semi-table-row-cell"[39m
+                            [33mrole[39m=[32m"gridcell"[39m
+                            [33mtitle[39m=[32m"0 个供应商 · 1 个凭据"[39m
+                          [36m>[39m
+                            [0m0 个供应商 · 1 个凭据[0m
+                          [36m</td>[39m
+                          [36m<td[39m
+                            [33maria-colindex[39m=[32m"5"[39m
+                            [33mclass[39m=[32m"semi-table-row-cell"[39m
+                            [33mrole[39m=[32m"gridcell"[39m
+                          [36m>[39m
+                            [36m<div[39m
+                              [33maria-label[39m=[32m"Tag: 允许"[39m
+                              [33mclass[39m=[32m"semi-tag semi-tag-default semi-tag-square semi-tag-light semi-tag-green-light"[39m
+                            [36m>[39m
+                              [36m<div[39m
+                                [33mclass[39m=[32m"semi-tag-content semi-tag-content-ellipsis"[39m
+                              [36m>[39m
+                                [0m允许[0m
+                              [36m</div>[39m
+                            [36m</div>[39m
+                          [36m</td>[39m
+                          [36m<td[39m
+                            [33maria-colindex[39m=[32m"6"[39m
+                            [33mclass[39m=[32m"semi-table-row-cell"[39m
+                            [33mrole[39m=[32m"gridcell"[39m
+                          [36m>[39m
+                            [36m<div[39m
+                              [33mclass[39m=[32m"semi-switch semi-switch-checked"[39m
+                            [36m>[39m
+                              [36m<div[39m
+                                [33maria-hidden[39m=[32m"true"[39m
+                                [33mclass[39m=[32m"semi-switch-knob"[39m
+                              [36m/>[39m
+                              [36m<input[39m
+                                [33maria-checked[39m=[32m"true"[39m
+                                [33maria-disabled[39m=[32m"false"[39m
+                                [33maria-label[39m=[32m"启用规则：K"[39m
+                                [33mchecked[39m=[32m""[39m
+                                [33mclass[39m=[32m"semi-switch-native-control"[39m
+                                [33mrole[39m=[32m"switch"[39m
+                                [33mtype[39m=[32m"checkbox"[39m
+                              [36m/>[39m
+                            [36m</div>[39m
+                          [36m</td>[39m
+                          [36m<td[39m
+                            [33maria-colindex[39m=[32m"7"[39m
+                            [33mclass[39m=[32m"semi-table-row-cell"[39m
+                            [33mrole[39m=[32m"gridcell"[39m
+                          [36m>[39m
+                            [36m<div[39m
+                              [33mclass[39m=[32m"semi-switch"[39m
+                            [36m>[39m
+                              [36m<div[39m
+                                [33maria-hidden[39m=[32m"true"[39m
+                                [33mclass[39m=[32m"semi-switch-knob"[39m
+                              [36m/>[39m
+                              [36m<input[39m
+                                [33maria-checked[39m=[32m"false"[39m
+                                [33maria-disabled[39m=[32m"false"[39m
+                                [33maria-label[39m=[32m"禁止访问：K"[39m
+                                [33mclass[39m=[32m"semi-switch-native-control"[39m
+                                [33mrole[39m=[32m"switch"[39m
+                                [33mtype[39m=[32m"checkbox"[39m
+                              [36m/>[39m
+                            [36m</div>[39m
+                          [36m</td>[39m
+                          [36m<td[39m
+                            [33maria-colindex[39m=[32m"8"[39m
+                            [33mclass[39m=[32m"semi-table-row-cell"[39m
+                            [33mrole[39m=[32m"gridcell"[39m
+                          [36m>[39m
+                            [36m<button[39m
+                              [33maria-disabled[39m=[32m"false"[39m
+                              [33mclass[39m=[32m"semi-button semi-button-primary semi-button-size-small semi-button-light"[39m
+                              [33mtype[39m=[32m"button"[39m
+                            [36m>[39m
+                              [36m<span[39m
+                                [33mclass[39m=[32m"semi-button-content"[39m
+                                [33mx-semi-prop[39m=[32m"children"[39m
+                              [36m>[39m
+                                [0m编辑[0m
+                              [36m</span>[39m
+                            [36m</button>[39m
+                            [0m [0m
+                            [36m<button[39m
+                              [33maria-disabled[39m=[32m"false"[39m
+                              [33mclass[39m=[32m"semi-button semi-button-danger semi-button-size-small semi-button-light"[39m
+                              [33mtype[39m=[32m"button"[39m
+                            [36m>[39m
+                              [36m<span[39m
+                                [33mclass[39m=[32m"semi-button-content"[39m
+                                [33mx-semi-prop[39m=[32m"children"[39m
+                              [36m>[39m
+                                [0m删除[0m
+                              [36m</span>[39m
+                            [36m</button>[39m
+                          [36m</td>[39m
+                        [36m</tr>[39m
+                      [36m</tbody>[39m
+                    [36m</table>[39m
+                  [36m</div>[39m
+                [36m</div>[39m
+              [36m</div>[39m
+            [36m</div>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+        [36m<p[39m
+          [33mclass[39m=[32m"semi-typography semi-typography-paragraph semi-typography-tertiary semi-typography-small semi-typography-normal"[39m
+          [33mstyle[39m=[32m"margin-top: 8px;"[39m
+        [36m>[39m
+          [0mKey 来源：GET /v0/management/api-keys（下拉选择，也可手动输入未列出的 key）[0m
+        [36m</p>[39m
+      [36m</div>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+  [36m<div[39m
+    [33mclass[39m=[32m"semi-toast-wrapper"[39m
+    [33mid[39m=[32m"toast-wrapper-178919447595"[39m
+    [33mstyle[39m=[32m"z-index: 1010;"[39m
+  [36m>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"semi-toast-innerWrapper"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33maria-label[39m=[32m"error type"[39m
+        [33mclass[39m=[32m"semi-toast semi-toast-animation-show semi-toast-error"[39m
+        [33mrole[39m=[32m"alert"[39m
+        [33mstyle[39m=[32m"transform: translate3d(0,0,0px);"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"semi-toast-content"[39m
+        [36m>[39m
+          [36m<span[39m
+            [33maria-label[39m=[32m"alert_circle"[39m
+            [33mclass[39m=[32m"semi-icon semi-icon-large semi-icon-alert_circle semi-toast-icon semi-toast-icon-error"[39m
+            [33mrole[39m=[32m"img"[39m
+          [36m>[39m
+            [36m<svg[39m
+              [33maria-hidden[39m=[32m"true"[39m
+              [33mfill[39m=[32m"none"[39m
+              [33mfocusable[39m=[32m"false"[39m
+              [33mheight[39m=[32m"1em"[39m
+              [33mviewBox[39m=[32m"0 0 24 24"[39m
+              [33mwidth[39m=[32m"1em"[39m
+              [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+            [36m>[39m
+              [36m<path[39m
+                [33mclip-rule[39m=[32m"evenodd"[39m
+                [33md[39m=[32m"M23 12a11 11 0 1 1-22 0 11 11 0 0 1 22 0Zm-9.5 5.5a1.5 1.5 0 1 0-3 0 1.5 1.5 0 0 0 3 0ZM12 5a1.9 1.9 0 0 0-1.89 2l.3 5.5a1.59 1.59 0 0 0 3.17 0l.3-5.5c.07-1.09-.8-2-1.88-2Z"[39m
+                [33mfill[39m=[32m"currentColor"[39m
+                [33mfill-rule[39m=[32m"evenodd"[39m
+              [36m/>[39m
+            [36m</svg>[39m
+          [36m</span>[39m
+          [36m<span[39m
+            [33mclass[39m=[32m"semi-toast-content-text"[39m
+            [33mstyle[39m=[32m"max-width: 450px;"[39m
+            [33mx-semi-prop[39m=[32m"content"[39m
+          [36m>[39m
+            [0mKey 不存在[0m
+          [36m</span>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"semi-toast-close-button"[39m
+          [36m>[39m
+            [36m<button[39m
+              [33maria-disabled[39m=[32m"false"[39m
+              [33mclass[39m=[32m"semi-button semi-button-tertiary semi-button-size-small semi-button-borderless semi-button-with-icon semi-button-with-icon-only"[39m
+              [33mtype[39m=[32m"button"[39m
+            [36m>[39m
+              [36m<span[39m
+                [33mclass[39m=[32m"semi-button-content"[39m
+              [36m>[39m
+                [36m<span[39m
+                  [33maria-label[39m=[32m"close"[39m
+                  [33mclass[39m=[32m"semi-icon semi-icon-default semi-icon-close"[39m
+                  [33mrole[39m=[32m"img"[39m
+                  [33mx-semi-prop[39m=[32m"icon"[39m
+                [36m>[39m
+                  [36m<svg[39m
+                    [33maria-hidden[39m=[32m"true"[39m
+                    [33mfill[39m=[32m"none"[39m
+                    [33mfocusable[39m=[32m"false"[39m
+                    [33mheight[39m=[32m"1em"[39m
+                    [33mviewBox[39m=[32m"0 0 24 24"[39m
+                    [33mwidth[39m=[32m"1em"[39m
+                    [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+                  [36m>[39m
+                    [36m<path[39m
+                      [33md[39m=[32m"M17.66 19.78a1.5 1.5 0 0 0 2.12-2.12L14.12 12l5.66-5.66a1.5 1.5 0 0 0-2.12-2.12L12 9.88 6.34 4.22a1.5 1.5 0 1 0-2.12 2.12L9.88 12l-5.66 5.66a1.5 1.5 0 0 0 2.12 2.12L12 14.12l5.66 5.66Z"[39m
+                      [33mfill[39m=[32m"currentColor"[39m
+                    [36m/>[39m
+                  [36m</svg>[39m
+                [36m</span>[39m
+              [36m</span>[39m
+            [36m</button>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+      [36m</div>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+[36m</body>[39m
+ ❯ waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ src/panels/KeysPanel.auth-names.test.tsx:78:23
+     76|   render(<KeysPanel state={STATE} keyOptions={createKeyOptions()} onSa…
+     77|   await userEvent.setup().click(screen.getByRole('switch', { name: '启用…
+     78|   expect(await screen.findByText(/审计结果未写入.*op-toggle/)).toBeInTheDocum…
+       |                       ^
+     79|   if (status === 200) expect(onSaved).toHaveBeenCalledOnce()
+     80|   else {
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/5]⎯
+ FAIL  src/components/KeeperAuthNameEditor.test.tsx > S9 非2xx显示原错误，仅存在audit时提示审计失败：false
+TestingLibraryElementError: Unable to find an element with the text: 同步失败：audit_unavailable. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"keeper-auth-name-editor"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"keeper-auth-name-controls"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"semi-input-wrapper semi-input-wrapper-default"[39m
+        [36m>[39m
+          [36m<input[39m
+            [33maria-label[39m=[32m"认证自定义名称"[39m
+            [33mclass[39m=[32m"semi-input semi-input-default"[39m
+            [33mplaceholder[39m=[32m"留空恢复默认名称"[39m
+            [33mtype[39m=[32m"text"[39m
+            [33mvalue[39m=[32m"旧别名"[39m
+          [36m/>[39m
+        [36m</div>[39m
+        [36m<button[39m
+          [33maria-disabled[39m=[32m"false"[39m
+          [33mclass[39m=[32m"semi-button semi-button-primary semi-button-light"[39m
+          [33mtype[39m=[32m"button"[39m
+        [36m>[39m
+          [36m<span[39m
+            [33mclass[39m=[32m"semi-button-content"[39m
+            [33mx-semi-prop[39m=[32m"children"[39m
+          [36m>[39m
+            [0m同步到 Keeper[0m
+          [36m</span>[39m
+        [36m</button>[39m
+      [36m</div>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"keeper-auth-name-help"[39m
+      [36m>[39m
+        [36m<span>[39m
+          [0m立即保存到 Keeper，取消绑定不会撤销[0m
+        [36m</span>[39m
+        [36m<span>[39m
+          [0m3[0m
+          [0m / 50[0m
+        [36m</span>[39m
+      [36m</div>[39m
+      [36m<p[39m
+        [33mrole[39m=[32m"status"[39m
+      [36m>[39m
+        [0m同步结果未确认，请刷新名称核对[0m
+      [36m</p>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+[36m</body>[39m
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"keeper-auth-name-editor"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"keeper-auth-name-controls"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"semi-input-wrapper semi-input-wrapper-default"[39m
+        [36m>[39m
+          [36m<input[39m
+            [33maria-label[39m=[32m"认证自定义名称"[39m
+            [33mclass[39m=[32m"semi-input semi-input-default"[39m
+            [33mplaceholder[39m=[32m"留空恢复默认名称"[39m
+            [33mtype[39m=[32m"text"[39m
+            [33mvalue[39m=[32m"旧别名"[39m
+          [36m/>[39m
+        [36m</div>[39m
+        [36m<button[39m
+          [33maria-disabled[39m=[32m"false"[39m
+          [33mclass[39m=[32m"semi-button semi-button-primary semi-button-light"[39m
+          [33mtype[39m=[32m"button"[39m
+        [36m>[39m
+          [36m<span[39m
+            [33mclass[39m=[32m"semi-button-content"[39m
+            [33mx-semi-prop[39m=[32m"children"[39m
+          [36m>[39m
+            [0m同步到 Keeper[0m
+          [36m</span>[39m
+        [36m</button>[39m
+      [36m</div>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"keeper-auth-name-help"[39m
+      [36m>[39m
+        [36m<span>[39m
+          [0m立即保存到 Keeper，取消绑定不会撤销[0m
+        [36m</span>[39m
+        [36m<span>[39m
+          [0m3[0m
+          [0m / 50[0m
+        [36m</span>[39m
+      [36m</div>[39m
+      [36m<p[39m
+        [33mrole[39m=[32m"status"[39m
+      [36m>[39m
+        [0m同步结果未确认，请刷新名称核对[0m
+      [36m</p>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+[36m</body>[39m
+ ❯ waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ src/components/KeeperAuthNameEditor.test.tsx:32:23
+     30|   render(<KeeperAuthNameEditor authIndex="idx-a" name={NAME} onSaved={…
+     31|   await userEvent.setup().click(button())
+     32|   expect(await screen.findByText(withAudit ? '同步失败：名称不合法' : '同步失败：audi…
+       |                       ^
+     33|   if (withAudit) expect(screen.getByRole('alert')).toHaveTextContent('…
+     34|   else expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/5]⎯
+ FAIL  src/components/KeeperAuthNameEditor.test.tsx > S9 非2xx显示原错误，仅存在audit时提示审计失败：true
+TestingLibraryElementError: Unable to find an element with the text: 同步失败：名称不合法. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"keeper-auth-name-editor"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"keeper-auth-name-controls"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"semi-input-wrapper semi-input-wrapper-default"[39m
+        [36m>[39m
+          [36m<input[39m
+            [33maria-label[39m=[32m"认证自定义名称"[39m
+            [33mclass[39m=[32m"semi-input semi-input-default"[39m
+            [33mplaceholder[39m=[32m"留空恢复默认名称"[39m
+            [33mtype[39m=[32m"text"[39m
+            [33mvalue[39m=[32m"旧别名"[39m
+          [36m/>[39m
+        [36m</div>[39m
+        [36m<button[39m
+          [33maria-disabled[39m=[32m"false"[39m
+          [33mclass[39m=[32m"semi-button semi-button-primary semi-button-light"[39m
+          [33mtype[39m=[32m"button"[39m
+        [36m>[39m
+          [36m<span[39m
+            [33mclass[39m=[32m"semi-button-content"[39m
+            [33mx-semi-prop[39m=[32m"children"[39m
+          [36m>[39m
+            [0m同步到 Keeper[0m
+          [36m</span>[39m
+        [36m</button>[39m
+      [36m</div>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"keeper-auth-name-help"[39m
+      [36m>[39m
+        [36m<span>[39m
+          [0m立即保存到 Keeper，取消绑定不会撤销[0m
+        [36m</span>[39m
+        [36m<span>[39m
+          [0m3[0m
+          [0m / 50[0m
+        [36m</span>[39m
+      [36m</div>[39m
+      [36m<p[39m
+        [33mrole[39m=[32m"status"[39m
+      [36m>[39m
+        [0m同步结果未确认，请刷新名称核对[0m
+      [36m</p>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+[36m</body>[39m
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"keeper-auth-name-editor"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"keeper-auth-name-controls"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"semi-input-wrapper semi-input-wrapper-default"[39m
+        [36m>[39m
+          [36m<input[39m
+            [33maria-label[39m=[32m"认证自定义名称"[39m
+            [33mclass[39m=[32m"semi-input semi-input-default"[39m
+            [33mplaceholder[39m=[32m"留空恢复默认名称"[39m
+            [33mtype[39m=[32m"text"[39m
+            [33mvalue[39m=[32m"旧别名"[39m
+          [36m/>[39m
+        [36m</div>[39m
+        [36m<button[39m
+          [33maria-disabled[39m=[32m"false"[39m
+          [33mclass[39m=[32m"semi-button semi-button-primary semi-button-light"[39m
+          [33mtype[39m=[32m"button"[39m
+        [36m>[39m
+          [36m<span[39m
+            [33mclass[39m=[32m"semi-button-content"[39m
+            [33mx-semi-prop[39m=[32m"children"[39m
+          [36m>[39m
+            [0m同步到 Keeper[0m
+          [36m</span>[39m
+        [36m</button>[39m
+      [36m</div>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"keeper-auth-name-help"[39m
+      [36m>[39m
+        [36m<span>[39m
+          [0m立即保存到 Keeper，取消绑定不会撤销[0m
+        [36m</span>[39m
+        [36m<span>[39m
+          [0m3[0m
+          [0m / 50[0m
+        [36m</span>[39m
+      [36m</div>[39m
+      [36m<p[39m
+        [33mrole[39m=[32m"status"[39m
+      [36m>[39m
+        [0m同步结果未确认，请刷新名称核对[0m
+      [36m</p>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+[36m</body>[39m
+ ❯ waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ src/components/KeeperAuthNameEditor.test.tsx:32:23
+     30|   render(<KeeperAuthNameEditor authIndex="idx-a" name={NAME} onSaved={…
+     31|   await userEvent.setup().click(button())
+     32|   expect(await screen.findByText(withAudit ? '同步失败：名称不合法' : '同步失败：audi…
+       |                       ^
+     33|   if (withAudit) expect(screen.getByRole('alert')).toHaveTextContent('…
+     34|   else expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/5]⎯
+
+exit_code=1

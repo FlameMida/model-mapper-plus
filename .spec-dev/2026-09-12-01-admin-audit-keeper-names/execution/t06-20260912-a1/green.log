@@ -1,0 +1,8 @@
+> vitest run src/App.test.tsx src/api.test.ts src/panels/AuditPanel.test.tsx src/panels/RulesPanel.test.tsx src/panels/KeysPanel.auth-names.test.tsx src/components/KeeperAuthNameEditor.test.tsx src/auditFixes.test.tsx
+ RUN  v4.1.10 /Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-t06/web
+ Test Files  7 passed (7)
+      Tests  64 passed (64)
+   Start at  14:29:07
+   Duration  8.12s (transform 18.20s, setup 31.73s, import 638ms, tests 4.37s, environment 4.84s)
+
+exit_code=0

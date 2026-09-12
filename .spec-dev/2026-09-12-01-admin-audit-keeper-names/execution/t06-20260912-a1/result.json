@@ -1,0 +1,95 @@
+{
+  "task_id": "T06",
+  "claim_key": "t06-20260912-a1",
+  "status": "ready",
+  "worktree": "/Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-t06",
+  "branch": "impl/admin-audit-t06",
+  "base_commit": "1313c90333b7e30476608c85c3ef32e234d32759",
+  "commits": [
+    "2134a4503405dd151f636eb055f1b263a1fa69d2"
+  ],
+  "changed_files": [
+    "web/src/App.tsx",
+    "web/src/App.test.tsx",
+    "web/src/api.ts",
+    "web/src/api.test.ts",
+    "web/src/panels/AuditPanel.tsx",
+    "web/src/panels/AuditPanel.css",
+    "web/src/panels/AuditPanel.test.tsx",
+    "web/src/panels/RulesPanel.tsx",
+    "web/src/panels/RulesPanel.test.tsx",
+    "web/src/panels/KeysPanel.tsx",
+    "web/src/panels/KeysPanel.auth-names.test.tsx",
+    "web/src/components/KeeperAuthNameEditor.tsx",
+    "web/src/components/KeeperAuthNameEditor.test.tsx"
+  ],
+  "tests": [
+    {
+      "command": "rtk npm --prefix web test -- src/App.test.tsx src/api.test.ts src/panels/RulesPanel.test.tsx src/panels/KeysPanel.auth-names.test.tsx src/auditFixes.test.tsx",
+      "phase": "baseline",
+      "exit_code": 0,
+      "evidence_path": "/Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-evidence/t06-a1/baseline.log"
+    },
+    {
+      "command": "rtk npm --prefix web run typecheck",
+      "phase": "baseline",
+      "exit_code": 0,
+      "evidence_path": "/Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-evidence/t06-a1/baseline-typecheck.log"
+    },
+    {
+      "command": "rtk npm --prefix web test -- src/App.test.tsx src/api.test.ts src/panels/AuditPanel.test.tsx src/panels/RulesPanel.test.tsx",
+      "phase": "red",
+      "exit_code": 1,
+      "evidence_path": "/Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-evidence/t06-a1/red-main.log"
+    },
+    {
+      "command": "rtk npm --prefix web test -- src/panels/KeysPanel.auth-names.test.tsx",
+      "phase": "red",
+      "exit_code": 1,
+      "evidence_path": "/Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-evidence/t06-a1/red-keys.log"
+    },
+    {
+      "command": "rtk npm --prefix web test -- src/panels/KeysPanel.auth-names.test.tsx src/components/KeeperAuthNameEditor.test.tsx",
+      "phase": "red",
+      "exit_code": 1,
+      "evidence_path": "/Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-evidence/t06-a1/red-keys-names.log"
+    },
+    {
+      "command": "rtk npm --prefix web test -- src/App.test.tsx src/api.test.ts src/panels/AuditPanel.test.tsx src/panels/RulesPanel.test.tsx",
+      "phase": "green",
+      "exit_code": 1,
+      "evidence_path": "/Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-evidence/t06-a1/green-main-attempt.log"
+    },
+    {
+      "command": "rtk npm --prefix web test -- src/App.test.tsx src/api.test.ts src/panels/AuditPanel.test.tsx src/panels/RulesPanel.test.tsx src/panels/KeysPanel.auth-names.test.tsx src/components/KeeperAuthNameEditor.test.tsx src/auditFixes.test.tsx",
+      "phase": "green",
+      "exit_code": 1,
+      "evidence_path": "/Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-evidence/t06-a1/green-attempt-2.log"
+    },
+    {
+      "command": "rtk npm --prefix web test -- src/App.test.tsx src/api.test.ts src/panels/AuditPanel.test.tsx src/panels/RulesPanel.test.tsx src/panels/KeysPanel.auth-names.test.tsx src/components/KeeperAuthNameEditor.test.tsx src/auditFixes.test.tsx",
+      "phase": "green",
+      "exit_code": 0,
+      "evidence_path": "/Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-evidence/t06-a1/green.log"
+    },
+    {
+      "command": "rtk npm --prefix web run typecheck",
+      "phase": "green",
+      "exit_code": 0,
+      "evidence_path": "/Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-evidence/t06-a1/typecheck.log"
+    }
+  ],
+  "self_check": {
+    "over_under_building": "pass",
+    "contract_alignment": "pass"
+  },
+  "deviations": [
+    "主线程事前以2d4bf26扩权并持久化T06任务及index，增加KeeperAuthNameEditor.tsx与其测试写集合；仅补非2xx原错误及可选audit警告，网络异常仍保持unknown。",
+    "red-keys.log中重命名初次失败为Semi Select交互测试错误，不计该场景有效红；修正可见选择操作后red-keys-names.log确认因缺失POST警告而失败。首次绿尝试的重复alert来自Toast残留及Banner双role，分别收窄到真实弹窗和移除重复role，所有原始失败日志保留。"
+  ],
+  "resources": [
+    "/Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-evidence/t06-a1"
+  ],
+  "blockers": [],
+  "coverage_note": "R5/S9/S10公共组件与真实API/fetch边界验证：7 files、64 tests通过，typecheck及git diff --check通过，提交后工作区干净。产出api.getAudit(date?,page?,pageSize?)、AuditMeta/AuditPage/AuditOperation、ManagementAPIError(message,audit?)、AuditPanel()。默认省略日期采用服务端北京时间当天；日期分页刷新隔离迟到响应，详情文本安全渲染且changed允许null，区分失败/警告/空日。规则与Key成功仍onSaved，HTTP400保留audit，Key重命名POST和DELETE分别告警；名称普通Begin503显示原错误、带audit错误保留审计警告、网络/unknown不伪报已保存。仅添加窄屏容器滚动CSS，实际390px、明暗主题和端到端验收由T07执行；未改Go/dist/线上环境，未merge/push。"
+}
