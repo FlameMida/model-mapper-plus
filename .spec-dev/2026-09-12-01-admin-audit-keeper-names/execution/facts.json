@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "note": "Outputs were captured with stderr redirected into the same artifact; independent stdout/stderr hashes cannot be reconstructed and are not claimed.",
+  "note": "Combined stdout/stderr artifacts are preserved; independent stream hashes are not claimed. Attempt rows retain failures and harness interruptions; inspect result.json deviations and raw logs before treating red as a valid behavioral red. Integration exit codes were observed by the main thread; T07/T08 not yet complete.",
   "facts": [
     {
       "task": "T01",
@@ -11,8 +11,7 @@
       "exit_code": 0,
       "evidence_path": ".spec-dev/2026-09-12-01-admin-audit-keeper-names/execution/t01-20260912-a1/baseline.log",
       "output_sha256": "3d2face6762410d9ffb9ea4f690224af21578159722ecbf22058a34a3d47f1f8",
-      "capture": "combined stdout/stderr",
-      "valid_behavior_red": null
+      "capture": "combined stdout/stderr"
     },
     {
       "task": "T01",
@@ -23,8 +22,7 @@
       "exit_code": 1,
       "evidence_path": ".spec-dev/2026-09-12-01-admin-audit-keeper-names/execution/t01-20260912-a1/red-query.log",
       "output_sha256": "b942b968e79016ea6375639dd5cd2be76fba877af8c313d1204ab5cded09c6d2",
-      "capture": "combined stdout/stderr",
-      "valid_behavior_red": true
+      "capture": "combined stdout/stderr"
     },
     {
       "task": "T01",
@@ -35,8 +33,7 @@
       "exit_code": 1,
       "evidence_path": ".spec-dev/2026-09-12-01-admin-audit-keeper-names/execution/t01-20260912-a1/red-journal.log",
       "output_sha256": "314ef4be796f9051a685f24382e975e0cf8cde793cece3685611f462ae9c24f7",
-      "capture": "combined stdout/stderr",
-      "valid_behavior_red": true
+      "capture": "combined stdout/stderr"
     },
     {
       "task": "T01",
@@ -47,8 +44,7 @@
       "exit_code": 0,
       "evidence_path": ".spec-dev/2026-09-12-01-admin-audit-keeper-names/execution/t01-20260912-a1/green.log",
       "output_sha256": "c1a4770091886b9a210d5968a499dad8e3ab03684b0e2ed3a97e1aea2786e75d",
-      "capture": "combined stdout/stderr",
-      "valid_behavior_red": null
+      "capture": "combined stdout/stderr"
     },
     {
       "task": "T01",
@@ -59,18 +55,149 @@
       "exit_code": 0,
       "evidence_path": ".spec-dev/2026-09-12-01-admin-audit-keeper-names/execution/t01-20260912-a1/green-final.log",
       "output_sha256": "2589d34233466d184901ef90155d99aa8f5afda888cad9f35c0dc189d4aeaa38",
-      "capture": "combined stdout/stderr",
-      "valid_behavior_red": null
+      "capture": "combined stdout/stderr"
     },
     {
       "task": "T01",
       "claim": "t01-20260912-a1",
       "commit": "55d3daca9ad06409d996f13339ed72081db099c3",
       "phase": "integration",
-      "command": "rtk proxy go test . -run ^Test(Audit|ManagementRegisterRoutes) -count=1 -v",
+      "command": "rtk proxy go test . -run '^Test(Audit|ManagementRegisterRoutes)' -count=1 -v",
       "exit_code": 0,
       "evidence_path": ".spec-dev/2026-09-12-01-admin-audit-keeper-names/execution/t01-20260912-a1/integration.log",
       "output_sha256": "f239be55768b824ff7c23a8d0dddc83d398250d6aacde30f60535e5133e685e6",
+      "capture": "combined stdout/stderr"
+    },
+    {
+      "task": "T02",
+      "claim": "t02-20260912-a1",
+      "commit": "5a75aba64d53d0812696d1e88af52e6c84a022d6",
+      "phase": "baseline",
+      "command": "rtk proxy go test . -run '^Test(ManagementPostKey|ManagementPatchKey|ManagementDeleteKey|ManagementPutRules|ManagementFirstSave|Reconfigure)' -count=1 -v",
+      "exit_code": 0,
+      "evidence_path": ".spec-dev/2026-09-12-01-admin-audit-keeper-names/execution/t02-20260912-a1/baseline.log",
+      "output_sha256": "bd65df06d4b8efb429d8796bde57719c703002accaa46d3e23bf2f09ee1780bc",
+      "capture": "combined stdout/stderr"
+    },
+    {
+      "task": "T02",
+      "claim": "t02-20260912-a1",
+      "commit": "5a75aba64d53d0812696d1e88af52e6c84a022d6",
+      "phase": "red",
+      "command": "rtk proxy go test . -run '^TestManagementAudit' -count=1 -v",
+      "exit_code": 1,
+      "evidence_path": ".spec-dev/2026-09-12-01-admin-audit-keeper-names/execution/t02-20260912-a1/red-core.log",
+      "output_sha256": "3cb2de712761cf6365db78384e7cd4247ece445ae7c5f223083ff0cb595052e4",
+      "capture": "combined stdout/stderr"
+    },
+    {
+      "task": "T02",
+      "claim": "t02-20260912-a1",
+      "commit": "5a75aba64d53d0812696d1e88af52e6c84a022d6",
+      "phase": "green",
+      "command": "rtk proxy go test . -run '^TestManagementAudit' -count=1 -v",
+      "exit_code": 1,
+      "evidence_path": ".spec-dev/2026-09-12-01-admin-audit-keeper-names/execution/t02-20260912-a1/green-core.log",
+      "output_sha256": "afedcf84ca717e23283d46d561bfb3c812821d582c03d5e69f1e383414f413a8",
+      "capture": "combined stdout/stderr"
+    },
+    {
+      "task": "T02",
+      "claim": "t02-20260912-a1",
+      "commit": "5a75aba64d53d0812696d1e88af52e6c84a022d6",
+      "phase": "green",
+      "command": "rtk proxy go test . -run '^TestManagementAudit' -count=1 -v",
+      "exit_code": 0,
+      "evidence_path": ".spec-dev/2026-09-12-01-admin-audit-keeper-names/execution/t02-20260912-a1/green-core-final.log",
+      "output_sha256": "bcdc87b8e8f62dbbc02f5bd679f87458be03ac3c8e62dc1c5edfac6923debbbd",
+      "capture": "combined stdout/stderr"
+    },
+    {
+      "task": "T02",
+      "claim": "t02-20260912-a1",
+      "commit": "5a75aba64d53d0812696d1e88af52e6c84a022d6",
+      "phase": "red",
+      "command": "rtk proxy go test . -run '^TestManagementAudit(WriteAndSyncFaults|RedactsKnownSecrets|ReconfigureKeepsOperationSnapshot)' -count=1 -v",
+      "exit_code": 1,
+      "evidence_path": ".spec-dev/2026-09-12-01-admin-audit-keeper-names/execution/t02-20260912-a1/red-faults-secrets-reconfigure.log",
+      "output_sha256": "b9f7fb4cf8bfcdb27acfdf9bce56efcd70334698876d510f9e685ef090f650a4",
+      "capture": "combined stdout/stderr"
+    },
+    {
+      "task": "T02",
+      "claim": "t02-20260912-a1",
+      "commit": "5a75aba64d53d0812696d1e88af52e6c84a022d6",
+      "phase": "green",
+      "command": "rtk proxy go test . -run '^TestManagementAudit(RedactsKnownSecrets|ReconfigureKeepsOperationSnapshot)' -count=1 -v",
+      "exit_code": 0,
+      "evidence_path": ".spec-dev/2026-09-12-01-admin-audit-keeper-names/execution/t02-20260912-a1/green-secrets-reconfigure.log",
+      "output_sha256": "9be3dd960d4f08b367b12bd0eb4d168788bf805875bfc9fa31c1f22c71a39b8b",
+      "capture": "combined stdout/stderr"
+    },
+    {
+      "task": "T02",
+      "claim": "t02-20260912-a1",
+      "commit": "5a75aba64d53d0812696d1e88af52e6c84a022d6",
+      "phase": "green",
+      "command": "rtk proxy go test . -run '^Test(ManagementAudit|ManagementPostKey|ManagementPatchKey|ManagementDeleteKey|ManagementPutRules|ManagementFirstSave|Reconfigure)' -count=1 -v",
+      "exit_code": 1,
+      "evidence_path": ".spec-dev/2026-09-12-01-admin-audit-keeper-names/execution/t02-20260912-a1/target-incomplete.log",
+      "output_sha256": "78bdbfeeaacc2886e6d837e74cfd7fc115c9d82e150f29f737567555cc3207e9",
+      "capture": "combined stdout/stderr"
+    },
+    {
+      "task": "T02",
+      "claim": "t02-20260912-a1",
+      "commit": "5a75aba64d53d0812696d1e88af52e6c84a022d6",
+      "phase": "red",
+      "command": "rtk proxy go test . -run '^TestManagementAuditShortSecrets' -count=1 -v",
+      "exit_code": 1,
+      "evidence_path": ".spec-dev/2026-09-12-01-admin-audit-keeper-names/execution/t02-20260912-a1/red-short-secrets.log",
+      "output_sha256": "ab27382a00aa11e7f7fe0118fad1274a35f8330ffbc80b315f324de71863f57f",
+      "capture": "combined stdout/stderr"
+    },
+    {
+      "task": "T02",
+      "claim": "t02-20260912-a1",
+      "commit": "5a75aba64d53d0812696d1e88af52e6c84a022d6",
+      "phase": "green",
+      "command": "rtk proxy go test . -run '^Test(ManagementAudit|ManagementPostKey|ManagementPatchKey|ManagementDeleteKey|ManagementPutRules|ManagementFirstSave|Reconfigure|Audit)' -count=1 -v",
+      "exit_code": 0,
+      "evidence_path": ".spec-dev/2026-09-12-01-admin-audit-keeper-names/execution/t02-20260912-a1/green-target.log",
+      "output_sha256": "d2a5aa6b468fe4bdd3051fefb9e3941ae77162df089693a0759686ae0b541bf1",
+      "capture": "combined stdout/stderr"
+    },
+    {
+      "task": "T02",
+      "claim": "t02-20260912-a1",
+      "commit": "5a75aba64d53d0812696d1e88af52e6c84a022d6",
+      "phase": "red",
+      "command": "rtk proxy go test . -run '^TestManagementAuditCRUD' -count=1 -v",
+      "exit_code": 1,
+      "evidence_path": ".spec-dev/2026-09-12-01-admin-audit-keeper-names/execution/t02-20260912-a1/red-null-diff.log",
+      "output_sha256": "3a2c8fe482be24b51fb0d4181d7dd2c9fa84d109763597287edf69eb838667c9",
+      "capture": "combined stdout/stderr"
+    },
+    {
+      "task": "T02",
+      "claim": "t02-20260912-a1",
+      "commit": "5a75aba64d53d0812696d1e88af52e6c84a022d6",
+      "phase": "green",
+      "command": "rtk proxy go test . -race -run '^Test(ManagementAudit|ManagementPostKey|ManagementPatchKey|ManagementDeleteKey|ManagementPutRules|ManagementFirstSave|Reconfigure|Audit)' -count=1 -v",
+      "exit_code": 0,
+      "evidence_path": ".spec-dev/2026-09-12-01-admin-audit-keeper-names/execution/t02-20260912-a1/green-race.log",
+      "output_sha256": "d0f2661e0a898dadc5f2542cfaa16dbc3866a0cd96eac2921030c6948aea91db",
+      "capture": "combined stdout/stderr"
+    },
+    {
+      "task": "T02",
+      "claim": "t02-20260912-a1",
+      "commit": "3cd1e52b890676f9574507a72e82589365d068e8",
+      "phase": "integration",
+      "command": "rtk proxy go test . -run '^Test(Audit|Management|Keeper|Reconfigure)' -count=1 -v",
+      "exit_code": 0,
+      "evidence_path": ".spec-dev/2026-09-12-01-admin-audit-keeper-names/execution/t02-20260912-a1/integration.log",
+      "output_sha256": "17f820cfbcccc6c854ed1b8c1c0fcc9c7161c21eb8119059ab436d34708f6d28",
       "capture": "combined stdout/stderr"
     },
     {
@@ -82,8 +209,7 @@
       "exit_code": 0,
       "evidence_path": ".spec-dev/2026-09-12-01-admin-audit-keeper-names/execution/t03-20260912-a1/baseline.log",
       "output_sha256": "d43acd0435d30ada253e4eb3834298c3d0c07163ae8d83b81e4e37a6c969290b",
-      "capture": "combined stdout/stderr",
-      "valid_behavior_red": null
+      "capture": "combined stdout/stderr"
     },
     {
       "task": "T03",
@@ -94,8 +220,7 @@
       "exit_code": 1,
       "evidence_path": ".spec-dev/2026-09-12-01-admin-audit-keeper-names/execution/t03-20260912-a1/red-read.log",
       "output_sha256": "82c4f521ff65c8b65908ecae518222127c21c2b955ddba0461f03e503254b6f3",
-      "capture": "combined stdout/stderr",
-      "valid_behavior_red": true
+      "capture": "combined stdout/stderr"
     },
     {
       "task": "T03",
@@ -106,8 +231,7 @@
       "exit_code": 0,
       "evidence_path": ".spec-dev/2026-09-12-01-admin-audit-keeper-names/execution/t03-20260912-a1/green-read.log",
       "output_sha256": "7c41f933e2cd8413387e17fafaff75149e9b36cb91ac36176afc65e3c92b5ec7",
-      "capture": "combined stdout/stderr",
-      "valid_behavior_red": null
+      "capture": "combined stdout/stderr"
     },
     {
       "task": "T03",
@@ -118,8 +242,7 @@
       "exit_code": 1,
       "evidence_path": ".spec-dev/2026-09-12-01-admin-audit-keeper-names/execution/t03-20260912-a1/red-cache-initial-timeout.log",
       "output_sha256": "0c0dbe6b6cdfc4eaf8f09cf376130126003e3ba2bc6291a9db6e80bebd3a6775",
-      "capture": "combined stdout/stderr",
-      "valid_behavior_red": false
+      "capture": "combined stdout/stderr"
     },
     {
       "task": "T03",
@@ -130,8 +253,7 @@
       "exit_code": 1,
       "evidence_path": ".spec-dev/2026-09-12-01-admin-audit-keeper-names/execution/t03-20260912-a1/red-cache.log",
       "output_sha256": "15f7b2d6fe2382ec83170a59ea1d7c6728fac1f0714b3029df30db79b32779c9",
-      "capture": "combined stdout/stderr",
-      "valid_behavior_red": true
+      "capture": "combined stdout/stderr"
     },
     {
       "task": "T03",
@@ -142,8 +264,7 @@
       "exit_code": 0,
       "evidence_path": ".spec-dev/2026-09-12-01-admin-audit-keeper-names/execution/t03-20260912-a1/green-related.log",
       "output_sha256": "b1d1a4ddfc781752bd547a0bb9f1c9c69b2fc0d8870294558d0132defdf8b5c5",
-      "capture": "combined stdout/stderr",
-      "valid_behavior_red": null
+      "capture": "combined stdout/stderr"
     },
     {
       "task": "T03",
@@ -154,18 +275,325 @@
       "exit_code": 0,
       "evidence_path": ".spec-dev/2026-09-12-01-admin-audit-keeper-names/execution/t03-20260912-a1/green-race.log",
       "output_sha256": "f51364ee92ac263ea7e5c721a6557364bd5c16acf475ecedda228c0996c1fd72",
-      "capture": "combined stdout/stderr",
-      "valid_behavior_red": null
+      "capture": "combined stdout/stderr"
     },
     {
       "task": "T03",
       "claim": "t03-20260912-a1",
       "commit": "561c14a964d120ea7602cfbe1a85f644bb90071d",
       "phase": "integration",
-      "command": "rtk proxy go test . -run ^Test(Audit|Keeper|ManagementKeeper|ManagementRegisterRoutes) -count=1 -v",
+      "command": "rtk proxy go test . -run '^Test(Audit|Keeper|ManagementKeeper|ManagementRegisterRoutes)' -count=1 -v",
       "exit_code": 0,
       "evidence_path": ".spec-dev/2026-09-12-01-admin-audit-keeper-names/execution/t03-20260912-a1/integration.log",
       "output_sha256": "301692e0c7b2c23b51906de3c6078fe5a890f8c8495da26d13bf9bf8369b1c6e",
+      "capture": "combined stdout/stderr"
+    },
+    {
+      "task": "T04",
+      "claim": "t04-20260912-a1",
+      "commit": "afafff315688108650936714e40f2fc2afd9204d",
+      "phase": "baseline",
+      "command": "rtk proxy go test . -run '^Test(ManagementKeeperNames|KeeperNames|ManagementAudit)' -count=1 -v",
+      "exit_code": 0,
+      "evidence_path": ".spec-dev/2026-09-12-01-admin-audit-keeper-names/execution/t04-20260912-a1/baseline.log",
+      "output_sha256": "908f2bc719845dbc4150c88b59c991f1adaefdc2f119b81f6d196494f714befa",
+      "capture": "combined stdout/stderr"
+    },
+    {
+      "task": "T04",
+      "claim": "t04-20260912-a1",
+      "commit": "afafff315688108650936714e40f2fc2afd9204d",
+      "phase": "red",
+      "command": "rtk proxy go test . -run '^TestManagementKeeperNames(S1|S2|S3|S4Invalid|Registration)' -count=1 -v",
+      "exit_code": 1,
+      "evidence_path": ".spec-dev/2026-09-12-01-admin-audit-keeper-names/execution/t04-20260912-a1/red-routes.log",
+      "output_sha256": "eceb43739a18a325de2a4dc7df946d9e8dc8dbba7b1b1feba055ae546b2a4d83",
+      "capture": "combined stdout/stderr"
+    },
+    {
+      "task": "T04",
+      "claim": "t04-20260912-a1",
+      "commit": "afafff315688108650936714e40f2fc2afd9204d",
+      "phase": "red",
+      "command": "rtk proxy go test . -run '^TestManagementKeeperNames(S1|S2|S3|S4Invalid|Registration)' -count=1 -v",
+      "exit_code": 1,
+      "evidence_path": ".spec-dev/2026-09-12-01-admin-audit-keeper-names/execution/t04-20260912-a1/red-provider.log",
+      "output_sha256": "17646d9864b944958a8145bff5a776ce39d215157914572ad7c2a699ca7ed53d",
+      "capture": "combined stdout/stderr"
+    },
+    {
+      "task": "T04",
+      "claim": "t04-20260912-a1",
+      "commit": "afafff315688108650936714e40f2fc2afd9204d",
+      "phase": "red",
+      "command": "rtk proxy go test . -run '^TestManagementKeeperNames(S2Validation|S4Failure|S4Patch|S4Old|S8S9)' -count=1 -v",
+      "exit_code": 1,
+      "evidence_path": ".spec-dev/2026-09-12-01-admin-audit-keeper-names/execution/t04-20260912-a1/red-failures-cache.log",
+      "output_sha256": "af39f64b4248e51f57bd6b4cd4e4cd26f17702a41f6cbae495816778733f5d88",
+      "capture": "combined stdout/stderr"
+    },
+    {
+      "task": "T04",
+      "claim": "t04-20260912-a1",
+      "commit": "afafff315688108650936714e40f2fc2afd9204d",
+      "phase": "green",
+      "command": "rtk proxy go test . -run '^Test(ManagementKeeperNames|KeeperAuthNames|KeeperNames|ManagementAudit)' -count=1 -v",
+      "exit_code": 130,
+      "evidence_path": ".spec-dev/2026-09-12-01-admin-audit-keeper-names/execution/t04-20260912-a1/green-attempt-harness-hang.log",
+      "output_sha256": "ccff13dc4aa93f7ea97137c78446208d58623ec64c99dfa7347ccc23ba91c4a5",
+      "capture": "combined stdout/stderr"
+    },
+    {
+      "task": "T04",
+      "claim": "t04-20260912-a1",
+      "commit": "afafff315688108650936714e40f2fc2afd9204d",
+      "phase": "green",
+      "command": "rtk proxy go test . -run '^Test(ManagementKeeperNames|KeeperAuthNames|KeeperNames|ManagementAudit)' -count=1 -v",
+      "exit_code": 0,
+      "evidence_path": ".spec-dev/2026-09-12-01-admin-audit-keeper-names/execution/t04-20260912-a1/green-core.log",
+      "output_sha256": "b22df9da4e12960385e548ba5d7140f2fa0d94649afe08d96a495f0f0ce0b936",
+      "capture": "combined stdout/stderr"
+    },
+    {
+      "task": "T04",
+      "claim": "t04-20260912-a1",
+      "commit": "afafff315688108650936714e40f2fc2afd9204d",
+      "phase": "green",
+      "command": "rtk proxy go test . -run '^Test(ManagementKeeperNames|KeeperAuthNames|KeeperNames|ManagementAudit)' -count=1 -v",
+      "exit_code": 0,
+      "evidence_path": ".spec-dev/2026-09-12-01-admin-audit-keeper-names/execution/t04-20260912-a1/green-all.log",
+      "output_sha256": "7f9c02e32338f04f1d6e84cdbdfd76e5e99b706ae93b5cba4d25331fd5d826bb",
+      "capture": "combined stdout/stderr"
+    },
+    {
+      "task": "T04",
+      "claim": "t04-20260912-a1",
+      "commit": "afafff315688108650936714e40f2fc2afd9204d",
+      "phase": "green",
+      "command": "rtk proxy go test -race . -run '^Test(ManagementKeeperNames|KeeperAuthNames|KeeperNames|ManagementAudit)' -count=1 -v",
+      "exit_code": 0,
+      "evidence_path": ".spec-dev/2026-09-12-01-admin-audit-keeper-names/execution/t04-20260912-a1/green-race.log",
+      "output_sha256": "ad6731097767097603b5987136ae10caa78a1eec7bca0b2ba90127719ed7f271",
+      "capture": "combined stdout/stderr"
+    },
+    {
+      "task": "T04",
+      "claim": "t04-20260912-a1",
+      "commit": "df9e277da3c2d4c2cfaf84d63dd4ae0eff3a75ee",
+      "phase": "integration",
+      "command": "rtk proxy go test . -run '^Test(Audit|Management|Keeper|Reconfigure)' -count=1 -v",
+      "exit_code": 0,
+      "evidence_path": ".spec-dev/2026-09-12-01-admin-audit-keeper-names/execution/t04-20260912-a1/integration.log",
+      "output_sha256": "4d17b65ec65523233f7cc4ce4a27aedb877e08b1cdea07d637a0d6ebb3a28b36",
+      "capture": "combined stdout/stderr"
+    },
+    {
+      "task": "T05",
+      "claim": "t05-20260912-a1",
+      "commit": "7ff5dc64fe093d99f9165077b5fb0ad279ab5af5",
+      "phase": "baseline",
+      "command": "rtk npm --prefix web test -- src/api.test.ts src/components/ChannelTargetEditor.test.tsx src/panels/KeysPanel.alias-sync.test.tsx src/panels/KeysPanel.channel-target.test.tsx",
+      "exit_code": 0,
+      "evidence_path": ".spec-dev/2026-09-12-01-admin-audit-keeper-names/execution/t05-20260912-a1/baseline.log",
+      "output_sha256": "19f3e702fce7e7f68a045fc6828a2e0700a29f81ecb20caca3d9a01d0af6ab2e",
+      "capture": "combined stdout/stderr"
+    },
+    {
+      "task": "T05",
+      "claim": "t05-20260912-a1",
+      "commit": "7ff5dc64fe093d99f9165077b5fb0ad279ab5af5",
+      "phase": "baseline",
+      "command": "rtk npm --prefix web run typecheck",
+      "exit_code": 0,
+      "evidence_path": ".spec-dev/2026-09-12-01-admin-audit-keeper-names/execution/t05-20260912-a1/baseline-typecheck.log",
+      "output_sha256": "2931d9a400432def3fd841bb330563be730c1db654fa8a2246466e89bdf304c3",
+      "capture": "combined stdout/stderr"
+    },
+    {
+      "task": "T05",
+      "claim": "t05-20260912-a1",
+      "commit": "7ff5dc64fe093d99f9165077b5fb0ad279ab5af5",
+      "phase": "red",
+      "command": "rtk npm --prefix web test -- src/panels/KeysPanel.auth-names.test.tsx",
+      "exit_code": 1,
+      "evidence_path": ".spec-dev/2026-09-12-01-admin-audit-keeper-names/execution/t05-20260912-a1/red.log",
+      "output_sha256": "581d31de2bbeba834238c45960f5ffeaa31ecc7558687119a90e8438292e0ba3",
+      "capture": "combined stdout/stderr"
+    },
+    {
+      "task": "T05",
+      "claim": "t05-20260912-a1",
+      "commit": "7ff5dc64fe093d99f9165077b5fb0ad279ab5af5",
+      "phase": "green",
+      "command": "rtk npm --prefix web test -- src/panels/KeysPanel.auth-names.test.tsx",
+      "exit_code": 0,
+      "evidence_path": ".spec-dev/2026-09-12-01-admin-audit-keeper-names/execution/t05-20260912-a1/green-attempt-1.log",
+      "output_sha256": "8196c5fba84d73811ba7150db7868a3a91eaaed496696d09d625163f96fc86c9",
+      "capture": "combined stdout/stderr"
+    },
+    {
+      "task": "T05",
+      "claim": "t05-20260912-a1",
+      "commit": "7ff5dc64fe093d99f9165077b5fb0ad279ab5af5",
+      "phase": "green",
+      "command": "rtk npm --prefix web test -- src/api.test.ts src/keeperAuthNames.test.ts src/components/KeeperAuthNameEditor.test.tsx src/components/ChannelTargetEditor.test.tsx src/panels/KeysPanel.auth-names.test.tsx src/panels/KeysPanel.channel-target.test.tsx src/panels/KeysPanel.alias-sync.test.tsx",
+      "exit_code": 0,
+      "evidence_path": ".spec-dev/2026-09-12-01-admin-audit-keeper-names/execution/t05-20260912-a1/green-final.log",
+      "output_sha256": "7cd61ce929adde0ac542d5758c8cdd34424228d04f756183cd52f8ecb789f706",
+      "capture": "combined stdout/stderr"
+    },
+    {
+      "task": "T05",
+      "claim": "t05-20260912-a1",
+      "commit": "7ff5dc64fe093d99f9165077b5fb0ad279ab5af5",
+      "phase": "green",
+      "command": "rtk npm --prefix web run typecheck",
+      "exit_code": 0,
+      "evidence_path": ".spec-dev/2026-09-12-01-admin-audit-keeper-names/execution/t05-20260912-a1/typecheck-final.log",
+      "output_sha256": "c77f29162c5fb65f2ff3fbc405e2af2da57f3dc9b681c220e1cd5f1c9c44dd7a",
+      "capture": "combined stdout/stderr"
+    },
+    {
+      "task": "T05",
+      "claim": "t05-20260912-a1",
+      "commit": "1313c90333b7e30476608c85c3ef32e234d32759",
+      "phase": "integration",
+      "command": "rtk proxy npm --prefix web test -- src/api.test.ts src/keeperAuthNames.test.ts src/components/KeeperAuthNameEditor.test.tsx src/components/ChannelTargetEditor.test.tsx src/panels/KeysPanel.auth-names.test.tsx src/panels/KeysPanel.channel-target.test.tsx src/panels/KeysPanel.alias-sync.test.tsx",
+      "exit_code": 0,
+      "evidence_path": ".spec-dev/2026-09-12-01-admin-audit-keeper-names/execution/t05-20260912-a1/integration.log",
+      "output_sha256": "44462b9f1a06e7464bd91dd03a60d6cb1e59ec67ea0004ec994f019d143aef32",
+      "capture": "combined stdout/stderr"
+    },
+    {
+      "task": "T05",
+      "claim": "t05-20260912-a1",
+      "commit": "1313c90333b7e30476608c85c3ef32e234d32759",
+      "phase": "integration",
+      "command": "rtk proxy npm --prefix web run typecheck",
+      "exit_code": 0,
+      "evidence_path": ".spec-dev/2026-09-12-01-admin-audit-keeper-names/execution/t05-20260912-a1/integration-typecheck.log",
+      "output_sha256": "2931d9a400432def3fd841bb330563be730c1db654fa8a2246466e89bdf304c3",
+      "capture": "combined stdout/stderr"
+    },
+    {
+      "task": "T06",
+      "claim": "t06-20260912-a1",
+      "commit": "2134a4503405dd151f636eb055f1b263a1fa69d2",
+      "phase": "baseline",
+      "command": "rtk npm --prefix web test -- src/App.test.tsx src/api.test.ts src/panels/RulesPanel.test.tsx src/panels/KeysPanel.auth-names.test.tsx src/auditFixes.test.tsx",
+      "exit_code": 0,
+      "evidence_path": ".spec-dev/2026-09-12-01-admin-audit-keeper-names/execution/t06-20260912-a1/baseline.log",
+      "output_sha256": "ed6f55e1614359bea33cb1109383ab2706e87b5782e03600d6627c017c4d9057",
+      "capture": "combined stdout/stderr"
+    },
+    {
+      "task": "T06",
+      "claim": "t06-20260912-a1",
+      "commit": "2134a4503405dd151f636eb055f1b263a1fa69d2",
+      "phase": "baseline",
+      "command": "rtk npm --prefix web run typecheck",
+      "exit_code": 0,
+      "evidence_path": ".spec-dev/2026-09-12-01-admin-audit-keeper-names/execution/t06-20260912-a1/baseline-typecheck.log",
+      "output_sha256": "2931d9a400432def3fd841bb330563be730c1db654fa8a2246466e89bdf304c3",
+      "capture": "combined stdout/stderr"
+    },
+    {
+      "task": "T06",
+      "claim": "t06-20260912-a1",
+      "commit": "2134a4503405dd151f636eb055f1b263a1fa69d2",
+      "phase": "red",
+      "command": "rtk npm --prefix web test -- src/App.test.tsx src/api.test.ts src/panels/AuditPanel.test.tsx src/panels/RulesPanel.test.tsx",
+      "exit_code": 1,
+      "evidence_path": ".spec-dev/2026-09-12-01-admin-audit-keeper-names/execution/t06-20260912-a1/red-main.log",
+      "output_sha256": "97fe4084eaec91c63125e0eea3dc05a557ad4727b76179130cbbb3a332580a45",
+      "capture": "combined stdout/stderr"
+    },
+    {
+      "task": "T06",
+      "claim": "t06-20260912-a1",
+      "commit": "2134a4503405dd151f636eb055f1b263a1fa69d2",
+      "phase": "red",
+      "command": "rtk npm --prefix web test -- src/panels/KeysPanel.auth-names.test.tsx",
+      "exit_code": 1,
+      "evidence_path": ".spec-dev/2026-09-12-01-admin-audit-keeper-names/execution/t06-20260912-a1/red-keys.log",
+      "output_sha256": "b97b484d17c263b0f423efe430962fb20420a9ff96a0a105cdd3be8db21468ea",
+      "capture": "combined stdout/stderr"
+    },
+    {
+      "task": "T06",
+      "claim": "t06-20260912-a1",
+      "commit": "2134a4503405dd151f636eb055f1b263a1fa69d2",
+      "phase": "red",
+      "command": "rtk npm --prefix web test -- src/panels/KeysPanel.auth-names.test.tsx src/components/KeeperAuthNameEditor.test.tsx",
+      "exit_code": 1,
+      "evidence_path": ".spec-dev/2026-09-12-01-admin-audit-keeper-names/execution/t06-20260912-a1/red-keys-names.log",
+      "output_sha256": "a2accc24a8f79611d3a089b2b7d19a41662289d114e5c4e1650ca5b1401811f6",
+      "capture": "combined stdout/stderr"
+    },
+    {
+      "task": "T06",
+      "claim": "t06-20260912-a1",
+      "commit": "2134a4503405dd151f636eb055f1b263a1fa69d2",
+      "phase": "green",
+      "command": "rtk npm --prefix web test -- src/App.test.tsx src/api.test.ts src/panels/AuditPanel.test.tsx src/panels/RulesPanel.test.tsx",
+      "exit_code": 1,
+      "evidence_path": ".spec-dev/2026-09-12-01-admin-audit-keeper-names/execution/t06-20260912-a1/green-main-attempt.log",
+      "output_sha256": "28388cd9c82b300b435b78a810737ac9c693669b4453de58d26bce91848293f9",
+      "capture": "combined stdout/stderr"
+    },
+    {
+      "task": "T06",
+      "claim": "t06-20260912-a1",
+      "commit": "2134a4503405dd151f636eb055f1b263a1fa69d2",
+      "phase": "green",
+      "command": "rtk npm --prefix web test -- src/App.test.tsx src/api.test.ts src/panels/AuditPanel.test.tsx src/panels/RulesPanel.test.tsx src/panels/KeysPanel.auth-names.test.tsx src/components/KeeperAuthNameEditor.test.tsx src/auditFixes.test.tsx",
+      "exit_code": 1,
+      "evidence_path": ".spec-dev/2026-09-12-01-admin-audit-keeper-names/execution/t06-20260912-a1/green-attempt-2.log",
+      "output_sha256": "614b4465015f3ebbd4e41d9b972047df411a2a533666070714b5676cfd2c7ae3",
+      "capture": "combined stdout/stderr"
+    },
+    {
+      "task": "T06",
+      "claim": "t06-20260912-a1",
+      "commit": "2134a4503405dd151f636eb055f1b263a1fa69d2",
+      "phase": "green",
+      "command": "rtk npm --prefix web test -- src/App.test.tsx src/api.test.ts src/panels/AuditPanel.test.tsx src/panels/RulesPanel.test.tsx src/panels/KeysPanel.auth-names.test.tsx src/components/KeeperAuthNameEditor.test.tsx src/auditFixes.test.tsx",
+      "exit_code": 0,
+      "evidence_path": ".spec-dev/2026-09-12-01-admin-audit-keeper-names/execution/t06-20260912-a1/green.log",
+      "output_sha256": "bb765a6aa6606011fe30b7d7c7ed5a3d368af56ba6f95667999ff1da9da2a13d",
+      "capture": "combined stdout/stderr"
+    },
+    {
+      "task": "T06",
+      "claim": "t06-20260912-a1",
+      "commit": "2134a4503405dd151f636eb055f1b263a1fa69d2",
+      "phase": "green",
+      "command": "rtk npm --prefix web run typecheck",
+      "exit_code": 0,
+      "evidence_path": ".spec-dev/2026-09-12-01-admin-audit-keeper-names/execution/t06-20260912-a1/typecheck.log",
+      "output_sha256": "2d837e39a4e55cefdc653e9ea472c107e220899a47c19bebc494d27902881caa",
+      "capture": "combined stdout/stderr"
+    },
+    {
+      "task": "T06",
+      "claim": "t06-20260912-a1",
+      "commit": "3bae2f217856f50c41c7e1b23fae9a24223a4ae6",
+      "phase": "integration",
+      "command": "rtk proxy npm --prefix web test -- src/App.test.tsx src/api.test.ts src/panels/AuditPanel.test.tsx src/panels/RulesPanel.test.tsx src/panels/KeysPanel.auth-names.test.tsx src/components/KeeperAuthNameEditor.test.tsx src/auditFixes.test.tsx",
+      "exit_code": 0,
+      "evidence_path": ".spec-dev/2026-09-12-01-admin-audit-keeper-names/execution/t06-20260912-a1/integration.log",
+      "output_sha256": "d159ecfedee12454431efa3a0cc922de099f2eebcc62cf99daaccf707b59596a",
+      "capture": "combined stdout/stderr"
+    },
+    {
+      "task": "T06",
+      "claim": "t06-20260912-a1",
+      "commit": "3bae2f217856f50c41c7e1b23fae9a24223a4ae6",
+      "phase": "integration",
+      "command": "rtk proxy npm --prefix web run typecheck",
+      "exit_code": 0,
+      "evidence_path": ".spec-dev/2026-09-12-01-admin-audit-keeper-names/execution/t06-20260912-a1/integration-typecheck.log",
+      "output_sha256": "2931d9a400432def3fd841bb330563be730c1db654fa8a2246466e89bdf304c3",
       "capture": "combined stdout/stderr"
     }
   ]
