@@ -2,7 +2,7 @@
 spec_dev:
   version: 1
   feature: admin-audit-keeper-names
-  status: draft
+  status: active
   covers:
     - "audit*.go"
     - "management*.go"
