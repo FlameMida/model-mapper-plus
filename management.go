@@ -20,6 +20,7 @@ const (
 func handleManagementRegister() ([]byte, error) {
 	return json.Marshal(pluginapi.ManagementRegistrationResponse{
 		Routes: []pluginapi.ManagementRoute{
+			{Method: http.MethodGet, Path: managementRegisterBase + "/audit", Description: "Read daily management audit records."},
 			{Method: http.MethodPost, Path: managementRegisterBase + "/channel-credentials", Description: "Resolve AI Providers credential IDs without persisting configuration."},
 			{Method: http.MethodGet, Path: managementRegisterBase + "/keeper/key-aliases", Description: "Read optional Keeper key aliases."},
 			{Method: http.MethodPost, Path: managementRegisterBase + "/keeper/key-aliases/refresh", Description: "Refresh Keeper key aliases without saving bindings."},
@@ -53,6 +54,8 @@ func dispatchManagement(req pluginapi.ManagementRequest) pluginapi.ManagementRes
 		return serveIndexHTML()
 	}
 	switch {
+	case req.Method == http.MethodGet && path == managementHandleBase+"/audit":
+		return managementAuditQuery(req)
 	case req.Method == http.MethodPost && path == managementHandleBase+"/channel-credentials":
 		return managementChannelCredentials(req)
 	case req.Method == http.MethodGet && path == managementHandleBase+"/keeper/key-aliases":

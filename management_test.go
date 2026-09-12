@@ -26,6 +26,7 @@ func TestManagementRegisterRoutes(t *testing.T) {
 		routes[r.Method+" "+r.Path] = true
 	}
 	for _, want := range []string{
+		"GET /plugins/model-mapper-plus/audit",
 		"GET /plugins/model-mapper-plus/state",
 		"PUT /plugins/model-mapper-plus/rules",
 		"POST /plugins/model-mapper-plus/keys",
