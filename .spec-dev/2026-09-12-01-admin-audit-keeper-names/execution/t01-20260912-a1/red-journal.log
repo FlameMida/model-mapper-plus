@@ -1,0 +1,20 @@
+=== RUN   TestAuditS7ImmediatePersistenceAndMidnight
+    audit_test.go:29: begin: not implemented
+--- FAIL: TestAuditS7ImmediatePersistenceAndMidnight (0.00s)
+=== RUN   TestAuditS7PreservesTruncatedTailAndTightensPermissions
+    audit_test.go:58: not implemented
+--- FAIL: TestAuditS7PreservesTruncatedTailAndTightensPermissions (0.00s)
+=== RUN   TestAuditS7WriteFailures
+=== RUN   TestAuditS7WriteFailures/write
+    audit_test.go:78: not implemented
+=== RUN   TestAuditS7WriteFailures/short
+    audit_test.go:78: not implemented
+=== RUN   TestAuditS7WriteFailures/sync
+    audit_test.go:78: not implemented
+--- FAIL: TestAuditS7WriteFailures (0.00s)
+    --- FAIL: TestAuditS7WriteFailures/write (0.00s)
+    --- FAIL: TestAuditS7WriteFailures/short (0.00s)
+    --- FAIL: TestAuditS7WriteFailures/sync (0.00s)
+FAIL
+FAIL	github.com/FlameMida/cpa-model-mapper-plus	0.935s
+FAIL

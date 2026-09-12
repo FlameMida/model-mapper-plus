@@ -1,0 +1,12 @@
+=== RUN   TestAuditQueryS10RejectsInvalidDate
+    audit_query_test.go:19: date "../state": status=404 body={"error":"unknown management route"}
+--- FAIL: TestAuditQueryS10RejectsInvalidDate (0.00s)
+=== RUN   TestAuditQueryS10PaginationAndDamagedLines
+    audit_query_test.go:39: response 404 {"error":"unknown management route"}
+--- FAIL: TestAuditQueryS10PaginationAndDamagedLines (0.00s)
+=== RUN   TestAuditQueryS10ReadErrorAndInvalidEvents
+    audit_query_test.go:58: read error: 404 {"error":"unknown management route"}
+--- FAIL: TestAuditQueryS10ReadErrorAndInvalidEvents (0.00s)
+FAIL
+FAIL	github.com/FlameMida/cpa-model-mapper-plus	1.088s
+FAIL

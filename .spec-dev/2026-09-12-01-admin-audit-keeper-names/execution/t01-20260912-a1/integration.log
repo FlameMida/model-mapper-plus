@@ -1,0 +1,22 @@
+=== RUN   TestAuditQueryS10RejectsInvalidDate
+--- PASS: TestAuditQueryS10RejectsInvalidDate (0.00s)
+=== RUN   TestAuditQueryS10PaginationAndDamagedLines
+--- PASS: TestAuditQueryS10PaginationAndDamagedLines (0.00s)
+=== RUN   TestAuditQueryS10ReadErrorAndInvalidEvents
+--- PASS: TestAuditQueryS10ReadErrorAndInvalidEvents (0.00s)
+=== RUN   TestAuditS7ImmediatePersistenceAndMidnight
+--- PASS: TestAuditS7ImmediatePersistenceAndMidnight (0.01s)
+=== RUN   TestAuditS7PreservesTruncatedTailAndTightensPermissions
+--- PASS: TestAuditS7PreservesTruncatedTailAndTightensPermissions (0.01s)
+=== RUN   TestAuditS7WriteFailures
+=== RUN   TestAuditS7WriteFailures/write
+=== RUN   TestAuditS7WriteFailures/short
+=== RUN   TestAuditS7WriteFailures/sync
+--- PASS: TestAuditS7WriteFailures (0.01s)
+    --- PASS: TestAuditS7WriteFailures/write (0.00s)
+    --- PASS: TestAuditS7WriteFailures/short (0.01s)
+    --- PASS: TestAuditS7WriteFailures/sync (0.01s)
+=== RUN   TestManagementRegisterRoutes
+--- PASS: TestManagementRegisterRoutes (0.00s)
+PASS
+ok  	github.com/FlameMida/cpa-model-mapper-plus	0.598s

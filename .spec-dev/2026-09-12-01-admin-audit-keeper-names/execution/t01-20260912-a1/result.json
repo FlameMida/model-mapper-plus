@@ -1,0 +1,47 @@
+{
+  "task_id": "T01",
+  "claim_key": "t01-20260912-a1",
+  "status": "ready",
+  "worktree": "/Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-t01",
+  "branch": "impl/admin-audit-t01",
+  "base_commit": "fbc63d7c0ac414200b3011fc6b2c34675e17525b",
+  "commits": ["e2080385973d58ebe2e0ab8eb04175faa2dae0be"],
+  "changed_files": ["audit.go", "audit_query.go", "audit_query_test.go", "audit_test.go", "management.go", "management_test.go"],
+  "tests": [
+    {
+      "command": "rtk proxy go test . -run '^TestManagementRegisterRoutes$' -count=1 -v",
+      "phase": "baseline",
+      "exit_code": 0,
+      "evidence_path": "/Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-evidence/t01-a1/baseline.log"
+    },
+    {
+      "command": "rtk proxy sh -c 'go test . -run \"^TestAuditQueryS10\" -count=1 -v > /Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-evidence/t01-a1/red-query.log 2>&1; result=$?; cat /Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-evidence/t01-a1/red-query.log; exit \"$result\"'",
+      "phase": "red",
+      "exit_code": 1,
+      "evidence_path": "/Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-evidence/t01-a1/red-query.log"
+    },
+    {
+      "command": "rtk proxy sh -c 'go test . -run \"^TestAuditS7\" -count=1 -v > /Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-evidence/t01-a1/red-journal.log 2>&1; result=$?; cat /Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-evidence/t01-a1/red-journal.log; exit \"$result\"'",
+      "phase": "red",
+      "exit_code": 1,
+      "evidence_path": "/Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-evidence/t01-a1/red-journal.log"
+    },
+    {
+      "command": "rtk proxy sh -c 'go test . -run \"^Test(Audit|ManagementRegisterRoutes)\" -count=1 -v > /Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-evidence/t01-a1/green.log 2>&1; result=$?; cat /Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-evidence/t01-a1/green.log; exit \"$result\"'",
+      "phase": "green",
+      "exit_code": 0,
+      "evidence_path": "/Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-evidence/t01-a1/green.log"
+    },
+    {
+      "command": "rtk proxy sh -c 'go test . -run \"^Test(Audit|ManagementRegisterRoutes)\" -count=1 -v > /Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-evidence/t01-a1/green-final.log 2>&1; result=$?; cat /Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-evidence/t01-a1/green-final.log; exit \"$result\"'",
+      "phase": "green",
+      "exit_code": 0,
+      "evidence_path": "/Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-evidence/t01-a1/green-final.log"
+    }
+  ],
+  "self_check": {"over_under_building": "pass", "contract_alignment": "pass"},
+  "deviations": [],
+  "resources": ["仅使用 t.TempDir 自动回收的真实日文件与 state 路径；没有新增持久资源。"],
+  "blockers": [],
+  "coverage_note": "S7/S10 已沿 dispatchManagement GET /audit 与批准 beginAudit/finishAudit 真实文件边界取得有效红绿：查询初始为 404；编译骨架在真实 Begin 断言失败；最终 7 个顶层测试及 Write/short-write/Sync 子场景通过。覆盖即时完整 JSONL、0700/0600 权限和已有权限收紧、北京时间午夜固定 ticket、损坏尾行保留、重启等价的磁盘 fixture 配对、start-only unknown、当前运行 running、同时间 ID 稳定逆序分页、日期与分页非法参数、读取 503、损坏/重复/孤立事件提示。基线复用主线程预先运行的日志且已核对。仅六个批准文件进入提交，提交后工作区干净，git diff --check 通过。未运行完整套件；管理变更门禁、脱敏、配置重配及真实业务 Finish 集成由 T02/T04 验证。查询目前在同一 IO 互斥下读取和配对整个日文件；大型日志性能可作为收尾审查候选，未新增索引或数据库。"
+}

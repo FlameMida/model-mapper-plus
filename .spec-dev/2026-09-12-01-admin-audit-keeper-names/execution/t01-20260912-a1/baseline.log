@@ -1,0 +1,4 @@
+=== RUN   TestManagementRegisterRoutes
+--- PASS: TestManagementRegisterRoutes (0.00s)
+PASS
+ok  	github.com/FlameMida/cpa-model-mapper-plus	1.207s
