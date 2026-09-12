@@ -1,10 +1,11 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Button, Input } from '@douyinfe/semi-ui'
 import { api, type KeeperAuthName, type ManagementAPIError } from '../api'
 
 interface Props {
   authIndex: string
   name: KeeperAuthName
+  viewRevision?: number
   onSaved: (name: KeeperAuthName) => void
 }
 
@@ -12,24 +13,34 @@ export default function KeeperAuthNameEditor(props: Props) {
   return <NameEditor key={`${props.authIndex}:${props.name.identity_id}`} {...props} />
 }
 
-function NameEditor({ authIndex, name, onSaved }: Props) {
+function NameEditor({ authIndex, name, viewRevision = 0, onSaved }: Props) {
   const [alias, setAlias] = useState(name.alias)
   const [saving, setSaving] = useState(false)
   const [notice, setNotice] = useState('')
   const [auditWarning, setAuditWarning] = useState(false)
   const version = useRef(0)
   const alive = useRef(true)
-  const pending = useRef(false)
+  const requestSequence = useRef(0)
+  const pending = useRef<number | null>(null)
   const dirty = useRef(false)
   useEffect(() => { alive.current = true; return () => { alive.current = false; version.current++ } }, [])
+  useLayoutEffect(() => {
+    // A newer read invalidates responses, but keeps this editor and its manual draft.
+    version.current++
+    pending.current = null
+    setSaving(false)
+    setNotice('')
+    setAuditWarning(false)
+  }, [viewRevision])
   useEffect(() => {
-    if (!dirty.current && !pending.current) setAlias(name.alias)
-  }, [name.alias])
+    if (!dirty.current && pending.current === null) setAlias(name.alias)
+  }, [name.alias, viewRevision])
   const count = Array.from(alias).length
   const invalid = count > 50 || /[\u0000-\u001f\u007f-\u009f]/u.test(alias)
   const submit = async () => {
-    if (pending.current || invalid) return
-    pending.current = true
+    if (pending.current !== null || invalid) return
+    const request = ++requestSequence.current
+    pending.current = request
     const submittedVersion = version.current
     const isCurrent = () => alive.current && submittedVersion === version.current
     setSaving(true)
@@ -58,8 +69,10 @@ function NameEditor({ authIndex, name, onSaved }: Props) {
         setNotice(failure.name === 'ManagementAPIError' ? `同步失败：${failure.message}` : '同步结果未确认，请刷新名称核对')
       }
     } finally {
-      pending.current = false
-      if (alive.current) setSaving(false)
+      if (pending.current === request) {
+        pending.current = null
+        if (alive.current) setSaving(false)
+      }
     }
   }
   return <div className="keeper-auth-name-editor">
