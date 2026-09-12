@@ -22,6 +22,28 @@ export interface CpaAuthFile {
   source?: 'auth-file' | 'ai-provider'
   provider_label?: string
   base_url?: string
+  auth_index?: string
+  name?: string
+  type?: string
+}
+
+export interface KeeperAuthName {
+  identity_id: string
+  auth_index: string
+  alias: string
+  display_name: string
+}
+export interface KeeperAuthNamesResponse {
+  status: 'ready' | 'disabled' | 'unavailable'
+  items: KeeperAuthName[]
+  fetched_at?: string
+  error_code?: string
+}
+export interface KeeperAuthNameUpdateResponse {
+  status: 'ready' | 'not_found' | 'invalid' | 'unavailable' | 'unknown'
+  item?: KeeperAuthName
+  error_code?: string
+  audit?: { operation_id: string; recorded: boolean; error_code?: string }
 }
 
 export interface KeyBinding {
@@ -130,6 +152,10 @@ async function call<T>(method: string, path: string, body?: unknown): Promise<T>
 }
 
 export const api = {
+  getKeeperAuthNames: () => call<KeeperAuthNamesResponse>('GET', '/keeper/auth-names'),
+  refreshKeeperAuthNames: () => call<KeeperAuthNamesResponse>('POST', '/keeper/auth-names/refresh'),
+  patchKeeperAuthName: (authIndex: string, alias: string) =>
+    call<KeeperAuthNameUpdateResponse>('PATCH', '/keeper/auth-names', { auth_index: authIndex, alias }),
   getKeeperAliases: () => call<KeeperAliasesResponse>('GET', '/keeper/key-aliases'),
   refreshKeeperAliases: () => call<KeeperAliasesResponse>('POST', '/keeper/key-aliases/refresh'),
   getState: () => call<StateResponse>('GET', '/state'),

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Button, Card, Table, Modal, Input, Switch, Tag, Tabs, TabPane, Toast, Typography } from '@douyinfe/semi-ui'
-import { api, ChannelTarget, CpaAuthFile, KeyBinding, RuleSet, StateResponse, listCpaCredentials } from '../api'
+import { api, ChannelTarget, CpaAuthFile, KeyBinding, RuleSet, StateResponse, listCpaCredentials, type KeeperAuthName, type KeeperAuthNamesResponse } from '../api'
 import { normalizeChannelTarget } from '../channelTarget'
 import ChannelTargetEditor from '../components/ChannelTargetEditor'
 import RuleSetEditor from '../components/RuleSetEditor'
@@ -82,6 +82,48 @@ export default function KeysPanel({ state, onSaved, keyOptions }: Props) {
   const [aliasNotice, setAliasNotice] = useState('')
   const editRevision = useRef(0)
   const syncRequest = useRef(0)
+  const [keeperNames, setKeeperNames] = useState<KeeperAuthNamesResponse>()
+  const [namesLoading, setNamesLoading] = useState(false)
+  const namesRequest = useRef(0)
+  const namesRevision = useRef(0)
+  const namesLoaded = useRef(false)
+  const namesConfig = useRef(state.state_file)
+
+  const loadKeeperNames = async (refresh = false) => {
+    const request = ++namesRequest.current
+    const revision = namesRevision.current
+    setNamesLoading(true)
+    try {
+      const result = await (refresh ? api.refreshKeeperAuthNames() : api.getKeeperAuthNames())
+      if (request !== namesRequest.current || revision !== namesRevision.current) return
+      namesLoaded.current = true
+      setKeeperNames(result)
+    } catch {
+      if (request === namesRequest.current && revision === namesRevision.current) {
+        namesLoaded.current = true
+        setKeeperNames({ status: 'unavailable', items: [], error_code: 'connection_failed' })
+      }
+    } finally {
+      if (request === namesRequest.current) setNamesLoading(false)
+    }
+  }
+  const nameSaved = (name: KeeperAuthName) => {
+    namesRevision.current++
+    setKeeperNames(current => ({ status: 'ready', items: [
+      ...(current?.items ?? []).filter(item => item.auth_index !== name.auth_index), name,
+    ] }))
+  }
+  useEffect(() => {
+    if (namesConfig.current !== state.state_file) {
+      namesConfig.current = state.state_file
+      namesLoaded.current = false
+      namesRevision.current++
+      setKeeperNames(undefined)
+    }
+    if (editing !== null && !namesLoaded.current) void loadKeeperNames()
+    else setNamesLoading(false)
+    return () => { namesRequest.current++ }
+  }, [editing !== null, state.state_file])
 
   const invalidateAliasSync = () => {
     editRevision.current++
@@ -330,11 +372,16 @@ export default function KeysPanel({ state, onSaved, keyOptions }: Props) {
             </TabPane>
             <TabPane tab="渠道定向" itemKey="channel-target">
               <ChannelTargetEditor
+                key={state.state_file ?? ''}
                 value={editing.channel_target ?? { ...EMPTY_CHANNEL_TARGET }}
                 authFiles={authFiles}
                 loading={authLoading}
                 error={authError}
                 onRetry={loadAuthFiles}
+                keeperNames={keeperNames}
+                keeperLoading={namesLoading}
+                onRefreshNames={() => { void loadKeeperNames(true) }}
+                onNameSaved={nameSaved}
                 onChange={(channel_target) => setEditing({ ...editing, channel_target })}
               />
             </TabPane>
