@@ -166,6 +166,34 @@ describe('api：渠道定向与 Fast', () => {
 })
 
 describe('Keeper 管理接口', () => {
+  it('认证名称读取和刷新采用批准路径并对称解码snake_case投影', async () => {
+    stubFetch({ status: 'ready', items: [{ identity_id: '17', auth_index: 'idx-a', alias: '&lt;主用&gt;', display_name: 'Tom &amp; Jerry' }] })
+    const response = await api.getKeeperAuthNames()
+    expect(response.items[0]).toEqual({ identity_id: '17', auth_index: 'idx-a', alias: '<主用>', display_name: 'Tom & Jerry' })
+    expect(vi.mocked(fetch).mock.calls[0][0]).toBe('/v0/management/plugins/model-mapper-plus/keeper/auth-names')
+    expect(vi.mocked(fetch).mock.calls[0][1]?.method).toBe('GET')
+    await api.refreshKeeperAuthNames()
+    expect(vi.mocked(fetch).mock.calls[1][0]).toBe('/v0/management/plugins/model-mapper-plus/keeper/auth-names/refresh')
+    expect(vi.mocked(fetch).mock.calls[1][1]?.method).toBe('POST')
+  })
+  it('认证名称PATCH仅发送精确auth_index和原文alias，保留业务和审计结果', async () => {
+    stubFetch({ status: 'ready', item: { identity_id: '17', auth_index: 'idx-a', alias: '&lt;主用&gt;', display_name: '&lt;主用&gt;' },
+      audit: { operation_id: 'op-1', recorded: false, error_code: 'audit_finish_failed' } })
+    const response = await api.patchKeeperAuthName('idx-a', '<主用>')
+    expect(response.item?.alias).toBe('<主用>')
+    expect(response.audit?.recorded).toBe(false)
+    expect(vi.mocked(fetch).mock.calls[0]).toEqual([
+      '/v0/management/plugins/model-mapper-plus/keeper/auth-names', expect.objectContaining({ method: 'PATCH',
+        headers: expect.objectContaining({ 'Content-Type': 'application/json' }),
+        body: JSON.stringify({ auth_index: 'idx-a', alias: '<主用>' }),
+      }),
+    ])
+  })
+  it.each(['unknown', 'not_found', 'invalid', 'unavailable'])('认证名称HTTP200保留%s业务状态', async status => {
+    stubFetch({ status, error_code: 'controlled_error' })
+    expect((await api.patchKeeperAuthName('idx-a', '')).status).toBe(status)
+    expect(vi.mocked(fetch)).toHaveBeenCalledTimes(1)
+  })
   it('别名和原文 Key 对称解码，特殊字符不丢失', async () => {
     stubFetch({ status: 'ready', items: [{ key: 'sk-a&amp;b', alias: '团队 &amp; &lt;主用&gt;' }], fetched_at: '2026-09-05T00:00:00Z' })
     const result = await api.getKeeperAliases()

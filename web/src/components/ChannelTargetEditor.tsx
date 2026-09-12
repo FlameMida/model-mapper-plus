@@ -1,7 +1,9 @@
 import { useState } from 'react'
 import { Banner, Button, Checkbox, Input, Spin, Switch, Tag } from '@douyinfe/semi-ui'
 import { IconChevronRight, IconSearch } from '@douyinfe/semi-icons'
-import { ChannelTarget, CpaAuthFile } from '../api'
+import { ChannelTarget, CpaAuthFile, type KeeperAuthName, type KeeperAuthNamesResponse } from '../api'
+import { findKeeperAuthName } from '../keeperAuthNames'
+import KeeperAuthNameEditor from './KeeperAuthNameEditor'
 import { normalizeAuthIDs, normalizeChannelTarget, normalizeProviders, providerKey } from '../channelTarget'
 import './ChannelTargetEditor.css'
 
@@ -12,6 +14,10 @@ interface Props {
   error: string
   onChange: (value: ChannelTarget) => void
   onRetry: () => void
+  keeperNames?: KeeperAuthNamesResponse
+  keeperLoading?: boolean
+  onRefreshNames?: () => void
+  onNameSaved?: (name: KeeperAuthName) => void
 }
 
 function normalizeAuthFiles(files: readonly CpaAuthFile[]): CpaAuthFile[] {
@@ -34,7 +40,8 @@ function authStatus(file: CpaAuthFile) {
   return <Tag color="green" size="small">可用</Tag>
 }
 
-export default function ChannelTargetEditor({ value, authFiles, loading, error, onChange, onRetry }: Props) {
+export default function ChannelTargetEditor({ value, authFiles, loading, error, onChange, onRetry,
+  keeperNames, keeperLoading, onRefreshNames, onNameSaved }: Props) {
   const [activeProvider, setActiveProvider] = useState('')
   const [search, setSearch] = useState({ provider: '', text: '' })
   const selectedSuppliers = normalizeProviders(value.suppliers)
@@ -53,8 +60,9 @@ export default function ChannelTargetEditor({ value, authFiles, loading, error, 
   const active = grouped.find((group) => providerKey(group.provider) === activeProvider) ?? grouped[0]
   const activeKey = active ? providerKey(active.provider) : ''
   const query = search.provider === activeKey ? search.text : ''
+  const keeperName = (file: CpaAuthFile) => keeperNames?.status === 'ready' ? findKeeperAuthName(file, keeperNames.items) : undefined
   const visibleFiles = active?.files.filter((file) =>
-    `${file.label} ${file.base_url ?? ''} ${file.id}`.toLowerCase().includes(query.trim().toLowerCase()),
+    `${keeperName(file)?.display_name ?? ''} ${file.label} ${file.name ?? ''} ${file.base_url ?? ''} ${file.id}`.toLowerCase().includes(query.trim().toLowerCase()),
   ) ?? []
   const visibleIDs = visibleFiles.map((file) => file.id)
   const visibleSelectedCount = visibleIDs.filter((id) => selectedAuthIDs.includes(id)).length
@@ -81,6 +89,13 @@ export default function ChannelTargetEditor({ value, authFiles, loading, error, 
         <Switch aria-label="渠道定向总开关" checked={value.enabled}
           onChange={(enabled) => emit(enabled, selectedSuppliers, selectedAuthIDs)} />
       </div>
+
+      {onRefreshNames && <div className="keeper-auth-name-status">
+        <span>{keeperNames?.status === 'disabled' ? '未配置 Keeper，使用 CPA 原名称' :
+          keeperNames?.status === 'unavailable' ? 'Keeper 名称暂不可用，已保留 CPA 目录与选择' :
+            keeperLoading ? '正在加载 Keeper 名称…' : '认证名称来自 Keeper'}</span>
+        <Button loading={keeperLoading} disabled={keeperLoading} onClick={onRefreshNames}>刷新名称</Button>
+      </div>}
 
       {missingAuthIDs.length > 0 && (
         <div className="channel-target-missing">
@@ -162,8 +177,9 @@ export default function ChannelTargetEditor({ value, authFiles, loading, error, 
                     checked={selectedAuthIDs.includes(file.id)}
                     onChange={(event) => toggleAuthGroup([file.id], !!event.target.checked)} />
                   <div className="channel-target-file-name">
-                    <strong>{file.label || file.id}</strong>
+                    <strong>{keeperName(file)?.display_name || file.label || file.name || file.id}</strong>
                     <code title={file.id}>{file.id}</code>
+                    {file.name && file.name !== file.id && <span className="channel-target-original-name">{file.name}</span>}
                     {file.base_url && <span className="channel-target-credential-url">{file.base_url}</span>}
                   </div>
                   <div className="channel-target-file-badges">
@@ -171,6 +187,12 @@ export default function ChannelTargetEditor({ value, authFiles, loading, error, 
                     {supplierSelected(active.provider) && <span>整选已覆盖</span>}
                     {authStatus(file)}
                   </div>
+                  {file.source === 'auth-file' && file.provider === 'codex' && onNameSaved && (
+                    <div className="channel-target-name-edit">
+                      {keeperName(file) ? <KeeperAuthNameEditor authIndex={file.auth_index!} name={keeperName(file)!} onSaved={onNameSaved} /> :
+                        keeperNames?.status === 'ready' ? <span>未找到唯一匹配的 Keeper 身份，无法同步名称</span> : null}
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
