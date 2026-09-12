@@ -89,7 +89,11 @@ tasks:
   T07: { status: in_progress }
   T08: { status: pending }
   T09:
-    status: in_progress
+    status: completed
+    commit: 4118c40c95749a6ae61be2e3afb2978b54f911e6
+    implementation_commit: bd17fdfbde0fcc4598ee57218881799cdaa48c88
+    result_path: .spec-dev/2026-09-12-01-admin-audit-keeper-names/execution/t09-20260912-a1/result.json
+    tests: pass
     claim:
       key: t09-20260912-a1
       owner: 01a093e8-b328-7f41-9dc0-82ef9014f0ee
@@ -99,6 +103,8 @@ tasks:
       base_commit: 3bae2f217856f50c41c7e1b23fae9a24223a4ae6
       model_declaration_id: initial-20260912
 resources:
+  - "toolchain: /Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-browser-tools; owned; Playwright 1.63.0 temporary node_modules, not project dependencies; remove after evidence archive"
+  - "temp-fixture: /var/folders/gb/6mr3jmcs06dcbxm5c85pdyyw0000gp/T/TestAdminAcceptanceServe1571857478/001; owned synthetic server01 state; process ended by test timeout, directory still exists; preserve evidence then remove exact test parent directory"
   - "worktree: /Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-t09; claim=t09-20260912-a1; created; remove after acceptance/archive; branch=impl/admin-audit-t09"
   - "evidence: /Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-evidence/t09-a1; claim=t09-20260912-a1; archive to feature execution/t09-20260912-a1 before cleanup"
   - "worktree: /Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-t06; claim=t06-20260912-a1; created; remove after acceptance/archive; branch=impl/admin-audit-t06"
@@ -114,9 +120,11 @@ resources:
   - "evidence: /Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-evidence/t01-a1; claim=t01-20260912-a1; archive to feature execution/t01-20260912-a1 before cleanup"
   - "evidence: /Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-evidence/t03-a1; claim=t03-20260912-a1; archive to feature execution/t03-20260912-a1 before cleanup"
   - "worktree: /Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-keeper-names; created by this plan; after verified merge: git worktree remove /Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-keeper-names; git branch -d plan/admin-audit-keeper-names"
-  - "service: T07 loopback 127.0.0.1:31819 and fake Keeper 127.0.0.1:57189; PID=33547; start=Sat Sep 12 14:39:41 2026; command=cpa-model-mapper-plus.test -test.run=^TestAdminAcceptanceServe$; owned; validate PID/start/command then SIGTERM for graceful test cleanup"
+  - "service: server01 ended (confirmed no PID33547/listener); original 30m test timeout exit1 preserved in browser/server.log, not acceptance PASS. Fresh loopback server02 will be registered at startup."
   - "review-evidence: /Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-reviews; owned; archive review JSON/logs into feature before cleanup"
 notes:
+  - "User explicitly approved standalone Playwright local-only acceptance after CUA extension lacked Codex auth token and native Chrome reduced page to an inaccessible menu. Use isolated headless browser, loopback fixture only; no other user tabs or project dependency modifications."
+  - "T09 integrated: 8 frontend files/82 tests and typecheck exit0; real red3-failure evidence archived. Fresh-process audit persistence test passed separately (browser/restart.log), source test commit b0f7d5f."
   - "Confirmed review finding A-1: newer name refresh can be overwritten by older PATCH response; independently refuted then confirmed by different reviewer (static evidence, dynamic red not yet claimed). Added T09 within original S4 and gated T07/T08 completion on its fix/review; original completed task evidence unchanged."
   - "Review scope frozen: base=fbc63d7c0ac414200b3011fc6b2c34675e17525b head=5ccca8247eb64ff9a19d28b90462e1347e93bfe7; large tier due file durability, HTTP/cache concurrency and UI error chain (36 source/test/docs files, 3985 insertions/38 deletions excluding generated bundle/receipts from this count only). Five dimensions A/B-quality/B-simplicity/C/S; no D trigger identified."
   - "T07 server fixture state=/var/folders/gb/6mr3jmcs06dcbxm5c85pdyyw0000gp/T/TestAdminAcceptanceServe1571857478/001/state.json; Go t.TempDir auto cleanup on graceful service termination; synthetic credentials only."
@@ -143,7 +151,7 @@ execution:
   integration_worktree: /Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-keeper-names
   integration_branch: plan/admin-audit-keeper-names
   base_commit: fbc63d7c0ac414200b3011fc6b2c34675e17525b
-  validated_commit: 3bae2f217856f50c41c7e1b23fae9a24223a4ae6
+  validated_commit: 4118c40c95749a6ae61be2e3afb2978b54f911e6
   delivery:
     channel: local
     state: implementing

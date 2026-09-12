@@ -1,0 +1,171 @@
+> vitest run src/panels/KeysPanel.auth-names.test.tsx
+ RUN  v4.1.10 /Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-t09/web
+ ❯ src/panels/KeysPanel.auth-names.test.tsx (24 tests | 1 failed) 2828ms
+   × S4 新刷新先完成时旧 PATCH 不得覆盖名称视图 127ms
+ Test Files  1 failed (1)
+      Tests  1 failed | 23 passed (24)
+   Start at  15:15:58
+   Duration  6.49s (transform 1.97s, setup 3.06s, import 70ms, tests 2.83s, environment 462ms)
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+ FAIL  src/panels/KeysPanel.auth-names.test.tsx > S4 新刷新先完成时旧 PATCH 不得覆盖名称视图
+TestingLibraryElementError: Unable to find an element with the text: 新刷新的名称. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+Ignored nodes: comments, script, style
+[36m<body[39m
+  [33mdata-position[39m=[32m"static"[39m
+  [33mstyle[39m=[32m"overflow: hidden; width: calc(100% - 0px);"[39m
+[36m>[39m
+  [36m<div[39m
+    [33mclass[39m=[32m"semi-toast-wrapper"[39m
+    [33mid[39m=[32m"toast-wrapper-178919736234"[39m
+    [33mstyle[39m=[32m"z-index: 1010;"[39m
+  [36m>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"semi-toast-innerWrapper"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33maria-label[39m=[32m"warning type"[39m
+        [33mclass[39m=[32m"semi-toast semi-toast-animation-show semi-toast-warning"[39m
+        [33mrole[39m=[32m"alert"[39m
+        [33mstyle[39m=[32m"transform: translate3d(0,0,0px);"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"semi-toast-content"[39m
+        [36m>[39m
+          [36m<span[39m
+            [33maria-label[39m=[32m"alert_triangle"[39m
+            [33mclass[39m=[32m"semi-icon semi-icon-large semi-icon-alert_triangle semi-toast-icon semi-toast-icon-warning"[39m
+            [33mrole[39m=[32m"img"[39m
+          [36m>[39m
+            [36m<svg[39m
+              [33maria-hidden[39m=[32m"true"[39m
+              [33mfill[39m=[32m"none"[39m
+              [33mfocusable[39m=[32m"false"[39m
+              [33mheight[39m=[32m"1em"[39m
+              [33mviewBox[39m=[32m"0 0 24 24"[39m
+              [33mwidth[39m=[32m"1em"[39m
+              [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+            [36m>[39m
+              [36m<path[39m
+                [33mclip-rule[39m=[32m"evenodd"[39m
+                [33md[39m=[32m"m10.23 2.4-8.7 16.67A2 2 0 0 0 3.3 22h17.4a2 2 0 0 0 1.77-2.93L13.77 2.4a2 2 0 0 0-3.54 0ZM13.14 14a1.15 1.15 0 0 1-2.28 0l-.58-4.03a1.73 1.73 0 1 1 3.44 0l-.58 4.03Zm.36 4.49a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Z"[39m
+                [33mfill[39m=[32m"currentColor"[39m
+                [33mfill-rule[39m=[32m"evenodd"[39m
+              [36m/>[39m
+            [36m</svg>[39m
+          [36m</span>[39m
+          [36m<span[39m
+            [33mclass[39m=[32m"semi-toast-content-text"[39m
+            [33mstyle[39m=[32m"max-width: 450px;"[39m
+            [33mx-semi-prop[39m=[32m"content"[39m
+          [36m>[39m
+            [0m审计结果未写入（op-delete）[0m
+          [36m</span>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"semi-toast-close-button"[39m
+          [36m>[39m
+            [36m<button[39m
+              [33maria-disabled[39m=[32m"false"[39m
+              [33mclass[39m=[32m"semi-button semi-button-tertiary semi-button-size-small semi-button-borderless semi-button-with-icon semi-button-with-icon-only"[39m
+              [33mtype[39m=[32m"button"[39m
+            [36m>[39m
+              [36m<span[39m
+                [33mclass[39m=[32m"semi-button-content"[39m
+              [36m>[39m
+                [36m<span[39m
+                  [33maria-label[39m=[32m"close"[39m
+                  [33mclass[39m=[32m"semi-icon semi-icon-default semi-icon-close"[39m
+                  [33mrole[39m=[32m"img"[39m
+                  [33mx-semi-prop[39m=[32m"icon"[39m
+                [36m>[39m
+                  [36m<svg[39m
+                    [33maria-hidden[39m=[32m"true"[39m
+                    [33mfill[39m=[32m"none"[39m
+                    [33mfocusable[39m=[32m"false"[39m
+                    [33mheight[39m=[32m"1em"[39m
+                    [33mviewBox[39m=[32m"0 0 24 24"[39m
+                    [33mwidth[39m=[32m"1em"[39m
+                    [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+                  [36m>[39m
+                    [36m<path[39m
+                      [33md[39m=[32m"M17.66 19.78a1.5 1.5 0 0 0 2.12-2.12L14.12 12l5.66-5.66a1.5 1.5 0 0 0-2.12-2.12L12 9.88 6.34 4.22a1.5 1.5 0 1 0-2.12 2.12L9.88 12l-5.66 5.66a1.5 1.5 0 0 0 2.12 2.12L12 14.12l5.66 5.66Z"[39m
+                      [33mfill[39m=[32m"currentColor"[39m
+                    [36m/>[39m
+                  [36m</svg>[39m
+                [36m</span>[39m
+              [36m</span>[39m
+            [36m</button>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+      [36m</div>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+  [36m<div[39m
+    [33mclass[39m=[32m"semi-toast-wrapper"[39m
+    [33mid[39m=[32m"toast-wrapper-178919736234"[39m
+    [33mstyle[39m=[32m"z-index: 1010;"[39m
+  [36m>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"semi-toast-innerWrapper"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33maria-label[39m=[32m"success type"[39m
+        [33mclass[39m=[32m"semi-toast semi-toast-animation-hide semi-toast-success"[39m
+        [33mrole[39m=[32m"alert"[39m
+        [33mstyle[39m=[32m"transform: translate3d(0,0,0px);"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"semi-toast-content"[39m
+        [36m>[39m
+          [36m<span[39m
+            [33maria-label[39m=[32m"tick_circle"[39m
+            [33mclass[39m=[32m"semi-icon semi-icon-large semi-icon-tick_circle semi-toast-icon semi-toast-icon-success"[39m
+            [33mrole[39m=[32m"img"[39m
+          [36m>[39m
+            [36m<svg[39m
+              [33maria-hidden[39m=[32m"true"[39m
+              [33mfill[39m=[32m"none"[39m
+              [33mfocusable[39m=[32m"false"[39m
+              [33mheight[39m=[32m"1em"[39m
+              [33mviewBox[39m=[32m"0 0 24 24"[39m
+              [33mwidth[39m=[32m"1em"[39m
+              [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+            [36m>[39m
+              [36m<path[39m
+                [33mclip-rule[39m=[32m"evenodd"[39m
+                [33md[39m=[32m"M12 23a11 11 0 1 0 0-22 11 11 0 0 0 0 22Zm5.88-13.18-6.2 7.6a1.5 1.5 0 0 1-2.37 0l-3.5-4a1.5 1.5 0 1 1 2.37-1.84l2.3 2.46L15.5 8a1.5 1.5 0 1 1 2.38 1.82Z"[39m
+                [33mfill[39m=[32m"currentColor"[39m
+                [33mfill-rule[39m=[32m"evenodd"[39m
+              [36m/>[39m
+            [36m</svg>[39m
+          [36m</span>[39m
+          [36m<span[39m
+            [33mclass[39m=[32m"semi-toast-content-text"[39m
+            [33mstyle[39m=[32m"max-width: 450px;"[39m
+            [33mx-semi-prop[39m=[32m"content"[39m
+          [36m>[39m
+            [0m绑定已重命名并保存[0m
+          [36m</span>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"semi-toast-close-button"[39m
+          [36m>[39m
+            [36m<button[39m
+              [33maria-disabled[39m=[32m"false"[39m
+              [33mclass[39m=[32m"semi-button semi-button-tertiary semi-button-size-small semi-button-borderless semi-button-with-icon semi-button-with-icon-only"[39m
+              [33mtype[39m=[32m"button"[39m
+            [36m>[39m
+              [36m<span[39m
+                [33mclass[39m=[32m"semi-button-content"[39m
+              [36m>[39m
+                ...
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ src/panels/KeysPanel.auth-names.test.tsx:242:17
+    240|   await act(async () => response.resolve({ status: 'ready',
+    241|     item: { ...NAME, alias: '旧请求的名称', display_name: '旧请求的名称' } }))
+    242|   expect(screen.getByText('新刷新的名称')).toBeInTheDocument()
+       |                 ^
+    243|   expect(screen.queryByText('已保存到 Keeper')).not.toBeInTheDocument()
+    244|   expect(screen.getByLabelText('凭据 auth-a')).toBeChecked()
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯

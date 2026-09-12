@@ -1,0 +1,41 @@
+> vitest run src/components/KeeperAuthNameEditor.test.tsx
+ RUN  v4.1.10 /Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-t09/web
+ ❯ src/components/KeeperAuthNameEditor.test.tsx (8 tests | 2 failed) 205ms
+   × S4 新名称视图保留草稿并允许再提交，旧请求结束不清除新请求状态 32ms
+   × S4 相同名称的新视图仍使旧 PATCH 失效 10ms
+ Test Files  1 failed (1)
+      Tests  2 failed | 6 passed (8)
+   Start at  15:16:21
+   Duration  3.62s (transform 1.92s, setup 3.00s, import 38ms, tests 205ms, environment 312ms)
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+ FAIL  src/components/KeeperAuthNameEditor.test.tsx > S4 新名称视图保留草稿并允许再提交，旧请求结束不清除新请求状态
+Error: expect(element).not.toBeDisabled()
+Received element is disabled:
+  <button
+  aria-disabled="true"
+  class="semi-button semi-button-disabled semi-button-light semi-button-primary-disabled"
+  disabled=""
+  type="button"
+/>
+ ❯ src/components/KeeperAuthNameEditor.test.tsx:92:24
+     90|   rerender(<KeeperAuthNameEditor authIndex="idx-a" name={{ ...NAME, al…
+     91|   expect(input()).toHaveValue('手工草稿')
+     92|   expect(button()).not.toBeDisabled()
+       |                        ^
+     93|   await user.click(button())
+     94|   await act(async () => oldResponse.resolve({ status: 'ready', item: {…
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+ FAIL  src/components/KeeperAuthNameEditor.test.tsx > S4 相同名称的新视图仍使旧 PATCH 失效
+Error: expect(element).toHaveValue(旧别名)
+Expected the element to have value:
+  旧别名
+Received:
+  过时值
+ ❯ src/components/KeeperAuthNameEditor.test.tsx:113:19
+    111|   await act(async () => response.resolve({ status: 'ready', item: { ..…
+    112|     audit: { operation_id: 'old-op', recorded: false } }))
+    113|   expect(input()).toHaveValue(NAME.alias)
+       |                   ^
+    114|   expect(onSaved).not.toHaveBeenCalled()
+    115|   expect(screen.queryByRole('status')).not.toBeInTheDocument()
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯

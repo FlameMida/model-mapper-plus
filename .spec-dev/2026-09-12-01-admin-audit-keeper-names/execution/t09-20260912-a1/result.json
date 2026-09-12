@@ -1,0 +1,65 @@
+{
+  "task_id": "T09",
+  "claim_key": "t09-20260912-a1",
+  "status": "ready",
+  "worktree": "/Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-t09",
+  "branch": "impl/admin-audit-t09",
+  "base_commit": "3bae2f217856f50c41c7e1b23fae9a24223a4ae6",
+  "commits": ["bd17fdfbde0fcc4598ee57218881799cdaa48c88"],
+  "changed_files": [
+    "web/src/components/ChannelTargetEditor.tsx",
+    "web/src/components/KeeperAuthNameEditor.test.tsx",
+    "web/src/components/KeeperAuthNameEditor.tsx",
+    "web/src/panels/KeysPanel.auth-names.test.tsx",
+    "web/src/panels/KeysPanel.tsx"
+  ],
+  "tests": [
+    {
+      "command": "rtk npm --prefix web test -- src/panels/KeysPanel.auth-names.test.tsx src/components/KeeperAuthNameEditor.test.tsx src/components/ChannelTargetEditor.test.tsx src/panels/KeysPanel.alias-sync.test.tsx",
+      "phase": "baseline",
+      "exit_code": 0,
+      "evidence_path": "/Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-evidence/t09-a1/baseline.log"
+    },
+    {
+      "command": "rtk npm --prefix web test -- src/panels/KeysPanel.auth-names.test.tsx",
+      "phase": "red",
+      "exit_code": 1,
+      "evidence_path": "/Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-evidence/t09-a1/red.log"
+    },
+    {
+      "command": "rtk npm --prefix web test -- src/components/KeeperAuthNameEditor.test.tsx",
+      "phase": "red",
+      "exit_code": 1,
+      "evidence_path": "/Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-evidence/t09-a1/red-editor.log"
+    },
+    {
+      "command": "rtk proxy npm --prefix web test -- src/panels/KeysPanel.auth-names.test.tsx src/components/KeeperAuthNameEditor.test.tsx",
+      "phase": "red",
+      "exit_code": 1,
+      "evidence_path": "/Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-evidence/t09-a1/red-raw.log"
+    },
+    {
+      "command": "rtk proxy npm --prefix web test -- src/panels/KeysPanel.auth-names.test.tsx src/components/KeeperAuthNameEditor.test.tsx src/components/ChannelTargetEditor.test.tsx src/panels/KeysPanel.alias-sync.test.tsx",
+      "phase": "green",
+      "exit_code": 0,
+      "evidence_path": "/Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-evidence/t09-a1/green.log"
+    },
+    {
+      "command": "rtk proxy npm --prefix web run typecheck",
+      "phase": "green",
+      "exit_code": 0,
+      "evidence_path": "/Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-evidence/t09-a1/typecheck.log"
+    }
+  ],
+  "self_check": {
+    "over_under_building": "pass",
+    "contract_alignment": "pass"
+  },
+  "deviations": [],
+  "resources": [
+    "已预登记 worktree=/Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-t09，branch=impl/admin-audit-t09；未创建新持久资源。",
+    "已预登记证据目录=/Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-evidence/t09-a1；日志与本回执均在此目录。"
+  ],
+  "blockers": [],
+  "coverage_note": "已消费权威 T09、plan/index、R2/S4 与 a.json/a-refutation.json，并核验 root/branch/base/初始干净状态。沿获批真实 React 组件 seam，仅替换既有 API 网络边界。主线程提供且本票核对的基线为4文件45项exit0。实现前动态红：KeysPanel 24项中核心回归失败，旧PATCH返回后找不到新刷新名称；独立编辑器8项中2个新回归失败（刷新后按钮仍禁用、相同名称新视图接纳旧回包）；合并原始日志red-raw保留3失败/29通过。另2项手改场景原本通过，作为保护，不冒充红。最小实现仅在父组件接纳读取后推进独立viewRevision并透传；编辑器layout effect推进既有version、作废pending，保留实例/dirty/手改草稿，请求ID避免旧finally清除新请求状态；原namesRevision写后防旧读逻辑保持。绿为4文件50项exit0，typecheck exit0，git diff --check exit0。覆盖同state_file/同auth_index/同identity_id的新刷新先回旧PATCH后回、同alias视图更新、手改草稿、关闭重开、新提交pending隔离，以及既有旧读晚于新写、名称/渠道/API Key别名回归。只改白名单中的5文件；ChannelTargetEditor.test.tsx无须改动，透传由KeysPanel集成测试观察。提交含Spec trailer，最终worktree干净。未merge/push，未改wire/后端/spec/progress，未操作真实Keeper或浏览器；最终集成、A/S复核及T07浏览器验收由主线程执行。"
+}
