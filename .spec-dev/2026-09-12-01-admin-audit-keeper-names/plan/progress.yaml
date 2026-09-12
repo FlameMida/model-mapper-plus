@@ -88,8 +88,19 @@ tasks:
       model_declaration_id: initial-20260912
   T07: { status: in_progress }
   T08: { status: pending }
-  T09: { status: pending }
+  T09:
+    status: in_progress
+    claim:
+      key: t09-20260912-a1
+      owner: 01a093e8-b328-7f41-9dc0-82ef9014f0ee
+      agent_id: pending-dispatch
+      worktree: /Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-t09
+      branch: impl/admin-audit-t09
+      base_commit: 3bae2f217856f50c41c7e1b23fae9a24223a4ae6
+      model_declaration_id: initial-20260912
 resources:
+  - "worktree: /Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-t09; claim=t09-20260912-a1; created; remove after acceptance/archive; branch=impl/admin-audit-t09"
+  - "evidence: /Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-evidence/t09-a1; claim=t09-20260912-a1; archive to feature execution/t09-20260912-a1 before cleanup"
   - "worktree: /Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-t06; claim=t06-20260912-a1; created; remove after acceptance/archive; branch=impl/admin-audit-t06"
   - "evidence: /Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-evidence/t06-a1; claim=t06-20260912-a1; archive to feature execution/t06-20260912-a1 before cleanup"
   - "worktree: /Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-t05; claim=t05-20260912-a1; created; remove after acceptance/archive; branch=impl/admin-audit-t05"
