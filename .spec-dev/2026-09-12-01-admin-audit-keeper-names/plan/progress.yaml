@@ -14,6 +14,7 @@ resources:
   - "worktree: 预期 .worktrees/admin-audit-keeper-names，尚未创建；T00 核实实际来源、路径与 created/inherited 后登记清理或移交方式"
   - "service: T07 本地验收服务预期 127.0.0.1:31819，尚未启动；启动时登记命令、PID、开始时间和关闭方法"
 notes:
+  - "用户明确授权：开始并发执行。补充精确写集合；T03路由挂载移至T04以隔离management.go，其公开API验收保留在T04。"
   - "用户已确认修正后的 spec 并授权编写计划；执行尚未获批。"
   - "宿主和 Keeper 仓库只读；渠道问题已由用户调整优先级解决。"
   - "真实线上名称写入与部署为 manual-pending，不自动执行。"

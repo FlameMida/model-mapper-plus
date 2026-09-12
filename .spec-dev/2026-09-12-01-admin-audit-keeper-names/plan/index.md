@@ -29,7 +29,7 @@
 - Begin 不能完整 Write+Sync 则 HTTP 503 且零业务副作用；Finish 失败保留真实业务结果及 audit 警告。
 - 后端错误 envelope 的 status 与 HTTP status 分开判定；HTTP 200 不等于 Keeper 同步成功。
 - 所有命令使用 rtk。示例 cwd 为实施工作区根；前端命令使用 --prefix web。
-- 采用串行 v1 计划，无并发声明、无集成组。主线程独占进度、集成和清理。
+- 用户已明确选择并发执行；采用v1 parallel扩展，无集成组。主线程独占进度、集成和清理。为隔离首批写集合，T03的路由挂载移至T04，不改变最终公开协议。
 
 ## 文件职责
 
@@ -62,8 +62,8 @@
 | T00 | 无 | 已批准 spec、Git 来源 | 真实隔离绑定、基线 SHA 与日志 |
 | T01 | T00 | dispatchManagement(req)、临时日文件 | beginAudit(statePath string, event auditEvent) (auditTicket, error); finishAudit(ticket auditTicket, event auditEvent) error; GET /audit |
 | T02 | T01 | beginAudit/finishAudit、既有四个变更 handler | withAuditedManagement(req pluginapi.ManagementRequest, run func() (pluginapi.ManagementResponse, auditResult)) pluginapi.ManagementResponse; managementMutationMu |
-| T03 | T00 | keeperClient、GET Keeper identities | keeperAuthNamesForConfig(cfg Config, force bool) keeperAuthNamesResponse; GET/POST /keeper/auth-names[/refresh] |
-| T04 | T02, T03 | withAuditedManagement、名称读取 | managementPatchKeeperAuthName(req pluginapi.ManagementRequest) pluginapi.ManagementResponse; PATCH /keeper/auth-names |
+| T03 | T00 | keeperClient、GET Keeper identities | keeperAuthNamesForConfig(cfg Config, force bool) keeperAuthNamesResponse; managementKeeperAuthNames(force bool) pluginapi.ManagementResponse（路由由T04挂载） |
+| T04 | T02, T03 | withAuditedManagement、名称读取handler | managementPatchKeeperAuthName(req pluginapi.ManagementRequest) pluginapi.ManagementResponse; GET/POST/PATCH /keeper/auth-names[/refresh] |
 | T05 | T03, T04 | 名称 GET/PATCH wire 协议 | api.getKeeperAuthNames/refreshKeeperAuthNames/patchKeeperAuthName; KeeperAuthNameEditor; 渠道名称显示 |
 | T06 | T02, T05 | GET /audit、mutation audit 字段 | api.getAudit(date?: string, page?: number, pageSize?: number): Promise<AuditPage>; ManagementAPIError(message: string, audit?: AuditMeta); AuditPanel |
 | T07 | T05, T06 | 完整 UI/管理 API | 本地受控浏览器验收记录 |
@@ -71,11 +71,81 @@
 
 ## 公开协议与测试边界
 
+```yaml spec-dev-parallel
+parallel:
+  tasks:
+    T01:
+      writes:
+        - "audit.go"
+        - "audit_query.go"
+        - "audit_test.go"
+        - "audit_query_test.go"
+        - "management.go"
+        - "management_test.go"
+      resources: []
+    T02:
+      writes:
+        - "audit_management.go"
+        - "management_audit_test.go"
+        - "management.go"
+        - "main.go"
+        - "management_api_test.go"
+      resources: []
+    T03:
+      writes:
+        - "keeper_auth_names.go"
+        - "management_keeper_names.go"
+        - "keeper_auth_names_test.go"
+        - "management_keeper_names_test.go"
+        - "keeper_client.go"
+        - "keeper_client_test.go"
+        - "keeper_aliases.go"
+      resources: []
+    T04:
+      writes:
+        - "keeper_auth_names.go"
+        - "management_keeper_names.go"
+        - "management.go"
+        - "keeper_auth_names_test.go"
+        - "management_keeper_names_test.go"
+        - "management_audit_test.go"
+      resources: []
+    T05:
+      writes:
+        - "web/src/keeperAuthNames.ts"
+        - "web/src/keeperAuthNames.test.ts"
+        - "web/src/components/KeeperAuthNameEditor.tsx"
+        - "web/src/components/KeeperAuthNameEditor.test.tsx"
+        - "web/src/panels/KeysPanel.auth-names.test.tsx"
+        - "web/src/api.ts"
+        - "web/src/api.test.ts"
+        - "web/src/components/ChannelTargetEditor.tsx"
+        - "web/src/components/ChannelTargetEditor.css"
+        - "web/src/panels/KeysPanel.tsx"
+      resources: []
+    T06:
+      writes:
+        - "web/src/panels/AuditPanel.tsx"
+        - "web/src/panels/AuditPanel.css"
+        - "web/src/panels/AuditPanel.test.tsx"
+        - "web/src/App.tsx"
+        - "web/src/App.test.tsx"
+        - "web/src/api.ts"
+        - "web/src/api.test.ts"
+        - "web/src/panels/RulesPanel.tsx"
+        - "web/src/panels/RulesPanel.test.tsx"
+        - "web/src/panels/KeysPanel.tsx"
+        - "web/src/panels/KeysPanel.auth-names.test.tsx"
+      resources: []
+```
+
 精确 JSON 协议直接继承 spec“接口与实现边界”。API 主测试落点为 dispatchManagement/handleManagement，React 使用可见交互；允许替換 Keeper HTTP、fetch、时钟及 Write/Sync 故障，不 mock 审计分类/匹配逻辑。表内新函数是跨任务实现接口，不要求逐一私有函数直测。
 
 内部公共类型由 T01 定义：auditEvent 包含 version/operation_id/phase/occurred_at、actor/action/object_type/object_ref、outcome、changed（*bool）、changes（map[string]auditChange）、error_code；auditChange 的 Before/After 为 json.RawMessage。auditTicket 固定 ID、Path、StartedAt。T02 定义 auditResult{Outcome string; Changed *bool; Changes map[string]auditChange; ErrorCode string}；不得把整个 State 或请求对象塞进 event。
 
 状态提交：各票先提交实现与证据，取得真实 SHA，再用 apply_patch 更新完整 progress.yaml，保留既有 notes/resources，并单独提交进度；不写引用自身未来提交的 SHA。原子状态保存沿 executing-plans 的既有文件写入方式，不在本计划创建通用进度工具。
+
+并发执行时，上述进度和证据归档仅由主线程实施；implementer只提交writes内文件，日志/result写入其预登记claim专属临时目录，禁止编辑.spec-dev。T03测试在公开名称服务及管理响应handler边界先取得红绿，T04以dispatchManagement验证最终路由挂载；该接线迁移仅为消除management.go写冲突，原S1/S2管理API验收仍保留。
 
 ## 体量说明
 
