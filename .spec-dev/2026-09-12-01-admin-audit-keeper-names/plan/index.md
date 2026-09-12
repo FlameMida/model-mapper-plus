@@ -20,7 +20,7 @@
 
 ## 全局约束
 
-- 只写本仓库；/Users/maverick/CLIProxyAPI 与 /Users/maverick/cpa-usage-keeper 均只读。禁止线上部署、真实名称改写、推送、发版。
+- 只写本仓库；/Users/maverick/CLIProxyAPI 与 /Users/maverick/cpa-usage-keeper 均只读。禁止线上部署和真实名称改写。用户追加授权“完成后提交 推送 发版”，在全部交付检查通过后推送本仓库并发布版本。
 - 日志直接追加 JSONL，不进入 state、不延迟导出、不自动重放操作；禁止修改 Scheduler/模型路由/认证优先级。
 - 北京时间 Asia/Shanghai；目录 0700，日文件 0600；同一操作跨午夜仍归开始日文件。
 - 名称最多 50 个 Unicode 字符，空字符串清空；同步立即生效，取消绑定不撤销。

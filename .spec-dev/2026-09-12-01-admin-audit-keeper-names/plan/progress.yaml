@@ -123,6 +123,7 @@ resources:
   - "service: server01 ended (confirmed no PID33547/listener); original 30m test timeout exit1 preserved in browser/server.log, not acceptance PASS. Fresh loopback server02 will be registered at startup."
   - "review-evidence: /Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-reviews; owned; archive review JSON/logs into feature before cleanup"
 notes:
+  - "User added explicit delivery authorization: 完成后提交 推送 发版. This supersedes earlier no-push/no-release statements, but not host/Keeper read-only or no production deployment/name-change boundary. Verify GitHub origin, remote commits/tags, CI and release assets after QA."
   - "User explicitly approved standalone Playwright local-only acceptance after CUA extension lacked Codex auth token and native Chrome reduced page to an inaccessible menu. Use isolated headless browser, loopback fixture only; no other user tabs or project dependency modifications."
   - "T09 integrated: 8 frontend files/82 tests and typecheck exit0; real red3-failure evidence archived. Fresh-process audit persistence test passed separately (browser/restart.log), source test commit b0f7d5f."
   - "Confirmed review finding A-1: newer name refresh can be overwritten by older PATCH response; independently refuted then confirmed by different reviewer (static evidence, dynamic red not yet claimed). Added T09 within original S4 and gated T07/T08 completion on its fix/review; original completed task evidence unchanged."
