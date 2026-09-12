@@ -1,0 +1,83 @@
+{
+  "task_id": "T04",
+  "claim_key": "t04-20260912-a1",
+  "status": "ready",
+  "worktree": "/Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-t04",
+  "branch": "impl/admin-audit-t04",
+  "base_commit": "3cd1e52b890676f9574507a72e82589365d068e8",
+  "commits": [
+    "afafff315688108650936714e40f2fc2afd9204d"
+  ],
+  "changed_files": [
+    "keeper_auth_names.go",
+    "management.go",
+    "management_audit_test.go",
+    "management_keeper_names.go",
+    "management_keeper_names_test.go"
+  ],
+  "tests": [
+    {
+      "command": "rtk proxy go test . -run '^Test(ManagementKeeperNames|KeeperNames|ManagementAudit)' -count=1 -v",
+      "phase": "baseline",
+      "exit_code": 0,
+      "evidence_path": "/Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-evidence/t04-a1/baseline.log"
+    },
+    {
+      "command": "rtk proxy go test . -run '^TestManagementKeeperNames(S1|S2|S3|S4Invalid|Registration)' -count=1 -v",
+      "phase": "red",
+      "exit_code": 1,
+      "evidence_path": "/Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-evidence/t04-a1/red-routes.log"
+    },
+    {
+      "command": "rtk proxy go test . -run '^TestManagementKeeperNames(S1|S2|S3|S4Invalid|Registration)' -count=1 -v",
+      "phase": "red",
+      "exit_code": 1,
+      "evidence_path": "/Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-evidence/t04-a1/red-provider.log"
+    },
+    {
+      "command": "rtk proxy go test . -run '^TestManagementKeeperNames(S2Validation|S4Failure|S4Patch|S4Old|S8S9)' -count=1 -v",
+      "phase": "red",
+      "exit_code": 1,
+      "evidence_path": "/Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-evidence/t04-a1/red-failures-cache.log"
+    },
+    {
+      "command": "rtk proxy go test . -run '^Test(ManagementKeeperNames|KeeperAuthNames|KeeperNames|ManagementAudit)' -count=1 -v",
+      "phase": "green",
+      "exit_code": 130,
+      "evidence_path": "/Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-evidence/t04-a1/green-attempt-harness-hang.log"
+    },
+    {
+      "command": "rtk proxy go test . -run '^Test(ManagementKeeperNames|KeeperAuthNames|KeeperNames|ManagementAudit)' -count=1 -v",
+      "phase": "green",
+      "exit_code": 0,
+      "evidence_path": "/Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-evidence/t04-a1/green-core.log"
+    },
+    {
+      "command": "rtk proxy go test . -run '^Test(ManagementKeeperNames|KeeperAuthNames|KeeperNames|ManagementAudit)' -count=1 -v",
+      "phase": "green",
+      "exit_code": 0,
+      "evidence_path": "/Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-evidence/t04-a1/green-all.log"
+    },
+    {
+      "command": "rtk proxy go test -race . -run '^Test(ManagementKeeperNames|KeeperAuthNames|KeeperNames|ManagementAudit)' -count=1 -v",
+      "phase": "green",
+      "exit_code": 0,
+      "evidence_path": "/Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-evidence/t04-a1/green-race.log"
+    }
+  ],
+  "self_check": {
+    "over_under_building": "pass",
+    "contract_alignment": "pass"
+  },
+  "deviations": [
+    "经主线程确认，在授权 keeper_auth_names.go 内实现 PATCH 专用阶段流程，复用 client.request 和 Cookie；区分第一次401之后登录失败的 unavailable 与实际PATCH失联的 unknown，共享5秒deadline且最多一次登录重试，未扩大 keeper_client.go 写集。",
+    "一次绿色验证的 httptest 服务清理因等待未读请求体的 Context 取消而挂起，主动中断 exit130 保留原日志；测试增加显式 release 通道后重跑通过，不将挂起记为通过。",
+    "keeper_auth_names_test.go 未产生修改；本票所有新增验证落在批准的公开 dispatchManagement、注册API和真实审计文件边界，由 management_keeper_names_test.go 与 management_audit_test.go 覆盖。"
+  ],
+  "resources": [
+    "/Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-evidence/t04-a1（主线程预登记证据目录；result.json 与日志保留）",
+    "仅使用 t.TempDir 与 httptest 自动回收临时资源，无新增持久资源"
+  ],
+  "blockers": [],
+  "coverage_note": "S1/S2 GET、POST refresh通过真实dispatch及registration验证。S3/S4覆盖更新、清空默认名、50/51 Unicode、精确Keeper禁用字符及允许ZWJ、TrimSpace、无本地绑定、真实GET回读、preflight强制重新解析ID/消失/歧义、provider/type/index精确匹配、各业务状态、首次401登录及登录失联/第二次401、单一5秒deadline、旧在途读取隔离、unknown后缓存刷新不改写审计结果。S8/S9覆盖Begin目录/Write/Sync故障零PATCH及业务ready或unknown同时Finish失败。S11覆盖已知秘密的真实JSONL/查询脱敏及热重配时原目录固定、Keeper网络不持配置/state锁。最终目标普通测试和race全部通过；提交后工作区干净。未调用真实线上Keeper；全仓回归、浏览器和最终集成交主线程。"
+}

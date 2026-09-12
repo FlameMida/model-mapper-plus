@@ -1,0 +1,110 @@
+command: rtk proxy go test . -run '^TestManagementKeeperNames(S2Validation|S4Failure|S4Patch|S4Old|S8S9)' -count=1 -v
+exit_code: 1
+=== RUN   TestManagementKeeperNamesS2Validation
+=== RUN   TestManagementKeeperNamesS2Validation/empty
+=== RUN   TestManagementKeeperNamesS2Validation/filter
+=== RUN   TestManagementKeeperNamesS2Validation/duplicate_index
+=== RUN   TestManagementKeeperNamesS2Validation/duplicate_id
+=== RUN   TestManagementKeeperNamesS2Validation/identical_duplicate
+=== RUN   TestManagementKeeperNamesS2Validation/missing_id
+=== RUN   TestManagementKeeperNamesS2Validation/invalid_id
+=== RUN   TestManagementKeeperNamesS2Validation/missing_index
+=== RUN   TestManagementKeeperNamesS2Validation/empty_index
+=== RUN   TestManagementKeeperNamesS2Validation/missing_alias
+=== RUN   TestManagementKeeperNamesS2Validation/missing_display
+=== RUN   TestManagementKeeperNamesS2Validation/missing_deleted
+=== RUN   TestManagementKeeperNamesS2Validation/missing_auth_type
+=== RUN   TestManagementKeeperNamesS2Validation/missing_type
+=== RUN   TestManagementKeeperNamesS2Validation/missing_provider
+    management_keeper_names_test.go:108: response={"status":"ready","items":[{"identity_id":"17","auth_index":"idx-a","alias":"A","display_name":"A"},{"identity_id":"18","auth_index":"idx-b","alias":"B","display_name":"B"},{"identity_id":"19","auth_index":"idx-c","alias":"C","display_name":"C"},{"identity_id":"20","auth_index":"idx-d","alias":"D","display_name":"D"}],"fetched_at":"2026-09-12T06:06:06.801588Z"}
+=== RUN   TestManagementKeeperNamesS2Validation/wrong_provider
+    management_keeper_names_test.go:108: response={"status":"ready","items":[{"identity_id":"17","auth_index":"idx-a","alias":"A","display_name":"A"}],"fetched_at":"2026-09-12T06:06:06.802922Z"}
+=== RUN   TestManagementKeeperNamesS2Validation/wrong_alias
+=== RUN   TestManagementKeeperNamesS2Validation/null_list
+--- FAIL: TestManagementKeeperNamesS2Validation (0.03s)
+    --- PASS: TestManagementKeeperNamesS2Validation/empty (0.00s)
+    --- PASS: TestManagementKeeperNamesS2Validation/filter (0.00s)
+    --- PASS: TestManagementKeeperNamesS2Validation/duplicate_index (0.00s)
+    --- PASS: TestManagementKeeperNamesS2Validation/duplicate_id (0.00s)
+    --- PASS: TestManagementKeeperNamesS2Validation/identical_duplicate (0.00s)
+    --- PASS: TestManagementKeeperNamesS2Validation/missing_id (0.00s)
+    --- PASS: TestManagementKeeperNamesS2Validation/invalid_id (0.00s)
+    --- PASS: TestManagementKeeperNamesS2Validation/missing_index (0.00s)
+    --- PASS: TestManagementKeeperNamesS2Validation/empty_index (0.00s)
+    --- PASS: TestManagementKeeperNamesS2Validation/missing_alias (0.00s)
+    --- PASS: TestManagementKeeperNamesS2Validation/missing_display (0.00s)
+    --- PASS: TestManagementKeeperNamesS2Validation/missing_deleted (0.00s)
+    --- PASS: TestManagementKeeperNamesS2Validation/missing_auth_type (0.00s)
+    --- PASS: TestManagementKeeperNamesS2Validation/missing_type (0.00s)
+    --- FAIL: TestManagementKeeperNamesS2Validation/missing_provider (0.00s)
+    --- FAIL: TestManagementKeeperNamesS2Validation/wrong_provider (0.00s)
+    --- PASS: TestManagementKeeperNamesS2Validation/wrong_alias (0.00s)
+    --- PASS: TestManagementKeeperNamesS2Validation/null_list (0.00s)
+=== RUN   TestManagementKeeperNamesS4FailureClassification
+=== RUN   TestManagementKeeperNamesS4FailureClassification/preflight_unavailable
+=== RUN   TestManagementKeeperNamesS4FailureClassification/missing_exact_index
+=== RUN   TestManagementKeeperNamesS4FailureClassification/index_is_not_trimmed
+=== RUN   TestManagementKeeperNamesS4FailureClassification/deleted
+=== RUN   TestManagementKeeperNamesS4FailureClassification/wrong_provider
+    management_keeper_names_test.go:310: response={"audit":{"operation_id":"cb6a9a22f853ca730b25f36d384206d7","recorded":true},"error_code":"connection_failed","status":"unknown"} patches=1
+=== RUN   TestManagementKeeperNamesS4FailureClassification/wrong_type
+=== RUN   TestManagementKeeperNamesS4FailureClassification/patch_disappeared
+    management_keeper_names_test.go:310: response={"audit":{"operation_id":"405b721f6fe157cc97230f1d359702b0","recorded":true},"error_code":"invalid_response","status":"unknown"} patches=1
+=== RUN   TestManagementKeeperNamesS4FailureClassification/patch_invalid
+    management_keeper_names_test.go:310: response={"audit":{"operation_id":"d3b69b6816d1104fa3fed87d5f55d85c","recorded":true},"error_code":"invalid_response","status":"unknown"} patches=1
+=== RUN   TestManagementKeeperNamesS4FailureClassification/patch_forbidden
+    management_keeper_names_test.go:310: response={"audit":{"operation_id":"a23838da0c5304bc2b67278b8238b134","recorded":true},"error_code":"authentication_failed","status":"unknown"} patches=1
+=== RUN   TestManagementKeeperNamesS4FailureClassification/patch_rate_limit
+    management_keeper_names_test.go:310: response={"audit":{"operation_id":"ec14c0091e9d209b6ba8c69cafe74c0e","recorded":true},"error_code":"rate_limited","status":"unknown"} patches=1
+=== RUN   TestManagementKeeperNamesS4FailureClassification/patch_server_error
+=== RUN   TestManagementKeeperNamesS4FailureClassification/patch_invalid_response
+=== RUN   TestManagementKeeperNamesS4FailureClassification/patch_changed_identity
+--- FAIL: TestManagementKeeperNamesS4FailureClassification (0.13s)
+    --- PASS: TestManagementKeeperNamesS4FailureClassification/preflight_unavailable (0.01s)
+    --- PASS: TestManagementKeeperNamesS4FailureClassification/missing_exact_index (0.01s)
+    --- PASS: TestManagementKeeperNamesS4FailureClassification/index_is_not_trimmed (0.01s)
+    --- PASS: TestManagementKeeperNamesS4FailureClassification/deleted (0.01s)
+    --- FAIL: TestManagementKeeperNamesS4FailureClassification/wrong_provider (0.01s)
+    --- PASS: TestManagementKeeperNamesS4FailureClassification/wrong_type (0.01s)
+    --- FAIL: TestManagementKeeperNamesS4FailureClassification/patch_disappeared (0.01s)
+    --- FAIL: TestManagementKeeperNamesS4FailureClassification/patch_invalid (0.01s)
+    --- FAIL: TestManagementKeeperNamesS4FailureClassification/patch_forbidden (0.01s)
+    --- FAIL: TestManagementKeeperNamesS4FailureClassification/patch_rate_limit (0.01s)
+    --- PASS: TestManagementKeeperNamesS4FailureClassification/patch_server_error (0.01s)
+    --- PASS: TestManagementKeeperNamesS4FailureClassification/patch_invalid_response (0.01s)
+    --- PASS: TestManagementKeeperNamesS4FailureClassification/patch_changed_identity (0.01s)
+=== RUN   TestManagementKeeperNamesS4PatchLogin
+=== RUN   TestManagementKeeperNamesS4PatchLogin/success
+=== RUN   TestManagementKeeperNamesS4PatchLogin/login_denied
+    management_keeper_names_test.go:346: response={"audit":{"operation_id":"16d741287248d46ada00360d54c2b86f","recorded":true},"error_code":"authentication_failed","status":"unknown"} patches=1 logins=1
+=== RUN   TestManagementKeeperNamesS4PatchLogin/login_disconnected
+    management_keeper_names_test.go:346: response={"audit":{"operation_id":"c7bdc477af36e16ef61d933c4d878c6f","recorded":true},"error_code":"connection_failed","status":"unknown"} patches=1 logins=1
+=== RUN   TestManagementKeeperNamesS4PatchLogin/second_unauthorized
+    management_keeper_names_test.go:346: response={"audit":{"operation_id":"b7ffaec77c96327154bad5f6091ea794","recorded":true},"error_code":"authentication_failed","status":"unknown"} patches=2 logins=1
+--- FAIL: TestManagementKeeperNamesS4PatchLogin (0.04s)
+    --- PASS: TestManagementKeeperNamesS4PatchLogin/success (0.01s)
+    --- FAIL: TestManagementKeeperNamesS4PatchLogin/login_denied (0.01s)
+    --- FAIL: TestManagementKeeperNamesS4PatchLogin/login_disconnected (0.01s)
+    --- FAIL: TestManagementKeeperNamesS4PatchLogin/second_unauthorized (0.01s)
+=== RUN   TestManagementKeeperNamesS8S9AuditFaults
+=== RUN   TestManagementKeeperNamesS8S9AuditFaults/begin-directory
+=== RUN   TestManagementKeeperNamesS8S9AuditFaults/begin-write
+=== RUN   TestManagementKeeperNamesS8S9AuditFaults/begin-sync
+=== RUN   TestManagementKeeperNamesS8S9AuditFaults/finish-write-ready
+=== RUN   TestManagementKeeperNamesS8S9AuditFaults/finish-sync-ready
+=== RUN   TestManagementKeeperNamesS8S9AuditFaults/finish-write-unknown
+=== RUN   TestManagementKeeperNamesS8S9AuditFaults/finish-sync-unknown
+--- PASS: TestManagementKeeperNamesS8S9AuditFaults (0.03s)
+    --- PASS: TestManagementKeeperNamesS8S9AuditFaults/begin-directory (0.00s)
+    --- PASS: TestManagementKeeperNamesS8S9AuditFaults/begin-write (0.00s)
+    --- PASS: TestManagementKeeperNamesS8S9AuditFaults/begin-sync (0.00s)
+    --- PASS: TestManagementKeeperNamesS8S9AuditFaults/finish-write-ready (0.01s)
+    --- PASS: TestManagementKeeperNamesS8S9AuditFaults/finish-sync-ready (0.01s)
+    --- PASS: TestManagementKeeperNamesS8S9AuditFaults/finish-write-unknown (0.01s)
+    --- PASS: TestManagementKeeperNamesS8S9AuditFaults/finish-sync-unknown (0.01s)
+=== RUN   TestManagementKeeperNamesS4OldReadCannotReplaceUpdatedCache
+    management_keeper_names_test.go:414: old flight replaced successful update: {Status:ready Items:[{IdentityID:17 AuthIndex:idx-a Alias:old DisplayName:old}] FetchedAt:2026-09-12T06:06:07.024938Z ErrorCode: RetryAfterSeconds:0}
+--- FAIL: TestManagementKeeperNamesS4OldReadCannotReplaceUpdatedCache (0.01s)
+FAIL
+FAIL	github.com/FlameMida/cpa-model-mapper-plus	0.948s
+FAIL

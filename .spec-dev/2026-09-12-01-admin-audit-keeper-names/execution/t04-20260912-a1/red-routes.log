@@ -1,0 +1,138 @@
+command: rtk proxy go test . -run '^TestManagementKeeperNames(S1|S2|S3|S4Invalid|Registration)' -count=1 -v
+exit_code: 1
+=== RUN   TestManagementKeeperNamesS1ReadsIdentity
+    management_keeper_names_test.go:53: unexpected response: {"error":"unknown management route"}
+--- FAIL: TestManagementKeeperNamesS1ReadsIdentity (0.00s)
+=== RUN   TestManagementKeeperNamesS2Validation
+=== RUN   TestManagementKeeperNamesS2Validation/empty
+    management_keeper_names_test.go:103: response={"error":"unknown management route"}
+=== RUN   TestManagementKeeperNamesS2Validation/filter
+    management_keeper_names_test.go:103: response={"error":"unknown management route"}
+=== RUN   TestManagementKeeperNamesS2Validation/duplicate_index
+    management_keeper_names_test.go:103: response={"error":"unknown management route"}
+=== RUN   TestManagementKeeperNamesS2Validation/duplicate_id
+    management_keeper_names_test.go:103: response={"error":"unknown management route"}
+=== RUN   TestManagementKeeperNamesS2Validation/identical_duplicate
+    management_keeper_names_test.go:103: response={"error":"unknown management route"}
+=== RUN   TestManagementKeeperNamesS2Validation/missing_id
+    management_keeper_names_test.go:103: response={"error":"unknown management route"}
+=== RUN   TestManagementKeeperNamesS2Validation/invalid_id
+    management_keeper_names_test.go:103: response={"error":"unknown management route"}
+=== RUN   TestManagementKeeperNamesS2Validation/missing_index
+    management_keeper_names_test.go:103: response={"error":"unknown management route"}
+=== RUN   TestManagementKeeperNamesS2Validation/empty_index
+    management_keeper_names_test.go:103: response={"error":"unknown management route"}
+=== RUN   TestManagementKeeperNamesS2Validation/missing_alias
+    management_keeper_names_test.go:103: response={"error":"unknown management route"}
+=== RUN   TestManagementKeeperNamesS2Validation/missing_display
+    management_keeper_names_test.go:103: response={"error":"unknown management route"}
+=== RUN   TestManagementKeeperNamesS2Validation/missing_deleted
+    management_keeper_names_test.go:103: response={"error":"unknown management route"}
+=== RUN   TestManagementKeeperNamesS2Validation/missing_auth_type
+    management_keeper_names_test.go:103: response={"error":"unknown management route"}
+=== RUN   TestManagementKeeperNamesS2Validation/missing_type
+    management_keeper_names_test.go:103: response={"error":"unknown management route"}
+=== RUN   TestManagementKeeperNamesS2Validation/wrong_alias
+    management_keeper_names_test.go:103: response={"error":"unknown management route"}
+=== RUN   TestManagementKeeperNamesS2Validation/null_list
+    management_keeper_names_test.go:103: response={"error":"unknown management route"}
+--- FAIL: TestManagementKeeperNamesS2Validation (0.01s)
+    --- FAIL: TestManagementKeeperNamesS2Validation/empty (0.00s)
+    --- FAIL: TestManagementKeeperNamesS2Validation/filter (0.00s)
+    --- FAIL: TestManagementKeeperNamesS2Validation/duplicate_index (0.00s)
+    --- FAIL: TestManagementKeeperNamesS2Validation/duplicate_id (0.00s)
+    --- FAIL: TestManagementKeeperNamesS2Validation/identical_duplicate (0.00s)
+    --- FAIL: TestManagementKeeperNamesS2Validation/missing_id (0.00s)
+    --- FAIL: TestManagementKeeperNamesS2Validation/invalid_id (0.00s)
+    --- FAIL: TestManagementKeeperNamesS2Validation/missing_index (0.00s)
+    --- FAIL: TestManagementKeeperNamesS2Validation/empty_index (0.00s)
+    --- FAIL: TestManagementKeeperNamesS2Validation/missing_alias (0.00s)
+    --- FAIL: TestManagementKeeperNamesS2Validation/missing_display (0.00s)
+    --- FAIL: TestManagementKeeperNamesS2Validation/missing_deleted (0.00s)
+    --- FAIL: TestManagementKeeperNamesS2Validation/missing_auth_type (0.00s)
+    --- FAIL: TestManagementKeeperNamesS2Validation/missing_type (0.00s)
+    --- FAIL: TestManagementKeeperNamesS2Validation/wrong_alias (0.00s)
+    --- FAIL: TestManagementKeeperNamesS2Validation/null_list (0.00s)
+=== RUN   TestManagementKeeperNamesS2Failures
+=== RUN   TestManagementKeeperNamesS2Failures/missing_list
+    management_keeper_names_test.go:133: response={"error":"unknown management route"}
+=== RUN   TestManagementKeeperNamesS2Failures/html
+    management_keeper_names_test.go:133: response={"error":"unknown management route"}
+=== RUN   TestManagementKeeperNamesS2Failures/trailing_json
+    management_keeper_names_test.go:133: response={"error":"unknown management route"}
+=== RUN   TestManagementKeeperNamesS2Failures/oversized
+    management_keeper_names_test.go:133: response={"error":"unknown management route"}
+=== RUN   TestManagementKeeperNamesS2Failures/forbidden
+    management_keeper_names_test.go:133: response={"error":"unknown management route"}
+=== RUN   TestManagementKeeperNamesS2Failures/server_failure
+    management_keeper_names_test.go:133: response={"error":"unknown management route"}
+=== RUN   TestManagementKeeperNamesS2Failures/rate_limited
+    management_keeper_names_test.go:133: response={"error":"unknown management route"}
+--- FAIL: TestManagementKeeperNamesS2Failures (0.01s)
+    --- FAIL: TestManagementKeeperNamesS2Failures/missing_list (0.00s)
+    --- FAIL: TestManagementKeeperNamesS2Failures/html (0.00s)
+    --- FAIL: TestManagementKeeperNamesS2Failures/trailing_json (0.00s)
+    --- FAIL: TestManagementKeeperNamesS2Failures/oversized (0.00s)
+    --- FAIL: TestManagementKeeperNamesS2Failures/forbidden (0.00s)
+    --- FAIL: TestManagementKeeperNamesS2Failures/server_failure (0.00s)
+    --- FAIL: TestManagementKeeperNamesS2Failures/rate_limited (0.00s)
+=== RUN   TestManagementKeeperNamesRegistration
+    management_keeper_names_test.go:196: unregistered GET /keeper/auth-names
+    management_keeper_names_test.go:196: unregistered POST /keeper/auth-names/refresh
+    management_keeper_names_test.go:196: unregistered PATCH /keeper/auth-names
+--- FAIL: TestManagementKeeperNamesRegistration (0.00s)
+=== RUN   TestManagementKeeperNamesS3ImmediateUpdate
+=== RUN   TestManagementKeeperNamesS3ImmediateUpdate/alias=新名称
+    management_keeper_names_test.go:227: response={"error":"unknown management route"}
+=== RUN   TestManagementKeeperNamesS3ImmediateUpdate/alias=
+    management_keeper_names_test.go:227: response={"error":"unknown management route"}
+=== RUN   TestManagementKeeperNamesS3ImmediateUpdate/alias=界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界
+    management_keeper_names_test.go:227: response={"error":"unknown management route"}
+=== RUN   TestManagementKeeperNamesS3ImmediateUpdate/alias=原名称
+    management_keeper_names_test.go:227: response={"error":"unknown management route"}
+--- FAIL: TestManagementKeeperNamesS3ImmediateUpdate (0.00s)
+    --- FAIL: TestManagementKeeperNamesS3ImmediateUpdate/alias=新名称 (0.00s)
+    --- FAIL: TestManagementKeeperNamesS3ImmediateUpdate/alias= (0.00s)
+    --- FAIL: TestManagementKeeperNamesS3ImmediateUpdate/alias=界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界 (0.00s)
+    --- FAIL: TestManagementKeeperNamesS3ImmediateUpdate/alias=原名称 (0.00s)
+=== RUN   TestManagementKeeperNamesS4InvalidInput
+=== RUN   TestManagementKeeperNamesS4InvalidInput/{
+    management_keeper_names_test.go:247: response={"error":"unknown management route"} requests=0
+=== RUN   TestManagementKeeperNamesS4InvalidInput/{}
+    management_keeper_names_test.go:247: response={"error":"unknown management route"} requests=0
+=== RUN   TestManagementKeeperNamesS4InvalidInput/null
+    management_keeper_names_test.go:247: response={"error":"unknown management route"} requests=0
+=== RUN   TestManagementKeeperNamesS4InvalidInput/{"auth_index":"idx-a"}
+    management_keeper_names_test.go:247: response={"error":"unknown management route"} requests=0
+=== RUN   TestManagementKeeperNamesS4InvalidInput/{"auth_index":"idx-a","alias":null}
+    management_keeper_names_test.go:247: response={"error":"unknown management route"} requests=0
+=== RUN   TestManagementKeeperNamesS4InvalidInput/{"auth_index":"","alias":"A"}
+    management_keeper_names_test.go:247: response={"error":"unknown management route"} requests=0
+=== RUN   TestManagementKeeperNamesS4InvalidInput/{"auth_index":"idx-a","alias":7}
+    management_keeper_names_test.go:247: response={"error":"unknown management route"} requests=0
+=== RUN   TestManagementKeeperNamesS4InvalidInput/界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界
+    management_keeper_names_test.go:251: response={"error":"unknown management route"} requests=0
+=== RUN   TestManagementKeeperNamesS4InvalidInput/a_
+    management_keeper_names_test.go:251: response={"error":"unknown management route"} requests=0
+=== RUN   TestManagementKeeperNamesS4InvalidInput/a\x00
+    management_keeper_names_test.go:251: response={"error":"unknown management route"} requests=0
+=== RUN   TestManagementKeeperNamesS4InvalidInput/a\u200b
+    management_keeper_names_test.go:251: response={"error":"unknown management route"} requests=0
+=== RUN   TestManagementKeeperNamesS4InvalidInput/a\u202e
+    management_keeper_names_test.go:251: response={"error":"unknown management route"} requests=0
+--- FAIL: TestManagementKeeperNamesS4InvalidInput (0.01s)
+    --- FAIL: TestManagementKeeperNamesS4InvalidInput/{ (0.00s)
+    --- FAIL: TestManagementKeeperNamesS4InvalidInput/{} (0.00s)
+    --- FAIL: TestManagementKeeperNamesS4InvalidInput/null (0.00s)
+    --- FAIL: TestManagementKeeperNamesS4InvalidInput/{"auth_index":"idx-a"} (0.00s)
+    --- FAIL: TestManagementKeeperNamesS4InvalidInput/{"auth_index":"idx-a","alias":null} (0.00s)
+    --- FAIL: TestManagementKeeperNamesS4InvalidInput/{"auth_index":"","alias":"A"} (0.00s)
+    --- FAIL: TestManagementKeeperNamesS4InvalidInput/{"auth_index":"idx-a","alias":7} (0.00s)
+    --- FAIL: TestManagementKeeperNamesS4InvalidInput/界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界 (0.00s)
+    --- FAIL: TestManagementKeeperNamesS4InvalidInput/a_ (0.00s)
+    --- FAIL: TestManagementKeeperNamesS4InvalidInput/a\x00 (0.00s)
+    --- FAIL: TestManagementKeeperNamesS4InvalidInput/a\u200b (0.00s)
+    --- FAIL: TestManagementKeeperNamesS4InvalidInput/a\u202e (0.00s)
+FAIL
+FAIL	github.com/FlameMida/cpa-model-mapper-plus	0.386s
+FAIL

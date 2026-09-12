@@ -45,7 +45,11 @@ tasks:
       base_commit: fbc63d7c0ac414200b3011fc6b2c34675e17525b
       model_declaration_id: initial-20260912
   T04:
-    status: in_progress
+    status: completed
+    commit: df9e277da3c2d4c2cfaf84d63dd4ae0eff3a75ee
+    implementation_commit: afafff315688108650936714e40f2fc2afd9204d
+    result_path: .spec-dev/2026-09-12-01-admin-audit-keeper-names/execution/t04-20260912-a1/result.json
+    tests: pass
     claim:
       key: t04-20260912-a1
       owner: 01a093e8-b328-7f41-9dc0-82ef9014f0ee
@@ -81,6 +85,7 @@ resources:
   - "worktree: /Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-keeper-names; created by this plan; after verified merge: git worktree remove /Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-keeper-names; git branch -d plan/admin-audit-keeper-names"
   - "service: T07 本地验收服务预期 127.0.0.1:31819，尚未启动；启动时登记命令、PID、开始时间和关闭方法"
 notes:
+  - "T04 accepted: precise PATCH authentication-stage handling and cache generations implemented within declared writes; interrupted httptest cleanup attempt exit130 retained, not PASS; final target/race and 78-test combined backend integration passed."
   - "Dependency refinement for authorized parallel execution: T05 consumes fixed spec JSON rather than T04 Go artifacts, so T05 now depends T03 only; T07 explicitly depends T04 and T06. T04/T05 writes are disjoint; real integration gate retained."
   - "T02 write scope extended before fix to audit.go/audit_query.go: real Finish Write-success/Sync-failure test found current-process query falsely succeeded. Existing S9 requires unknown. T01/T03 agents completed; new T02 paths have no active writer conflict. Canonical task/index in integration worktree updated; original claim preserved."
   - "T03 accepted: initial fixture cleanup timeout is preserved and excluded from valid-red evidence; corrected red-read/red-cache and green/race passed, combined T01+T03 integration 35 top-level tests passed."
@@ -100,7 +105,7 @@ execution:
   integration_worktree: /Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-keeper-names
   integration_branch: plan/admin-audit-keeper-names
   base_commit: fbc63d7c0ac414200b3011fc6b2c34675e17525b
-  validated_commit: 3cd1e52b890676f9574507a72e82589365d068e8
+  validated_commit: df9e277da3c2d4c2cfaf84d63dd4ae0eff3a75ee
   delivery:
     channel: local
     state: implementing

@@ -1,0 +1,100 @@
+=== RUN   TestKeeperNamesCacheRefreshExpiryAndFailures
+--- PASS: TestKeeperNamesCacheRefreshExpiryAndFailures (0.01s)
+=== RUN   TestKeeperNamesCoalescesAndWaiterCanCancel
+--- PASS: TestKeeperNamesCoalescesAndWaiterCanCancel (0.03s)
+=== RUN   TestKeeperNamesS4ConfigurationRejectsStaleAndInflight
+--- PASS: TestKeeperNamesS4ConfigurationRejectsStaleAndInflight (0.00s)
+=== RUN   TestKeeperNamesResetAndIndependentAliases
+--- PASS: TestKeeperNamesResetAndIndependentAliases (0.00s)
+=== RUN   TestKeeperNamesInFlightDoesNotBlockStateReadOrSave
+--- PASS: TestKeeperNamesInFlightDoesNotBlockStateReadOrSave (0.01s)
+=== RUN   TestKeeperNamesS4OneDeadlineIncludesLogin
+--- PASS: TestKeeperNamesS4OneDeadlineIncludesLogin (0.03s)
+=== RUN   TestManagementAuditWriteAndSyncFaults
+=== RUN   TestManagementAuditWriteAndSyncFaults/begin-write
+=== RUN   TestManagementAuditWriteAndSyncFaults/begin-sync
+=== RUN   TestManagementAuditWriteAndSyncFaults/finish-write
+=== RUN   TestManagementAuditWriteAndSyncFaults/finish-sync
+--- PASS: TestManagementAuditWriteAndSyncFaults (0.07s)
+    --- PASS: TestManagementAuditWriteAndSyncFaults/begin-write (0.01s)
+    --- PASS: TestManagementAuditWriteAndSyncFaults/begin-sync (0.01s)
+    --- PASS: TestManagementAuditWriteAndSyncFaults/finish-write (0.02s)
+    --- PASS: TestManagementAuditWriteAndSyncFaults/finish-sync (0.01s)
+=== RUN   TestManagementAuditRedactsKnownSecrets
+--- PASS: TestManagementAuditRedactsKnownSecrets (0.02s)
+=== RUN   TestManagementAuditShortSecretsKeepFingerprintAndMask
+--- PASS: TestManagementAuditShortSecretsKeepFingerprintAndMask (0.02s)
+=== RUN   TestManagementAuditReconfigureKeepsOperationSnapshot
+time=2026-09-12T13:59:57.447+08:00 level=INFO msg="reconfigure: migrated persisted state to new state_file" plugin=model-mapper-plus to=/var/folders/gb/6mr3jmcs06dcbxm5c85pdyyw0000gp/T/TestManagementAuditReconfigureKeepsOperationSnapshot2901243817/002/new-state.json
+time=2026-09-12T13:59:57.448+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+--- PASS: TestManagementAuditReconfigureKeepsOperationSnapshot (0.12s)
+=== RUN   TestManagementAuditS8BlocksBeforeMutation
+=== RUN   TestManagementAuditS8BlocksBeforeMutation/POST
+=== RUN   TestManagementAuditS8BlocksBeforeMutation/PATCH
+=== RUN   TestManagementAuditS8BlocksBeforeMutation/DELETE
+=== RUN   TestManagementAuditS8BlocksBeforeMutation/PUT
+--- PASS: TestManagementAuditS8BlocksBeforeMutation (0.02s)
+    --- PASS: TestManagementAuditS8BlocksBeforeMutation/POST (0.00s)
+    --- PASS: TestManagementAuditS8BlocksBeforeMutation/PATCH (0.01s)
+    --- PASS: TestManagementAuditS8BlocksBeforeMutation/DELETE (0.01s)
+    --- PASS: TestManagementAuditS8BlocksBeforeMutation/PUT (0.00s)
+=== RUN   TestManagementAuditCRUDAndNoChange
+--- PASS: TestManagementAuditCRUDAndNoChange (0.06s)
+=== RUN   TestManagementAuditRulesAndValidation
+--- PASS: TestManagementAuditRulesAndValidation (0.06s)
+=== RUN   TestManagementKeeperNamesS1ReadsIdentity
+--- PASS: TestManagementKeeperNamesS1ReadsIdentity (0.00s)
+=== RUN   TestManagementKeeperNamesS2Validation
+=== RUN   TestManagementKeeperNamesS2Validation/empty
+=== RUN   TestManagementKeeperNamesS2Validation/filter
+=== RUN   TestManagementKeeperNamesS2Validation/duplicate_index
+=== RUN   TestManagementKeeperNamesS2Validation/duplicate_id
+=== RUN   TestManagementKeeperNamesS2Validation/identical_duplicate
+=== RUN   TestManagementKeeperNamesS2Validation/missing_id
+=== RUN   TestManagementKeeperNamesS2Validation/invalid_id
+=== RUN   TestManagementKeeperNamesS2Validation/missing_index
+=== RUN   TestManagementKeeperNamesS2Validation/empty_index
+=== RUN   TestManagementKeeperNamesS2Validation/missing_alias
+=== RUN   TestManagementKeeperNamesS2Validation/missing_display
+=== RUN   TestManagementKeeperNamesS2Validation/missing_deleted
+=== RUN   TestManagementKeeperNamesS2Validation/missing_auth_type
+=== RUN   TestManagementKeeperNamesS2Validation/missing_type
+=== RUN   TestManagementKeeperNamesS2Validation/wrong_alias
+=== RUN   TestManagementKeeperNamesS2Validation/null_list
+--- PASS: TestManagementKeeperNamesS2Validation (0.03s)
+    --- PASS: TestManagementKeeperNamesS2Validation/empty (0.00s)
+    --- PASS: TestManagementKeeperNamesS2Validation/filter (0.00s)
+    --- PASS: TestManagementKeeperNamesS2Validation/duplicate_index (0.00s)
+    --- PASS: TestManagementKeeperNamesS2Validation/duplicate_id (0.00s)
+    --- PASS: TestManagementKeeperNamesS2Validation/identical_duplicate (0.00s)
+    --- PASS: TestManagementKeeperNamesS2Validation/missing_id (0.00s)
+    --- PASS: TestManagementKeeperNamesS2Validation/invalid_id (0.00s)
+    --- PASS: TestManagementKeeperNamesS2Validation/missing_index (0.00s)
+    --- PASS: TestManagementKeeperNamesS2Validation/empty_index (0.00s)
+    --- PASS: TestManagementKeeperNamesS2Validation/missing_alias (0.00s)
+    --- PASS: TestManagementKeeperNamesS2Validation/missing_display (0.00s)
+    --- PASS: TestManagementKeeperNamesS2Validation/missing_deleted (0.00s)
+    --- PASS: TestManagementKeeperNamesS2Validation/missing_auth_type (0.00s)
+    --- PASS: TestManagementKeeperNamesS2Validation/missing_type (0.00s)
+    --- PASS: TestManagementKeeperNamesS2Validation/wrong_alias (0.00s)
+    --- PASS: TestManagementKeeperNamesS2Validation/null_list (0.00s)
+=== RUN   TestManagementKeeperNamesS2Failures
+=== RUN   TestManagementKeeperNamesS2Failures/missing_list
+=== RUN   TestManagementKeeperNamesS2Failures/html
+=== RUN   TestManagementKeeperNamesS2Failures/trailing_json
+=== RUN   TestManagementKeeperNamesS2Failures/oversized
+=== RUN   TestManagementKeeperNamesS2Failures/forbidden
+=== RUN   TestManagementKeeperNamesS2Failures/server_failure
+=== RUN   TestManagementKeeperNamesS2Failures/rate_limited
+--- PASS: TestManagementKeeperNamesS2Failures (0.03s)
+    --- PASS: TestManagementKeeperNamesS2Failures/missing_list (0.00s)
+    --- PASS: TestManagementKeeperNamesS2Failures/html (0.00s)
+    --- PASS: TestManagementKeeperNamesS2Failures/trailing_json (0.00s)
+    --- PASS: TestManagementKeeperNamesS2Failures/oversized (0.01s)
+    --- PASS: TestManagementKeeperNamesS2Failures/forbidden (0.00s)
+    --- PASS: TestManagementKeeperNamesS2Failures/server_failure (0.00s)
+    --- PASS: TestManagementKeeperNamesS2Failures/rate_limited (0.00s)
+=== RUN   TestManagementKeeperNamesS4LoginAndSession
+--- PASS: TestManagementKeeperNamesS4LoginAndSession (0.00s)
+PASS
+ok  	github.com/FlameMida/cpa-model-mapper-plus	1.533s
