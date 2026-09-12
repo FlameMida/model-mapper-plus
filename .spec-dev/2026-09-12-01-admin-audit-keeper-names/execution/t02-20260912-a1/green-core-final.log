@@ -1,0 +1,19 @@
+command: rtk proxy go test . -run '^TestManagementAudit' -count=1 -v
+exit_code: 0
+=== RUN   TestManagementAuditS8BlocksBeforeMutation
+=== RUN   TestManagementAuditS8BlocksBeforeMutation/POST
+=== RUN   TestManagementAuditS8BlocksBeforeMutation/PATCH
+=== RUN   TestManagementAuditS8BlocksBeforeMutation/DELETE
+=== RUN   TestManagementAuditS8BlocksBeforeMutation/PUT
+--- PASS: TestManagementAuditS8BlocksBeforeMutation (0.01s)
+    --- PASS: TestManagementAuditS8BlocksBeforeMutation/POST (0.00s)
+    --- PASS: TestManagementAuditS8BlocksBeforeMutation/PATCH (0.00s)
+    --- PASS: TestManagementAuditS8BlocksBeforeMutation/DELETE (0.00s)
+    --- PASS: TestManagementAuditS8BlocksBeforeMutation/PUT (0.00s)
+=== RUN   TestManagementAuditCRUDAndNoChange
+--- PASS: TestManagementAuditCRUDAndNoChange (0.07s)
+=== RUN   TestManagementAuditRulesAndValidation
+--- PASS: TestManagementAuditRulesAndValidation (0.06s)
+PASS
+ok  	github.com/FlameMida/cpa-model-mapper-plus	0.590s
+

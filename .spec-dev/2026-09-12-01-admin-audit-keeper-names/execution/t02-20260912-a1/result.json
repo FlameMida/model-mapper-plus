@@ -1,0 +1,101 @@
+{
+  "task_id": "T02",
+  "claim_key": "t02-20260912-a1",
+  "status": "ready",
+  "worktree": "/Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-t02",
+  "branch": "impl/admin-audit-t02",
+  "base_commit": "55d3daca9ad06409d996f13339ed72081db099c3",
+  "commits": [
+    "5a75aba64d53d0812696d1e88af52e6c84a022d6"
+  ],
+  "changed_files": [
+    "audit.go",
+    "audit_query.go",
+    "audit_management.go",
+    "management_audit_test.go",
+    "management.go",
+    "main.go"
+  ],
+  "tests": [
+    {
+      "command": "rtk proxy go test . -run '^Test(ManagementPostKey|ManagementPatchKey|ManagementDeleteKey|ManagementPutRules|ManagementFirstSave|Reconfigure)' -count=1 -v",
+      "phase": "baseline",
+      "exit_code": 0,
+      "evidence_path": "/Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-evidence/t02-a1/baseline.log"
+    },
+    {
+      "command": "rtk proxy go test . -run '^TestManagementAudit' -count=1 -v",
+      "phase": "red",
+      "exit_code": 1,
+      "evidence_path": "/Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-evidence/t02-a1/red-core.log"
+    },
+    {
+      "command": "rtk proxy go test . -run '^TestManagementAudit' -count=1 -v",
+      "phase": "green",
+      "exit_code": 1,
+      "evidence_path": "/Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-evidence/t02-a1/green-core.log"
+    },
+    {
+      "command": "rtk proxy go test . -run '^TestManagementAudit' -count=1 -v",
+      "phase": "green",
+      "exit_code": 0,
+      "evidence_path": "/Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-evidence/t02-a1/green-core-final.log"
+    },
+    {
+      "command": "rtk proxy go test . -run '^TestManagementAudit(WriteAndSyncFaults|RedactsKnownSecrets|ReconfigureKeepsOperationSnapshot)' -count=1 -v",
+      "phase": "red",
+      "exit_code": 1,
+      "evidence_path": "/Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-evidence/t02-a1/red-faults-secrets-reconfigure.log"
+    },
+    {
+      "command": "rtk proxy go test . -run '^TestManagementAudit(RedactsKnownSecrets|ReconfigureKeepsOperationSnapshot)' -count=1 -v",
+      "phase": "green",
+      "exit_code": 0,
+      "evidence_path": "/Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-evidence/t02-a1/green-secrets-reconfigure.log"
+    },
+    {
+      "command": "rtk proxy go test . -run '^Test(ManagementAudit|ManagementPostKey|ManagementPatchKey|ManagementDeleteKey|ManagementPutRules|ManagementFirstSave|Reconfigure)' -count=1 -v",
+      "phase": "green",
+      "exit_code": 1,
+      "evidence_path": "/Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-evidence/t02-a1/target-incomplete.log"
+    },
+    {
+      "command": "rtk proxy go test . -run '^TestManagementAuditShortSecrets' -count=1 -v",
+      "phase": "red",
+      "exit_code": 1,
+      "evidence_path": "/Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-evidence/t02-a1/red-short-secrets.log"
+    },
+    {
+      "command": "rtk proxy go test . -run '^Test(ManagementAudit|ManagementPostKey|ManagementPatchKey|ManagementDeleteKey|ManagementPutRules|ManagementFirstSave|Reconfigure|Audit)' -count=1 -v",
+      "phase": "green",
+      "exit_code": 0,
+      "evidence_path": "/Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-evidence/t02-a1/green-target.log"
+    },
+    {
+      "command": "rtk proxy go test . -run '^TestManagementAuditCRUD' -count=1 -v",
+      "phase": "red",
+      "exit_code": 1,
+      "evidence_path": "/Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-evidence/t02-a1/red-null-diff.log"
+    },
+    {
+      "command": "rtk proxy go test . -race -run '^Test(ManagementAudit|ManagementPostKey|ManagementPatchKey|ManagementDeleteKey|ManagementPutRules|ManagementFirstSave|Reconfigure|Audit)' -count=1 -v",
+      "phase": "green",
+      "exit_code": 0,
+      "evidence_path": "/Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-evidence/t02-a1/green-race.log"
+    }
+  ],
+  "self_check": {
+    "over_under_building": "pass",
+    "contract_alignment": "pass"
+  },
+  "deviations": [
+    "事前扩权来源：主线程 canonical 计划提交 afd99db，已实际读取 T02.md 与 index 的新增 writes，允许 audit.go/audit_query.go 修复原 S9 Finish Sync 失败仍显示 succeeded 的缺口。未修改本分支 .spec-dev。",
+    "green-core.log 和 target-incomplete.log 保留了中途真实 exit 1；前者缺失目标 Key 的审计引用导致无效事件，后者为 Finish Sync 缺口，均在最终目标/race exit 0 前修复。",
+    "按主线程明确衔接要求，提供 /keeper/auth-names 的安全 metadata 分支以及包装器统一 Changes 脱敏；实际路由与 Keeper IO 留待 T04。"
+  ],
+  "resources": [
+    "仅使用已预登记 worktree 与证据目录；测试文件使用 t.TempDir 自动清理；未创建新持久运行资源。"
+  ],
+  "blockers": [],
+  "coverage_note": "S5-S9/S11 在 dispatchManagement + 实际 state + JSONL/GET audit 联合验证：四入口 Begin 门禁、CRUD分类、无变化、四段规则、非法JSON/验证/不存在Key、只读不记审计、Begin Write/Sync零副作用、Finish Write/Sync保持实际200并返回audit警告、同进程unknown、完整Key/header/Cookie/Keeper密码及短秘密脱敏、重配目录与state串行、快照读取不受管理IO门阻塞。新增逻辑有效红后实现，最终相关 tests + race exit0。已核对 git diff --check、实际六文件提交及干净 worktree。原 state API完整Key协议保留；T04 Keeper业务路径、前端、全量最终验收由后续票负责。"
+}

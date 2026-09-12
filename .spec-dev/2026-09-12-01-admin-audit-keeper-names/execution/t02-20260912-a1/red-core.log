@@ -1,0 +1,30 @@
+command: rtk proxy go test . -run '^TestManagementAudit' -count=1 -v
+exit_code: 1
+=== RUN   TestManagementAuditS8BlocksBeforeMutation
+=== RUN   TestManagementAuditS8BlocksBeforeMutation/POST
+    management_audit_test.go:59: status=200 body={"version":1,"rules":{"global":"","claude":"","codex":"","openai":""},"key_bindings":[{"key":"sk-secret","alias":"A","enabled":true,"blocked":false,"rules":{"global":"","claude":"","codex":"","openai":""}}],"persisted":true,"state_file":"/var/folders/gb/6mr3jmcs06dcbxm5c85pdyyw0000gp/T/TestManagementAuditS8BlocksBeforeMutationPOST1090998393/001/state.json","plugin_version":"0.0.0-dev.unbuilt"}
+    management_audit_test.go:62: state changed: <nil>
+    management_audit_test.go:66: in-memory state changed
+=== RUN   TestManagementAuditS8BlocksBeforeMutation/PATCH
+    management_audit_test.go:59: status=404 body={"error":"key binding not found"}
+=== RUN   TestManagementAuditS8BlocksBeforeMutation/DELETE
+    management_audit_test.go:59: status=404 body={"error":"key binding not found"}
+=== RUN   TestManagementAuditS8BlocksBeforeMutation/PUT
+    management_audit_test.go:59: status=200 body={"version":1,"rules":{"global":"a=\u003eb","claude":"","codex":"","openai":""},"key_bindings":[],"persisted":true,"state_file":"/var/folders/gb/6mr3jmcs06dcbxm5c85pdyyw0000gp/T/TestManagementAuditS8BlocksBeforeMutationPUT1819465891/001/state.json","plugin_version":"0.0.0-dev.unbuilt"}
+    management_audit_test.go:62: state changed: <nil>
+    management_audit_test.go:66: in-memory state changed
+--- FAIL: TestManagementAuditS8BlocksBeforeMutation (0.01s)
+    --- FAIL: TestManagementAuditS8BlocksBeforeMutation/POST (0.01s)
+    --- FAIL: TestManagementAuditS8BlocksBeforeMutation/PATCH (0.00s)
+    --- FAIL: TestManagementAuditS8BlocksBeforeMutation/DELETE (0.00s)
+    --- FAIL: TestManagementAuditS8BlocksBeforeMutation/PUT (0.01s)
+=== RUN   TestManagementAuditCRUDAndNoChange
+    management_audit_test.go:91: missing recorded audit: {"version":1,"rules":{"global":"","claude":"","codex":"","openai":""},"key_bindings":[{"key":"sk-audit-secret","alias":"A","enabled":true,"blocked":false,"rules":{"global":"","claude":"","codex":"","openai":""}}],"persisted":true,"state_file":"/var/folders/gb/6mr3jmcs06dcbxm5c85pdyyw0000gp/T/TestManagementAuditCRUDAndNoChange2269666211/001/state.json","plugin_version":"0.0.0-dev.unbuilt"}
+--- FAIL: TestManagementAuditCRUDAndNoChange (0.00s)
+=== RUN   TestManagementAuditRulesAndValidation
+    management_audit_test.go:145: missing recorded audit: {"version":1,"rules":{"global":"a=\u003eb","claude":"c=\u003ed","codex":"e=\u003ef","openai":"g=\u003eh"},"key_bindings":[],"persisted":true,"state_file":"/var/folders/gb/6mr3jmcs06dcbxm5c85pdyyw0000gp/T/TestManagementAuditRulesAndValidation3022450052/001/state.json","plugin_version":"0.0.0-dev.unbuilt"}
+--- FAIL: TestManagementAuditRulesAndValidation (0.00s)
+FAIL
+FAIL	github.com/FlameMida/cpa-model-mapper-plus	0.383s
+FAIL
+

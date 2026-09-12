@@ -1,0 +1,270 @@
+command: rtk proxy go test . -run '^Test(ManagementAudit|ManagementPostKey|ManagementPatchKey|ManagementDeleteKey|ManagementPutRules|ManagementFirstSave|Reconfigure)' -count=1 -v
+exit_code: 1
+=== RUN   TestReconfigureNeverExposesEmptyState
+time=2026-09-12T13:52:12.856+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.857+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.857+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.857+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.858+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.858+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.858+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.858+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.858+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.859+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.859+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.859+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.859+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.859+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.859+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.860+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.860+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.860+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.860+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.860+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.861+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.861+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.861+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.861+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.861+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.861+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.861+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.862+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.862+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.862+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.862+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.863+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.863+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.863+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.863+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.863+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.863+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.863+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.864+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.864+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.864+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.865+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.865+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.865+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.865+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.865+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.865+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.866+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.866+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.866+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.866+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.866+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.866+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.867+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.867+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.867+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.867+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.868+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.868+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.868+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.868+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.868+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.868+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.869+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.869+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.869+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.869+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.869+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.869+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.869+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.870+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.870+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.870+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.870+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.870+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.870+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.870+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.870+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.870+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.871+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.871+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.871+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.871+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.871+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.871+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.871+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.871+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.872+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.872+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.872+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.872+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.873+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.873+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.873+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.873+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.873+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.873+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.873+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.873+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.874+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.874+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.874+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.874+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.874+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.874+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.874+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.875+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.875+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.875+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.875+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.875+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.875+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.875+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.876+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.876+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.876+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.876+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.876+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.876+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.876+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.876+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.876+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.876+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.877+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.877+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.877+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.877+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.877+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.878+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.878+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.878+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.878+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.878+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.878+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.878+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.878+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.878+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.878+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.879+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.879+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.879+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.879+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.879+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.879+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.879+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.879+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.879+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.879+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.879+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.880+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.880+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.880+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.880+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.880+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.880+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.880+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.881+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.881+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.881+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.881+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.881+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.881+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.881+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.882+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.882+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.882+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.882+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.882+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.882+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.882+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.882+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.882+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.882+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.882+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.882+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.882+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.883+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.883+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.883+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.883+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.883+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.883+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.883+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.883+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.883+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.883+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.883+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.884+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.884+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.884+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.884+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.884+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.884+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.884+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.884+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.884+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.885+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.885+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.885+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.885+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:12.885+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+--- PASS: TestReconfigureNeverExposesEmptyState (0.04s)
+=== RUN   TestManagementPostKeyTrimsKey
+--- PASS: TestManagementPostKeyTrimsKey (0.01s)
+=== RUN   TestManagementFirstSaveCreatesStateFile
+--- PASS: TestManagementFirstSaveCreatesStateFile (0.00s)
+=== RUN   TestManagementPutRulesRejectsInvalid
+--- PASS: TestManagementPutRulesRejectsInvalid (0.00s)
+=== RUN   TestManagementPostKeyUpsert
+--- PASS: TestManagementPostKeyUpsert (0.01s)
+=== RUN   TestManagementPatchKey
+--- PASS: TestManagementPatchKey (0.01s)
+=== RUN   TestManagementDeleteKey
+--- PASS: TestManagementDeleteKey (0.01s)
+=== RUN   TestManagementPatchKeyMissing
+--- PASS: TestManagementPatchKeyMissing (0.00s)
+=== RUN   TestManagementPostKeyPersistsBlockedAndGetStateReadsIt
+--- PASS: TestManagementPostKeyPersistsBlockedAndGetStateReadsIt (0.00s)
+=== RUN   TestManagementPatchKeyUnblocksWithoutClobberingEnabled
+--- PASS: TestManagementPatchKeyUnblocksWithoutClobberingEnabled (0.01s)
+=== RUN   TestManagementAuditWriteAndSyncFaults
+=== RUN   TestManagementAuditWriteAndSyncFaults/begin-write
+=== RUN   TestManagementAuditWriteAndSyncFaults/begin-sync
+=== RUN   TestManagementAuditWriteAndSyncFaults/finish-write
+=== RUN   TestManagementAuditWriteAndSyncFaults/finish-sync
+    management_audit_test.go:94: query={Date:2026-09-12 Timezone:Asia/Shanghai Page:1 PageSize:20 Total:1 Items:[{OperationID:79f09279323867d013b73d61d8e7d9ae Actor:management_api Action:create ObjectType:key_binding ObjectRef:sha256:7c228e34d93ef3f67fa0572ed50f04f0d0d8ccdd005ec7e71ee3666bdb145957 masked:*** StartedAt:2026-09-12 13:52:12.979242 +0800 CST FinishedAt:2026-09-12 13:52:12.986404 +0800 CST Outcome:succeeded Changed:0x61cb491826fe Changes:map[alias:{Before:null After:"A"} blocked:{Before:null After:false} channel_target:{Before:null After:null} enabled:{Before:null After:true} fast_allowed:{Before:null After:null} rules.claude:{Before:null After:""} rules.codex:{Before:null After:""} rules.global:{Before:null After:""} rules.openai:{Before:null After:""}] ErrorCode:}] Warnings:[]}
+--- FAIL: TestManagementAuditWriteAndSyncFaults (0.05s)
+    --- PASS: TestManagementAuditWriteAndSyncFaults/begin-write (0.01s)
+    --- PASS: TestManagementAuditWriteAndSyncFaults/begin-sync (0.01s)
+    --- PASS: TestManagementAuditWriteAndSyncFaults/finish-write (0.02s)
+    --- FAIL: TestManagementAuditWriteAndSyncFaults/finish-sync (0.01s)
+=== RUN   TestManagementAuditRedactsKnownSecrets
+--- PASS: TestManagementAuditRedactsKnownSecrets (0.03s)
+=== RUN   TestManagementAuditReconfigureKeepsOperationSnapshot
+time=2026-09-12T13:52:13.131+08:00 level=INFO msg="reconfigure: migrated persisted state to new state_file" plugin=model-mapper-plus to=/var/folders/gb/6mr3jmcs06dcbxm5c85pdyyw0000gp/T/TestManagementAuditReconfigureKeepsOperationSnapshot2818105630/002/new-state.json
+time=2026-09-12T13:52:13.131+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+--- PASS: TestManagementAuditReconfigureKeepsOperationSnapshot (0.12s)
+=== RUN   TestManagementAuditS8BlocksBeforeMutation
+=== RUN   TestManagementAuditS8BlocksBeforeMutation/POST
+=== RUN   TestManagementAuditS8BlocksBeforeMutation/PATCH
+=== RUN   TestManagementAuditS8BlocksBeforeMutation/DELETE
+=== RUN   TestManagementAuditS8BlocksBeforeMutation/PUT
+--- PASS: TestManagementAuditS8BlocksBeforeMutation (0.01s)
+    --- PASS: TestManagementAuditS8BlocksBeforeMutation/POST (0.00s)
+    --- PASS: TestManagementAuditS8BlocksBeforeMutation/PATCH (0.01s)
+    --- PASS: TestManagementAuditS8BlocksBeforeMutation/DELETE (0.00s)
+    --- PASS: TestManagementAuditS8BlocksBeforeMutation/PUT (0.00s)
+=== RUN   TestManagementAuditCRUDAndNoChange
+--- PASS: TestManagementAuditCRUDAndNoChange (0.06s)
+=== RUN   TestManagementAuditRulesAndValidation
+--- PASS: TestManagementAuditRulesAndValidation (0.06s)
+=== RUN   TestReconfigureMigratesPersistedStateToNewNonexistentPath
+time=2026-09-12T13:52:13.271+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:13.275+08:00 level=INFO msg="reconfigure: migrated persisted state to new state_file" plugin=model-mapper-plus to=/var/folders/gb/6mr3jmcs06dcbxm5c85pdyyw0000gp/T/TestReconfigureMigratesPersistedStateToNewNonexistentPath1298107419/001/b.json
+time=2026-09-12T13:52:13.275+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+--- PASS: TestReconfigureMigratesPersistedStateToNewNonexistentPath (0.01s)
+=== RUN   TestReconfigureDoesNotMigrateOnFirstRun
+time=2026-09-12T13:52:13.277+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=false key_bindings=0
+--- PASS: TestReconfigureDoesNotMigrateOnFirstRun (0.00s)
+=== RUN   TestReconfigureSwitchesToExistingPathReadsIt
+time=2026-09-12T13:52:13.287+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+time=2026-09-12T13:52:13.287+08:00 level=INFO msg="reconfigure applied" plugin=model-mapper-plus enabled=true persisted=true key_bindings=1
+--- PASS: TestReconfigureSwitchesToExistingPathReadsIt (0.01s)
+FAIL
+FAIL	github.com/FlameMida/cpa-model-mapper-plus	1.120s
+FAIL
+

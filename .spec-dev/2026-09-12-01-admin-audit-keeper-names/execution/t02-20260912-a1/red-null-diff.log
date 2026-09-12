@@ -1,0 +1,9 @@
+command: rtk proxy go test . -run '^TestManagementAuditCRUD' -count=1 -v
+exit_code: 1
+=== RUN   TestManagementAuditCRUDAndNoChange
+    management_audit_test.go:364: unchanged null channel target included in diff
+--- FAIL: TestManagementAuditCRUDAndNoChange (0.02s)
+FAIL
+FAIL	github.com/FlameMida/cpa-model-mapper-plus	0.776s
+FAIL
+
