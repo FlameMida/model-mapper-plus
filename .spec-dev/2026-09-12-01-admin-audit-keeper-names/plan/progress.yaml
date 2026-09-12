@@ -1,7 +1,7 @@
 format_version: 1
 current: null
 tasks:
-  T00: { status: pending }
+  T00: { status: completed, commit: fbc63d7c0ac414200b3011fc6b2c34675e17525b, tests: pass }
   T01: { status: pending }
   T02: { status: pending }
   T03: { status: pending }
@@ -11,11 +11,27 @@ tasks:
   T07: { status: pending }
   T08: { status: pending }
 resources:
-  - "worktree: 预期 .worktrees/admin-audit-keeper-names，尚未创建；T00 核实实际来源、路径与 created/inherited 后登记清理或移交方式"
+  - "worktree: /Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-keeper-names; created by this plan; after verified merge: git worktree remove /Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-keeper-names; git branch -d plan/admin-audit-keeper-names"
   - "service: T07 本地验收服务预期 127.0.0.1:31819，尚未启动；启动时登记命令、PID、开始时间和关闭方法"
 notes:
+  - "T00 baseline: Go 52 top-level tests and frontend 77 tests/14 files passed; typecheck exit0; npm ci exit0 reports existing 34 dependency advisories (not changed). Raw logs in acceptance/baseline."
+  - "model-declaration/initial-20260912: main=GPT-6 (session identity), reasoning=not exposed; implementers inherit main model and reasoning; tool parameters do not override model."
+  - "parallel activation: first execution authorized by user 开始并发执行; base_commit=fbc63d7c0ac414200b3011fc6b2c34675e17525b; T01/T03 and T02/T03 normalized writes do not conflict."
+  - "T00/source_worktree=/Users/maverick/cpa-model-mapper-plus; source_branch=main; source_head=fbc63d7; implementation_worktree=/Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-keeper-names; implementation_branch=plan/admin-audit-keeper-names; ownership=created"
+  - "feature-lock owner=01a093e8-b328-7f41-9dc0-82ef9014f0ee; common-dir=/Users/maverick/cpa-model-mapper-plus/.git; hash=314d6da60e0c67fb4c5accecd4b7623eae4e957100c8add8834d3a807e20c20e; dev=16777233; ino=198395472"
   - "用户明确授权：开始并发执行。补充精确写集合；T03路由挂载移至T04以隔离management.go，其公开API验收保留在T04。"
   - "用户已确认修正后的 spec 并授权编写计划；执行尚未获批。"
   - "宿主和 Keeper 仓库只读；渠道问题已由用户调整优先级解决。"
   - "真实线上名称写入与部署为 manual-pending，不自动执行。"
   - "计划结构校验通过；plan-state检查器仅支持integration v2，本计划v1改用真实YAML解析验证9项pending和台账。尚未执行任何任务。"
+execution:
+  mode: parallel
+  owner: 01a093e8-b328-7f41-9dc0-82ef9014f0ee
+  integration_worktree: /Users/maverick/cpa-model-mapper-plus/.worktrees/admin-audit-keeper-names
+  integration_branch: plan/admin-audit-keeper-names
+  base_commit: fbc63d7c0ac414200b3011fc6b2c34675e17525b
+  validated_commit: fbc63d7c0ac414200b3011fc6b2c34675e17525b
+  delivery:
+    channel: local
+    state: implementing
+    source_branch: main

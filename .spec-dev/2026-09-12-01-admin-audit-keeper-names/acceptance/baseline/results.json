@@ -1,0 +1,8 @@
+{
+  "commit": "fbc63d7c0ac414200b3011fc6b2c34675e17525b",
+  "go": {"exit_code": 0, "top_level_tests": 52, "log": "go.log"},
+  "npm_ci": {"exit_code": 0, "log": "npm-ci.log", "existing_advisories": 34},
+  "frontend": {"exit_code": 0, "tests": 77, "files": 14, "log": "frontend.log"},
+  "typecheck": {"exit_code": 0, "log": "typecheck.log"},
+  "boundary": "Scope baseline only; no feature implementation or final acceptance yet."
+}
