@@ -43,11 +43,35 @@ tasks:
       branch: "ku/T02"
       base_commit: "f7ace3f"
     model_declaration_id: "decl-001"
-  T03: { status: pending }
-  T04: { status: pending }
+  T03:
+    status: in_progress
+    claim:
+      key: "T03-a1"
+      owner: "claude-code-main@Maverick-mini.local-pid-35706"
+      worktree: ".worktrees/ku-T03"
+      branch: "ku/T03"
+      base_commit: "6681966"
+    model_declaration_id: "decl-001"
+  T04:
+    status: in_progress
+    claim:
+      key: "T04-a1"
+      owner: "claude-code-main@Maverick-mini.local-pid-35706"
+      worktree: ".worktrees/ku-T04"
+      branch: "ku/T04"
+      base_commit: "6681966"
+    model_declaration_id: "decl-001"
   T05: { status: pending }
   T06: { status: pending }
-  T07: { status: pending }
+  T07:
+    status: in_progress
+    claim:
+      key: "T07-a1"
+      owner: "claude-code-main@Maverick-mini.local-pid-35706"
+      worktree: ".worktrees/ku-T07"
+      branch: "ku/T07"
+      base_commit: "6681966"
+    model_declaration_id: "decl-001"
   T08: { status: pending }
   T09: { status: pending }
   T10: { status: pending }
@@ -69,3 +93,4 @@ notes:
   - "plan-rev/wave3: 导航表补三处依赖边（T05←T03 periodRange；T06←T03/T05 渲染素材；T09←T06 preview 渲染），plan-index 重校验通过；Wave3 改为 T03‖T04‖T07，T05 推后"
   - "accept/T01-a1: 非行为例外票，声明修订移出 parallel 块；人工核验 Git 事实全过（净差异⊆写集合、单提交、ancestry）；集成 merge 3aef028 + 集成验证全绿（typecheck/140 测试/build）；validated_commit → 3aef028"
   - "accept/T02-a1: verifyResult 完整通过（红绿证据+Git 事实）；集成 merge 6681966 + 集成验证（vet+相关范围全绿）；validated_commit → 6681966"
+  - "dispatch/Wave3: T03-a1 + T04-a1 + T07-a1 于 validated_commit=6681966 认领并派发（2026-09-13）；T05 因 T03 依赖推后"
