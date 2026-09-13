@@ -119,7 +119,13 @@ tasks:
       base_commit: "6681966"
     model_declaration_id: "decl-001"
   T08:
-    status: in_progress
+    status: completed
+    commit: "557f7eb"
+    implementation_commit: "171643a6cf5831bf994ac4dd4269c595455e3e76"
+    tests: pass
+    deviations:
+      - "判重闸门实现为 pendingJobExists（spec 待发合并语义；终态不抑制）"
+      - "supersededStaleJobs 返回 (int, error)；stubAdapter count() 防 data race（race 通过）"
     claim:
       key: "T08-a1"
       owner: "claude-code-main@Maverick-mini.local-pid-35706"
@@ -159,3 +165,5 @@ notes:
   - "dispatch/T06: T06-a1 于 7e9e11a（含 T02+T03+T05）认领并派发（2026-09-13）"
   - "accept/T06-a1: verifyResult 完整通过；集成 merge d3f695c + 集成验证全绿（vet+相关范围 6.9s）；validated_commit → d3f695c"
   - "dispatch/T08: T08-a1 于 d3f695c（含 T02-T07 全部产物）认领并派发（2026-09-13）——Go 侧汇合票"
+  - "accept/T08-a1: verifyResult 完整通过；集成 merge 557f7eb + 集成验证全绿；validated_commit → 557f7eb"
+  - "fix/T04-merge-revision: T08 implementer 发现 T04 偏差记录与源码不符（merge 分支未刷新 Revision，合并产物会被版本门误杀、延迟一个周期）——主线程集成修复：merge 分支刷新 Revision=调用方当前值 + 测试断言（Revision 3→7），store 测试与全量回归全绿；T04 deviations 记录以本修复为准"
