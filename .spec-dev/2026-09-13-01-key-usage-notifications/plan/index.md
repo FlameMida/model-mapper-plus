@@ -140,11 +140,11 @@ parallel:
 | T02 | — | — | `NotificationSettings`/`Notification`/`validateNotifications(st)`/`notificationsOf(st, key)`（notification_types.go；state.State 扩展字段） |
 | T03 | T02 | T02 的 `NotificationSchedule`/`ModuleKind`/`PeriodKind` | `nextTrigger(sched NotificationSchedule, after time.Time, loc *time.Location) (time.Time, bool)`、`periodRange(m ModulePeriodStat, now time.Time, loc) (start, end time.Time, label string)` |
 | T04 | T02 | T02 类型 | `openNotificationStore(path) (*notificationStore, error)`、`(*notificationStore).AppendJob/TransitionJob/MergeJobs/AppendDelivery/SnapshotList/Coverage`（结构见任务文件接口块） |
-| T05 | T02 | T02、`keeperClient.authenticatedRequest` | `type keeperStatsSource struct` + `(*keeperStatsSource).collect(ctx, key, period) (periodStats, error)`、`identifyAuthIndex`（notification_keeper.go） |
-| T06 | T02 | T02、T05 `periodStats` | `renderMessage(n Notification, data statsData, loc) (string, renderWarnings)`、`abbreviateTokens(n int64) string`、`channelShare(shares) (float64, bool)` |
+| T05 | T02,T03 | T02 类型；T03 `periodRange`/`NotificationLocation`；`keeperClient.authenticatedRequest` | `type keeperStatsSource struct` + `(*keeperStatsSource).collect(ctx, key, period) (periodStats, error)`、`identifyAuthIndex`（notification_keeper.go） |
+| T06 | T02,T03,T05 | T02 `Notification`；T03 `periodRange`/`NotificationLocation`；T05 `periodStats`/`channelStats`/`windowStat`/`periodKeyOf` | `renderMessage(n Notification, data statsData, loc) (string, renderWarnings)`、`abbreviateTokens(n int64) string`、`channelShare(shares) (float64, bool)` |
 | T07 | T02 | T02 | `platformAdapter` 接口、`buildAdapter(p PlatformKind, target PlatformIdentity) platformAdapter`、`(*adapter).send(ctx, msg outboundMessage) deliveryResult` |
 | T08 | T02,T03,T04,T05,T06,T07 | 上述全部 | `startNotificationService(cfg, store, deps) (*notificationService, error)`、`(*notificationService).Stop(ctx)`、`serviceDeps`（时钟/HTTP 替身边界） |
-| T09 | T02,T04,T08 | T02/T04/T08 全部 | management 路由：`GET/PUT /notifications/settings`、`GET /notifications/status`、`POST /notifications/preview`、`POST /notifications/test-send`、`GET /notifications/deliveries`、`POST /notifications/deliveries/retry`；`handleNotificationManagement(req)` |
+| T09 | T02,T04,T06,T08 | T02 校验、T04 投递查询、T06 渲染、T08 服务状态 | management 路由：`GET/PUT /notifications/settings`、`GET /notifications/status`、`POST /notifications/preview`、`POST /notifications/test-send`、`GET /notifications/deliveries`、`POST /notifications/deliveries/retry`；`handleNotificationManagement(req)` |
 | T10 | T09 | T09 契约 | `web/src/notifications.ts` 类型 + `api.ts` 的 `api.notifications.*` 方法组 |
 | T11 | T01,T10 | T10 类型 | `NotificationModulesEditor`（dnd-kit 拖拽 + 勾选 + 周期 Select）、`NotificationScheduleEditor`（每隔/每月/每年三态）props 契约 |
 | T12 | T01,T10 | T10 | `PlatformIdentityEditor`（企微/飞书/钉钉 card Tabs、明文回显、企微无签名说明、必填校验） |

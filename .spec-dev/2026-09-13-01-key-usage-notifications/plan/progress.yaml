@@ -6,7 +6,7 @@ execution:
   integration_worktree: "/Users/maverick/cpa-model-mapper-plus/.worktrees/plan-2026-09-13-01-key-usage-notifications"
   integration_branch: "plan-2026-09-13-01-key-usage-notifications"
   base_commit: "f7ace3f"
-  validated_commit: "3aef028"
+  validated_commit: "6681966"
 tasks:
   T00: { status: completed, commit: "ec515043a356532a23ea70d288b8dc41aac3b0d4", tests: pass }
   T01:
@@ -27,7 +27,14 @@ tasks:
       base_commit: "f7ace3f"
     model_declaration_id: "decl-001"
   T02:
-    status: in_progress
+    status: completed
+    commit: "6681966"
+    implementation_commit: "e0126c538ded6f554a6c7d61ded1b7d6d9a77431"
+    tests: pass
+    deviations:
+      - "validateKeyNotificationsEntity 签名 (index int, b *KeyBinding) 以锚定测试路径断言"
+      - "interval 计划 Time 实现为可选发送锚点（非空时校验 HH:MM:SS）"
+      - "步骤4 正则笔误以补跑同文件全部测试作回归证据"
     claim:
       key: "T02-a1"
       owner: "claude-code-main@Maverick-mini.local-pid-35706"
@@ -59,4 +66,4 @@ notes:
   - "T00: 集成 worktree .worktrees/plan-2026-09-13-01-key-usage-notifications 自 main@ec515043a 建立；基线 go vet + Go 相关测试 + web typecheck + 140 前端测试全绿；特性锁 .git/spec-dev-locks/848fb9d1...（owner claude-code-main@Maverick-mini.local-pid-35706）"
   - "dispatch/Wave2: T01-a1 + T02-a1 于 validated_commit=ec515043a 认领并派发（2026-09-13）；T03 依赖边修正（消费 T02 类型）后重新校验通过"
   - "plan-rev/f7ace3f: T03 依赖边补漏（消费 T02 类型）+ T01 写集合扩至 Makefile/build.yml（pnpm 迁移）；implementer worktree 重置到 f7ace3f 后派发"
-  - "accept/T01-a1: T01 为非行为例外票，声明修订将其移出 parallel 块；implementer 已完成的 ready 结果按主线程例外票规则收尾——verifyResult 不适用（无红证据为预期），人工核验 Git 事实（净差异 6 文件 ⊆ 授权写集合、单提交、ancestry 正确、主工作区 incident 已恢复）；集成 merge 3aef028 + 集成验证全绿（typecheck/140 测试/build，日志 execution/T01-a1/09-integration.txt）；validated_commit → 3aef028"
+  - "plan-rev/wave3: 导航表补三处依赖边（T05←T03 periodRange；T06←T03/T05 渲染素材；T09←T06 preview 渲染），plan-index 重校验通过；Wave3 改为 T03‖T04‖T07，T05 推后\n  - "accept/T02-a1: verifyResult 完整通过（红绿证据+Git 事实）；集成 merge 6681966 + 集成验证（vet+相关范围 7.3s 全绿）；validated_commit → 6681966\n  - "accept/T01-a1: T01 为非行为例外票，声明修订将其移出 parallel 块；implementer 已完成的 ready 结果按主线程例外票规则收尾——verifyResult 不适用（无红证据为预期），人工核验 Git 事实（净差异 6 文件 ⊆ 授权写集合、单提交、ancestry 正确、主工作区 incident 已恢复）；集成 merge 3aef028 + 集成验证全绿（typecheck/140 测试/build，日志 execution/T01-a1/09-integration.txt）；validated_commit → 3aef028"
