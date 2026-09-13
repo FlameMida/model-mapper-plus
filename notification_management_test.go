@@ -1,0 +1,162 @@
+package main
+
+import (
+	"encoding/json"
+	"net/http"
+	"path/filepath"
+	"strings"
+	"testing"
+	"time"
+
+	"github.com/router-for-me/CLIProxyAPI/v7/sdk/pluginapi"
+)
+
+func mgmtRequest(method, path, body string) pluginapi.ManagementRequest {
+	var raw []byte
+	if body != "" {
+		raw = []byte(body)
+	}
+	return pluginapi.ManagementRequest{Method: method, Path: path, Body: raw, Query: map[string][]string{}}
+}
+
+func withTempNotificationState(t *testing.T) {
+	t.Helper()
+	dir := t.TempDir()
+	setLoadedConfigForTest(Config{Enabled: true, StateFile: filepath.Join(dir, "state.json"),
+		UsageKeeperURL: "", UsageKeeperPasswordEnv: "X"})
+	t.Cleanup(func() { setLoadedConfigForTest(defaultConfig()) })
+}
+
+// Scenario: 保存通知设置回显明文 Webhook/SignSecret（spec 2026-09-13）
+func TestPutSettingsPersistsAndEchoesPlaintext(t *testing.T) {
+	withTempNotificationState(t)
+	body := `{"enabled":true,"global_default":{"id":"global","name":"用量通知","enabled":true,
+	  "modules":[{"kind":"daily","period":"current"}],
+	  "schedule":{"kind":"interval","interval":86400,"time":"09:00:00"},
+	  "platforms":[{"kind":"feishu","enabled":true,"webhook":"https://open.feishu.cn/hook/s3cr3t","user_ids":["ou_a"],"sign_secret":"sec1"}]}}`
+	resp := dispatchManagement(mgmtRequest(http.MethodPut, "/v0/management/plugins/model-mapper-plus/notifications/settings", body))
+	if resp.StatusCode != http.StatusOK {
+		t.Fatalf("put: %d %s", resp.StatusCode, resp.Body)
+	}
+	get := dispatchManagement(mgmtRequest(http.MethodGet, "/v0/management/plugins/model-mapper-plus/notifications/settings", ""))
+	var out NotificationSettings
+	if err := json.Unmarshal(get.Body, &out); err != nil {
+		t.Fatal(err)
+	}
+	if out.GlobalDefault.Platforms[0].Webhook != "https://open.feishu.cn/hook/s3cr3t" || out.GlobalDefault.Platforms[0].SignSecret != "sec1" {
+		t.Fatalf("must echo plaintext webhook/secret, got %+v", out.GlobalDefault.Platforms)
+	}
+}
+
+// Scenario: 缺少 user_ids 的启用平台保存被拒绝
+func TestPutSettingsRejectsMissingIdentity(t *testing.T) {
+	withTempNotificationState(t)
+	body := `{"enabled":true,"global_default":{"id":"global","name":"用量通知","enabled":true,
+	  "modules":[{"kind":"daily","period":"current"}],
+	  "platforms":[{"kind":"feishu","enabled":true,"webhook":"https://x"}]}}`
+	resp := dispatchManagement(mgmtRequest(http.MethodPut, "/v0/management/plugins/model-mapper-plus/notifications/settings", body))
+	if resp.StatusCode != http.StatusBadRequest {
+		t.Fatalf("missing user_ids must 400, got %d", resp.StatusCode)
+	}
+}
+
+// Scenario: preview 用保存后的配置渲染且不发送；Keeper 未配置时产生受控警告而非 0 值
+func TestPreviewRendersSavedConfigWithoutSending(t *testing.T) {
+	withTempNotificationState(t)
+	// 先保存与 T09-1 相同的合法 settings…
+	body := `{"enabled":true,"global_default":{"id":"global","name":"用量通知","enabled":true,
+	  "modules":[{"kind":"daily","period":"current"}],
+	  "schedule":{"kind":"interval","interval":86400,"time":"09:00:00"},
+	  "platforms":[{"kind":"feishu","enabled":true,"webhook":"https://f","user_ids":["ou_a"]}]}}`
+	if r := dispatchManagement(mgmtRequest(http.MethodPut, "/v0/management/plugins/model-mapper-plus/notifications/settings", body)); r.StatusCode != 200 {
+		t.Fatalf("seed: %d %s", r.StatusCode, r.Body)
+	}
+	resp := dispatchManagement(mgmtRequest(http.MethodPost, "/v0/management/plugins/model-mapper-plus/notifications/preview", `{}`))
+	if resp.StatusCode != http.StatusOK {
+		t.Fatalf("preview: %d %s", resp.StatusCode, resp.Body)
+	}
+	var out struct {
+		Text     string   `json:"text"`
+		Warnings []string `json:"warnings"`
+		Bytes    int      `json:"bytes"`
+	}
+	if err := json.Unmarshal(resp.Body, &out); err != nil {
+		t.Fatal(err)
+	}
+	if !contains(out.Text, "用量通知") || out.Bytes == 0 {
+		t.Fatalf("preview must render saved entity: %+v", out)
+	}
+	// Keeper 未配置（withTempNotificationState 里 URL=""）→ 预览含受控警告而非 0 值
+	if len(out.Warnings) == 0 {
+		t.Fatalf("unavailable keeper must produce warning, got %+v", out)
+	}
+}
+
+// Scenario: 投递记录按 outcome 过滤，retry 以原 payload 重新入队 pending
+func TestDeliveriesFilterAndRetry(t *testing.T) {
+	withTempNotificationState(t)
+	store := openTestStore(t) // 指向测试路径的通知库；生产路径由服务打开——测试直接注入
+	now := time.Now()
+	store.UpsertJob(notificationJob{ID: "j1", KeyFingerprint: "fp1", NotificationID: "global",
+		Platform: PlatformFeishu, PeriodKey: "p", State: jobPending, Payload: []byte("hello"),
+		NextAttempt: now, CreatedAt: now})
+	store.FinishJob("j1", deliveryFailed, "rate_limited", "429")
+	_ = store
+	// 注入：notificationStoreForTest(store) 使管理 API 使用该 store（包内测试钩子，生产 nil）
+	setNotificationStoreForTest(store)
+	t.Cleanup(func() { setNotificationStoreForTest(nil) })
+	resp := dispatchManagement(mgmtRequest(http.MethodGet,
+		"/v0/management/plugins/model-mapper-plus/notifications/deliveries?outcome=failed", ""))
+	var page struct {
+		Items []deliveryRecord `json:"items"`
+	}
+	if err := json.Unmarshal(resp.Body, &page); err != nil {
+		t.Fatal(err)
+	}
+	if len(page.Items) != 1 || page.Items[0].ErrorCode != "rate_limited" {
+		t.Fatalf("filter: %+v", page.Items)
+	}
+	retry := dispatchManagement(mgmtRequest(http.MethodPost,
+		"/v0/management/plugins/model-mapper-plus/notifications/deliveries/retry", `{"id":"`+page.Items[0].ID+`"}`))
+	if retry.StatusCode != http.StatusOK {
+		t.Fatalf("retry: %d %s", retry.StatusCode, retry.Body)
+	}
+}
+
+// Scenario: 保存通知设置纳入管理审计（spec：settings 保存走 auditedStateManagement）
+func TestSettingsPutAudited(t *testing.T) {
+	withTempNotificationState(t)
+	body := `{"enabled":true,"global_default":{"id":"global","name":"用量通知","enabled":true,
+	  "modules":[{"kind":"daily","period":"current"}],
+	  "schedule":{"kind":"interval","interval":86400,"time":"09:00:00"},
+	  "platforms":[{"kind":"feishu","enabled":true,"webhook":"https://f","user_ids":["ou_a"]}]}}`
+	resp := dispatchManagement(mgmtRequest(http.MethodPut, "/v0/management/plugins/model-mapper-plus/notifications/settings", body))
+	if resp.StatusCode != http.StatusOK {
+		t.Fatalf("put: %d %s", resp.StatusCode, resp.Body)
+	}
+	var out map[string]json.RawMessage
+	if err := json.Unmarshal(resp.Body, &out); err != nil {
+		t.Fatal(err)
+	}
+	raw, ok := out["audit"]
+	if !ok {
+		t.Fatalf("PUT settings response must carry audit metadata, got %s", resp.Body)
+	}
+	var meta struct {
+		Recorded bool `json:"recorded"`
+	}
+	if err := json.Unmarshal(raw, &meta); err != nil {
+		t.Fatalf("decode audit metadata: %v (%s)", err, raw)
+	}
+	if !meta.Recorded {
+		t.Fatalf("audit must be recorded, got %s", raw)
+	}
+	if strings.Contains(string(resp.Body), "audit_unavailable") {
+		t.Fatalf("unexpected audit failure: %s", resp.Body)
+	}
+}
+
+// contains reports whether substr is in s (test-local helper for assertions).
+func contains(s, substr string) bool {
+	return strings.Contains(s, substr)
+}
