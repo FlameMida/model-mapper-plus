@@ -1,6 +1,7 @@
 import { getKey, clearKey } from './session'
 import type {
   DeliveryRecord,
+  Notification,
   NotificationSettings,
   NotificationStatus,
   PreviewResponse as NotificationPreviewResponse,
@@ -96,6 +97,8 @@ export interface KeyBinding {
   rules: RuleSet
   channel_target?: ChannelTarget
   fast_allowed?: boolean
+  /** Key 级专属用量通知；为空时回落全局默认通知（state.go KeyBinding.Notifications）。 */
+  notifications?: Notification[]
 }
 
 export interface KeeperAlias { key: string; alias: string }

@@ -7,6 +7,8 @@ import RuleSetEditor from '../components/RuleSetEditor'
 import ApiKeySelect from '../components/ApiKeySelect'
 import { maskKey } from '../keyOptions'
 import { keeperStatusText, type KeyOptionsState } from '../useKeyOptions'
+import KeyNotificationsTab from './KeyNotificationsTab'
+import type { Notification } from '../notifications'
 
 const EMPTY_RULES: RuleSet = { global: '', claude: '', codex: '', openai: '' }
 const EMPTY_CHANNEL_TARGET: ChannelTarget = { enabled: false, suppliers: [], auth_ids: [] }
@@ -26,6 +28,7 @@ function normalizeBinding(binding: KeyBinding): KeyBinding {
     fast_allowed: binding.fast_allowed ?? true,
     channel_target: normalizeChannelTarget(binding.channel_target),
     rules: { ...binding.rules },
+    notifications: binding.notifications ?? [],
   }
 }
 
@@ -410,6 +413,13 @@ export default function KeysPanel({ state, onSaved, keyOptions }: Props) {
                 追加规则集在顶层规则之后执行；渠道定向开启时本页规则跳过。
               </Typography.Paragraph>
               <RuleSetEditor value={editing.rules} onChange={(rules) => setEditing({ ...editing, rules })} />
+            </TabPane>
+            <TabPane tab={`通知（${editing.notifications?.length ?? 0}）`} itemKey="notifications">
+              <KeyNotificationsTab
+                binding={editing}
+                siblingNames={[]}
+                onChange={(notifications) => setEditing({ ...editing, notifications })}
+              />
             </TabPane>
           </Tabs>
         )}
