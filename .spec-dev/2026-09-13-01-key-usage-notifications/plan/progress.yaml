@@ -258,13 +258,15 @@ tasks:
     model_declaration_id: "decl-001"
   T16:
     status: completed
-    commit: "PENDING_SHA"
+    commit: "af44fce"
     tests: pass
     deviations:
       - "浏览器交互项 browser-pending（无浏览器自动化工具，不伪造）；zig 交叉编译未验证（CI 覆盖，本机 ABI 冒烟替代）；manual 三平台 manual-pending"
-  T17: { status: pending }
+  T17:
+    status: completed
+    commit: "caf6a6a"
+    tests: pass
 resources:
-  - "worktree: .worktrees/plan-2026-09-13-01-key-usage-notifications —— git worktree remove .worktrees/plan-2026-09-13-01-key-usage-notifications && git branch -D plan-2026-09-13-01-key-usage-notifications（集成 worktree，T17 清理；implementer worktree 认领时按需登记）"
 notes:
   - "model-declaration/decl-001: 主线程=fable/max（会话配置核实）；implementer(T01-T15)=sonnet/high（待派发配置值）；升级路径=单票两次 blocked 升 opus/high；2026-09-13 用户选择并发执行并确认声明"
   - "env-deviation: 本机 npm shim 禁用 npm，前端命令一律以 pnpm --dir web 等价执行；T01 已切换 web 至 pnpm（pnpm-lock.yaml 入库，package-lock.json 删除）"
@@ -301,3 +303,4 @@ notes:
   - "accept/T14-a1: verifyResult 完整通过；集成 merge 78bc1de + 集成验证（typecheck + 169 测试全绿 + KeysPanel 回归 54）；validated_commit → 78bc1de——全部实施票完成"
   - "accept/T16: 命令类全绿（vet/race/169 前端测试/build/ABI 冒烟）；报告 acceptance/acceptance-report.md；浏览器与 manual 项如实 pending"
   - "fix/T17-progress: 修复三处脚本副作用损坏（T07 解锁残留双 claim 键且未 completed 化；T09 base_commit 未展开字面量且未 completed 化；validated_commit 停在中间值 d3f695c → 78bc1de）——修复于 merge 进 main 后，progress 修复提交独立于代码实现提交"
+  - "cleanup/T17: 15 个 implementer worktree+分支、集成 worktree+分支全部移除（结果已接受、证据已归档 execution/）；特性锁释放；台账清空=全部条目成功清理"

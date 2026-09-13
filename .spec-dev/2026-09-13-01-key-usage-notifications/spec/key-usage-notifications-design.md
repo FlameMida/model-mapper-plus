@@ -18,7 +18,7 @@ spec_dev:
     - "web/src/panels/KeysPanel.tsx"
     - "web/src/components/Notification*.tsx"
     - "web/src/notification*.ts"
-  sync_commit: null
+  sync_commit: caf6a6a997e1fbe374f759109f62ba89c8224879
   supersedes: []
   superseded_by: null
 ---
