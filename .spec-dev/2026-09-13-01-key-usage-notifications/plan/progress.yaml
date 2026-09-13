@@ -162,7 +162,14 @@ tasks:
       base_commit: "1770845"
     model_declaration_id: "decl-001"
   T11:
-    status: in_progress
+    status: completed
+    commit: "e256893"
+    implementation_commit: "4688325194001b019cec22adae16cbae4f8e1b7d"
+    tests: pass
+    deviations:
+      - "queryBy 修正（v10 throw 语义）；@dnd-kit/utilities 未越权引入（内联 translate3d）"
+      - "原生 select（period/月/日/单位，断言兼容）+ Semi Select（kind/month_end）+ TimePicker 混合"
+      - "组内顺序=已勾选按 value 序在前、未勾选按全集序在后；未勾选占位 —"
     claim:
       key: "T11-a1"
       owner: "claude-code-main@Maverick-mini.local-pid-35706"
@@ -187,9 +194,25 @@ tasks:
       branch: "ku/T12"
       base_commit: "84b5862"
     model_declaration_id: "decl-001"
-  T13: { status: pending }
+  T13:
+    status: in_progress
+    claim:
+      key: "T13-a1"
+      owner: "claude-code-main@Maverick-mini.local-pid-35706"
+      worktree: ".worktrees/ku-T13"
+      branch: "ku/T13"
+      base_commit: "e256893"
+    model_declaration_id: "decl-001"
   T14: { status: pending }
-  T15: { status: pending }
+  T15:
+    status: in_progress
+    claim:
+      key: "T15-a1"
+      owner: "claude-code-main@Maverick-mini.local-pid-35706"
+      worktree: ".worktrees/ku-T15"
+      branch: "ku/T15"
+      base_commit: "e256893"
+    model_declaration_id: "decl-001"
   T16: { status: pending }
   T17: { status: pending }
 resources:
@@ -222,3 +245,5 @@ notes:
   - "accept/T10-a1: verifyResult 完整通过；集成 merge 84b5862 + 集成验证（typecheck + 148 测试全绿）；validated_commit → 84b5862"
   - "dispatch/Wave-front1: T11-a1 + T12-a1 于 84b5862 认领并派发（2026-09-13）"
   - "accept/T12-a1: verifyResult 完整通过；集成 merge 97710ec + 集成验证（typecheck + 153 测试全绿）；validated_commit → 97710ec"
+  - "accept/T11-a1: verifyResult 完整通过；集成 merge e256893 + 集成验证（typecheck + 159 测试全绿）；validated_commit → e256893"
+  - "dispatch/Wave-front2: T13-a1 + T15-a1 于 e256893 认领并派发（2026-09-13）；注入 T10 契约（putSettings 返回 StateResponse 需 getSettings 刷新）与 T12 契约（draft 草稿态/追加逻辑/错误文案）"
