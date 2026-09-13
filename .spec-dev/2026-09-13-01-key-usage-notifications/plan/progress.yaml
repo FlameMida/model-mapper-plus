@@ -48,6 +48,7 @@ tasks:
     claim:
       key: "T03-a1"
       owner: "claude-code-main@Maverick-mini.local-pid-35706"
+      agent_id: "impl-T03@session-561c4d5a"
       worktree: ".worktrees/ku-T03"
       branch: "ku/T03"
       base_commit: "6681966"
@@ -57,6 +58,7 @@ tasks:
     claim:
       key: "T04-a1"
       owner: "claude-code-main@Maverick-mini.local-pid-35706"
+      agent_id: "impl-T04@session-561c4d5a"
       worktree: ".worktrees/ku-T04"
       branch: "ku/T04"
       base_commit: "6681966"
@@ -68,6 +70,7 @@ tasks:
     claim:
       key: "T07-a1"
       owner: "claude-code-main@Maverick-mini.local-pid-35706"
+      agent_id: "impl-T07@session-561c4d5a"
       worktree: ".worktrees/ku-T07"
       branch: "ku/T07"
       base_commit: "6681966"
