@@ -7,6 +7,7 @@ import RulesPanel from './panels/RulesPanel'
 import KeysPanel from './panels/KeysPanel'
 import PreviewPanel from './panels/PreviewPanel'
 import AuditPanel from './panels/AuditPanel'
+import NotificationsPanel from './panels/NotificationsPanel'
 import { useKeyOptions } from './useKeyOptions'
 
 const { Header, Content } = Layout
@@ -116,11 +117,13 @@ export default function App() {
             { itemKey: 'keys', text: 'Key 绑定' },
             { itemKey: 'preview', text: '规则试跑' },
             { itemKey: 'audit', text: '操作审计' },
+            { itemKey: 'notifications', text: '通知' },
           ]} />
         {tab === 'rules' && state && <RulesPanel state={state} onSaved={setState} />}
         {tab === 'keys' && state && <KeysPanel state={state} onSaved={setState} keyOptions={keyOptions} />}
         {tab === 'preview' && <PreviewPanel keyOptions={keyOptions} />}
         {tab === 'audit' && <AuditPanel />}
+        {tab === 'notifications' && <NotificationsPanel />}
       </Content>
     </Layout>
   )
