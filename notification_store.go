@@ -58,16 +58,16 @@ type notificationJob struct {
 }
 
 type deliveryRecord struct {
-	ID             string
-	JobID          string
-	KeyFingerprint string
-	NotificationID string
-	Platform       PlatformKind
-	PeriodKey      string
-	Outcome        string
-	ErrorCode      string
-	Detail         string
-	CreatedAt      time.Time
+	ID             string       `json:"id"`
+	JobID          string       `json:"job_id"`
+	KeyFingerprint string       `json:"key_fingerprint"`
+	NotificationID string       `json:"notification_id"`
+	Platform       PlatformKind `json:"platform"`
+	PeriodKey      string       `json:"period_key"`
+	Outcome        string       `json:"outcome"`
+	ErrorCode      string       `json:"error_code,omitempty"`
+	Detail         string       `json:"detail,omitempty"`
+	CreatedAt      time.Time    `json:"created_at"`
 }
 
 type snapshotRecord struct {
