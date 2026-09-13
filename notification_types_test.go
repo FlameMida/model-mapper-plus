@@ -32,7 +32,7 @@ func TestValidateEnabledPlatformRequiresIdentity(t *testing.T) {
 	n.Platforms = []PlatformIdentity{{Kind: PlatformFeishu, Enabled: true, Webhook: "https://x", UserIDs: nil}}
 	st := State{KeyBindings: []KeyBinding{{Key: "k1", Notifications: []Notification{n}}}}
 	err := validateKeyNotifications(&st)
-	if err == nil || !strings.Contains(err.Error(), "user_ids") {
+	if err == nil || !strings.Contains(err.Error(), "用户唯一 ID") {
 		t.Fatalf("want missing user_ids error, got %v", err)
 	}
 }
@@ -42,7 +42,7 @@ func TestValidateWeComRejectsSignSecret(t *testing.T) {
 	n.Platforms = []PlatformIdentity{{Kind: PlatformWeCom, Enabled: true,
 		Webhook: "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=1", UserIDs: []string{"u1"}, SignSecret: "s"}}
 	st := State{KeyBindings: []KeyBinding{{Key: "k1", Notifications: []Notification{n}}}}
-	if err := validateKeyNotifications(&st); err == nil || !strings.Contains(err.Error(), "sign_secret") {
+	if err := validateKeyNotifications(&st); err == nil || !strings.Contains(err.Error(), "签名密钥") {
 		t.Fatalf("wecom must not carry sign_secret, got %v", err)
 	}
 }

@@ -162,7 +162,7 @@ func managementNotificationSettingsGet() pluginapi.ManagementResponse {
 func managementNotificationSettingsPut(req pluginapi.ManagementRequest) pluginapi.ManagementResponse {
 	var body NotificationSettings
 	if err := json.Unmarshal(req.Body, &body); err != nil {
-		return managementError(http.StatusBadRequest, "invalid notification settings payload: "+err.Error())
+		return managementError(http.StatusBadRequest, "通知配置格式无效: "+err.Error())
 	}
 	err := applyStateUpdate(func(st *State) error {
 		st.Notifications = &body
@@ -246,7 +246,7 @@ func resolveNotificationEntity(st *State, key, notificationID string) (*Notifica
 		}
 	}
 	if notificationID != "" {
-		return nil, nil, errors.New("notification not found")
+		return nil, nil, errors.New("通知不存在")
 	}
 	return &list[0], &binding, nil
 }
@@ -303,7 +303,7 @@ func managementNotificationPreview(req pluginapi.ManagementRequest) pluginapi.Ma
 		NotificationID string `json:"notification_id"`
 	}
 	if err := json.Unmarshal(req.Body, &body); err != nil {
-		return managementError(http.StatusBadRequest, "invalid preview payload: "+err.Error())
+		return managementError(http.StatusBadRequest, "预览请求格式无效: "+err.Error())
 	}
 	st, _ := loadedStateSnapshot()
 	n, binding, err := resolveNotificationEntity(&st, strings.TrimSpace(body.Key), strings.TrimSpace(body.NotificationID))
@@ -324,7 +324,7 @@ func managementNotificationTestSend(req pluginapi.ManagementRequest) pluginapi.M
 		NotificationID string `json:"notification_id"`
 	}
 	if err := json.Unmarshal(req.Body, &body); err != nil {
-		return managementError(http.StatusBadRequest, "invalid test-send payload: "+err.Error())
+		return managementError(http.StatusBadRequest, "测试发送请求格式无效: "+err.Error())
 	}
 	st, _ := loadedStateSnapshot()
 	n, binding, err := resolveNotificationEntity(&st, strings.TrimSpace(body.Key), strings.TrimSpace(body.NotificationID))
@@ -338,7 +338,7 @@ func managementNotificationTestSend(req pluginapi.ManagementRequest) pluginapi.M
 		}
 	}
 	if len(targets) == 0 {
-		return managementError(http.StatusBadRequest, "no enabled platform to send")
+		return managementError(http.StatusBadRequest, "没有已启用的平台，无法发送")
 	}
 	text, _ := renderNotificationPreview(binding, *n)
 	fingerprint := ""
@@ -459,7 +459,7 @@ func managementNotificationDeliveries(req pluginapi.ManagementRequest) pluginapi
 	if raw := strings.TrimSpace(req.Query.Get("limit")); raw != "" {
 		parsed, err := strconv.Atoi(raw)
 		if err != nil || parsed < 1 {
-			return managementError(http.StatusBadRequest, "limit must be a positive integer")
+			return managementError(http.StatusBadRequest, "limit 必须为正整数")
 		}
 		limit = parsed
 	}
@@ -490,11 +490,11 @@ func managementNotificationRetry(req pluginapi.ManagementRequest) pluginapi.Mana
 		ID string `json:"id"`
 	}
 	if err := json.Unmarshal(req.Body, &body); err != nil {
-		return managementError(http.StatusBadRequest, "invalid retry payload: "+err.Error())
+		return managementError(http.StatusBadRequest, "重试请求格式无效: "+err.Error())
 	}
 	id := strings.TrimSpace(body.ID)
 	if id == "" {
-		return managementError(http.StatusBadRequest, "id is required")
+		return managementError(http.StatusBadRequest, "id 为必填")
 	}
 	var jobID string
 	err := withNotificationStore(func(s *notificationStore) error {

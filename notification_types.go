@@ -118,21 +118,21 @@ const maxScheduleIntervalSeconds = 31 * 86400
 func validDayTime(s string) error {
 	parts := strings.Split(s, ":")
 	if len(parts) != 3 {
-		return fmt.Errorf("time must be HH:MM:SS")
+		return fmt.Errorf("时间格式需为 HH:MM:SS")
 	}
 	nums := make([]int, 3)
 	for i, p := range parts {
 		if len(p) != 2 {
-			return fmt.Errorf("time must be HH:MM:SS")
+			return fmt.Errorf("时间格式需为 HH:MM:SS")
 		}
 		v, err := strconv.Atoi(p)
 		if err != nil || v < 0 {
-			return fmt.Errorf("time must be HH:MM:SS")
+			return fmt.Errorf("时间格式需为 HH:MM:SS")
 		}
 		nums[i] = v
 	}
 	if nums[0] > 23 || nums[1] > 59 || nums[2] > 59 {
-		return fmt.Errorf("time must be a valid HH:MM:SS clock")
+		return fmt.Errorf("时间需为有效的 HH:MM:SS 时刻")
 	}
 	return nil
 }
@@ -144,7 +144,7 @@ func validateNotificationSchedule(s *NotificationSchedule, path string) error {
 	switch s.Kind {
 	case ScheduleInterval:
 		if s.Interval < 1 || s.Interval > maxScheduleIntervalSeconds {
-			return fmt.Errorf("%s: interval must be between 1 and %d seconds", path, maxScheduleIntervalSeconds)
+			return fmt.Errorf("%s: 间隔需在 1 到 %d 秒之间", path, maxScheduleIntervalSeconds)
 		}
 		if s.Time != "" {
 			if err := validDayTime(s.Time); err != nil {
@@ -157,16 +157,16 @@ func validateNotificationSchedule(s *NotificationSchedule, path string) error {
 		}
 	case ScheduleYearly:
 		if s.Month < 1 || s.Month > 12 {
-			return fmt.Errorf("%s: month must be between 1 and 12", path)
+			return fmt.Errorf("%s: 月份需在 1 到 12 之间", path)
 		}
 		if s.Day < 1 || s.Day > 31 {
-			return fmt.Errorf("%s: day must be between 1 and 31", path)
+			return fmt.Errorf("%s: 日期需在 1 到 31 之间", path)
 		}
 		if err := validDayTime(s.Time); err != nil {
 			return fmt.Errorf("%s: %w", path, err)
 		}
 	default:
-		return fmt.Errorf("%s: unknown schedule kind %q", path, string(s.Kind))
+		return fmt.Errorf("%s: 未知的计划类型 %q", path, string(s.Kind))
 	}
 	return nil
 }
@@ -175,29 +175,29 @@ func validateNotificationSchedule(s *NotificationSchedule, path string) error {
 // or a key-owned entry); every error is anchored at path.
 func validateNotificationEntity(n *Notification, path string) error {
 	if strings.TrimSpace(n.Name) == "" {
-		return fmt.Errorf("%s: name is required", path)
+		return fmt.Errorf("%s: 通知名称为必填", path)
 	}
 	if len(n.Modules) == 0 {
-		return fmt.Errorf("%s: modules is required", path)
+		return fmt.Errorf("%s: 至少启用一个统计模块", path)
 	}
 	seenModules := make(map[ModuleKind]struct{}, len(n.Modules))
 	for i := range n.Modules {
 		m := &n.Modules[i]
 		if !validModuleKinds[m.Kind] {
-			return fmt.Errorf("%s.modules[%d]: unknown module kind %q", path, i, string(m.Kind))
+			return fmt.Errorf("%s.modules[%d]: 未知的统计模块 %q", path, i, string(m.Kind))
 		}
 		if _, dup := seenModules[m.Kind]; dup {
-			return fmt.Errorf("%s.modules[%d]: duplicate module kind %q", path, i, string(m.Kind))
+			return fmt.Errorf("%s.modules[%d]: 统计模块 %q 重复", path, i, string(m.Kind))
 		}
 		seenModules[m.Kind] = struct{}{}
 		if moduleKindsWithPeriod[m.Kind] {
 			switch m.Period {
 			case PeriodCurrent, PeriodPrevious:
 			default:
-				return fmt.Errorf("%s.modules[%d]: period must be current or previous for module %q", path, i, string(m.Kind))
+				return fmt.Errorf("%s.modules[%d]: 统计模块 %q 需选择「本期累计」或「上一完整周期」", path, i, string(m.Kind))
 			}
 		} else if m.Period != "" {
-			return fmt.Errorf("%s.modules[%d]: period must be empty for module %q", path, i, string(m.Kind))
+			return fmt.Errorf("%s.modules[%d]: 模块 %q 无需选择统计周期", path, i, string(m.Kind))
 		}
 	}
 	if n.Schedule != nil {
@@ -209,15 +209,15 @@ func validateNotificationEntity(n *Notification, path string) error {
 	for i := range n.Platforms {
 		p := &n.Platforms[i]
 		if !validPlatformKinds[p.Kind] {
-			return fmt.Errorf("%s.platforms[%d]: unknown platform kind %q", path, i, string(p.Kind))
+			return fmt.Errorf("%s.platforms[%d]: 未知的平台 %q", path, i, string(p.Kind))
 		}
 		if _, dup := seenPlatforms[p.Kind]; dup {
-			return fmt.Errorf("%s.platforms[%d]: duplicate platform kind %q", path, i, string(p.Kind))
+			return fmt.Errorf("%s.platforms[%d]: 平台 %q 重复配置", path, i, string(p.Kind))
 		}
 		seenPlatforms[p.Kind] = struct{}{}
 		if p.Enabled {
 			if !strings.HasPrefix(p.Webhook, "http://") && !strings.HasPrefix(p.Webhook, "https://") {
-				return fmt.Errorf("%s.platforms[%d]: webhook must start with http:// or https://", path, i)
+				return fmt.Errorf("%s.platforms[%d]: Webhook 地址需以 http:// 或 https:// 开头", path, i)
 			}
 			hasUserID := false
 			for _, id := range p.UserIDs {
@@ -227,11 +227,11 @@ func validateNotificationEntity(n *Notification, path string) error {
 				}
 			}
 			if !hasUserID {
-				return fmt.Errorf("%s.platforms[%d]: user_ids is required", path, i)
+				return fmt.Errorf("%s.platforms[%d]: 启用通知时用户唯一 ID 为必填", path, i)
 			}
 		}
 		if p.Kind == PlatformWeCom && strings.TrimSpace(p.SignSecret) != "" {
-			return fmt.Errorf("%s.platforms[%d]: sign_secret not supported for wecom", path, i)
+			return fmt.Errorf("%s.platforms[%d]: 企业微信不支持签名密钥", path, i)
 		}
 	}
 	return nil
@@ -240,7 +240,7 @@ func validateNotificationEntity(n *Notification, path string) error {
 // validateNotificationSettings validates the global default notification.
 func validateNotificationSettings(s *NotificationSettings) error {
 	if strings.TrimSpace(s.GlobalDefault.Name) == "" {
-		return fmt.Errorf("notifications.global_default: name is required")
+		return fmt.Errorf("notifications.global_default: 通知名称为必填")
 	}
 	return validateNotificationEntity(&s.GlobalDefault, "notifications.global_default")
 }
@@ -262,7 +262,7 @@ func validateKeyNotificationsEntity(index int, b *KeyBinding) error {
 		}
 		name := strings.TrimSpace(n.Name)
 		if prev, exists := seenNames[name]; exists {
-			return fmt.Errorf("%s: duplicate notification name %q (same as notifications[%d])", path, name, prev)
+			return fmt.Errorf("%s: 通知名称 %q 与第 %d 条通知重复", path, name, prev)
 		}
 		seenNames[name] = j
 	}
