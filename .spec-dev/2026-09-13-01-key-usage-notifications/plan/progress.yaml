@@ -199,6 +199,7 @@ tasks:
     claim:
       key: "T13-a1"
       owner: "claude-code-main@Maverick-mini.local-pid-35706"
+      agent_id: "impl-T13@session-561c4d5a"
       worktree: ".worktrees/ku-T13"
       branch: "ku/T13"
       base_commit: "e256893"
@@ -209,6 +210,7 @@ tasks:
     claim:
       key: "T15-a1"
       owner: "claude-code-main@Maverick-mini.local-pid-35706"
+      agent_id: "impl-T15@session-561c4d5a"
       worktree: ".worktrees/ku-T15"
       branch: "ku/T15"
       base_commit: "e256893"
