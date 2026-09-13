@@ -57,14 +57,14 @@ type NotificationSettings struct {
 // Notification is one independent send unit: template modules, schedule and
 // platform identities. Key-level notifications fully replace the global one.
 type Notification struct {
-	ID                    string                 `json:"id"`
-	Name                  string                 `json:"name"`
-	Enabled               bool                   `json:"enabled"`
-	TemplateFollowsGlobal bool                   `json:"template_follows_global"`
-	ScheduleFollowsGlobal bool                   `json:"schedule_follows_global"`
-	Modules               []ModuleConfig         `json:"modules"`
-	Schedule              *NotificationSchedule  `json:"schedule"`
-	Platforms             []PlatformIdentity     `json:"platforms"`
+	ID                    string                `json:"id"`
+	Name                  string                `json:"name"`
+	Enabled               bool                  `json:"enabled"`
+	TemplateFollowsGlobal bool                  `json:"template_follows_global"`
+	ScheduleFollowsGlobal bool                  `json:"schedule_follows_global"`
+	Modules               []ModuleConfig        `json:"modules"`
+	Schedule              *NotificationSchedule `json:"schedule"`
+	Platforms             []PlatformIdentity    `json:"platforms"`
 }
 
 // ModuleConfig pairs a statistics module with its period; window modules
