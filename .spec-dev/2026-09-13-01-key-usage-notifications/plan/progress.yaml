@@ -81,7 +81,9 @@ tasks:
     model_declaration_id: "decl-001"
   T06: { status: pending }
   T07:
-    status: in_progress
+    status: blocked
+    blockers:
+      - "消费 T04 的 delivery 三态常量；T04 尚未集成。裁决=选项A：T04 集成后重置 ku/T07 基线并解锁原 implementer（工作区零改动，claim T07-a1 保留）"
     claim:
       key: "T07-a1"
       owner: "claude-code-main@Maverick-mini.local-pid-35706"
@@ -114,3 +116,4 @@ notes:
   - "dispatch/Wave3: T03-a1 + T04-a1 + T07-a1 于 validated_commit=6681966 认领并派发（2026-09-13）；T05 因 T03 依赖推后"
   - "accept/T03-a1: verifyResult 除 dirty 误报（主线程归档清理删除已跟踪证据副本所致）外全过；集成 merge + 集成验证（vet+相关范围 6.6s 全绿）；另 gofmt 修复 T02 引入的 notification_types.go（integration fix）"
   - "dispatch/T05: T05-a1 于 663a108（含 T03）认领并派发（2026-09-13）"
+  - "blocked/T07-a1: 跨票符号归属阻塞（delivery 三常量属 T04 store）；导航表补 T07←T04 语义依赖边；裁决选项A，待 T04 集成后重置基线解锁"
