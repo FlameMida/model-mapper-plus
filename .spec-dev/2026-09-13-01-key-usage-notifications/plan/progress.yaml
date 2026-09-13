@@ -92,7 +92,15 @@ tasks:
       branch: "ku/T05"
       base_commit: "663a108"
     model_declaration_id: "decl-001"
-  T06: { status: pending }
+  T06:
+    status: in_progress
+    claim:
+      key: "T06-a1"
+      owner: "claude-code-main@Maverick-mini.local-pid-35706"
+      worktree: ".worktrees/ku-T06"
+      branch: "ku/T06"
+      base_commit: "7e9e11a"
+    model_declaration_id: "decl-001"
   T07:
     status: in_progress
     claim:
@@ -133,3 +141,4 @@ notes:
   - "unlock/T07-a1: ku/T07 重置到 ee6f731（含 T04 常量），原 implementer 解锁继续"
   - "accept/T07-a1: verifyResult 完整通过；集成 merge d21c296 + 集成验证全绿（vet+相关范围 6.4s）；validated_commit → d21c296；事故：主线程清理 implementer worktree 证据目录时未先验证 cp 成功，原红绿日志丢失，已从提交树真实重现（red 编译失败/green 全量重跑），后续归档一律先验证后清理"
   - "accept/T05-a1: verifyResult 完整通过；真实 Keeper 契约核对修正替身（嵌套 quota 形状）；集成 merge 7e9e11a + 集成验证全绿；validated_commit → 7e9e11a"
+  - "dispatch/T06: T06-a1 于 7e9e11a（含 T02+T03+T05）认领并派发（2026-09-13）"
