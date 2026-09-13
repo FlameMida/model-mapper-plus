@@ -9,8 +9,24 @@ execution:
   validated_commit: "ec515043a356532a23ea70d288b8dc41aac3b0d4"
 tasks:
   T00: { status: completed, commit: "ec515043a356532a23ea70d288b8dc41aac3b0d4", tests: pass }
-  T01: { status: pending }
-  T02: { status: pending }
+  T01:
+    status: in_progress
+    claim:
+      key: "T01-a1"
+      owner: "claude-code-main@Maverick-mini.local-pid-35706"
+      worktree: ".worktrees/ku-T01"
+      branch: "ku/T01"
+      base_commit: "ec515043a356532a23ea70d288b8dc41aac3b0d4"
+    model_declaration_id: "decl-001"
+  T02:
+    status: in_progress
+    claim:
+      key: "T02-a1"
+      owner: "claude-code-main@Maverick-mini.local-pid-35706"
+      worktree: ".worktrees/ku-T02"
+      branch: "ku/T02"
+      base_commit: "ec515043a356532a23ea70d288b8dc41aac3b0d4"
+    model_declaration_id: "decl-001"
   T03: { status: pending }
   T04: { status: pending }
   T05: { status: pending }
@@ -32,3 +48,4 @@ notes:
   - "model-declaration/decl-001: 主线程=fable/max（会话配置核实）；implementer(T01-T15)=sonnet/high（待派发配置值）；升级路径=单票两次 blocked 升 opus/high；2026-09-13 用户选择并发执行并确认声明"
   - "env-deviation: 本机 npm shim 禁用 npm，前端命令一律以 pnpm --dir web 等价执行（typecheck/test/build）；web 现有 npm package-lock.json，lockfile 策略由 T01 执行时决定并提交"
   - "T00: 集成 worktree .worktrees/plan-2026-09-13-01-key-usage-notifications 自 main@ec515043a 建立；基线 go vet + Go 相关测试 + web typecheck + 140 前端测试全绿；特性锁 .git/spec-dev-locks/848fb9d1...（owner claude-code-main@Maverick-mini.local-pid-35706）"
+  - "dispatch/Wave2: T01-a1 + T02-a1 于 validated_commit=ec515043a 认领并派发（2026-09-13）；T03 依赖边修正（消费 T02 类型）后重新校验通过"
