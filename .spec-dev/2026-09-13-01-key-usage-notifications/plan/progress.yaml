@@ -1,7 +1,14 @@
 format_version: 1
 current: null
+execution:
+  mode: parallel
+  owner: "claude-code-main@Maverick-mini.local-pid-35706"
+  integration_worktree: "/Users/maverick/cpa-model-mapper-plus/.worktrees/plan-2026-09-13-01-key-usage-notifications"
+  integration_branch: "plan-2026-09-13-01-key-usage-notifications"
+  base_commit: "ec515043a356532a23ea70d288b8dc41aac3b0d4"
+  validated_commit: "ec515043a356532a23ea70d288b8dc41aac3b0d4"
 tasks:
-  T00: { status: pending }
+  T00: { status: completed, commit: "ec515043a356532a23ea70d288b8dc41aac3b0d4", tests: pass }
   T01: { status: pending }
   T02: { status: pending }
   T03: { status: pending }
@@ -20,5 +27,8 @@ tasks:
   T16: { status: pending }
   T17: { status: pending }
 resources:
-  - "worktree: .worktrees/plan-2026-09-13-01-key-usage-notifications —— git worktree remove .worktrees/plan-2026-09-13-01-key-usage-notifications && git branch -D plan-2026-09-13-01-key-usage-notifications（T00 核实后更新为实际路径与分支）"
-notes: []
+  - "worktree: .worktrees/plan-2026-09-13-01-key-usage-notifications —— git worktree remove .worktrees/plan-2026-09-13-01-key-usage-notifications && git branch -D plan-2026-09-13-01-key-usage-notifications（集成 worktree，T17 清理；implementer worktree 认领时按需登记）"
+notes:
+  - "model-declaration/decl-001: 主线程=fable/max（会话配置核实）；implementer(T01-T15)=sonnet/high（待派发配置值）；升级路径=单票两次 blocked 升 opus/high；2026-09-13 用户选择并发执行并确认声明"
+  - "env-deviation: 本机 npm shim 禁用 npm，前端命令一律以 pnpm --dir web 等价执行（typecheck/test/build）；web 现有 npm package-lock.json，lockfile 策略由 T01 执行时决定并提交"
+  - "T00: 集成 worktree .worktrees/plan-2026-09-13-01-key-usage-notifications 自 main@ec515043a 建立；基线 go vet + Go 相关测试 + web typecheck + 140 前端测试全绿；特性锁 .git/spec-dev-locks/848fb9d1...（owner claude-code-main@Maverick-mini.local-pid-35706）"
