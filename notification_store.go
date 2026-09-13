@@ -184,6 +184,9 @@ func (s *notificationStore) UpsertJob(j notificationJob) (int, error) {
 			if json.Unmarshal(raw, &existing) == nil && existing.State == jobPending {
 				existing.Payload = j.Payload
 				existing.NextAttempt = j.NextAttempt
+				// merge 重入队携带新 payload：刷新到调用方当前 revision，
+				// 否则配置变更后合并产物会被 T08 的 supersededStaleJobs 误杀。
+				existing.Revision = j.Revision
 				existing.MergedCount++
 				existing.UpdatedAt = time.Now().UTC()
 				merged = existing.MergedCount

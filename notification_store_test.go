@@ -19,7 +19,7 @@ func openTestStore(t *testing.T) *notificationStore {
 func TestUpsertJobMergesSamePeriodPending(t *testing.T) {
 	s := openTestStore(t)
 	now := time.Now()
-	base := notificationJob{ID: "j1", KeyFingerprint: "fp1", NotificationID: "global",
+	base := notificationJob{ID: "j1", KeyFingerprint: "fp1", NotificationID: "global", Revision: 3,
 		Platform: PlatformFeishu, PeriodKey: "daily:2026-09-13", State: jobPending,
 		Payload: []byte("v1"), NextAttempt: now, CreatedAt: now}
 	if _, err := s.UpsertJob(base); err != nil {
@@ -28,6 +28,7 @@ func TestUpsertJobMergesSamePeriodPending(t *testing.T) {
 	later := base
 	later.ID = "j2"
 	later.Payload = []byte("v2-latest")
+	later.Revision = 7
 	merged, err := s.UpsertJob(later)
 	if err != nil {
 		t.Fatalf("upsert2: %v", err)
@@ -38,6 +39,9 @@ func TestUpsertJobMergesSamePeriodPending(t *testing.T) {
 	due, _ := s.ClaimDueJobs(now.Add(time.Minute), 10)
 	if len(due) != 1 || string(due[0].Payload) != "v2-latest" || due[0].MergedCount != 2 {
 		t.Fatalf("want single latest job, got %+v", due)
+	}
+	if due[0].Revision != 7 {
+		t.Fatalf("merge must refresh Revision to caller-supplied 7, got %d", due[0].Revision)
 	}
 }
 
