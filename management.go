@@ -97,6 +97,17 @@ func dispatchManagement(req pluginapi.ManagementRequest) pluginapi.ManagementRes
 	return managementError(http.StatusNotFound, "unknown management route")
 }
 
+// managementRequestPath canonicalizes the forwarded path for dispatch and
+// audit classification: trailing slashes are trimmed and a query string the
+// raw management entrance may leave on the path is split off.
+func managementRequestPath(raw string) string {
+	path := strings.TrimRight(raw, "/")
+	if idx := strings.IndexByte(path, '?'); idx >= 0 {
+		path = strings.TrimRight(path[:idx], "/")
+	}
+	return path
+}
+
 func managementJSON(status int, v any) pluginapi.ManagementResponse {
 	raw, err := json.Marshal(v)
 	if err != nil {

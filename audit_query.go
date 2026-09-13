@@ -18,8 +18,11 @@ type auditItem struct {
 	OperationID string                 `json:"operation_id"`
 	Actor       string                 `json:"actor"`
 	Action      string                 `json:"action"`
+	Module      string                 `json:"module"`
 	ObjectType  string                 `json:"object_type"`
 	ObjectRef   string                 `json:"object_ref"`
+	ObjectLabel string                 `json:"object_label,omitempty"`
+	Labels      map[string]string      `json:"labels,omitempty"`
 	StartedAt   time.Time              `json:"started_at"`
 	FinishedAt  *time.Time             `json:"finished_at,omitempty"`
 	Outcome     string                 `json:"outcome"`
@@ -29,13 +32,37 @@ type auditItem struct {
 }
 
 type auditPage struct {
-	Date     string      `json:"date"`
-	Timezone string      `json:"timezone"`
-	Page     int         `json:"page"`
-	PageSize int         `json:"page_size"`
-	Total    int         `json:"total"`
-	Items    []auditItem `json:"items"`
-	Warnings []string    `json:"warnings"`
+	Date     string `json:"date"`
+	Timezone string `json:"timezone"`
+	Page     int    `json:"page"`
+	PageSize int    `json:"page_size"`
+	Total    int    `json:"total"`
+	Module   string `json:"module,omitempty"`
+	// ModuleCounts counts every operation of the day per module, ignoring the
+	// module filter so filter chips stay informative on filtered pages.
+	ModuleCounts map[string]int `json:"module_counts"`
+	Items        []auditItem    `json:"items"`
+	Warnings     []string       `json:"warnings"`
+}
+
+// auditModules enumerates the module filter values; v1 items map through
+// auditItemModule so history keeps filtering under its old object types.
+var auditModules = map[string]bool{"rules": true, "key_binding": true, "notifications": true, "keeper_auth_name": true, "other": true}
+
+func auditItemModule(item auditItem) string {
+	if item.Module != "" {
+		return item.Module
+	}
+	switch item.ObjectType {
+	case "rules":
+		return "rules"
+	case "key_binding":
+		return "key_binding"
+	case "keeper_auth_name":
+		return "keeper_auth_name"
+	default:
+		return "other"
+	}
 }
 
 func managementAuditQuery(req pluginapi.ManagementRequest) pluginapi.ManagementResponse {
@@ -68,11 +95,32 @@ func managementAuditQuery(req pluginapi.ManagementRequest) pluginapi.ManagementR
 	if !validPage || !validSize || size > 100 {
 		return respond(400, map[string]string{"error": "invalid_audit_pagination"})
 	}
+	module := ""
+	if values, exists := req.Query["module"]; exists {
+		if len(values) != 1 || !auditModules[values[0]] {
+			return respond(400, map[string]string{"error": "invalid_audit_module"})
+		}
+		module = values[0]
+	}
 	items, warnings, err := readAuditDay(path)
 	if err != nil {
 		return respond(http.StatusServiceUnavailable, map[string]string{"error": "audit_unavailable"})
 	}
-	result := auditPage{Date: day, Timezone: "Asia/Shanghai", Page: page, PageSize: size, Total: len(items), Items: []auditItem{}, Warnings: warnings}
+	moduleCounts := map[string]int{}
+	for _, item := range items {
+		moduleCounts[auditItemModule(item)]++
+	}
+	if module != "" {
+		filtered := items[:0]
+		for _, item := range items {
+			if auditItemModule(item) == module {
+				filtered = append(filtered, item)
+			}
+		}
+		items = filtered
+	}
+	result := auditPage{Date: day, Timezone: "Asia/Shanghai", Page: page, PageSize: size, Total: len(items),
+		Module: module, ModuleCounts: moduleCounts, Items: []auditItem{}, Warnings: warnings}
 	// Compare by division before multiplication, so very large valid pages cannot overflow.
 	if len(items) > 0 && page-1 <= (len(items)-1)/size {
 		start := (page - 1) * size
@@ -125,7 +173,10 @@ func readAuditDay(path string) ([]auditItem, []string, error) {
 			if auditRunning[event.OperationID] == path {
 				outcome = "running"
 			}
-			items[event.OperationID] = &auditItem{OperationID: event.OperationID, Actor: event.Actor, Action: event.Action, ObjectType: event.ObjectType, ObjectRef: event.ObjectRef, StartedAt: event.OccurredAt, Outcome: outcome, Changes: map[string]auditChange{}}
+			items[event.OperationID] = &auditItem{OperationID: event.OperationID, Actor: event.Actor, Action: event.Action,
+				Module: event.Module, ObjectType: event.ObjectType, ObjectRef: event.ObjectRef,
+				ObjectLabel: event.ObjectLabel, Labels: event.Labels,
+				StartedAt: event.OccurredAt, Outcome: outcome, Changes: map[string]auditChange{}}
 			continue
 		}
 		item, exists := items[event.OperationID]
@@ -143,6 +194,21 @@ func readAuditDay(path string) ([]auditItem, []string, error) {
 		}
 		item.FinishedAt = &event.OccurredAt
 		item.Outcome, item.Changed, item.ErrorCode = event.Outcome, event.Changed, event.ErrorCode
+		// The finish record carries the enriched snapshot (creations only know
+		// their alias after the mutation ran); it wins when present.
+		if event.ObjectLabel != "" {
+			item.ObjectLabel = event.ObjectLabel
+		}
+		if len(event.Labels) > 0 {
+			merged := make(map[string]string, len(item.Labels)+len(event.Labels))
+			for id, label := range item.Labels {
+				merged[id] = label
+			}
+			for id, label := range event.Labels {
+				merged[id] = label
+			}
+			item.Labels = merged
+		}
 		if event.Changes != nil {
 			item.Changes = event.Changes
 		}
@@ -166,7 +232,17 @@ func readAuditDay(path string) ([]auditItem, []string, error) {
 }
 
 func validAuditEvent(event auditEvent) bool {
-	if event.Version != 1 || event.OperationID == "" || event.OccurredAt.IsZero() {
+	if event.OperationID == "" || event.OccurredAt.IsZero() {
+		return false
+	}
+	// Version 2 adds the module field; version-1 history keeps its old rules.
+	switch event.Version {
+	case 1:
+	case 2:
+		if event.Module == "" {
+			return false
+		}
+	default:
 		return false
 	}
 	if event.Phase == "start" {

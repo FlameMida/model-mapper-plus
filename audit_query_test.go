@@ -6,6 +6,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strings"
 	"testing"
 
@@ -103,5 +104,109 @@ func TestAuditQueryS10ReadErrorAndInvalidEvents(t *testing.T) {
 	}
 	if got.StatusCode != 200 || result.Total != 1 || len(result.Warnings) != 5 {
 		t.Fatalf("invalid events: %d %s", got.StatusCode, got.Body)
+	}
+}
+
+func TestAuditQueryMixedVersionsAndModuleFilter(t *testing.T) {
+	state := setupManagementTest(t, Config{Enabled: true})
+	dir := filepath.Join(filepath.Dir(state), "model-mapper-plus-audit")
+	if err := os.MkdirAll(dir, 0700); err != nil {
+		t.Fatal(err)
+	}
+	// One v1 pair (legacy rules op) and two v2 pairs (key binding + rules).
+	fixture := `{"version":1,"operation_id":"v1","phase":"start","occurred_at":"2026-09-12T09:00:00+08:00","actor":"management_api","action":"update","object_type":"rules","object_ref":"rules"}
+{"version":1,"operation_id":"v1","phase":"finish","occurred_at":"2026-09-12T09:00:01+08:00","outcome":"succeeded","changed":true,"changes":{"rules.global":{"before":"a","after":"b"}}}
+{"version":2,"operation_id":"k1","phase":"start","occurred_at":"2026-09-12T10:00:00+08:00","actor":"management_api","action":"update","module":"key_binding","object_type":"key_binding","object_ref":"key:••••8f2a","object_label":"prod-deepseek"}
+{"version":2,"operation_id":"k1","phase":"finish","occurred_at":"2026-09-12T10:00:02+08:00","outcome":"succeeded","changed":true,"module":"key_binding","changes":{"channel_target.suppliers":{"before":["old"],"after":["new"]}},"labels":{"new":"火山方舟"}}
+{"version":2,"operation_id":"r2","phase":"start","occurred_at":"2026-09-12T11:00:00+08:00","actor":"management_api","action":"update","module":"rules","object_type":"rules","object_ref":"rules","object_label":"全局规则"}
+{"version":2,"operation_id":"r2","phase":"finish","occurred_at":"2026-09-12T11:00:01+08:00","outcome":"succeeded","changed":false,"module":"rules"}
+{"version":2,"operation_id":"bad","phase":"start","occurred_at":"2026-09-12T12:00:00+08:00","actor":"management_api","action":"update","object_type":"rules","object_ref":"rules"}
+`
+	if err := os.WriteFile(filepath.Join(dir, "2026-09-12.jsonl"), []byte(fixture), 0600); err != nil {
+		t.Fatal(err)
+	}
+	got := auditQueryRequest(url.Values{"date": {"2026-09-12"}})
+	if got.StatusCode != 200 {
+		t.Fatalf("status=%d body=%s", got.StatusCode, got.Body)
+	}
+	var page auditPage
+	decodeBody(t, got, &page)
+	if page.Total != 3 || len(page.Warnings) != 1 {
+		t.Fatalf("page=%+v warnings=%v", page, page.Warnings)
+	}
+	// v2-required module rejected the module-less v2 start as invalid.
+	if page.Warnings[0] != "line 7: invalid_event" {
+		t.Fatalf("warnings=%v", page.Warnings)
+	}
+	if !reflect.DeepEqual(page.ModuleCounts, map[string]int{"rules": 2, "key_binding": 1}) {
+		t.Fatalf("module_counts=%v", page.ModuleCounts)
+	}
+	byID := map[string]auditItem{}
+	for _, item := range page.Items {
+		byID[item.OperationID] = item
+	}
+	if item := byID["v1"]; item.Module != "" || item.ObjectLabel != "" || item.Labels != nil {
+		t.Fatalf("v1 item gained v2 fields: %+v", item)
+	}
+	if item := byID["k1"]; item.Module != "key_binding" || item.ObjectLabel != "prod-deepseek" || item.Labels["new"] != "火山方舟" {
+		t.Fatalf("v2 item=%+v", item)
+	}
+	if item := byID["r2"]; item.Module != "rules" || item.ObjectLabel != "全局规则" {
+		t.Fatalf("rules item=%+v", item)
+	}
+	// Filter by module: v1 history maps rules through its object type.
+	filtered := auditQueryRequest(url.Values{"date": {"2026-09-12"}, "module": {"rules"}})
+	if filtered.StatusCode != 200 {
+		t.Fatalf("filtered status=%d", filtered.StatusCode)
+	}
+	var modulePage auditPage
+	decodeBody(t, filtered, &modulePage)
+	if modulePage.Module != "rules" || modulePage.Total != 2 {
+		t.Fatalf("filtered page=%+v", modulePage)
+	}
+	for _, item := range modulePage.Items {
+		if auditItemModule(item) != "rules" {
+			t.Fatalf("foreign module item=%+v", item)
+		}
+	}
+	if !reflect.DeepEqual(modulePage.ModuleCounts, page.ModuleCounts) {
+		t.Fatalf("counts changed under filter: %v", modulePage.ModuleCounts)
+	}
+	for _, module := range []string{"bad", "", "Rules"} {
+		resp := auditQueryRequest(url.Values{"module": {module}})
+		if resp.StatusCode != 400 || !strings.Contains(string(resp.Body), "invalid_audit_module") {
+			t.Fatalf("module %q: %d %s", module, resp.StatusCode, resp.Body)
+		}
+	}
+}
+
+func TestAuditQueryFinishRecordWinsLabelsAndObjectLabel(t *testing.T) {
+	state := setupManagementTest(t, Config{Enabled: true})
+	dir := filepath.Join(filepath.Dir(state), "model-mapper-plus-audit")
+	if err := os.MkdirAll(dir, 0700); err != nil {
+		t.Fatal(err)
+	}
+	// The start label is unknown for creations; the finish record enriches it.
+	fixture := `{"version":2,"operation_id":"c1","phase":"start","occurred_at":"2026-09-12T10:00:00+08:00","actor":"management_api","action":"create","module":"key_binding","object_type":"key_binding","object_ref":"key:••••8f2a","labels":{"old-id":"start label"}}
+{"version":2,"operation_id":"c1","phase":"finish","occurred_at":"2026-09-12T10:00:01+08:00","outcome":"succeeded","changed":true,"module":"key_binding","object_label":"created-alias","labels":{"old-id":"finish label","extra-id":"added"}}
+`
+	if err := os.WriteFile(filepath.Join(dir, "2026-09-12.jsonl"), []byte(fixture), 0600); err != nil {
+		t.Fatal(err)
+	}
+	got := auditQueryRequest(url.Values{"date": {"2026-09-12"}})
+	if got.StatusCode != 200 {
+		t.Fatalf("status=%d body=%s", got.StatusCode, got.Body)
+	}
+	var page auditPage
+	decodeBody(t, got, &page)
+	if page.Total != 1 {
+		t.Fatalf("page=%+v", page)
+	}
+	item := page.Items[0]
+	if item.ObjectLabel != "created-alias" {
+		t.Fatalf("label=%q", item.ObjectLabel)
+	}
+	if item.Labels["old-id"] != "finish label" || item.Labels["extra-id"] != "added" || len(item.Labels) != 2 {
+		t.Fatalf("labels=%v", item.Labels)
 	}
 }

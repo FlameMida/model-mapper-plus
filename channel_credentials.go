@@ -111,6 +111,9 @@ func managementChannelCredentials(req pluginapi.ManagementRequest) pluginapi.Man
 	for _, entry := range config["vertex-api-key"] {
 		add(nextID("vertex:apikey", entry.APIKey, entry.BaseURL, entry.ProxyURL), "vertex", "vertex", entry.APIKey, entry.BaseURL)
 	}
+	// Feed the audit label snapshot before returning; only display fields are
+	// retained and nothing from the source configuration is persisted.
+	recordChannelLabels(rows)
 	// Never persist or echo source configuration; only return display fields.
 	return managementJSON(http.StatusOK, rows)
 }

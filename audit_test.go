@@ -26,7 +26,7 @@ func auditTestClock(t *testing.T, when string) *time.Time {
 func TestAuditS7ImmediatePersistenceAndMidnight(t *testing.T) {
 	state := setupManagementTest(t, Config{Enabled: true})
 	now := auditTestClock(t, "2026-09-12T15:59:59Z")
-	ticket, err := beginAudit(state, auditEvent{Actor: "management_api", Action: "update", ObjectType: "rules", ObjectRef: "rules"})
+	ticket, err := beginAudit(state, auditEvent{Actor: "management_api", Action: "update", Module: "rules", ObjectType: "rules", ObjectRef: "rules"})
 	if err != nil {
 		t.Fatalf("begin: %v", err)
 	}
@@ -41,7 +41,7 @@ func TestAuditS7ImmediatePersistenceAndMidnight(t *testing.T) {
 	if err := json.Unmarshal(raw, &start); err != nil {
 		t.Fatal(err)
 	}
-	if start.Phase != "start" || start.Version != 1 || start.OperationID != ticket.ID || !strings.HasSuffix(string(raw), "\n") {
+	if start.Phase != "start" || start.Version != 2 || start.Module != "rules" || start.OperationID != ticket.ID || !strings.HasSuffix(string(raw), "\n") {
 		t.Fatalf("start: %s", raw)
 	}
 	for path, want := range map[string]os.FileMode{filepath.Dir(ticket.Path): 0700, ticket.Path: 0600} {
@@ -59,7 +59,7 @@ func TestAuditS7ImmediatePersistenceAndMidnight(t *testing.T) {
 	}
 	*now = now.Add(2 * time.Second)
 	changed := true
-	if err := finishAudit(ticket, auditEvent{Outcome: "succeeded", Changed: &changed, Changes: map[string]auditChange{"global": {Before: json.RawMessage(`"old"`), After: json.RawMessage(`"new"`)}}}); err != nil {
+	if err := finishAudit(ticket, auditEvent{Module: "rules", Outcome: "succeeded", Changed: &changed, Changes: map[string]auditChange{"global": {Before: json.RawMessage(`"old"`), After: json.RawMessage(`"new"`)}}}); err != nil {
 		t.Fatal(err)
 	}
 	raw, err = os.ReadFile(ticket.Path)
@@ -89,11 +89,11 @@ func TestAuditS7PreservesTruncatedTailAndTightensPermissions(t *testing.T) {
 	if err := os.WriteFile(path, []byte(`{"broken":`), 0644); err != nil {
 		t.Fatal(err)
 	}
-	ticket, err := beginAudit(state, auditEvent{Actor: "management_api", Action: "update", ObjectType: "rules", ObjectRef: "rules"})
+	ticket, err := beginAudit(state, auditEvent{Actor: "management_api", Action: "update", Module: "rules", ObjectType: "rules", ObjectRef: "rules"})
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := finishAudit(ticket, auditEvent{Outcome: "unknown"}); err != nil {
+	if err := finishAudit(ticket, auditEvent{Module: "rules", Outcome: "unknown"}); err != nil {
 		t.Fatal(err)
 	}
 	raw, err := os.ReadFile(path)
@@ -159,11 +159,11 @@ func TestAuditS7WriteFailures(t *testing.T) {
 				}
 				return auditFaultFile{File: f, writeErr: mode == "write", short: mode == "short", syncErr: mode == "sync"}, nil
 			}
-			if ticket, err := beginAudit(state, auditEvent{Actor: "management_api", Action: "update", ObjectType: "rules", ObjectRef: "rules"}); err == nil || ticket.ID != "" {
+			if ticket, err := beginAudit(state, auditEvent{Actor: "management_api", Action: "update", Module: "rules", ObjectType: "rules", ObjectRef: "rules"}); err == nil || ticket.ID != "" {
 				t.Fatalf("failed Begin accepted: %+v %v", ticket, err)
 			}
 			auditOpenFile = old
-			ticket, err := beginAudit(state, auditEvent{Actor: "management_api", Action: "update", ObjectType: "rules", ObjectRef: "rules"})
+			ticket, err := beginAudit(state, auditEvent{Actor: "management_api", Action: "update", Module: "rules", ObjectType: "rules", ObjectRef: "rules"})
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -174,7 +174,7 @@ func TestAuditS7WriteFailures(t *testing.T) {
 				}
 				return auditFaultFile{File: f, writeErr: true}, nil
 			}
-			if err := finishAudit(ticket, auditEvent{Outcome: "succeeded"}); err == nil {
+			if err := finishAudit(ticket, auditEvent{Module: "rules", Outcome: "succeeded"}); err == nil {
 				t.Fatal("finish accepted write failure")
 			}
 			got := auditQueryRequest(url.Values{"date": {"2026-09-12"}})

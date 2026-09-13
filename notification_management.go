@@ -96,9 +96,9 @@ func withNotificationStore(fn func(*notificationStore) error) error {
 // management entrance) is split off and merged into req.Query, matching what
 // the host supplies as structured fields.
 func handleNotificationManagement(req pluginapi.ManagementRequest) (pluginapi.ManagementResponse, bool) {
-	path := strings.TrimRight(req.Path, "/")
-	if idx := strings.IndexByte(path, '?'); idx >= 0 {
-		if parsed, err := url.ParseQuery(path[idx+1:]); err == nil {
+	path := managementRequestPath(req.Path)
+	if idx := strings.IndexByte(req.Path, '?'); idx >= 0 {
+		if parsed, err := url.ParseQuery(req.Path[idx+1:]); err == nil {
 			if req.Query == nil {
 				req.Query = url.Values{}
 			}
@@ -106,7 +106,6 @@ func handleNotificationManagement(req pluginapi.ManagementRequest) (pluginapi.Ma
 				req.Query[key] = append(req.Query[key], values...)
 			}
 		}
-		path = strings.TrimRight(path[:idx], "/")
 	}
 	switch {
 	case req.Method == http.MethodGet && path == notificationHandleBase+"/settings":
@@ -120,13 +119,16 @@ func handleNotificationManagement(req pluginapi.ManagementRequest) (pluginapi.Ma
 	case req.Method == http.MethodPost && path == notificationHandleBase+"/test-send":
 		return withAuditedManagement(req, func() (pluginapi.ManagementResponse, auditResult) {
 			resp := managementNotificationTestSend(req)
-			result := auditResult{Outcome: "succeeded"}
+			// A test send mutates no configuration; changed stays explicitly
+			// false so the finish event passes version validation.
+			changed := false
+			result := auditResult{Outcome: "succeeded", Changed: &changed, Changes: map[string]auditChange{}}
 			if resp.StatusCode >= 400 {
 				code := "invalid_request"
 				if resp.StatusCode == http.StatusNotFound {
 					code = "not_found"
 				}
-				result = auditResult{Outcome: "failed", ErrorCode: code}
+				result = auditResult{Outcome: "failed", Changed: &changed, ErrorCode: code}
 			}
 			return resp, result
 		}), true

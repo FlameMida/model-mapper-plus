@@ -2,8 +2,6 @@ package main
 
 import (
 	"bytes"
-	"crypto/sha256"
-	"encoding/hex"
 	"encoding/json"
 	"net/http"
 	"os"
@@ -31,9 +29,11 @@ func withAuditedManagement(req pluginapi.ManagementRequest, run func() (pluginap
 	before, _ := loadedStateSnapshot()
 	cfg := loadedConfig()
 	event := auditEventForRequest(req, before)
+	startSecrets := auditSecrets(req, cfg, before)
 	if event.ObjectType == "keeper_auth_name" {
-		event.ObjectRef = auditRedactText(event.ObjectRef, auditSecrets(req, cfg, before))
+		event.ObjectRef = auditRedactText(event.ObjectRef, startSecrets)
 	}
+	event.ObjectLabel = auditRedactText(event.ObjectLabel, startSecrets)
 	ticket, err := beginAudit(stateFilePath(), event)
 	if err != nil {
 		return managementError(http.StatusServiceUnavailable, "audit_unavailable")
@@ -45,6 +45,26 @@ func withAuditedManagement(req pluginapi.ManagementRequest, run func() (pluginap
 		change.Before = auditRedactJSON(change.Before, secrets)
 		change.After = auditRedactJSON(change.After, secrets)
 		result.Changes[field] = change
+	}
+	// Final enrichment rides the finish record: creations only know their
+	// alias after the mutation ran, and channel display names are attached to
+	// the IDs that actually changed. The reader prefers finish over start.
+	if event.Module == "key_binding" && event.ObjectLabel == "" {
+		if binding := auditBinding(after, auditRequestKey(req)); binding != nil {
+			event.ObjectLabel = binding.Alias
+		}
+	}
+	if ids := auditChangedChannelIDs(result.Changes); len(ids) > 0 {
+		for id, label := range auditChannelLabels(ids) {
+			if event.Labels == nil {
+				event.Labels = map[string]string{}
+			}
+			event.Labels[id] = label
+		}
+	}
+	event.ObjectLabel = auditRedactText(event.ObjectLabel, secrets)
+	for id, label := range event.Labels {
+		event.Labels[id] = auditRedactText(label, secrets)
 	}
 	event.Outcome, event.Changed, event.Changes, event.ErrorCode = result.Outcome, result.Changed, result.Changes, result.ErrorCode
 	err = finishAudit(ticket, event)
@@ -81,35 +101,107 @@ func auditRequestKey(req pluginapi.ManagementRequest) string {
 	return strings.TrimSpace(body.Key)
 }
 
+// auditKeyRef renders a stable, non-secret identifier: masked body plus the
+// trailing four characters, mirroring the credential label convention. Keys
+// of four characters or fewer stay fully masked.
 func auditKeyRef(key string) string {
 	if key == "" {
-		return "unspecified"
+		return "key:unspecified"
 	}
-	sum := sha256.Sum256([]byte(key))
-	return "sha256:" + hex.EncodeToString(sum[:]) + " masked:***"
+	if len(key) <= 4 {
+		return "key:••••"
+	}
+	return "key:••••" + key[len(key)-4:]
+}
+
+func auditBodyAlias(body []byte) string {
+	var parsed struct {
+		Alias string `json:"alias"`
+	}
+	_ = json.Unmarshal(body, &parsed)
+	return strings.TrimSpace(parsed.Alias)
+}
+
+// auditNotificationName finds a key-level notification's display name so
+// test-send operations can name their target; the global default has none.
+func auditNotificationName(st State, id string) string {
+	for _, binding := range st.KeyBindings {
+		for _, notification := range binding.Notifications {
+			if notification.ID == id {
+				return notification.Name
+			}
+		}
+	}
+	return ""
 }
 
 func auditEventForRequest(req pluginapi.ManagementRequest, before State) auditEvent {
-	event := auditEvent{Actor: "management_api", Action: "update", ObjectType: "key_binding", ObjectRef: auditKeyRef(auditRequestKey(req))}
-	if strings.TrimRight(req.Path, "/") == managementHandleBase+"/rules" {
-		event.ObjectType, event.ObjectRef = "rules", "rules"
+	event := auditEvent{Actor: "management_api", Action: "update", ObjectType: "key_binding", ObjectRef: "unspecified", Module: "other"}
+	path := managementRequestPath(req.Path)
+	switch {
+	case path == managementHandleBase+"/rules":
+		event.Module, event.ObjectType, event.ObjectRef, event.ObjectLabel = "rules", "rules", "rules", "全局规则"
 		return event
-	}
-	if strings.TrimRight(req.Path, "/") == managementHandleBase+"/keeper/auth-names" {
+	case path == managementHandleBase+"/keeper/auth-names":
 		var body struct {
 			AuthIndex string `json:"auth_index"`
+			Alias     string `json:"alias"`
 		}
 		_ = json.Unmarshal(req.Body, &body)
-		event.ObjectType, event.ObjectRef = "keeper_auth_name", strings.TrimSpace(body.AuthIndex)
+		event.Module, event.ObjectType = "keeper_auth_name", "keeper_auth_name"
+		event.ObjectRef = strings.TrimSpace(body.AuthIndex)
 		if event.ObjectRef == "" {
 			event.ObjectRef = "unspecified"
 		}
+		event.ObjectLabel = strings.TrimSpace(body.Alias)
+		return event
+	case path == notificationHandleBase+"/settings" && req.Method == http.MethodPut:
+		event.Module, event.ObjectType, event.ObjectRef, event.ObjectLabel = "notifications", "notification_settings", "global", "全局通知设置"
+		return event
+	case path == notificationHandleBase+"/test-send" && req.Method == http.MethodPost:
+		var body struct {
+			Key            string `json:"key"`
+			NotificationID string `json:"notification_id"`
+		}
+		_ = json.Unmarshal(req.Body, &body)
+		event.Module, event.Action, event.ObjectType = "notifications", "test_send", "notification_test"
+		switch {
+		case strings.TrimSpace(body.Key) != "":
+			key := strings.TrimSpace(body.Key)
+			event.ObjectRef = auditKeyRef(key)
+			if binding := auditBinding(before, key); binding != nil {
+				event.ObjectLabel = binding.Alias
+			}
+		case strings.TrimSpace(body.NotificationID) != "":
+			id := strings.TrimSpace(body.NotificationID)
+			event.ObjectRef = "notification:" + id
+			event.ObjectLabel = auditNotificationName(before, id)
+		default:
+			event.ObjectRef, event.ObjectLabel = "notification:default", "默认通知"
+		}
 		return event
 	}
+	event.Module = "key_binding"
+	key := auditRequestKey(req)
+	event.ObjectRef = auditKeyRef(key)
+	// POST carries the incoming alias (an upsert shows the name it writes);
+	// other methods snapshot the binding's alias at operation time.
+	alias := ""
+	if req.Method == http.MethodPost {
+		alias = auditBodyAlias(req.Body)
+	}
+	if alias == "" {
+		if binding := auditBinding(before, key); binding != nil {
+			alias = binding.Alias
+		} else {
+			alias = auditBodyAlias(req.Body)
+		}
+	}
+	event.ObjectLabel = alias
 	if req.Method == http.MethodDelete {
 		event.Action = "delete"
 	}
-	if req.Method == http.MethodPost && auditBinding(before, auditRequestKey(req)) == nil {
+	if req.Method == http.MethodPost && auditBinding(before, key) == nil {
 		event.Action = "create"
 	}
 	return event
@@ -118,12 +210,16 @@ func auditEventForRequest(req pluginapi.ManagementRequest, before State) auditEv
 // Only known secret values are collected; neither raw headers nor body fields
 // are ever included in the event. Callers supply business changes explicitly;
 // the common wrapper sanitizes those changes, including Keeper name results.
+// Notification webhooks and signature secrets join the known values so the
+// settings diff can show that they changed without echoing them.
 func auditSecrets(req pluginapi.ManagementRequest, cfg Config, states ...State) []string {
 	values := []string{auditRequestKey(req), os.Getenv(strings.TrimSpace(cfg.UsageKeeperPasswordEnv))}
 	for _, st := range states {
 		for _, binding := range st.KeyBindings {
 			values = append(values, binding.Key)
+			collectNotificationSecrets(&values, binding.Notifications)
 		}
+		collectNotificationSecrets(&values, notificationList(st))
 	}
 	for name, entries := range req.Headers {
 		switch strings.ToLower(name) {
@@ -192,14 +288,92 @@ func auditBinding(st State, key string) *KeyBinding {
 	return nil
 }
 
+func notificationList(st State) []Notification {
+	if st.Notifications == nil {
+		return nil
+	}
+	return []Notification{st.Notifications.GlobalDefault}
+}
+
+func collectNotificationSecrets(values *[]string, notifications []Notification) {
+	for _, notification := range notifications {
+		for _, platform := range notification.Platforms {
+			if value := strings.TrimSpace(platform.Webhook); value != "" {
+				*values = append(*values, value)
+			}
+			if value := strings.TrimSpace(platform.SignSecret); value != "" {
+				*values = append(*values, value)
+			}
+		}
+	}
+}
+
+// auditChangedChannelIDs collects every supplier/auth ID referenced by a
+// channel diff so their display names can be snapshotted onto the event.
+func auditChangedChannelIDs(changes map[string]auditChange) []string {
+	var ids []string
+	for _, field := range []string{"channel_target.suppliers", "channel_target.auth_ids"} {
+		change, exists := changes[field]
+		if !exists {
+			continue
+		}
+		for _, raw := range []json.RawMessage{change.Before, change.After} {
+			var list []string
+			if json.Unmarshal(raw, &list) == nil {
+				ids = append(ids, list...)
+			}
+		}
+	}
+	return ids
+}
+
+func auditNotificationSummaries(notifications []Notification) any {
+	if notifications == nil {
+		return nil
+	}
+	rows := make([]map[string]any, 0, len(notifications))
+	for _, notification := range notifications {
+		rows = append(rows, map[string]any{"id": notification.ID, "name": notification.Name, "enabled": notification.Enabled})
+	}
+	return rows
+}
+
 // Explicit projections avoid serializing State, request bodies or key values.
+// The channel target is split into its three editable fields so each shows its
+// own before/after pair instead of one opaque JSON blob.
 func auditBindingFields(binding *KeyBinding) map[string]any {
 	if binding == nil {
 		return map[string]any{}
 	}
-	return map[string]any{"alias": binding.Alias, "enabled": binding.Enabled, "blocked": binding.Blocked,
+	fields := map[string]any{"alias": binding.Alias, "enabled": binding.Enabled, "blocked": binding.Blocked,
 		"rules.global": binding.Rules.Global, "rules.claude": binding.Rules.Claude, "rules.codex": binding.Rules.Codex, "rules.openai": binding.Rules.OpenAI,
-		"channel_target": binding.ChannelTarget, "fast_allowed": binding.FastAllowed}
+		"notifications": auditNotificationSummaries(binding.Notifications), "fast_allowed": binding.FastAllowed}
+	if binding.ChannelTarget != nil {
+		fields["channel_target.enabled"] = binding.ChannelTarget.Enabled
+		fields["channel_target.suppliers"] = binding.ChannelTarget.Suppliers
+		fields["channel_target.auth_ids"] = binding.ChannelTarget.AuthIDs
+	} else {
+		fields["channel_target.enabled"] = nil
+		fields["channel_target.suppliers"] = nil
+		fields["channel_target.auth_ids"] = nil
+	}
+	return fields
+}
+
+func auditNotificationSettingsFields(settings *NotificationSettings) map[string]any {
+	fields := map[string]any{"notifications.enabled": nil,
+		"notifications.global_default.enabled":   nil,
+		"notifications.global_default.modules":   nil,
+		"notifications.global_default.schedule":  nil,
+		"notifications.global_default.platforms": nil}
+	if settings != nil {
+		fields["notifications.enabled"] = settings.Enabled
+		fields["notifications.global_default.enabled"] = settings.GlobalDefault.Enabled
+		fields["notifications.global_default.modules"] = settings.GlobalDefault.Modules
+		fields["notifications.global_default.schedule"] = settings.GlobalDefault.Schedule
+		fields["notifications.global_default.platforms"] = settings.GlobalDefault.Platforms
+	}
+	return fields
 }
 
 func auditStateResult(req pluginapi.ManagementRequest, before, after State, resp pluginapi.ManagementResponse) auditResult {
@@ -219,9 +393,12 @@ func auditStateResult(req pluginapi.ManagementRequest, before, after State, resp
 	result.Outcome = "succeeded"
 	key := auditRequestKey(req)
 	oldFields, newFields := auditBindingFields(auditBinding(before, key)), auditBindingFields(auditBinding(after, key))
-	if strings.TrimRight(req.Path, "/") == managementHandleBase+"/rules" {
+	switch managementRequestPath(req.Path) {
+	case managementHandleBase + "/rules":
 		oldFields = map[string]any{"rules.global": before.Rules.Global, "rules.claude": before.Rules.Claude, "rules.codex": before.Rules.Codex, "rules.openai": before.Rules.OpenAI}
 		newFields = map[string]any{"rules.global": after.Rules.Global, "rules.claude": after.Rules.Claude, "rules.codex": after.Rules.Codex, "rules.openai": after.Rules.OpenAI}
+	case notificationHandleBase + "/settings":
+		oldFields, newFields = auditNotificationSettingsFields(before.Notifications), auditNotificationSettingsFields(after.Notifications)
 	}
 	result.Changes = map[string]auditChange{}
 	fields := map[string]bool{}

@@ -1,0 +1,256 @@
+<h2>操作审计 · 呈现重设计</h2>
+<p class="subtitle">目标：每条操作具体到 <b>模块 → 字段/开关 → 旧值 → 新值</b>；Key 操作带别名，渠道定向带渠道自定义名称。以下用示例数据演示（Key 均为脱敏假值）。</p>
+
+<div class="ap-intro">
+  <div class="ap-icard"><div class="ap-inum">1</div><h4>模块可辨</h4><p>每条操作标注所属模块：全局规则 / Key 绑定 / 通知 / Keeper 名称，可按模块筛选。</p></div>
+  <div class="ap-icard"><div class="ap-inum">2</div><h4>字段级新旧值</h4><p>不再整块 JSON。渠道定向拆成「总开关 / 供应商 / 认证」三个字段，各自展示旧值 → 新值。</p></div>
+  <div class="ap-icard"><div class="ap-inum">3</div><h4>Key 一眼可读</h4><p>sha256 哈希换成 <b>别名 + 尾号</b>（prod-deepseek · sk-••••8f2a），别名取操作当时的值。</p></div>
+  <div class="ap-icard"><div class="ap-inum">4</div><h4>渠道带名称</h4><p>供应商/认证展示自定义名称（渠道名、Keeper 名称），增删用 diff 呈现，ID 作次要信息保留。</p></div>
+</div>
+
+<div class="mockup">
+  <div class="mockup-header"><span class="dots"></span>管理后台 · 操作审计（新设计 · 示例数据）</div>
+  <div class="mockup-body ap">
+    <div class="ap-panel">
+      <div class="ap-tabs">
+        <span class="ap-tab">全局规则</span><span class="ap-tab">API Key</span><span class="ap-tab">预览</span><span class="ap-tab">通知</span><span class="ap-tab on">操作审计</span>
+      </div>
+      <div class="ap-toolbar">
+        <span class="ap-input">📅 2026-09-13</span>
+        <span class="ap-flabel">模块</span>
+        <span class="ap-filter">
+          <span class="ap-fchip on">全部</span><span class="ap-fchip">规则 <i>1</i></span><span class="ap-fchip">Key 绑定 <i>3</i></span><span class="ap-fchip">通知 <i>2</i></span><span class="ap-fchip">Keeper 名称 <i>1</i></span>
+        </span>
+        <span class="ap-flabel">结果</span><span class="ap-input">全部 ▾</span>
+        <span style="flex:1"></span>
+        <span class="ap-btn">刷新</span>
+      </div>
+
+      <!-- 行1：展开态（渠道定向） -->
+      <div class="ap-item exp">
+        <div class="ap-row">
+          <span class="ap-time">14:32:05</span>
+          <span class="ap-mtag t-key">Key 绑定</span>
+          <div class="ap-main">
+            <div class="ap-title"><span class="ap-act">更新</span><span class="ap-obj">prod-deepseek</span><span class="ap-keytail">sk-••••8f2a</span><span class="ap-sub">渠道定向</span></div>
+            <div class="ap-chips">
+              <span class="ap-chip">供应商 <b class="n-add">+2</b> <b class="n-del">−1</b></span>
+              <span class="ap-chip">认证 <b class="n-add">+1</b></span>
+            </div>
+          </div>
+          <div class="ap-right"><span class="ap-out ok"><span class="dot ok"></span>成功</span><span class="ap-chev">▾</span></div>
+        </div>
+        <div class="ap-detail">
+          <div class="ap-meta">操作 ID 9f3a7c2e41b8 · 14:32:05.412 → 14:32:05.458 · 耗时 46 ms · 有变更 · 来源 management_api</div>
+          <div class="ap-fgroup">
+            <div class="ap-fgroup-h">渠道定向 <span class="ap-ftech">channel_target</span><span class="ap-fstate">总开关保持开启 · 本次未变更</span></div>
+            <div class="ap-field-h">供应商 <span class="ap-ftech">channel_target.suppliers</span></div>
+            <div class="ap-diff">
+              <div class="ap-dl del"><span class="sign">移除</span><span class="name">DeepSeek 官方</span><span class="ap-dsub">openai-compatible-deepseek · apikey</span></div>
+              <div class="ap-dl add"><span class="sign">新增</span><span class="name">火山方舟</span><span class="ap-dsub">openai-compatible-volc · apikey</span></div>
+              <div class="ap-dl add"><span class="sign">新增</span><span class="name">阿里云百炼</span><span class="ap-dsub">openai-compatible-bailian · apikey</span></div>
+              <div class="ap-dl keep"><span class="sign">保留</span><span class="name">硅基流动</span><span class="ap-dsub">openai-compatible-siliconflow · apikey</span></div>
+            </div>
+            <div class="ap-field-h">认证 <span class="ap-ftech">channel_target.auth_ids</span></div>
+            <div class="ap-diff">
+              <div class="ap-dl add"><span class="sign">新增</span><span class="name">主力号</span><span class="ap-dsub">codex · auth_index 3 · Keeper 名称</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 行2：解封 -->
+      <div class="ap-item">
+        <div class="ap-row">
+          <span class="ap-time">14:20:11</span>
+          <span class="ap-mtag t-key">Key 绑定</span>
+          <div class="ap-main">
+            <div class="ap-title"><span class="ap-act">更新</span><span class="ap-obj">claude-主力</span><span class="ap-keytail">sk-••••3b7c</span></div>
+            <div class="ap-chips"><span class="ap-chip">封禁 <span class="pill on">开</span><span class="arr">→</span><span class="pill off">关</span></span></div>
+          </div>
+          <div class="ap-right"><span class="ap-out ok"><span class="dot ok"></span>成功</span><span class="ap-chev">▸</span></div>
+        </div>
+      </div>
+
+      <!-- 行3：全局规则 -->
+      <div class="ap-item">
+        <div class="ap-row">
+          <span class="ap-time">13:58:47</span>
+          <span class="ap-mtag t-rules">全局规则</span>
+          <div class="ap-main">
+            <div class="ap-title"><span class="ap-act">更新</span><span class="ap-obj">全局规则</span></div>
+            <div class="ap-chips">
+              <span class="ap-chip">Claude 段 <b class="n-add">+3</b> <b class="n-del">−2</b> 行</span>
+              <span class="ap-chip">Codex 段 重写 ±9 行</span>
+            </div>
+          </div>
+          <div class="ap-right"><span class="ap-out ok"><span class="dot ok"></span>成功</span><span class="ap-chev">▸</span></div>
+        </div>
+      </div>
+
+      <!-- 行4：Keeper 名称 -->
+      <div class="ap-item">
+        <div class="ap-row">
+          <span class="ap-time">11:45:02</span>
+          <span class="ap-mtag t-keeper">Keeper 名称</span>
+          <div class="ap-main">
+            <div class="ap-title"><span class="ap-act">修改</span><span class="ap-obj">认证 3</span><span class="ap-keytail">主力号.pem · auth_index 3</span></div>
+            <div class="ap-chips"><span class="ap-chip">名称 未设置 <span class="arr">→</span>「Codex 主力」</span></div>
+          </div>
+          <div class="ap-right"><span class="ap-out ok"><span class="dot ok"></span>成功</span><span class="ap-chev">▸</span></div>
+        </div>
+      </div>
+
+      <!-- 行5：通知设置保存失败 -->
+      <div class="ap-item">
+        <div class="ap-row">
+          <span class="ap-time">11:30:26</span>
+          <span class="ap-mtag t-notify">通知</span>
+          <div class="ap-main">
+            <div class="ap-title"><span class="ap-act">保存</span><span class="ap-obj">全局通知设置</span></div>
+            <div class="ap-err">校验失败：飞书 Webhook 地址非法，配置未保存</div>
+          </div>
+          <div class="ap-right"><span class="ap-out bad"><span class="dot bad"></span>失败</span><span class="ap-chev">▸</span></div>
+        </div>
+      </div>
+
+      <!-- 行6：测试发送失败 -->
+      <div class="ap-item">
+        <div class="ap-row">
+          <span class="ap-time">09:41:18</span>
+          <span class="ap-mtag t-notify">通知</span>
+          <div class="ap-main">
+            <div class="ap-title"><span class="ap-act">测试发送</span><span class="ap-obj">飞书</span><span class="ap-keytail">@Maverick</span></div>
+            <div class="ap-err">上游返回 401：请检查 Webhook 地址与签名密钥</div>
+          </div>
+          <div class="ap-right"><span class="ap-out bad"><span class="dot bad"></span>失败</span><span class="ap-chev">▸</span></div>
+        </div>
+      </div>
+
+      <!-- 行7：新增 Key -->
+      <div class="ap-item">
+        <div class="ap-row">
+          <span class="ap-time">09:12:40</span>
+          <span class="ap-mtag t-key">Key 绑定</span>
+          <div class="ap-main">
+            <div class="ap-title"><span class="ap-act">新增</span><span class="ap-obj">test-key</span><span class="ap-keytail">sk-••••a1b2</span></div>
+            <div class="ap-chips">
+              <span class="ap-chip">启用 <span class="pill on">开</span></span>
+              <span class="ap-chip">全局规则段 3 条映射</span>
+              <span class="ap-chip">渠道定向 未启用</span>
+            </div>
+          </div>
+          <div class="ap-right"><span class="ap-out ok"><span class="dot ok"></span>成功</span><span class="ap-chev">▸</span></div>
+        </div>
+      </div>
+
+      <div class="ap-foot"><span>共 7 项 · 第 1 页 · 北京时间（Asia/Shanghai）</span><span><span class="ap-btn dis">上一页</span> <span class="ap-btn dis">下一页</span></span></div>
+    </div>
+  </div>
+</div>
+
+<h3>取舍 1：详情怎么展开？</h3>
+<div class="options">
+  <div class="option" data-choice="detail-inline" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content"><h3>行内展开（推荐）</h3><p>点击行直接展开字段级详情，如上方第一行示例。扫描连续操作最快。</p></div>
+  </div>
+  <div class="option" data-choice="detail-modal" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content"><h3>弹窗查看</h3><p>保留现有弹窗交互，弹窗内容同样升级为字段级新旧值。列表更紧凑。</p></div>
+  </div>
+  <div class="option" data-choice="detail-both" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content"><h3>行内展开 + 完整弹窗</h3><p>行内展示字段级摘要，「查看完整报文」弹窗看规则全文与原始 JSON。</p></div>
+  </div>
+</div>
+
+<h3>取舍 2：Key 操作的对象怎么显示？</h3>
+<div class="options">
+  <div class="option" data-choice="key-alias-tail" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content"><h3>别名 + 尾号（推荐）</h3><p>prod-deepseek · sk-••••8f2a。可读且可区分重名别名；尾号取自真实 Key，仅审计可见。</p></div>
+  </div>
+  <div class="option" data-choice="key-alias-only" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content"><h3>仅别名</h3><p>更简洁；但别名重复时无法区分是哪个 Key。</p></div>
+  </div>
+  <div class="option" data-choice="key-tail-only" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content"><h3>仅尾号</h3><p>sk-••••8f2a。别名也不进审计文件，保密最强，可读性最弱。</p></div>
+  </div>
+</div>
+
+<style>
+.ap { font: 13px/1.55 -apple-system, "PingFang SC", "Segoe UI", "Microsoft YaHei", sans-serif; color: #1c1f23; }
+.ap * { box-sizing: border-box; }
+.ap-intro { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin: 14px 0 18px; }
+.ap-icard { border: 1px solid #e2e5ea; border-radius: 10px; padding: 12px 14px; background: #fff; }
+.ap-icard h4 { margin: 6px 0 4px; font-size: 13.5px; }
+.ap-icard p { margin: 0; font-size: 12.5px; color: #5b636a; }
+.ap-inum { display: inline-flex; width: 20px; height: 20px; border-radius: 50%; background: #1664ff; color: #fff; font-size: 11.5px; font-weight: 700; align-items: center; justify-content: center; }
+
+.ap-panel { background: #fff; border: 1px solid #e2e5ea; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,.05); }
+.ap-tabs { display: flex; gap: 2px; padding: 10px 16px 0; border-bottom: 1px solid #e2e5ea; }
+.ap-tab { padding: 7px 14px 9px; color: #5b636a; font-weight: 500; font-size: 13px; }
+.ap-tab.on { color: #1664ff; font-weight: 600; box-shadow: inset 0 -2px 0 #1664ff; }
+.ap-toolbar { display: flex; align-items: center; gap: 10px; padding: 11px 16px; flex-wrap: wrap; background: #fafbfc; border-bottom: 1px solid #eef0f3; }
+.ap-flabel { font-size: 12px; color: #8a919c; }
+.ap-input { border: 1px solid #d9dde3; border-radius: 6px; padding: 4px 10px; background: #fff; font-size: 12.5px; color: #1c1f23; }
+.ap-btn { border: 1px solid #d9dde3; background: #fff; border-radius: 6px; padding: 4px 12px; font-size: 12.5px; color: #374151; }
+.ap-btn.dis { opacity: .45; }
+.ap-filter { display: flex; gap: 6px; }
+.ap-fchip { padding: 3px 10px; border-radius: 999px; border: 1px solid #d9dde3; font-size: 12px; color: #5b636a; background: #fff; }
+.ap-fchip.on { background: #e8efff; border-color: #9cb9ff; color: #1247ad; font-weight: 600; }
+.ap-fchip i { font-style: normal; color: #9aa1ab; margin-left: 2px; }
+
+.ap-item { border-top: 1px solid #eef0f3; }
+.ap-item.exp { background: #f7faff; box-shadow: inset 3px 0 0 #1664ff; }
+.ap-row { display: flex; gap: 12px; padding: 11px 16px; align-items: flex-start; }
+.ap-time { font: 12.5px ui-monospace, Menlo, monospace; color: #5b636a; width: 62px; flex: none; padding-top: 2px; }
+.ap-mtag { flex: none; font-size: 11.5px; font-weight: 600; padding: 2px 9px; border-radius: 4px; margin-top: 1px; white-space: nowrap; }
+.t-rules { background: #e8efff; color: #1247ad; }
+.t-key { background: #e0f5f0; color: #0a7d5c; }
+.t-notify { background: #fff1de; color: #ad5b00; }
+.t-keeper { background: #eaf6ea; color: #2b7d2b; }
+.ap-main { flex: 1; min-width: 0; }
+.ap-title { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+.ap-act { font-weight: 600; }
+.ap-obj { font-weight: 600; }
+.ap-keytail { font: 12px ui-monospace, Menlo, monospace; color: #8a919c; }
+.ap-sub { font-size: 11.5px; color: #8a919c; background: #f2f4f7; border-radius: 4px; padding: 1px 7px; }
+.ap-chips { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 5px; }
+.ap-chip { font-size: 11.5px; color: #4b5563; background: #fff; border: 1px solid #e5e9f0; border-radius: 5px; padding: 1px 8px; }
+.ap-chip .arr { color: #9aa1ab; margin: 0 3px; }
+.n-add { color: #127a3d; } .n-del { color: #c0392b; }
+.pill { border-radius: 4px; padding: 0 6px; font-size: 11px; font-weight: 600; }
+.pill.on { background: #e5f6ea; color: #127a3d; }
+.pill.off { background: #eef0f3; color: #6b7280; }
+.ap-right { flex: none; display: flex; align-items: center; gap: 10px; padding-top: 2px; }
+.ap-out { font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 5px; }
+.ap-out.ok { color: #1f8a4c; } .ap-out.bad { color: #d3363d; }
+.dot { width: 7px; height: 7px; border-radius: 50%; }
+.dot.ok { background: #23a55a; } .dot.bad { background: #e5484d; }
+.ap-chev { color: #9aa1ab; font-size: 11px; }
+
+.ap-detail { border-top: 1px dashed #d8dfe9; padding: 12px 16px 15px 90px; }
+.ap-meta { font: 11.5px ui-monospace, Menlo, monospace; color: #7a828e; }
+.ap-fgroup { margin-top: 10px; }
+.ap-fgroup-h { font-size: 12.5px; font-weight: 700; color: #1f2937; display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+.ap-fstate { font-size: 11.5px; color: #8a919c; font-weight: 400; }
+.ap-field-h { font-size: 12px; color: #374151; font-weight: 600; margin: 10px 0 5px; }
+.ap-ftech { font: 11px ui-monospace, Menlo, monospace; color: #9aa1ab; font-weight: 400; }
+.ap-diff { border: 1px solid #e5e9f0; border-radius: 8px; background: #fff; overflow: hidden; }
+.ap-dl { display: flex; gap: 10px; padding: 5px 12px; font-size: 12.5px; align-items: baseline; border-top: 1px solid #f1f3f7; }
+.ap-dl:first-child { border-top: none; }
+.ap-dl .sign { flex: none; width: 36px; font-size: 11px; font-weight: 700; border-radius: 4px; text-align: center; padding: 1px 0; }
+.ap-dl.add .sign { background: #e5f6ea; color: #127a3d; }
+.ap-dl.add .name { font-weight: 600; }
+.ap-dl.del .sign { background: #fdecea; color: #c0392b; }
+.ap-dl.del .name { color: #9aa1ab; text-decoration: line-through; }
+.ap-dl.keep .sign { background: #eef0f3; color: #6b7280; }
+.ap-dl.keep { color: #8a919c; }
+.ap-dsub { margin-left: auto; color: #9aa1ab; font: 11px ui-monospace, Menlo, monospace; }
+.ap-err { margin-top: 5px; font-size: 12.5px; color: #b03230; background: #fdf1f0; border: 1px solid #f3c7c4; border-radius: 6px; padding: 5px 10px; display: inline-block; }
+.ap-foot { display: flex; justify-content: space-between; align-items: center; padding: 10px 16px; color: #7a828e; font-size: 12px; background: #fafbfc; border-top: 1px solid #eef0f3; }
+</style>

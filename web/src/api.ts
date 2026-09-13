@@ -12,17 +12,27 @@ export interface AuditMeta {
   recorded: boolean
   error_code?: string
 }
+export interface AuditChange {
+  before?: unknown
+  after?: unknown
+}
 export interface AuditOperation {
   operation_id: string
   actor: string
   action: string
+  /** v2 事件携带；v1 历史缺省，由 object_type 推导。 */
+  module?: string
   object_type: string
   object_ref: string
+  /** v2 写入时快照的对象显示名（Key 别名、通知名等）；缺省回落 object_ref。 */
+  object_label?: string
+  /** v2 渠道 ID → 显示名快照；读取端以此为优先、实时目录富化次之。 */
+  labels?: Record<string, string>
   started_at: string
   finished_at?: string
   outcome: 'running' | 'succeeded' | 'failed' | 'unknown'
   changed: boolean | null
-  changes: Record<string, { before?: unknown; after?: unknown }>
+  changes: Record<string, AuditChange>
   error_code?: string
 }
 export interface AuditPage {
@@ -31,6 +41,10 @@ export interface AuditPage {
   page: number
   page_size: number
   total: number
+  /** 回显 module 筛选值；未筛选时缺省。 */
+  module?: string
+  /** 全日（未筛选）各模块计数。 */
+  module_counts?: Record<string, number>
   items: AuditOperation[]
   warnings: string[]
 }
@@ -200,11 +214,12 @@ async function call<T>(method: string, path: string, body?: unknown): Promise<T>
 }
 
 export const api = {
-  getAudit: (date?: string, page?: number, pageSize?: number) => {
+  getAudit: (date?: string, page?: number, pageSize?: number, module?: string) => {
     const query = new URLSearchParams()
     if (date) query.set('date', date)
     if (page !== undefined) query.set('page', String(page))
     if (pageSize !== undefined) query.set('page_size', String(pageSize))
+    if (module) query.set('module', module)
     return call<AuditPage>('GET', `/audit${query.size ? `?${query}` : ''}`)
   },
   getKeeperAuthNames: () => call<KeeperAuthNamesResponse>('GET', '/keeper/auth-names'),

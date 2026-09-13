@@ -144,7 +144,7 @@ spec_dev:
 #### Scenario: S11 敏感数据与热重配
 - GIVEN 包含完整 Key、Keeper 密码、Cookie/Token 的请求以及并发保存和 state 路径重配。
 - WHEN 写入和查询审计。
-- THEN 文件和响应只保存白名单投影；Key 使用 SHA-256 指纹及掩码，HTTP headers/完整 URL/raw body/Keeper 响应体不入日志；规则和别名中的已知秘密字面值也替换为掩码。重配与管理变更串行协调，开始与结果始终写入同一目录，不混用新旧配置；历史目录不搬迁或删除。
+- THEN 文件和响应只保存白名单投影；Key 使用「别名 + 尾4」标识（v2 起 `object_ref=key:••••<尾4>`、`object_label=别名`，见 `2026-09-13-02-audit-operation-detail`；其前的 v1 事件保持 SHA-256 指纹原样可读），HTTP headers/完整 URL/raw body/Keeper 响应体不入日志；规则和别名中的已知秘密字面值也替换为掩码，v2 起通知平台 Webhook 与签名密钥同样入脱敏源。重配与管理变更串行协调，开始与结果始终写入同一目录，不混用新旧配置；历史目录不搬迁或删除。
 
 ## 接口与实现边界
 
@@ -152,7 +152,7 @@ spec_dev:
 
 - `GET /keeper/auth-names` 与 `POST /keeper/auth-names/refresh`：`{status: ready|disabled|unavailable, items: [{identity_id, auth_index, alias, display_name}], fetched_at?, error_code?}`。仅返回活跃 Codex Auth File 名称投影，未知类型和重复冲突不可写。
 - `PATCH /keeper/auth-names`：输入 `{auth_index, alias}`；后端强制刷新并重新解析对应 Keeper ID，不信任浏览器提供的 Keeper ID。返回 `{status: ready|not_found|invalid|unavailable|unknown, item?, error_code?, audit?}`，只有 `ready` 含更新 item。除了审计 Begin 失败为 503，其余应用结果统一以 HTTP 200 封装，避免外部 401/403 触发 CPA 登出。审计结果必须消费应用 status，不能把 HTTP 200 一律算成功；PATCH 已发出但没有可确认响应时为 unknown，发出前失败为 failed。
-- `GET /audit?date=YYYY-MM-DD&page=1&page_size=20`：默认北京时间当天，page>=1，1<=page_size<=100；返回 `{date, timezone, page, page_size, total, items, warnings}`，`Cache-Control: no-store`。items 按 operation_id 合并事件，有 `action, object_type, object_ref, started_at, finished_at?, outcome, changed, changes, error_code?`。
+- `GET /audit?date=YYYY-MM-DD&page=1&page_size=20`：默认北京时间当天，page>=1，1<=page_size<=100；返回 `{date, timezone, page, page_size, total, items, warnings}`，`Cache-Control: no-store`。items 按 operation_id 合并事件，有 `action, object_type, object_ref, started_at, finished_at?, outcome, changed, changes, error_code?`；v2 起每项另有 `module, object_label?, labels?`，响应另有 `module?` 与 `module_counts`，支持 `module` 筛选参数（形状与枚举以 `2026-09-13-02-audit-operation-detail` 的数据契约为准）。
 - 所有变更响应增加可选 `audit: {operation_id, recorded, error_code?}`；原成功/错误响应字段保留。终态写入失败时，业务结果已知的界面保留原结果并提示“审计结果未写入”；Keeper 结果为 unknown 时提示“同步结果未确认，审计结果未写入”，不宣称已保存或已回滚，不自动重试。
 
 文件记录 envelope 为 `version=1, operation_id, phase=start|finish, occurred_at` 加白名单业务字段；只增加新行，不回写旧行。每项操作的结果写入其开始时固定的目录和日期。生成 operation_id 使用 Go 标准库随机值。

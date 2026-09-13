@@ -132,7 +132,7 @@ func TestManagementAuditRedactsKnownSecrets(t *testing.T) {
 			t.Errorf("secret leaked: %s", secret)
 		}
 	}
-	if page.Total != 1 || !strings.Contains(page.Items[0].ObjectRef, "sha256:") || !strings.Contains(page.Items[0].ObjectRef, "***") {
+	if page.Total != 1 || page.Items[0].ObjectRef != "key:••••cret" {
 		t.Fatalf("object ref=%+v", page)
 	}
 	// Changes between secrets must remain changed even if projections mask equally.
@@ -154,8 +154,8 @@ func TestManagementAuditShortSecretsKeepFingerprintAndMask(t *testing.T) {
 	if page.Total != 1 {
 		t.Fatalf("page=%+v", page)
 	}
-	if page.Items[0].ObjectRef != "sha256:ca978112ca1bbdcafac231b39a23dc4da786eff8147c4e72b9807785afee48bb masked:***" {
-		t.Errorf("fingerprint changed: %s", page.Items[0].ObjectRef)
+	if page.Items[0].ObjectRef != "key:••••" {
+		t.Errorf("short key stayed unmasked: %s", page.Items[0].ObjectRef)
 	}
 	var alias string
 	if err := json.Unmarshal(page.Items[0].Changes["alias"].After, &alias); err != nil {
@@ -444,16 +444,16 @@ func TestManagementAuditS8BlocksBeforeMutation(t *testing.T) {
 func TestManagementAuditCRUDAndNoChange(t *testing.T) {
 	statePath := setupManagementTest(t, Config{Enabled: true})
 	steps := []struct {
-		method, body, action string
-		changed              bool
-		status               int
+		method, body, action, label string
+		changed                     bool
+		status                      int
 	}{
-		{http.MethodPost, `{"key":"sk-audit-secret","alias":"A","enabled":true}`, "create", true, 200},
-		{http.MethodPost, `{"key":"sk-audit-secret","alias":"B","enabled":true}`, "update", true, 200},
-		{http.MethodPost, `{"key":"sk-audit-secret","alias":"B","enabled":true}`, "update", false, 200},
-		{http.MethodPatch, `{"key":"sk-audit-secret","enabled":false}`, "update", true, 200},
-		{http.MethodDelete, `{"key":"sk-audit-secret"}`, "delete", true, 200},
-		{http.MethodDelete, `{"key":"sk-audit-secret"}`, "delete", false, 404},
+		{http.MethodPost, `{"key":"sk-audit-secret","alias":"A","enabled":true}`, "create", "A", true, 200},
+		{http.MethodPost, `{"key":"sk-audit-secret","alias":"B","enabled":true}`, "update", "B", true, 200},
+		{http.MethodPost, `{"key":"sk-audit-secret","alias":"B","enabled":true}`, "update", "B", false, 200},
+		{http.MethodPatch, `{"key":"sk-audit-secret","enabled":false}`, "update", "B", true, 200},
+		{http.MethodDelete, `{"key":"sk-audit-secret"}`, "delete", "B", true, 200},
+		{http.MethodDelete, `{"key":"sk-audit-secret"}`, "delete", "", false, 404},
 	}
 	for i, step := range steps {
 		resp := dispatchManagement(auditRequest(step.method, "/keys", step.body))
@@ -478,14 +478,21 @@ func TestManagementAuditCRUDAndNoChange(t *testing.T) {
 		if item.Action != step.action || item.Outcome != outcome || item.Changed == nil || *item.Changed != step.changed {
 			t.Fatalf("step %d item=%+v", i, item)
 		}
-		if item.Actor != "management_api" || item.ObjectType != "key_binding" || item.ObjectRef == "" {
+		if item.Actor != "management_api" || item.ObjectType != "key_binding" || item.ObjectRef != "key:••••cret" || item.Module != "key_binding" {
 			t.Fatalf("identity=%+v", item)
+		}
+		// The alias snapshot rides the finish record: creations take the body
+		// alias, updates and deletes keep the binding's alias at operation time.
+		if item.ObjectLabel != step.label {
+			t.Fatalf("step %d label=%q want %q", i, item.ObjectLabel, step.label)
 		}
 		if step.changed && len(item.Changes) == 0 {
 			t.Fatal("missing real diff")
 		}
-		if _, exists := item.Changes["channel_target"]; exists {
-			t.Fatal("unchanged null channel target included in diff")
+		for _, field := range []string{"channel_target", "channel_target.enabled", "channel_target.suppliers", "channel_target.auth_ids"} {
+			if _, exists := item.Changes[field]; exists {
+				t.Fatalf("unchanged null channel target included in diff: %s", field)
+			}
 		}
 		if _, exists := item.Changes["fast_allowed"]; exists {
 			t.Fatal("unchanged null fast flag included in diff")
@@ -572,5 +579,67 @@ func TestManagementAuditRulesAndValidation(t *testing.T) {
 	raw, _ := json.Marshal(after)
 	if bytes.Contains(raw, []byte("audit")) {
 		t.Fatal("state contains audit")
+	}
+}
+
+// Scenario S4/S7: the channel target splits into its three editable fields,
+// each with its own before/after pair, and changed channel IDs carry a
+// display-name snapshot from the credential label cache.
+func TestManagementAuditChannelTargetFieldSplit(t *testing.T) {
+	setupManagementTest(t, Config{Enabled: true})
+	recordChannelLabels([]channelCredential{
+		{ID: "codex:abc123", Provider: "openai-compatible-volc", ProviderLabel: "火山方舟", Label: "Key ••••1234"},
+		{ID: "codex:def789", Provider: "openai-compatible-bailian", ProviderLabel: "阿里云百炼", Label: "Key ••••7890"},
+	})
+	first := `{"key":"sk-channel-1","alias":"ch","enabled":true,"channel_target":{"enabled":true,"suppliers":["openai-compatible-volc"],"auth_ids":["codex:abc123"]}}`
+	if resp := dispatchManagement(auditRequest(http.MethodPost, "/keys", first)); resp.StatusCode != 200 {
+		t.Fatalf("first save: %s", resp.Body)
+	}
+	page := auditPageForTest(t)
+	if page.Total != 1 {
+		t.Fatalf("page=%+v", page)
+	}
+	item := page.Items[0]
+	for _, field := range []string{"channel_target.enabled", "channel_target.suppliers", "channel_target.auth_ids"} {
+		if _, exists := item.Changes[field]; !exists {
+			t.Fatalf("missing split field %s: %+v", field, item.Changes)
+		}
+	}
+	if _, exists := item.Changes["channel_target"]; exists {
+		t.Fatalf("monolithic channel_target survived: %+v", item.Changes)
+	}
+	if string(item.Changes["channel_target.enabled"].After) != "true" {
+		t.Fatalf("enabled diff=%+v", item.Changes["channel_target.enabled"])
+	}
+	if item.Labels["openai-compatible-volc"] != "火山方舟" || item.Labels["codex:abc123"] != "火山方舟 · Key ••••1234" {
+		t.Fatalf("labels=%v", item.Labels)
+	}
+	// Swap one supplier and one auth: only those two fields re-diff.
+	second := `{"key":"sk-channel-1","alias":"ch","enabled":true,"channel_target":{"enabled":true,"suppliers":["openai-compatible-bailian"],"auth_ids":["codex:def789"]}}`
+	if resp := dispatchManagement(auditRequest(http.MethodPost, "/keys", second)); resp.StatusCode != 200 {
+		t.Fatalf("second save: %s", resp.Body)
+	}
+	page = auditPageForTest(t)
+	if page.Total != 2 {
+		t.Fatalf("page=%+v", page)
+	}
+	item = page.Items[0]
+	for _, field := range []string{"channel_target.enabled", "alias", "enabled"} {
+		if _, exists := item.Changes[field]; exists {
+			t.Fatalf("unchanged field re-diffed: %s", field)
+		}
+	}
+	var before, after []string
+	if err := json.Unmarshal(item.Changes["channel_target.suppliers"].Before, &before); err != nil {
+		t.Fatal(err)
+	}
+	if err := json.Unmarshal(item.Changes["channel_target.suppliers"].After, &after); err != nil {
+		t.Fatal(err)
+	}
+	if len(before) != 1 || before[0] != "openai-compatible-volc" || len(after) != 1 || after[0] != "openai-compatible-bailian" {
+		t.Fatalf("supplier diff=%v -> %v", before, after)
+	}
+	if item.Labels["openai-compatible-bailian"] != "阿里云百炼" || item.Labels["codex:def789"] != "阿里云百炼 · Key ••••7890" {
+		t.Fatalf("second labels=%v", item.Labels)
 	}
 }

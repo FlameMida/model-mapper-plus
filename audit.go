@@ -19,14 +19,19 @@ type auditChange struct {
 }
 
 type auditEvent struct {
-	Version     int                    `json:"version"`
-	OperationID string                 `json:"operation_id"`
-	Phase       string                 `json:"phase"`
-	OccurredAt  time.Time              `json:"occurred_at"`
-	Actor       string                 `json:"actor,omitempty"`
-	Action      string                 `json:"action,omitempty"`
+	Version     int       `json:"version"`
+	OperationID string    `json:"operation_id"`
+	Phase       string    `json:"phase"`
+	OccurredAt  time.Time `json:"occurred_at"`
+	Actor       string    `json:"actor,omitempty"`
+	Action      string    `json:"action,omitempty"`
+	// Module is the owning admin surface (v2): rules, key_binding,
+	// notifications, keeper_auth_name or other. Version-1 events predate it.
+	Module      string                 `json:"module,omitempty"`
 	ObjectType  string                 `json:"object_type,omitempty"`
 	ObjectRef   string                 `json:"object_ref,omitempty"`
+	ObjectLabel string                 `json:"object_label,omitempty"`
+	Labels      map[string]string      `json:"labels,omitempty"`
 	Outcome     string                 `json:"outcome,omitempty"`
 	Changed     *bool                  `json:"changed"`
 	Changes     map[string]auditChange `json:"changes,omitempty"`
@@ -83,7 +88,7 @@ func beginAudit(statePath string, event auditEvent) (auditTicket, error) {
 		return auditTicket{}, err
 	}
 	ticket := auditTicket{ID: hex.EncodeToString(id[:]), Path: path, StartedAt: now}
-	event.Version, event.OperationID, event.Phase, event.OccurredAt = 1, ticket.ID, "start", now
+	event.Version, event.OperationID, event.Phase, event.OccurredAt = 2, ticket.ID, "start", now
 	if err := appendAuditEvent(path, event); err != nil {
 		return auditTicket{}, err
 	}
@@ -95,7 +100,7 @@ func finishAudit(ticket auditTicket, event auditEvent) error {
 	auditIOMu.Lock()
 	defer auditIOMu.Unlock()
 	defer delete(auditRunning, ticket.ID)
-	event.Version, event.OperationID, event.Phase, event.OccurredAt = 1, ticket.ID, "finish", auditNow().In(auditLocation)
+	event.Version, event.OperationID, event.Phase, event.OccurredAt = 2, ticket.ID, "finish", auditNow().In(auditLocation)
 	err := appendAuditEvent(ticket.Path, event)
 	if err != nil {
 		auditUnconfirmed[ticket.ID] = ticket.Path

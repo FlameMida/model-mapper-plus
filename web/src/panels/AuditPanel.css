@@ -1,10 +1,165 @@
+/* 审计面板：全部颜色走 Semi Design 主题变量（--semi-color-*），
+   深浅主题由 body[data-theme] 切换变量自动跟随，零硬编码色值。 */
+
 .audit-panel { margin: 16px; min-width: 0; max-width: calc(100% - 32px); }
-.audit-toolbar, .audit-pagination { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin: 12px 0; }
+.audit-panel .semi-banner { overflow-wrap: anywhere; }
+
+.audit-toolbar { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin: 12px 0; }
 .audit-date { display: flex; align-items: center; gap: 8px; }
 .audit-date .semi-input-wrapper { width: 160px; }
-.audit-table-scroll { width: 100%; overflow-x: auto; }
-.audit-table-scroll .semi-table-wrapper { min-width: 700px; }
-.audit-detail, .audit-panel .semi-banner { overflow-wrap: anywhere; }
-.audit-change { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
-.audit-change pre { white-space: pre-wrap; overflow-wrap: anywhere; padding: 12px; background: var(--semi-color-fill-0); }
-@media (max-width: 480px) { .audit-change { grid-template-columns: minmax(0, 1fr); } }
+.audit-toolbar-note { color: var(--semi-color-text-2); font-size: 12px; }
+
+/* 模块筛选 chips */
+.audit-module-filter { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.audit-module-chip {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 3px 10px; border-radius: 999px; cursor: pointer;
+  border: 1px solid var(--semi-color-border);
+  background: var(--semi-color-bg-1);
+  color: var(--semi-color-text-2); font-size: 12px; line-height: 18px;
+}
+.audit-module-chip:hover { border-color: var(--semi-color-primary-light-active); color: var(--semi-color-text-1); }
+.audit-module-chip.active {
+  background: var(--semi-color-primary-light-default);
+  border-color: var(--semi-color-primary);
+  color: var(--semi-color-primary); font-weight: 600;
+}
+.audit-module-count {
+  min-width: 16px; padding: 0 4px; border-radius: 8px; text-align: center;
+  background: var(--semi-color-fill-1); color: var(--semi-color-text-2);
+  font-size: 11px; font-weight: 500;
+}
+.audit-module-chip.active .audit-module-count { background: var(--semi-color-primary); color: var(--semi-color-bg-0); }
+
+/* 操作列表（行内卡片） */
+.audit-list { border: 1px solid var(--semi-color-border); border-radius: var(--semi-border-radius-medium); overflow: hidden; }
+.audit-item { border-top: 1px solid var(--semi-color-border); }
+.audit-item:first-child { border-top: none; }
+.audit-item.expanded { background: var(--semi-color-primary-light-default); box-shadow: inset 3px 0 0 var(--semi-color-primary); }
+.audit-row {
+  display: flex; align-items: flex-start; gap: 12px; padding: 10px 16px;
+  cursor: pointer; outline: none;
+}
+.audit-row:focus-visible { box-shadow: inset 0 0 0 2px var(--semi-color-primary); }
+.audit-row:hover { background: var(--semi-color-fill-0); }
+.audit-item.expanded .audit-row:hover { background: transparent; }
+.audit-time { color: var(--semi-color-text-2); font-family: var(--semi-font-family-code, monospace); font-size: 12.5px; padding-top: 2px; white-space: nowrap; }
+.audit-module-tag { flex: none; margin-top: 1px; }
+.audit-main { flex: 1; min-width: 0; }
+.audit-title { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.audit-action { color: var(--semi-color-text-1); font-weight: 600; }
+.audit-object { color: var(--semi-color-text-0); font-weight: 600; overflow-wrap: anywhere; }
+.audit-ref {
+  color: var(--semi-color-text-2); font-size: 12px;
+  font-family: var(--semi-font-family-code, monospace); overflow-wrap: anywhere;
+}
+.audit-right { display: flex; align-items: center; gap: 8px; flex: none; padding-top: 1px; }
+.audit-chevron { color: var(--semi-color-text-2); font-size: 12px; transition: transform 0.15s ease; }
+.audit-chevron.open { transform: rotate(0deg); color: var(--semi-color-primary); }
+.audit-chevron:not(.open) { transform: rotate(-90deg); }
+
+/* 摘要 chips */
+.audit-chips { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px; }
+.audit-chip {
+  display: inline-flex; align-items: center; gap: 2px;
+  padding: 1px 8px; border-radius: var(--semi-border-radius-small);
+  border: 1px solid var(--semi-color-border); background: var(--semi-color-bg-1);
+  color: var(--semi-color-text-1); font-size: 11.5px; line-height: 18px;
+}
+.audit-chip .pos { color: var(--semi-color-success); font-weight: 600; }
+.audit-chip .neg { color: var(--semi-color-danger); font-weight: 600; }
+.audit-chip .mute { color: var(--semi-color-text-2); }
+
+/* 失败原因（行内） */
+.audit-error {
+  margin-top: 4px; display: inline-block; padding: 2px 10px;
+  border-radius: var(--semi-border-radius-small);
+  background: var(--semi-color-danger-light-default); color: var(--semi-color-danger);
+  font-size: 12px; overflow-wrap: anywhere;
+}
+
+/* 行内展开详情 */
+.audit-detail { border-top: 1px dashed var(--semi-color-border); padding: 12px 16px 14px 92px; }
+.audit-meta {
+  display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap;
+  color: var(--semi-color-text-2); font-size: 12px;
+}
+.audit-meta code { font-family: var(--semi-font-family-code, monospace); color: var(--semi-color-text-1); }
+.audit-nochange { color: var(--semi-color-text-2); margin: 8px 0 0; }
+
+.audit-field { margin-top: 10px; }
+.audit-field h4 {
+  margin: 0 0 6px; font-size: 12.5px; color: var(--semi-color-text-0);
+  display: flex; align-items: baseline; gap: 8px; font-weight: 600;
+}
+.audit-field h4 code {
+  font-size: 11px; font-weight: 400; color: var(--semi-color-text-2);
+  font-family: var(--semi-font-family-code, monospace);
+}
+.audit-field-body { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.audit-arrow { color: var(--semi-color-text-2); }
+.audit-scalar code {
+  padding: 1px 8px; border-radius: var(--semi-border-radius-small);
+  background: var(--semi-color-fill-0); color: var(--semi-color-text-1);
+  overflow-wrap: anywhere;
+}
+.audit-pill {
+  display: inline-block; padding: 0 8px; border-radius: var(--semi-border-radius-small);
+  font-size: 12px; font-weight: 600; line-height: 20px;
+}
+.audit-pill.success { background: var(--semi-color-success-light-default); color: var(--semi-color-success); }
+.audit-pill.danger { background: var(--semi-color-danger-light-default); color: var(--semi-color-danger); }
+.audit-pill.mute { background: var(--semi-color-fill-1); color: var(--semi-color-text-2); }
+
+/* JSON 双列（通用兜底与通知设置结构化字段） */
+.audit-json { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.audit-json strong { font-size: 12px; color: var(--semi-color-text-2); font-weight: 500; }
+.audit-json pre {
+  margin: 4px 0 0; padding: 10px 12px; border-radius: var(--semi-border-radius-medium);
+  background: var(--semi-color-fill-0); color: var(--semi-color-text-1);
+  white-space: pre-wrap; overflow-wrap: anywhere; font-size: 12px; max-height: 320px; overflow-y: auto;
+}
+
+/* 规则段行级 diff */
+.audit-rule-diff {
+  margin: 0; padding: 10px 12px; border-radius: var(--semi-border-radius-medium);
+  background: var(--semi-color-fill-0); max-height: 320px; overflow: auto;
+  font-size: 12px; line-height: 1.7; white-space: pre-wrap; overflow-wrap: anywhere;
+}
+.audit-rule-diff span { display: block; }
+.audit-rule-diff span.add { background: var(--semi-color-success-light-default); color: var(--semi-color-success); }
+.audit-rule-diff span.del { background: var(--semi-color-danger-light-default); color: var(--semi-color-danger); text-decoration: line-through; }
+.audit-rule-diff span.keep { color: var(--semi-color-text-1); }
+
+/* 数组 diff 行（供应商/认证/通知列表） */
+.audit-diff-list {
+  border: 1px solid var(--semi-color-border); border-radius: var(--semi-border-radius-medium);
+  background: var(--semi-color-bg-1); overflow: hidden;
+}
+.audit-diff-row {
+  display: flex; align-items: baseline; gap: 10px; padding: 5px 12px; font-size: 12.5px;
+  border-top: 1px solid var(--semi-color-border);
+}
+.audit-diff-row:first-child { border-top: none; }
+.audit-sign {
+  flex: none; width: 38px; text-align: center; border-radius: var(--semi-border-radius-small);
+  font-size: 11px; font-weight: 600; line-height: 18px;
+}
+.audit-sign.add { background: var(--semi-color-success-light-default); color: var(--semi-color-success); }
+.audit-sign.del { background: var(--semi-color-danger-light-default); color: var(--semi-color-danger); }
+.audit-sign.keep { background: var(--semi-color-fill-1); color: var(--semi-color-text-2); }
+.audit-diff-row .audit-name { color: var(--semi-color-text-1); font-weight: 500; overflow-wrap: anywhere; }
+.audit-diff-row.del .audit-name { color: var(--semi-color-text-2); text-decoration: line-through; }
+.audit-diff-row.keep .audit-name { color: var(--semi-color-text-2); font-weight: 400; }
+.audit-diff-row .audit-id {
+  margin-left: auto; color: var(--semi-color-text-2); font-size: 11px;
+  font-family: var(--semi-font-family-code, monospace); overflow-wrap: anywhere;
+}
+
+.audit-pagination { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin: 12px 0; color: var(--semi-color-text-2); }
+.audit-enrich-note { color: var(--semi-color-text-2); font-size: 12px; }
+
+@media (max-width: 640px) {
+  .audit-detail { padding-left: 16px; }
+  .audit-json { grid-template-columns: minmax(0, 1fr); }
+}
