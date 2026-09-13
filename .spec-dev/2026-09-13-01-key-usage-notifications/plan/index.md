@@ -44,18 +44,6 @@
 ```yaml spec-dev-parallel
 parallel:
   tasks:
-    T01:
-      writes:
-        - "web/package.json"
-        - "web/package-lock.json"
-        - "web/pnpm-lock.yaml"
-        - "web/vite.config.ts"
-        - "web/vitest.config.ts"
-        - "web/src/test/setup.ts"
-        - "web/dist/index.html"
-        - "Makefile"
-        - ".github/workflows/build.yml"
-      resources: []
     T02:
       writes:
         - "notification_types.go"
