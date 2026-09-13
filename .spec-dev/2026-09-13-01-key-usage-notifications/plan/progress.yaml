@@ -210,7 +210,15 @@ tasks:
       branch: "ku/T13"
       base_commit: "e256893"
     model_declaration_id: "decl-001"
-  T14: { status: pending }
+  T14:
+    status: in_progress
+    claim:
+      key: "T14-a1"
+      owner: "claude-code-main@Maverick-mini.local-pid-35706"
+      worktree: ".worktrees/ku-T14"
+      branch: "ku/T14"
+      base_commit: ""
+    model_declaration_id: "decl-001"
   T15:
     status: completed
     commit: "224f5fe"
