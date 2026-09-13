@@ -6,7 +6,7 @@ execution:
   integration_worktree: "/Users/maverick/cpa-model-mapper-plus/.worktrees/plan-2026-09-13-01-key-usage-notifications"
   integration_branch: "plan-2026-09-13-01-key-usage-notifications"
   base_commit: "f7ace3f"
-  validated_commit: "7e9e11a"
+  validated_commit: "d3f695c"
 tasks:
   T00: { status: completed, commit: "ec515043a356532a23ea70d288b8dc41aac3b0d4", tests: pass }
   T01:
@@ -93,7 +93,12 @@ tasks:
       base_commit: "663a108"
     model_declaration_id: "decl-001"
   T06:
-    status: in_progress
+    status: completed
+    commit: "d3f695c"
+    implementation_commit: "c938ea44623dd3c28a7a0c7e5eed92727d2d361d"
+    tests: pass
+    deviations:
+      - "节标题日期模式以任务自带测试为权威：daily 同日折叠为单日期、跨期 A ~ B（periodRangeLabel）"
     claim:
       key: "T06-a1"
       owner: "claude-code-main@Maverick-mini.local-pid-35706"
@@ -143,3 +148,4 @@ notes:
   - "accept/T07-a1: verifyResult 完整通过；集成 merge d21c296 + 集成验证全绿（vet+相关范围 6.4s）；validated_commit → d21c296；事故：主线程清理 implementer worktree 证据目录时未先验证 cp 成功，原红绿日志丢失，已从提交树真实重现（red 编译失败/green 全量重跑），后续归档一律先验证后清理"
   - "accept/T05-a1: verifyResult 完整通过；真实 Keeper 契约核对修正替身（嵌套 quota 形状）；集成 merge 7e9e11a + 集成验证全绿；validated_commit → 7e9e11a"
   - "dispatch/T06: T06-a1 于 7e9e11a（含 T02+T03+T05）认领并派发（2026-09-13）"
+  - "accept/T06-a1: verifyResult 完整通过；集成 merge d3f695c + 集成验证全绿（vet+相关范围 6.9s）；validated_commit → d3f695c"
