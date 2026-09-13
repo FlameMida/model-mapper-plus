@@ -215,6 +215,7 @@ tasks:
     claim:
       key: "T14-a1"
       owner: "claude-code-main@Maverick-mini.local-pid-35706"
+      agent_id: "impl-T14@session-561c4d5a"
       worktree: ".worktrees/ku-T14"
       branch: "ku/T14"
       base_commit: "224f5fe"
