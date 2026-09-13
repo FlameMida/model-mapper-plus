@@ -243,7 +243,12 @@ tasks:
       branch: "ku/T15"
       base_commit: "e256893"
     model_declaration_id: "decl-001"
-  T16: { status: pending }
+  T16:
+    status: completed
+    commit: "PENDING_SHA"
+    tests: pass
+    deviations:
+      - "浏览器交互项 browser-pending（无浏览器自动化工具，不伪造）；zig 交叉编译未验证（CI 覆盖，本机 ABI 冒烟替代）；manual 三平台 manual-pending"
   T17: { status: pending }
 resources:
   - "worktree: .worktrees/plan-2026-09-13-01-key-usage-notifications —— git worktree remove .worktrees/plan-2026-09-13-01-key-usage-notifications && git branch -D plan-2026-09-13-01-key-usage-notifications（集成 worktree，T17 清理；implementer worktree 认领时按需登记）"
@@ -281,3 +286,4 @@ notes:
   - "accept/T15-a1: verifyResult 完整通过；集成 merge 224f5fe + 集成验证（typecheck + 162+3 测试全绿）；validated_commit → 224f5fe"
   - "plan-rev/T14: 前端 KeyBinding.notifications 类型缺口（T02 后端字段无前端归属）——T14 写集合追加 web/src/api.ts（方案A），声明重校验通过；impl-T14 解锁继续"
   - "accept/T14-a1: verifyResult 完整通过；集成 merge 78bc1de + 集成验证（typecheck + 169 测试全绿 + KeysPanel 回归 54）；validated_commit → 78bc1de——全部实施票完成"
+  - "accept/T16: 命令类全绿（vet/race/169 前端测试/build/ABI 冒烟）；报告 acceptance/acceptance-report.md；浏览器与 manual 项如实 pending"
