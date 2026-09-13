@@ -54,7 +54,7 @@ print-version:
 # Build the single-file admin UI into web/dist/index.html (embedded by go:embed).
 # Every plugin library build depends on this so the .so/.dll always carries a fresh UI.
 web-build:
-	cd web && npm install && VITE_HOSTED=1 npm run build
+	cd web && pnpm install --frozen-lockfile && VITE_HOSTED=1 pnpm run build
 
 vet:
 	$(GO) vet ./...
@@ -152,7 +152,7 @@ dev-so: web-build
 
 # dev-ui: vite dev server on :5173, proxying /v0/management to your CPA.
 dev-ui:
-	cd web && CPA_DEV_CPA_HOST="$(CPA_HOST)" npm run dev
+	cd web && CPA_DEV_CPA_HOST="$(CPA_HOST)" pnpm run dev
 
 clean:
 	rm -rf $(DIST_DIR)
