@@ -172,7 +172,13 @@ tasks:
       base_commit: "84b5862"
     model_declaration_id: "decl-001"
   T12:
-    status: in_progress
+    status: completed
+    commit: "97710ec"
+    implementation_commit: "199cd0ab6e75511b0f43478ec5deef1770e29861"
+    tests: pass
+    deviations:
+      - "Tabs keepDOM=false（aria 单数查询）"
+      - "新增本地草稿态 draft+useEffect 使行内校验可行；update 含无条目追加逻辑（T13/T15 消费注意）"
     claim:
       key: "T12-a1"
       owner: "claude-code-main@Maverick-mini.local-pid-35706"
@@ -215,3 +221,4 @@ notes:
   - "dispatch/T10: T10-a1 于 1770845 认领并派发（2026-09-13）——前端阶段开始"
   - "accept/T10-a1: verifyResult 完整通过；集成 merge 84b5862 + 集成验证（typecheck + 148 测试全绿）；validated_commit → 84b5862"
   - "dispatch/Wave-front1: T11-a1 + T12-a1 于 84b5862 认领并派发（2026-09-13）"
+  - "accept/T12-a1: verifyResult 完整通过；集成 merge 97710ec + 集成验证（typecheck + 153 测试全绿）；validated_commit → 97710ec"
