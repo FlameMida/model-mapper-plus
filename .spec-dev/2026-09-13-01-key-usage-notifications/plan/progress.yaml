@@ -211,15 +211,21 @@ tasks:
       base_commit: "e256893"
     model_declaration_id: "decl-001"
   T14:
-    status: in_progress
-    blockers_note: "已解除——api.ts 授权追加（方案A），KeyBinding.notifications 字段缺口归属本票"
+    status: completed
+    commit: "78bc1de"
+    implementation_commit: "692bce9ad6bb27775a1ef372456b469b1c40b75e"
+    tests: pass
+    deviations:
+      - "userEvent v14 setup()；Modal.confirm 容器查询；展开表 period_key+getAllByText 断言"
+      - "deliveries 过滤只用 notification_id（前端无指纹数据源，id 全局唯一）"
+      - "重试按钮覆盖 failed/unknown；KeyBinding.notifications 经裁决A补入 api.ts"
     claim:
       key: "T14-a1"
       owner: "claude-code-main@Maverick-mini.local-pid-35706"
       agent_id: "impl-T14@session-561c4d5a"
       worktree: ".worktrees/ku-T14"
       branch: "ku/T14"
-      base_commit: "224f5fe"
+      base_commit: "36accf0"
     model_declaration_id: "decl-001"
   T15:
     status: completed
@@ -274,3 +280,4 @@ notes:
   - "accept/T13-a1: verifyResult 完整通过；集成 merge cc0a2be + 集成验证（typecheck + 163 测试全绿）；validated_commit → cc0a2be"
   - "accept/T15-a1: verifyResult 完整通过；集成 merge 224f5fe + 集成验证（typecheck + 162+3 测试全绿）；validated_commit → 224f5fe"
   - "plan-rev/T14: 前端 KeyBinding.notifications 类型缺口（T02 后端字段无前端归属）——T14 写集合追加 web/src/api.ts（方案A），声明重校验通过；impl-T14 解锁继续"
+  - "accept/T14-a1: verifyResult 完整通过；集成 merge 78bc1de + 集成验证（typecheck + 169 测试全绿 + KeysPanel 回归 54）；validated_commit → 78bc1de——全部实施票完成"
