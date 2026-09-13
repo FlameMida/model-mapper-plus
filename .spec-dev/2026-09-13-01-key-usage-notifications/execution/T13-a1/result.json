@@ -1,0 +1,47 @@
+{
+  "status": "ready",
+  "task_id": "T13",
+  "claim_key": "T13-a1",
+  "worktree": "/Users/maverick/cpa-model-mapper-plus/.worktrees/ku-T13",
+  "branch": "ku/T13",
+  "base_commit": "e2568939eedeb1a17056f3360919d0edad971f95",
+  "commits": [
+    "6c3856f08642de0fcbbe52b5d8ca58c020361b1d"
+  ],
+  "changed_files": [
+    "web/src/components/NotificationEditor.tsx",
+    "web/src/components/NotificationEditor.test.tsx"
+  ],
+  "tests": [
+    {
+      "command": "pnpm -C web test src/components/NotificationEditor.test.tsx",
+      "phase": "red",
+      "exit_code": 1,
+      "evidence_path": "/Users/maverick/cpa-model-mapper-plus/.worktrees/plan-2026-09-13-01-key-usage-notifications/.spec-dev/2026-09-13-01-key-usage-notifications/execution/T13-a1/step2-red.log"
+    },
+    {
+      "command": "pnpm -C web test src/components/NotificationEditor.test.tsx",
+      "phase": "green",
+      "exit_code": 0,
+      "evidence_path": "/Users/maverick/cpa-model-mapper-plus/.worktrees/plan-2026-09-13-01-key-usage-notifications/.spec-dev/2026-09-13-01-key-usage-notifications/execution/T13-a1/step4-green.log"
+    },
+    {
+      "command": "pnpm -C web run typecheck",
+      "phase": "green",
+      "exit_code": 0,
+      "evidence_path": "/Users/maverick/cpa-model-mapper-plus/.worktrees/plan-2026-09-13-01-key-usage-notifications/.spec-dev/2026-09-13-01-key-usage-notifications/execution/T13-a1/step4-green.log"
+    }
+  ],
+  "self_check": {
+    "over_under_building": "pass",
+    "contract_alignment": "pass"
+  },
+  "deviations": [
+    "测试第 3 例按任务步骤 4 注记与派发授权，将 vi.doMock + 动态 import 改为文件顶部 vi.mock('../api', 工厂) + vi.mocked(api.notifications.preview).mockResolvedValue(...)；同时移除原稿末尾已无作用的 rerender(<div />)（cleanup 由 setup afterEach 承担）。",
+    "npm 在本环境为禁用函数（exit 127），仓库使用 pnpm（pnpm-lock.yaml）：测试/typecheck 以 pnpm -C web 等价执行，vitest run 模式与任务命令一致。",
+    "实现相对任务骨架做三处必要修正（契约不变，全部服务于给定测试通过）：(a) Semi Tabs 实测默认 keepDOM:true（@douyinfe/semi-ui 2.103.0 index.js:324），非激活 TabPane 内容进入 DOM —— 平台身份错误文案必须唯一来自 PlatformIdentityEditor 行内提示，抽屉层不重复渲染，否则 findByText(/用户唯一 ID/) 双匹配抛错；据此把内联拦截文案限定为名称/模块守卫（templateBlocked），平台守卫仅参与保存 disable。(b) 骨架 footer 预览摘要「预览：{text.slice(0,80)}…」无法被 getByText('预览文本') 精确命中，改为独立 Banner description=preview.text 唯一呈现。(c) schedule_follows_global=true 时补一行只读提示，与模板跟随全局文案对称（无测试依赖）。"
+  ],
+  "blockers": [],
+  "coverage_note": "4/4 抽屉测试通过：同 Key 名称冲突拦截、启用平台缺身份拦截、编辑后过期预览提示 + 预览已保存实体回显、跟随全局隐藏模块编辑器；typecheck 通过。保存落库（postKey/putSettings 并入路径）与列表行 test-send 属 T14/T15 集成范围，本票未覆盖。",
+  "resources": []
+}

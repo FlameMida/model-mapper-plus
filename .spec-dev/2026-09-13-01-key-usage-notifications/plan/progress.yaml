@@ -1,24 +1,289 @@
 format_version: 1
 current: null
+execution:
+  mode: parallel
+  owner: "claude-code-main@Maverick-mini.local-pid-35706"
+  integration_worktree: "/Users/maverick/cpa-model-mapper-plus/.worktrees/plan-2026-09-13-01-key-usage-notifications"
+  integration_branch: "plan-2026-09-13-01-key-usage-notifications"
+  base_commit: "f7ace3f"
+  validated_commit: "d3f695c"
 tasks:
-  T00: { status: pending }
-  T01: { status: pending }
-  T02: { status: pending }
-  T03: { status: pending }
-  T04: { status: pending }
-  T05: { status: pending }
-  T06: { status: pending }
-  T07: { status: pending }
-  T08: { status: pending }
-  T09: { status: pending }
-  T10: { status: pending }
-  T11: { status: pending }
-  T12: { status: pending }
-  T13: { status: pending }
-  T14: { status: pending }
-  T15: { status: pending }
-  T16: { status: pending }
+  T00: { status: completed, commit: "ec515043a356532a23ea70d288b8dc41aac3b0d4", tests: pass }
+  T01:
+    status: completed
+    commit: "3aef028"
+    implementation_commit: "077a46cdbee84bf6bc691402c4b114674e361c8a"
+    tests: pass
+    deviations:
+      - "build.yml 实际 4 处 Setup Node 全部迁移 pnpm（授权文件内）"
+      - "Enable pnpm 步骤置于 Setup Node 之前（cache: pnpm 需要 pnpm 先存在）"
+      - "Makefile npm 断言用词边界 grep -cw（pnpm 含子串 npm）"
+    claim:
+      key: "T01-a1"
+      owner: "claude-code-main@Maverick-mini.local-pid-35706"
+      agent_id: "impl-T01@session-561c4d5a"
+      worktree: ".worktrees/ku-T01"
+      branch: "ku/T01"
+      base_commit: "f7ace3f"
+    model_declaration_id: "decl-001"
+  T02:
+    status: completed
+    commit: "6681966"
+    implementation_commit: "e0126c538ded6f554a6c7d61ded1b7d6d9a77431"
+    tests: pass
+    deviations:
+      - "validateKeyNotificationsEntity 签名 (index int, b *KeyBinding) 以锚定测试路径断言"
+      - "interval 计划 Time 实现为可选发送锚点（非空时校验 HH:MM:SS）"
+      - "步骤4 正则笔误以补跑同文件全部测试作回归证据"
+    claim:
+      key: "T02-a1"
+      owner: "claude-code-main@Maverick-mini.local-pid-35706"
+      agent_id: "impl-T02@session-561c4d5a"
+      worktree: ".worktrees/ku-T02"
+      branch: "ku/T02"
+      base_commit: "f7ace3f"
+    model_declaration_id: "decl-001"
+  T03:
+    status: completed
+    commit: "c8a7504"
+    implementation_commit: "f5ca7530b9fb9b0c91025439a4641aebb5349aae"
+    tests: pass
+    deviations:
+      - "任务片段 monthly previous 分支 off-by-one bug 按测试口径修正为 monthStart.AddDate(0,-1,0)（计划实现错误，测试驱动修正）"
+      - "TestParseDayTimeInvalid 提前并入步骤1；parseDayTime 独立实现（与 T02 validDayTime 行为一致）"
+    claim:
+      key: "T03-a1"
+      owner: "claude-code-main@Maverick-mini.local-pid-35706"
+      agent_id: "impl-T03@session-561c4d5a"
+      worktree: ".worktrees/ku-T03"
+      branch: "ku/T03"
+      base_commit: "6681966"
+    model_declaration_id: "decl-001"
+  T04:
+    status: completed
+    commit: "ee6f731"
+    implementation_commit: "3cc30d754bcc715f0f383f6664579c2b50aa9490"
+    tests: pass
+    deviations:
+      - "任务测试片段 t.Fatalf 误传 t 改为记录 err"
+      - "bbolt 禁止迭代中写：ClaimDue/FinishJob 两阶段实现（行为等价）"
+      - "bbolt 锁定 v1.5.0；UpsertJob merge 路径同步刷新 Revision（避免被 T08 版本门误杀）；FinishJob 对非法 outcome 报错"
+    claim:
+      key: "T04-a1"
+      owner: "claude-code-main@Maverick-mini.local-pid-35706"
+      agent_id: "impl-T04@session-561c4d5a"
+      worktree: ".worktrees/ku-T04"
+      branch: "ku/T04"
+      base_commit: "6681966"
+    model_declaration_id: "decl-001"
+  T05:
+    status: completed
+    commit: "7e9e11a"
+    implementation_commit: "bb8d02c5c2925c06636c8913e1b94e34ed417702"
+    tests: pass
+    deviations:
+      - "替身与解析按真实 Keeper 契约修正（任务授权小偏差）：quota/cache 实际为嵌套 items[].quota.{quota[],subscription{plan,tierName},rateLimitResetCreditsAvailableCount}、snake_case window_usage_tokens、CacheResponse 定义于 refresh.go"
+      - "时间过滤 query 经 usage_filter.go 核对为 range/unit/start/end"
+    claim:
+      key: "T05-a1"
+      owner: "claude-code-main@Maverick-mini.local-pid-35706"
+      agent_id: "impl-T05@session-561c4d5a"
+      worktree: ".worktrees/ku-T05"
+      branch: "ku/T05"
+      base_commit: "663a108"
+    model_declaration_id: "decl-001"
+  T06:
+    status: completed
+    commit: "d3f695c"
+    implementation_commit: "c938ea44623dd3c28a7a0c7e5eed92727d2d361d"
+    tests: pass
+    deviations:
+      - "节标题日期模式以任务自带测试为权威：daily 同日折叠为单日期、跨期 A ~ B（periodRangeLabel）"
+    claim:
+      key: "T06-a1"
+      owner: "claude-code-main@Maverick-mini.local-pid-35706"
+      agent_id: "impl-T06@session-561c4d5a"
+      worktree: ".worktrees/ku-T06"
+      branch: "ku/T06"
+      base_commit: "7e9e11a"
+    model_declaration_id: "decl-001"
+  T07:
+    status: in_progress
+    claim:
+    claim:
+      key: "T07-a1"
+      owner: "claude-code-main@Maverick-mini.local-pid-35706"
+      agent_id: "impl-T07@session-561c4d5a"
+      worktree: ".worktrees/ku-T07"
+      branch: "ku/T07"
+      base_commit: "6681966"
+    model_declaration_id: "decl-001"
+  T08:
+    status: completed
+    commit: "557f7eb"
+    implementation_commit: "171643a6cf5831bf994ac4dd4269c595455e3e76"
+    tests: pass
+    deviations:
+      - "判重闸门实现为 pendingJobExists（spec 待发合并语义；终态不抑制）"
+      - "supersededStaleJobs 返回 (int, error)；stubAdapter count() 防 data race（race 通过）"
+    claim:
+      key: "T08-a1"
+      owner: "claude-code-main@Maverick-mini.local-pid-35706"
+      agent_id: "impl-T08@session-561c4d5a"
+      worktree: ".worktrees/ku-T08"
+      branch: "ku/T08"
+      base_commit: "d3f695c"
+    model_declaration_id: "decl-001"
+  T09:
+    status: in_progress
+    claim:
+      key: "T09-a1"
+      owner: "claude-code-main@Maverick-mini.local-pid-35706"
+      agent_id: "impl-T09@session-561c4d5a"
+      worktree: ".worktrees/ku-T09"
+      branch: "ku/T09"
+      base_commit: "$(git rev-parse --short HEAD)"
+    model_declaration_id: "decl-001"
+  T10:
+    status: completed
+    commit: "84b5862"
+    implementation_commit: "d0f5f99216581d166b31ccc34a884693cb2aabdc"
+    tests: pass
+    deviations:
+      - "putSettings 返回 StateResponse（后端真源；T15 保存后需 getSettings() 刷新）"
+      - "NotificationStatus 增补 global_name/store_error（T09 视图真源）"
+      - "PreviewResponse 同名冲突：api.ts 内别名 NotificationPreviewResponse，导出面不变"
+    claim:
+      key: "T10-a1"
+      owner: "claude-code-main@Maverick-mini.local-pid-35706"
+      agent_id: "impl-T10@session-561c4d5a"
+      worktree: ".worktrees/ku-T10"
+      branch: "ku/T10"
+      base_commit: "1770845"
+    model_declaration_id: "decl-001"
+  T11:
+    status: completed
+    commit: "e256893"
+    implementation_commit: "4688325194001b019cec22adae16cbae4f8e1b7d"
+    tests: pass
+    deviations:
+      - "queryBy 修正（v10 throw 语义）；@dnd-kit/utilities 未越权引入（内联 translate3d）"
+      - "原生 select（period/月/日/单位，断言兼容）+ Semi Select（kind/month_end）+ TimePicker 混合"
+      - "组内顺序=已勾选按 value 序在前、未勾选按全集序在后；未勾选占位 —"
+    claim:
+      key: "T11-a1"
+      owner: "claude-code-main@Maverick-mini.local-pid-35706"
+      agent_id: "impl-T11@session-561c4d5a"
+      worktree: ".worktrees/ku-T11"
+      branch: "ku/T11"
+      base_commit: "84b5862"
+    model_declaration_id: "decl-001"
+  T12:
+    status: completed
+    commit: "97710ec"
+    implementation_commit: "199cd0ab6e75511b0f43478ec5deef1770e29861"
+    tests: pass
+    deviations:
+      - "Tabs keepDOM=false（aria 单数查询）"
+      - "新增本地草稿态 draft+useEffect 使行内校验可行；update 含无条目追加逻辑（T13/T15 消费注意）"
+    claim:
+      key: "T12-a1"
+      owner: "claude-code-main@Maverick-mini.local-pid-35706"
+      agent_id: "impl-T12@session-561c4d5a"
+      worktree: ".worktrees/ku-T12"
+      branch: "ku/T12"
+      base_commit: "84b5862"
+    model_declaration_id: "decl-001"
+  T13:
+    status: completed
+    commit: "cc0a2be"
+    implementation_commit: "6c3856f08642de0fcbbe52b5d8ca58c020361b1d"
+    tests: pass
+    deviations:
+      - "vi.mock 顶层替代 doMock+动态 import（任务注记授权）"
+      - "Semi Tabs 2.103 默认 keepDOM=true 实测：文案唯一来源定于 PlatformIdentityEditor 行内提示；预览摘要独立 Banner；schedule_follows_global 补只读提示"
+    claim:
+      key: "T13-a1"
+      owner: "claude-code-main@Maverick-mini.local-pid-35706"
+      agent_id: "impl-T13@session-561c4d5a"
+      worktree: ".worktrees/ku-T13"
+      branch: "ku/T13"
+      base_commit: "e256893"
+    model_declaration_id: "decl-001"
+  T14:
+    status: completed
+    commit: "78bc1de"
+    implementation_commit: "692bce9ad6bb27775a1ef372456b469b1c40b75e"
+    tests: pass
+    deviations:
+      - "userEvent v14 setup()；Modal.confirm 容器查询；展开表 period_key+getAllByText 断言"
+      - "deliveries 过滤只用 notification_id（前端无指纹数据源，id 全局唯一）"
+      - "重试按钮覆盖 failed/unknown；KeyBinding.notifications 经裁决A补入 api.ts"
+    claim:
+      key: "T14-a1"
+      owner: "claude-code-main@Maverick-mini.local-pid-35706"
+      agent_id: "impl-T14@session-561c4d5a"
+      worktree: ".worktrees/ku-T14"
+      branch: "ku/T14"
+      base_commit: "36accf0"
+    model_declaration_id: "decl-001"
+  T15:
+    status: completed
+    commit: "224f5fe"
+    implementation_commit: "b231828799e19715725a9dc85948fb78113036af"
+    tests: pass
+    deviations:
+      - "保存→回读 getSettings 刷新（putSettings 契约）"
+      - "投递查询落地四筛选六列；unknown 行可重试（非终态）"
+    claim:
+      key: "T15-a1"
+      owner: "claude-code-main@Maverick-mini.local-pid-35706"
+      agent_id: "impl-T15@session-561c4d5a"
+      worktree: ".worktrees/ku-T15"
+      branch: "ku/T15"
+      base_commit: "e256893"
+    model_declaration_id: "decl-001"
+  T16:
+    status: completed
+    commit: "PENDING_SHA"
+    tests: pass
+    deviations:
+      - "浏览器交互项 browser-pending（无浏览器自动化工具，不伪造）；zig 交叉编译未验证（CI 覆盖，本机 ABI 冒烟替代）；manual 三平台 manual-pending"
   T17: { status: pending }
 resources:
-  - "worktree: .worktrees/plan-2026-09-13-01-key-usage-notifications —— git worktree remove .worktrees/plan-2026-09-13-01-key-usage-notifications && git branch -D plan-2026-09-13-01-key-usage-notifications（T00 核实后更新为实际路径与分支）"
-notes: []
+  - "worktree: .worktrees/plan-2026-09-13-01-key-usage-notifications —— git worktree remove .worktrees/plan-2026-09-13-01-key-usage-notifications && git branch -D plan-2026-09-13-01-key-usage-notifications（集成 worktree，T17 清理；implementer worktree 认领时按需登记）"
+notes:
+  - "model-declaration/decl-001: 主线程=fable/max（会话配置核实）；implementer(T01-T15)=sonnet/high（待派发配置值）；升级路径=单票两次 blocked 升 opus/high；2026-09-13 用户选择并发执行并确认声明"
+  - "env-deviation: 本机 npm shim 禁用 npm，前端命令一律以 pnpm --dir web 等价执行；T01 已切换 web 至 pnpm（pnpm-lock.yaml 入库，package-lock.json 删除）"
+  - "T00: 集成 worktree .worktrees/plan-2026-09-13-01-key-usage-notifications 自 main@ec515043a 建立；基线全绿；特性锁 .git/spec-dev-locks/848fb9d1...（owner claude-code-main@Maverick-mini.local-pid-35706）"
+  - "dispatch/Wave2: T01-a1 + T02-a1 于 validated_commit=f7ace3f 认领并派发（2026-09-13）"
+  - "plan-rev/f7ace3f: T03 依赖边补漏（消费 T02 类型）+ T01 写集合扩至 Makefile/build.yml（pnpm 迁移）；implementer worktree 重置到 f7ace3f 后派发"
+  - "plan-rev/wave3: 导航表补三处依赖边（T05←T03 periodRange；T06←T03/T05 渲染素材；T09←T06 preview 渲染），plan-index 重校验通过；Wave3 改为 T03‖T04‖T07，T05 推后"
+  - "accept/T01-a1: 非行为例外票，声明修订移出 parallel 块；人工核验 Git 事实全过（净差异⊆写集合、单提交、ancestry）；集成 merge 3aef028 + 集成验证全绿（typecheck/140 测试/build）；validated_commit → 3aef028"
+  - "accept/T02-a1: verifyResult 完整通过（红绿证据+Git 事实）；集成 merge 6681966 + 集成验证（vet+相关范围全绿）；validated_commit → 6681966"
+  - "dispatch/Wave3: T03-a1 + T04-a1 + T07-a1 于 validated_commit=6681966 认领并派发（2026-09-13）；T05 因 T03 依赖推后"
+  - "accept/T03-a1: verifyResult 除 dirty 误报（主线程归档清理删除已跟踪证据副本所致）外全过；集成 merge + 集成验证（vet+相关范围 6.6s 全绿）；另 gofmt 修复 T02 引入的 notification_types.go（integration fix）"
+  - "dispatch/T05: T05-a1 于 663a108（含 T03）认领并派发（2026-09-13）"
+  - "blocked/T07-a1: 跨票符号归属阻塞（delivery 三常量属 T04 store）；导航表补 T07←T04 语义依赖边；裁决选项A，待 T04 集成后重置基线解锁"
+  - "accept/T04-a1: verifyResult 完整通过；集成 merge ee6f731 + 集成验证全绿（vet+相关范围 6.9s）；validated_commit → ee6f731"
+  - "unlock/T07-a1: ku/T07 重置到 ee6f731（含 T04 常量），原 implementer 解锁继续"
+  - "accept/T07-a1: verifyResult 完整通过；集成 merge d21c296 + 集成验证全绿（vet+相关范围 6.4s）；validated_commit → d21c296；事故：主线程清理 implementer worktree 证据目录时未先验证 cp 成功，原红绿日志丢失，已从提交树真实重现（red 编译失败/green 全量重跑），后续归档一律先验证后清理"
+  - "accept/T05-a1: verifyResult 完整通过；真实 Keeper 契约核对修正替身（嵌套 quota 形状）；集成 merge 7e9e11a + 集成验证全绿；validated_commit → 7e9e11a"
+  - "dispatch/T06: T06-a1 于 7e9e11a（含 T02+T03+T05）认领并派发（2026-09-13）"
+  - "accept/T06-a1: verifyResult 完整通过；集成 merge d3f695c + 集成验证全绿（vet+相关范围 6.9s）；validated_commit → d3f695c"
+  - "dispatch/T08: T08-a1 于 d3f695c（含 T02-T07 全部产物）认领并派发（2026-09-13）——Go 侧汇合票"
+  - "accept/T08-a1: verifyResult 完整通过；集成 merge 557f7eb + 集成验证全绿；validated_commit → 557f7eb"
+  - "fix/T04-merge-revision: T08 implementer 发现 T04 偏差记录与源码不符（merge 分支未刷新 Revision，合并产物会被版本门误杀、延迟一个周期）——主线程集成修复：merge 分支刷新 Revision=调用方当前值 + 测试断言（Revision 3→7），store 测试与全量回归全绿；T04 deviations 记录以本修复为准"
+  - "accept/T09-a1: verifyResult 完整通过；集成 merge 53f9f6d + 集成验证全绿（含 ^TestManagement 回归 56 PASS）"
+  - "fix/T04-delivery-tags: T09 发现 deliveryRecord 漏 json tags（计划缺陷），deliveries 响应呈 Go 字段名——主线程补 snake_case tags 与全系统契约一致，T04+T09 测试与全量回归全绿；validated_commit → 1770845"
+  - "dispatch/T10: T10-a1 于 1770845 认领并派发（2026-09-13）——前端阶段开始"
+  - "accept/T10-a1: verifyResult 完整通过；集成 merge 84b5862 + 集成验证（typecheck + 148 测试全绿）；validated_commit → 84b5862"
+  - "dispatch/Wave-front1: T11-a1 + T12-a1 于 84b5862 认领并派发（2026-09-13）"
+  - "accept/T12-a1: verifyResult 完整通过；集成 merge 97710ec + 集成验证（typecheck + 153 测试全绿）；validated_commit → 97710ec"
+  - "accept/T11-a1: verifyResult 完整通过；集成 merge e256893 + 集成验证（typecheck + 159 测试全绿）；validated_commit → e256893"
+  - "dispatch/Wave-front2: T13-a1 + T15-a1 于 e256893 认领并派发（2026-09-13）；注入 T10 契约（putSettings 返回 StateResponse 需 getSettings 刷新）与 T12 契约（draft 草稿态/追加逻辑/错误文案）"
+  - "accept/T13-a1: verifyResult 完整通过；集成 merge cc0a2be + 集成验证（typecheck + 163 测试全绿）；validated_commit → cc0a2be"
+  - "accept/T15-a1: verifyResult 完整通过；集成 merge 224f5fe + 集成验证（typecheck + 162+3 测试全绿）；validated_commit → 224f5fe"
+  - "plan-rev/T14: 前端 KeyBinding.notifications 类型缺口（T02 后端字段无前端归属）——T14 写集合追加 web/src/api.ts（方案A），声明重校验通过；impl-T14 解锁继续"
+  - "accept/T14-a1: verifyResult 完整通过；集成 merge 78bc1de + 集成验证（typecheck + 169 测试全绿 + KeysPanel 回归 54）；validated_commit → 78bc1de——全部实施票完成"
+  - "accept/T16: 命令类全绿（vet/race/169 前端测试/build/ABI 冒烟）；报告 acceptance/acceptance-report.md；浏览器与 manual 项如实 pending"

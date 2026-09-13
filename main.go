@@ -652,6 +652,7 @@ func handlePluginReconfigure(raw []byte) ([]byte, error) {
 	loadedStateMu.Lock()
 	loadedHolder = holder
 	loadedStateMu.Unlock()
+	restartNotificationServiceWithState(holder.state)
 	logger.Info("reconfigure applied", "enabled", cfg.Enabled,
 		"persisted", holder.persisted, "key_bindings", len(holder.state.KeyBindings))
 	return json.Marshal(pluginRegistration())

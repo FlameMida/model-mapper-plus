@@ -1,0 +1,51 @@
+{
+  "status": "ready",
+  "task_id": "T01",
+  "claim_key": "T01-a1",
+  "worktree": "/Users/maverick/cpa-model-mapper-plus/.worktrees/ku-T01",
+  "branch": "ku/T01",
+  "base_commit": "f7ace3fe6f37c95ab583cb8d58a47fd5e383d584",
+  "commits": [
+    "077a46cdbee84bf6bc691402c4b114674e361c8a"
+  ],
+  "changed_files": [
+    "web/package.json",
+    "web/pnpm-lock.yaml",
+    "web/package-lock.json",
+    "web/dist/index.html",
+    "Makefile",
+    ".github/workflows/build.yml"
+  ],
+  "tests": [
+    {
+      "command": "pnpm --dir web run typecheck",
+      "exit_code": 0,
+      "evidence_path": "/Users/maverick/cpa-model-mapper-plus/.worktrees/ku-T01/.spec-dev/2026-09-13-01-key-usage-notifications/execution/T01-a1/05-typecheck.txt",
+      "phase": "green"
+    },
+    {
+      "command": "pnpm --dir web test",
+      "exit_code": 0,
+      "evidence_path": "/Users/maverick/cpa-model-mapper-plus/.worktrees/ku-T01/.spec-dev/2026-09-13-01-key-usage-notifications/execution/T01-a1/06-vitest-first-run.txt",
+      "phase": "green"
+    },
+    {
+      "command": "make web-build",
+      "exit_code": 0,
+      "evidence_path": "/Users/maverick/cpa-model-mapper-plus/.worktrees/ku-T01/.spec-dev/2026-09-13-01-key-usage-notifications/execution/T01-a1/07-make-web-build.txt",
+      "phase": "integration"
+    }
+  ],
+  "deviations": [
+    "build.yml 4 处 Setup Node 全部迁移 pnpm",
+    "Enable pnpm 步骤置于 Setup Node 之前",
+    "Makefile npm 断言用词边界 grep -cw"
+  ],
+  "resources": [],
+  "blockers": [],
+  "self_check": {
+    "over_under_building": "pass",
+    "contract_alignment": "pass"
+  },
+  "coverage_note": "非行为票，验收=三条验证命令全绿（typecheck/140 前端测试/web-build），均 exit 0"
+}

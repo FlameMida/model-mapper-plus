@@ -1,0 +1,11 @@
+✓ Lockfile passes supply-chain policies (verified 6m ago)
+[WARN] deprecated @testing-library/jest-dom@6.10.0: Incorrect minor release with breaking changes (Node >=22 and required @testing-library/dom peer). Use 6.9.1 for the 6.x line, or upgrade to 7.0.0.
+Packages: +1
++
+Progress: resolved 1, reused 283, downloaded 1, added 1, done
+
+dependencies:
++ @dnd-kit/core 6.3.1
++ @dnd-kit/sortable 10.0.0
+
+Done in 1s using pnpm v12.3.4

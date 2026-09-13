@@ -1,0 +1,14 @@
+$ vitest run
+
+ RUN  v5.0.0 /Users/maverick/cpa-model-mapper-plus/.worktrees/ku-T01/web
+
+
+ Test Files  20 passed (20)
+      Tests  140 passed (140)
+   Start at  11:30:01
+   Duration  17.81s (transform 37%, setup 32%, tests 19%, environment 12%)
+
+  Transform  transforming modules took 51.40s · 37% of tracked time, re-done on every run
+             persist transforms across runs with fsModuleCache: true
+             learn more: https://vitest.dev/guide/improving-performance#caching-between-reruns
+
