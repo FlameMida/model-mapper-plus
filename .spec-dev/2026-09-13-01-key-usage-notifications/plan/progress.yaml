@@ -176,3 +176,5 @@ notes:
   - "dispatch/T08: T08-a1 于 d3f695c（含 T02-T07 全部产物）认领并派发（2026-09-13）——Go 侧汇合票"
   - "accept/T08-a1: verifyResult 完整通过；集成 merge 557f7eb + 集成验证全绿；validated_commit → 557f7eb"
   - "fix/T04-merge-revision: T08 implementer 发现 T04 偏差记录与源码不符（merge 分支未刷新 Revision，合并产物会被版本门误杀、延迟一个周期）——主线程集成修复：merge 分支刷新 Revision=调用方当前值 + 测试断言（Revision 3→7），store 测试与全量回归全绿；T04 deviations 记录以本修复为准"
+  - "accept/T09-a1: verifyResult 完整通过；集成 merge 53f9f6d + 集成验证全绿（含 ^TestManagement 回归 56 PASS）"
+  - "fix/T04-delivery-tags: T09 发现 deliveryRecord 漏 json tags（计划缺陷），deliveries 响应呈 Go 字段名——主线程补 snake_case tags 与全系统契约一致，T04+T09 测试与全量回归全绿；validated_commit → 1770845"
