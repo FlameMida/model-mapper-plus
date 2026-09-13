@@ -1,0 +1,16 @@
+✓ Lockfile passes supply-chain policies (verified 20s ago)
+[WARN] deprecated @testing-library/jest-dom@6.10.0: Incorrect minor release with breaking changes (Node >=22 and required @testing-library/dom peer). Use 6.9.1 for the 6.x line, or upgrade to 7.0.0.
+Progress: resolved 0, reused 286, downloaded 7, added 0
+Packages: +12 -60
+++++++++++++------------------------------------------------------------
+Progress: resolved 12, reused 299, downloaded 8, added 12, done
+
+devDependencies:
+- @vitejs/plugin-react 5.2.0
++ @vitejs/plugin-react 6.1.1
+- jsdom 29.1.1
++ jsdom 30.0.1
+- vitest 4.1.11
++ vitest 5.0.0
+
+Done in 1.4s using pnpm v12.3.4

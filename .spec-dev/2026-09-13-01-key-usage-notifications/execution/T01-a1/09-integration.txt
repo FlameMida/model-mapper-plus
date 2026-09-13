@@ -1,0 +1,5 @@
+integration verify @ merge 3aef028 (2026-09-13)
+pnpm install: ok (371ms)
+typecheck: exit 0
+vitest: 20 files / 140 tests passed
+VITE_HOSTED=1 build: exit 0 (648ms)
