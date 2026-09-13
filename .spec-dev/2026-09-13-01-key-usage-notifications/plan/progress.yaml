@@ -6,7 +6,7 @@ execution:
   integration_worktree: "/Users/maverick/cpa-model-mapper-plus/.worktrees/plan-2026-09-13-01-key-usage-notifications"
   integration_branch: "plan-2026-09-13-01-key-usage-notifications"
   base_commit: "f7ace3f"
-  validated_commit: "d3f695c"
+  validated_commit: "78bc1de"
 tasks:
   T00: { status: completed, commit: "ec515043a356532a23ea70d288b8dc41aac3b0d4", tests: pass }
   T01:
@@ -108,8 +108,14 @@ tasks:
       base_commit: "7e9e11a"
     model_declaration_id: "decl-001"
   T07:
-    status: in_progress
-    claim:
+    status: completed
+    commit: "d21c296"
+    implementation_commit: "355065392e8f55dfaa76041492c076228979282d"
+    tests: pass
+    deviations:
+      - "postJSON 增加 client 与 retryAfter 参数（最小扩展，非跨票产出）"
+      - "-run 正则大小写漏跑第六测试，已扩展重跑覆盖"
+      - "红绿日志为事故后从提交树真实重现（主线程归档顺序失误丢失原落盘日志），事故与补救记录于 notes"
     claim:
       key: "T07-a1"
       owner: "claude-code-main@Maverick-mini.local-pid-35706"
@@ -135,14 +141,21 @@ tasks:
       base_commit: "d3f695c"
     model_declaration_id: "decl-001"
   T09:
-    status: in_progress
+    status: completed
+    commit: "53f9f6d"
+    implementation_commit: "149ad82640e7cd554ff20681aa49e88414ce01c5"
+    tests: pass
+    deviations:
+      - "按接口清单注册 7 条路由（任务散文称 6 条）"
+      - "handleNotificationManagement 分离 Path 内联 query 并入 req.Query（与生产宿主行为等价）"
+      - "PUT settings BumpRevision 失败 warn-and-continue（保存语义优先）"
     claim:
       key: "T09-a1"
       owner: "claude-code-main@Maverick-mini.local-pid-35706"
       agent_id: "impl-T09@session-561c4d5a"
       worktree: ".worktrees/ku-T09"
       branch: "ku/T09"
-      base_commit: "$(git rev-parse --short HEAD)"
+      base_commit: "1c2e820"
     model_declaration_id: "decl-001"
   T10:
     status: completed
@@ -287,3 +300,4 @@ notes:
   - "plan-rev/T14: 前端 KeyBinding.notifications 类型缺口（T02 后端字段无前端归属）——T14 写集合追加 web/src/api.ts（方案A），声明重校验通过；impl-T14 解锁继续"
   - "accept/T14-a1: verifyResult 完整通过；集成 merge 78bc1de + 集成验证（typecheck + 169 测试全绿 + KeysPanel 回归 54）；validated_commit → 78bc1de——全部实施票完成"
   - "accept/T16: 命令类全绿（vet/race/169 前端测试/build/ABI 冒烟）；报告 acceptance/acceptance-report.md；浏览器与 manual 项如实 pending"
+  - "fix/T17-progress: 修复三处脚本副作用损坏（T07 解锁残留双 claim 键且未 completed 化；T09 base_commit 未展开字面量且未 completed 化；validated_commit 停在中间值 d3f695c → 78bc1de）——修复于 merge 进 main 后，progress 修复提交独立于代码实现提交"
