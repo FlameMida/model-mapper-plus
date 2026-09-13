@@ -41,6 +41,106 @@
 
 ---
 
+```yaml spec-dev-parallel
+parallel:
+  tasks:
+    T01:
+      writes:
+        - "web/package.json"
+        - "web/package-lock.json"
+        - "web/pnpm-lock.yaml"
+        - "web/vite.config.ts"
+        - "web/vitest.config.ts"
+        - "web/src/test/setup.ts"
+        - "web/dist/index.html"
+      resources: []
+    T02:
+      writes:
+        - "notification_types.go"
+        - "notification_types_test.go"
+        - "state.go"
+      resources: []
+    T03:
+      writes:
+        - "notification_schedule.go"
+        - "notification_schedule_test.go"
+      resources: []
+    T04:
+      writes:
+        - "notification_store.go"
+        - "notification_store_test.go"
+        - "go.mod"
+        - "go.sum"
+      resources: []
+    T05:
+      writes:
+        - "notification_keeper.go"
+        - "notification_keeper_test.go"
+      resources: []
+    T06:
+      writes:
+        - "notification_template.go"
+        - "notification_template_test.go"
+      resources: []
+    T07:
+      writes:
+        - "notification_platform.go"
+        - "notification_platform_wecom.go"
+        - "notification_platform_feishu.go"
+        - "notification_platform_dingtalk.go"
+        - "notification_platform_test.go"
+      resources: []
+    T08:
+      writes:
+        - "notification_service.go"
+        - "notification_service_test.go"
+        - "main.go"
+        - "abi_cgo.go"
+      resources: []
+    T09:
+      writes:
+        - "notification_management.go"
+        - "notification_management_test.go"
+        - "management.go"
+      resources: []
+    T10:
+      writes:
+        - "web/src/notifications.ts"
+        - "web/src/notifications.test.ts"
+        - "web/src/api.ts"
+      resources: []
+    T11:
+      writes:
+        - "web/src/components/NotificationModulesEditor.tsx"
+        - "web/src/components/NotificationModulesEditor.test.tsx"
+        - "web/src/components/NotificationScheduleEditor.tsx"
+        - "web/src/components/NotificationScheduleEditor.test.tsx"
+      resources: []
+    T12:
+      writes:
+        - "web/src/components/PlatformIdentityEditor.tsx"
+        - "web/src/components/PlatformIdentityEditor.test.tsx"
+      resources: []
+    T13:
+      writes:
+        - "web/src/components/NotificationEditor.tsx"
+        - "web/src/components/NotificationEditor.test.tsx"
+      resources: []
+    T14:
+      writes:
+        - "web/src/panels/KeyNotificationsTab.tsx"
+        - "web/src/panels/KeyNotificationsTab.test.tsx"
+        - "web/src/panels/KeysPanel.tsx"
+      resources: []
+    T15:
+      writes:
+        - "web/src/panels/NotificationsPanel.tsx"
+        - "web/src/panels/NotificationsPanel.test.tsx"
+        - "web/src/App.tsx"
+        - "web/dist/index.html"
+      resources: []
+```
+
 ## 任务导航表
 
 | 任务 | 依赖 | 消费接口 | 产出接口 |
