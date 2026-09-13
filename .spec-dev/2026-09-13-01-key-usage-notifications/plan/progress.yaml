@@ -45,7 +45,7 @@ tasks:
     model_declaration_id: "decl-001"
   T03:
     status: completed
-    commit: "MERGE_SHA"
+    commit: "c8a7504"
     implementation_commit: "f5ca7530b9fb9b0c91025439a4641aebb5349aae"
     tests: pass
     deviations:
@@ -69,7 +69,15 @@ tasks:
       branch: "ku/T04"
       base_commit: "6681966"
     model_declaration_id: "decl-001"
-  T05: { status: pending }
+  T05:
+    status: in_progress
+    claim:
+      key: "T05-a1"
+      owner: "claude-code-main@Maverick-mini.local-pid-35706"
+      worktree: ".worktrees/ku-T05"
+      branch: "ku/T05"
+      base_commit: "663a108"
+    model_declaration_id: "decl-001"
   T06: { status: pending }
   T07:
     status: in_progress
@@ -104,3 +112,4 @@ notes:
   - "accept/T02-a1: verifyResult 完整通过（红绿证据+Git 事实）；集成 merge 6681966 + 集成验证（vet+相关范围全绿）；validated_commit → 6681966"
   - "dispatch/Wave3: T03-a1 + T04-a1 + T07-a1 于 validated_commit=6681966 认领并派发（2026-09-13）；T05 因 T03 依赖推后"
   - "accept/T03-a1: verifyResult 除 dirty 误报（主线程归档清理删除已跟踪证据副本所致）外全过；集成 merge + 集成验证（vet+相关范围 6.6s 全绿）；另 gofmt 修复 T02 引入的 notification_types.go（integration fix）"
+  - "dispatch/T05: T05-a1 于 663a108（含 T03）认领并派发（2026-09-13）"
