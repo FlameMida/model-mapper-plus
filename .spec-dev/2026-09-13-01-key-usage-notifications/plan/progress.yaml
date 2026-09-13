@@ -195,7 +195,13 @@ tasks:
       base_commit: "84b5862"
     model_declaration_id: "decl-001"
   T13:
-    status: in_progress
+    status: completed
+    commit: "cc0a2be"
+    implementation_commit: "6c3856f08642de0fcbbe52b5d8ca58c020361b1d"
+    tests: pass
+    deviations:
+      - "vi.mock 顶层替代 doMock+动态 import（任务注记授权）"
+      - "Semi Tabs 2.103 默认 keepDOM=true 实测：文案唯一来源定于 PlatformIdentityEditor 行内提示；预览摘要独立 Banner；schedule_follows_global 补只读提示"
     claim:
       key: "T13-a1"
       owner: "claude-code-main@Maverick-mini.local-pid-35706"
@@ -249,3 +255,4 @@ notes:
   - "accept/T12-a1: verifyResult 完整通过；集成 merge 97710ec + 集成验证（typecheck + 153 测试全绿）；validated_commit → 97710ec"
   - "accept/T11-a1: verifyResult 完整通过；集成 merge e256893 + 集成验证（typecheck + 159 测试全绿）；validated_commit → e256893"
   - "dispatch/Wave-front2: T13-a1 + T15-a1 于 e256893 认领并派发（2026-09-13）；注入 T10 契约（putSettings 返回 StateResponse 需 getSettings 刷新）与 T12 契约（draft 草稿态/追加逻辑/错误文案）"
+  - "accept/T13-a1: verifyResult 完整通过；集成 merge cc0a2be + 集成验证（typecheck + 163 测试全绿）；validated_commit → cc0a2be"
