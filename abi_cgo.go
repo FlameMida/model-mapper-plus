@@ -131,5 +131,6 @@ func cliproxyPluginFree(ptr unsafe.Pointer, len C.size_t) {
 
 //export cliproxyPluginShutdown
 func cliproxyPluginShutdown() {
+	shutdownNotificationService()
 	setHostCallback(nil)
 }
