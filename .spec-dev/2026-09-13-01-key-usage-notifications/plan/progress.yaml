@@ -6,7 +6,7 @@ execution:
   integration_worktree: "/Users/maverick/cpa-model-mapper-plus/.worktrees/plan-2026-09-13-01-key-usage-notifications"
   integration_branch: "plan-2026-09-13-01-key-usage-notifications"
   base_commit: "f7ace3f"
-  validated_commit: "6681966"
+  validated_commit: "ee6f731"
 tasks:
   T00: { status: completed, commit: "ec515043a356532a23ea70d288b8dc41aac3b0d4", tests: pass }
   T01:
@@ -60,7 +60,14 @@ tasks:
       base_commit: "6681966"
     model_declaration_id: "decl-001"
   T04:
-    status: in_progress
+    status: completed
+    commit: "ee6f731"
+    implementation_commit: "3cc30d754bcc715f0f383f6664579c2b50aa9490"
+    tests: pass
+    deviations:
+      - "任务测试片段 t.Fatalf 误传 t 改为记录 err"
+      - "bbolt 禁止迭代中写：ClaimDue/FinishJob 两阶段实现（行为等价）"
+      - "bbolt 锁定 v1.5.0；UpsertJob merge 路径同步刷新 Revision（避免被 T08 版本门误杀）；FinishJob 对非法 outcome 报错"
     claim:
       key: "T04-a1"
       owner: "claude-code-main@Maverick-mini.local-pid-35706"
@@ -81,9 +88,8 @@ tasks:
     model_declaration_id: "decl-001"
   T06: { status: pending }
   T07:
-    status: blocked
-    blockers:
-      - "消费 T04 的 delivery 三态常量；T04 尚未集成。裁决=选项A：T04 集成后重置 ku/T07 基线并解锁原 implementer（工作区零改动，claim T07-a1 保留）"
+    status: in_progress
+    claim:
     claim:
       key: "T07-a1"
       owner: "claude-code-main@Maverick-mini.local-pid-35706"
@@ -117,3 +123,5 @@ notes:
   - "accept/T03-a1: verifyResult 除 dirty 误报（主线程归档清理删除已跟踪证据副本所致）外全过；集成 merge + 集成验证（vet+相关范围 6.6s 全绿）；另 gofmt 修复 T02 引入的 notification_types.go（integration fix）"
   - "dispatch/T05: T05-a1 于 663a108（含 T03）认领并派发（2026-09-13）"
   - "blocked/T07-a1: 跨票符号归属阻塞（delivery 三常量属 T04 store）；导航表补 T07←T04 语义依赖边；裁决选项A，待 T04 集成后重置基线解锁"
+  - "accept/T04-a1: verifyResult 完整通过；集成 merge ee6f731 + 集成验证全绿（vet+相关范围 6.9s）；validated_commit → ee6f731"
+  - "unlock/T07-a1: ku/T07 重置到 ee6f731（含 T04 常量），原 implementer 解锁继续"
