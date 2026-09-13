@@ -145,7 +145,14 @@ tasks:
       base_commit: "$(git rev-parse --short HEAD)"
     model_declaration_id: "decl-001"
   T10:
-    status: in_progress
+    status: completed
+    commit: "84b5862"
+    implementation_commit: "d0f5f99216581d166b31ccc34a884693cb2aabdc"
+    tests: pass
+    deviations:
+      - "putSettings 返回 StateResponse（后端真源；T15 保存后需 getSettings() 刷新）"
+      - "NotificationStatus 增补 global_name/store_error（T09 视图真源）"
+      - "PreviewResponse 同名冲突：api.ts 内别名 NotificationPreviewResponse，导出面不变"
     claim:
       key: "T10-a1"
       owner: "claude-code-main@Maverick-mini.local-pid-35706"
@@ -154,8 +161,24 @@ tasks:
       branch: "ku/T10"
       base_commit: "1770845"
     model_declaration_id: "decl-001"
-  T11: { status: pending }
-  T12: { status: pending }
+  T11:
+    status: in_progress
+    claim:
+      key: "T11-a1"
+      owner: "claude-code-main@Maverick-mini.local-pid-35706"
+      worktree: ".worktrees/ku-T11"
+      branch: "ku/T11"
+      base_commit: "84b5862"
+    model_declaration_id: "decl-001"
+  T12:
+    status: in_progress
+    claim:
+      key: "T12-a1"
+      owner: "claude-code-main@Maverick-mini.local-pid-35706"
+      worktree: ".worktrees/ku-T12"
+      branch: "ku/T12"
+      base_commit: "84b5862"
+    model_declaration_id: "decl-001"
   T13: { status: pending }
   T14: { status: pending }
   T15: { status: pending }
@@ -188,3 +211,5 @@ notes:
   - "accept/T09-a1: verifyResult 完整通过；集成 merge 53f9f6d + 集成验证全绿（含 ^TestManagement 回归 56 PASS）"
   - "fix/T04-delivery-tags: T09 发现 deliveryRecord 漏 json tags（计划缺陷），deliveries 响应呈 Go 字段名——主线程补 snake_case tags 与全系统契约一致，T04+T09 测试与全量回归全绿；validated_commit → 1770845"
   - "dispatch/T10: T10-a1 于 1770845 认领并派发（2026-09-13）——前端阶段开始"
+  - "accept/T10-a1: verifyResult 完整通过；集成 merge 84b5862 + 集成验证（typecheck + 148 测试全绿）；validated_commit → 84b5862"
+  - "dispatch/Wave-front1: T11-a1 + T12-a1 于 84b5862 认领并派发（2026-09-13）"
