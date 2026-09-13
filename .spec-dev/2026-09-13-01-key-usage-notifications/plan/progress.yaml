@@ -212,7 +212,13 @@ tasks:
     model_declaration_id: "decl-001"
   T14: { status: pending }
   T15:
-    status: in_progress
+    status: completed
+    commit: "224f5fe"
+    implementation_commit: "b231828799e19715725a9dc85948fb78113036af"
+    tests: pass
+    deviations:
+      - "保存→回读 getSettings 刷新（putSettings 契约）"
+      - "投递查询落地四筛选六列；unknown 行可重试（非终态）"
     claim:
       key: "T15-a1"
       owner: "claude-code-main@Maverick-mini.local-pid-35706"
@@ -256,3 +262,4 @@ notes:
   - "accept/T11-a1: verifyResult 完整通过；集成 merge e256893 + 集成验证（typecheck + 159 测试全绿）；validated_commit → e256893"
   - "dispatch/Wave-front2: T13-a1 + T15-a1 于 e256893 认领并派发（2026-09-13）；注入 T10 契约（putSettings 返回 StateResponse 需 getSettings 刷新）与 T12 契约（draft 草稿态/追加逻辑/错误文案）"
   - "accept/T13-a1: verifyResult 完整通过；集成 merge cc0a2be + 集成验证（typecheck + 163 测试全绿）；validated_commit → cc0a2be"
+  - "accept/T15-a1: verifyResult 完整通过；集成 merge 224f5fe + 集成验证（typecheck + 162+3 测试全绿）；validated_commit → 224f5fe"
