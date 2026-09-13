@@ -61,13 +61,15 @@ type KeyBinding struct {
 	Rules         RuleSet        `json:"rules"`
 	ChannelTarget *ChannelTarget `json:"channel_target,omitempty"`
 	FastAllowed   *bool          `json:"fast_allowed,omitempty"`
+	Notifications []Notification `json:"notifications,omitempty"`
 }
 
 type State struct {
-	Version     int          `json:"version"`
-	Rules       RuleSet      `json:"rules"`
-	KeyBindings []KeyBinding `json:"key_bindings"`
-	UpdatedAt   string       `json:"updated_at,omitempty"`
+	Version       int                   `json:"version"`
+	Rules         RuleSet               `json:"rules"`
+	KeyBindings   []KeyBinding          `json:"key_bindings"`
+	Notifications *NotificationSettings `json:"notifications,omitempty"`
+	UpdatedAt     string                `json:"updated_at,omitempty"`
 }
 
 // ruleSource is the runtime view consumed by routeModel/preview.
@@ -149,6 +151,9 @@ func validateState(st State) error {
 				return err
 			}
 		}
+		if err := validateKeyNotificationsEntity(i, &b); err != nil {
+			return err
+		}
 		prefix := fmt.Sprintf("key_bindings[%d].rules", i)
 		segments = append(segments,
 			struct{ name, rules string }{prefix + ".global", b.Rules.Global},
@@ -156,6 +161,11 @@ func validateState(st State) error {
 			struct{ name, rules string }{prefix + ".codex", b.Rules.Codex},
 			struct{ name, rules string }{prefix + ".openai", b.Rules.OpenAI},
 		)
+	}
+	if st.Notifications != nil {
+		if err := validateNotificationSettings(st.Notifications); err != nil {
+			return err
+		}
 	}
 	for _, seg := range segments {
 		if seg.rules == "" {
@@ -254,6 +264,7 @@ func cloneKeyBindings(in []KeyBinding) []KeyBinding {
 	for i := range in {
 		out[i] = in[i]
 		out[i].ChannelTarget = cloneChannelTarget(in[i].ChannelTarget)
+		out[i].Notifications = cloneNotifications(in[i].Notifications)
 		if in[i].FastAllowed != nil {
 			value := *in[i].FastAllowed
 			out[i].FastAllowed = &value
@@ -280,6 +291,38 @@ func cloneState(st State) State {
 func cloneRuleSource(src ruleSource) ruleSource {
 	src.KeyBindings = cloneKeyBindings(src.KeyBindings)
 	return src
+}
+
+// cloneNotifications deep-copies a notification list including modules,
+// platform identities and the schedule pointer.
+func cloneNotifications(in []Notification) []Notification {
+	if in == nil {
+		return nil
+	}
+	out := make([]Notification, len(in))
+	for i := range in {
+		out[i] = in[i]
+		out[i].Modules = append([]ModuleConfig(nil), in[i].Modules...)
+		out[i].Platforms = clonePlatformIdentities(in[i].Platforms)
+		if in[i].Schedule != nil {
+			s := *in[i].Schedule
+			out[i].Schedule = &s
+		}
+	}
+	return out
+}
+
+// clonePlatformIdentities deep-copies platform identities including user IDs.
+func clonePlatformIdentities(in []PlatformIdentity) []PlatformIdentity {
+	if in == nil {
+		return nil
+	}
+	out := make([]PlatformIdentity, len(in))
+	for i := range in {
+		out[i] = in[i]
+		out[i].UserIDs = append([]string(nil), in[i].UserIDs...)
+	}
+	return out
 }
 
 // errKeyBindingNotFound is returned from mutate when the target key disappeared.
