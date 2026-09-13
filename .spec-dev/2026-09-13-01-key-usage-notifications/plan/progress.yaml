@@ -134,7 +134,15 @@ tasks:
       branch: "ku/T08"
       base_commit: "d3f695c"
     model_declaration_id: "decl-001"
-  T09: { status: pending }
+  T09:
+    status: in_progress
+    claim:
+      key: "T09-a1"
+      owner: "claude-code-main@Maverick-mini.local-pid-35706"
+      worktree: ".worktrees/ku-T09"
+      branch: "ku/T09"
+      base_commit: "$(git rev-parse --short HEAD)"
+    model_declaration_id: "decl-001"
   T10: { status: pending }
   T11: { status: pending }
   T12: { status: pending }
