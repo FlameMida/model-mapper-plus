@@ -33,6 +33,13 @@ func handleManagementRegister() ([]byte, error) {
 			{Method: http.MethodPatch, Path: managementRegisterBase + "/keys", Description: "Update a key binding by key."},
 			{Method: http.MethodDelete, Path: managementRegisterBase + "/keys", Description: "Delete a key binding by key."},
 			{Method: http.MethodPost, Path: managementRegisterBase + "/preview", Description: "Dry-run rule resolution."},
+			{Method: http.MethodGet, Path: managementRegisterBase + "/notifications/settings", Description: "Read notification settings with plaintext webhook secrets."},
+			{Method: http.MethodPut, Path: managementRegisterBase + "/notifications/settings", Description: "Replace notification settings."},
+			{Method: http.MethodGet, Path: managementRegisterBase + "/notifications/status", Description: "Read notification service status."},
+			{Method: http.MethodPost, Path: managementRegisterBase + "/notifications/preview", Description: "Render a saved notification without sending."},
+			{Method: http.MethodPost, Path: managementRegisterBase + "/notifications/test-send", Description: "Send one test notification now."},
+			{Method: http.MethodGet, Path: managementRegisterBase + "/notifications/deliveries", Description: "List notification delivery records."},
+			{Method: http.MethodPost, Path: managementRegisterBase + "/notifications/deliveries/retry", Description: "Re-queue one delivery from its original payload."},
 		},
 		Resources: []pluginapi.ResourceRoute{
 			{Path: "/index.html", Menu: "Model Mapper Plus", Description: "Model Mapper Plus admin UI."},
@@ -83,6 +90,9 @@ func dispatchManagement(req pluginapi.ManagementRequest) pluginapi.ManagementRes
 		return auditedStateManagement(req, managementDeleteKey)
 	case req.Method == http.MethodPost && path == managementHandleBase+"/preview":
 		return managementPreview(req)
+	}
+	if resp, handled := handleNotificationManagement(req); handled {
+		return resp
 	}
 	return managementError(http.StatusNotFound, "unknown management route")
 }
