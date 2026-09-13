@@ -1,4 +1,10 @@
 import { getKey, clearKey } from './session'
+import type {
+  DeliveryRecord,
+  NotificationSettings,
+  NotificationStatus,
+  PreviewResponse as NotificationPreviewResponse,
+} from './notifications'
 
 export interface AuditMeta {
   operation_id: string
@@ -212,6 +218,23 @@ export const api = {
     call<StateResponse>('PATCH', `/keys?key=${encodeURIComponent(key)}`, patch),
   deleteKey: (key: string) => call<StateResponse>('DELETE', `/keys?key=${encodeURIComponent(key)}`),
   preview: (req: PreviewRequest) => call<PreviewResponse>('POST', '/preview', req),
+  // 通知管理面（T09 路由契约）。PUT 响应是完整 state（managementGetState），
+  // 不含 notifications 块 —— 保存后需要 getSettings() 刷新回显。
+  notifications: {
+    getSettings: () => call<NotificationSettings>('GET', '/notifications/settings'),
+    putSettings: (s: NotificationSettings) => call<StateResponse>('PUT', '/notifications/settings', s),
+    getStatus: () => call<NotificationStatus>('GET', '/notifications/status'),
+    preview: (req: { key?: string; notification_id?: string }) =>
+      call<NotificationPreviewResponse>('POST', '/notifications/preview', req),
+    testSend: (req: { key?: string; notification_id?: string }) =>
+      call<{ delivery_ids: string[] }>('POST', '/notifications/test-send', req),
+    deliveries: (filter: { key_fingerprint?: string; notification_id?: string; platform?: string; outcome?: string; limit?: number }) => {
+      const q = new URLSearchParams()
+      for (const [k, v] of Object.entries(filter)) if (v) q.set(k, String(v))
+      return call<{ items: DeliveryRecord[] }>('GET', `/notifications/deliveries${q.size ? `?${q}` : ''}`)
+    },
+    retryDelivery: (id: string) => call<{ job_id: string }>('POST', '/notifications/deliveries/retry', { id }),
+  },
 }
 
 // CPA 主程序的 api-keys 列表（GET /v0/management/api-keys 返回原文）。
