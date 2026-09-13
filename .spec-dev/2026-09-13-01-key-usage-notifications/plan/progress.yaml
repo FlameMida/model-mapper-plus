@@ -212,6 +212,7 @@ tasks:
     model_declaration_id: "decl-001"
   T14:
     status: in_progress
+    blockers_note: "已解除——api.ts 授权追加（方案A），KeyBinding.notifications 字段缺口归属本票"
     claim:
       key: "T14-a1"
       owner: "claude-code-main@Maverick-mini.local-pid-35706"
@@ -272,3 +273,4 @@ notes:
   - "dispatch/Wave-front2: T13-a1 + T15-a1 于 e256893 认领并派发（2026-09-13）；注入 T10 契约（putSettings 返回 StateResponse 需 getSettings 刷新）与 T12 契约（draft 草稿态/追加逻辑/错误文案）"
   - "accept/T13-a1: verifyResult 完整通过；集成 merge cc0a2be + 集成验证（typecheck + 163 测试全绿）；validated_commit → cc0a2be"
   - "accept/T15-a1: verifyResult 完整通过；集成 merge 224f5fe + 集成验证（typecheck + 162+3 测试全绿）；validated_commit → 224f5fe"
+  - "plan-rev/T14: 前端 KeyBinding.notifications 类型缺口（T02 后端字段无前端归属）——T14 写集合追加 web/src/api.ts（方案A），声明重校验通过；impl-T14 解锁继续"

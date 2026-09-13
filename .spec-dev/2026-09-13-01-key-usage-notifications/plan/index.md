@@ -121,6 +121,7 @@ parallel:
         - "web/src/panels/KeyNotificationsTab.tsx"
         - "web/src/panels/KeyNotificationsTab.test.tsx"
         - "web/src/panels/KeysPanel.tsx"
+        - "web/src/api.ts"
       resources: []
     T15:
       writes:
