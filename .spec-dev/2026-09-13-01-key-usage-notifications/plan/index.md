@@ -53,6 +53,8 @@ parallel:
         - "web/vitest.config.ts"
         - "web/src/test/setup.ts"
         - "web/dist/index.html"
+        - "Makefile"
+        - ".github/workflows/build.yml"
       resources: []
     T02:
       writes:
@@ -148,7 +150,7 @@ parallel:
 | T00 | — | — | worktree 就绪 + 基线 SHA |
 | T01 | — | — | web/package.json 依赖升级完成、既有测试全绿基线 |
 | T02 | — | — | `NotificationSettings`/`Notification`/`validateNotifications(st)`/`notificationsOf(st, key)`（notification_types.go；state.State 扩展字段） |
-| T03 | — | — | `nextTrigger(sched NotificationSchedule, after time.Time, loc *time.Location) (time.Time, bool)`、`periodRange(m ModulePeriodStat, now time.Time, loc) (start, end time.Time, label string)` |
+| T03 | T02 | T02 的 `NotificationSchedule`/`ModuleKind`/`PeriodKind` | `nextTrigger(sched NotificationSchedule, after time.Time, loc *time.Location) (time.Time, bool)`、`periodRange(m ModulePeriodStat, now time.Time, loc) (start, end time.Time, label string)` |
 | T04 | T02 | T02 类型 | `openNotificationStore(path) (*notificationStore, error)`、`(*notificationStore).AppendJob/TransitionJob/MergeJobs/AppendDelivery/SnapshotList/Coverage`（结构见任务文件接口块） |
 | T05 | T02 | T02、`keeperClient.authenticatedRequest` | `type keeperStatsSource struct` + `(*keeperStatsSource).collect(ctx, key, period) (periodStats, error)`、`identifyAuthIndex`（notification_keeper.go） |
 | T06 | T02 | T02、T05 `periodStats` | `renderMessage(n Notification, data statsData, loc) (string, renderWarnings)`、`abbreviateTokens(n int64) string`、`channelShare(shares) (float64, bool)` |
