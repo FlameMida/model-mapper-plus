@@ -17,10 +17,10 @@ const MAX_INTERVAL_SEC = 31 * 86400
 const numberSelectStyle: CSSProperties = {
   fontSize: 12,
   padding: '2px 4px',
-  border: '1px solid rgba(28,31,35,.15)',
+  border: '1px solid var(--semi-color-border)',
   borderRadius: 3,
-  color: '#1c1f23',
-  background: '#fff',
+  color: 'var(--semi-color-text-0)',
+  background: 'var(--semi-color-bg-0)',
 }
 
 /** interval 能被整除的最大单位秒数（用于把总秒数折算成「数值 + 单位」展示）。 */

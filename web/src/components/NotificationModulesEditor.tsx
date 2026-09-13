@@ -39,22 +39,22 @@ const rowStyle: CSSProperties = {
   alignItems: 'center',
   gap: 8,
   padding: '4px 10px',
-  borderBottom: '1px solid rgba(28,31,35,.06)',
+  borderBottom: '1px solid var(--semi-color-border)',
 }
 
 const periodSelectStyle: CSSProperties = {
   marginLeft: 'auto',
   fontSize: 12,
   padding: '2px 6px',
-  border: '1px solid rgba(28,31,35,.15)',
+  border: '1px solid var(--semi-color-border)',
   borderRadius: 3,
-  color: '#1c1f23',
-  background: '#fff',
+  color: 'var(--semi-color-text-0)',
+  background: 'var(--semi-color-bg-0)',
 }
 
 const handleStyle: CSSProperties = {
   cursor: 'grab',
-  color: 'rgba(28,31,35,.45)',
+  color: 'var(--semi-color-text-2)',
   fontSize: 14,
   touchAction: 'none',
   userSelect: 'none',
@@ -86,14 +86,14 @@ function ModuleRow({ kind, config, onToggle, onPeriod }: RowProps) {
         transform: transform ? `translate3d(${transform.x}px, ${transform.y}px, 0)` : undefined,
         transition,
         zIndex: isDragging ? 1 : undefined,
-        background: isDragging ? 'rgba(0,100,250,.04)' : undefined,
+        background: isDragging ? 'var(--semi-color-primary-light-default)' : undefined,
       }}
     >
       <span
         ref={setActivatorNodeRef}
         {...(enabled ? { ...attributes, ...listeners } : {})}
         title={enabled ? '拖拽排序' : '勾选启用后可拖拽排序'}
-        style={{ ...handleStyle, cursor: enabled ? 'grab' : 'not-allowed', color: 'rgba(28,31,35,.3)' }}
+        style={{ ...handleStyle, cursor: enabled ? 'grab' : 'not-allowed', color: 'var(--semi-color-text-2)' }}
       >
         ⠿
       </span>
@@ -101,7 +101,7 @@ function ModuleRow({ kind, config, onToggle, onPeriod }: RowProps) {
         {MODULE_LABELS[kind]}
       </Checkbox>
       {isStat && !enabled && (
-        <select aria-label={`${MODULE_LABELS[kind]}周期`} value="" disabled style={{ ...periodSelectStyle, color: 'rgba(28,31,35,.4)' }}>
+        <select aria-label={`${MODULE_LABELS[kind]}周期`} value="" disabled style={{ ...periodSelectStyle, color: 'var(--semi-color-text-2)' }}>
           <option value="">—</option>
         </select>
       )}
@@ -160,11 +160,11 @@ export default function NotificationModulesEditor({ value, onChange }: {
         <SortableContext items={value.map((m) => m.kind)} strategy={verticalListSortingStrategy}>
           {GROUPS.map((group, gi) => (
             <section key={group.title} style={{ marginBottom: 12 }}>
-              <div style={{ fontSize: 12, color: 'rgba(28,31,35,.8)', marginBottom: 6 }}>
+              <div style={{ fontSize: 12, color: 'var(--semi-color-text-1)', marginBottom: 6 }}>
                 {group.title}
-                {gi === 0 && <span style={{ color: 'rgba(28,31,35,.45)' }}>（勾选启用 · 行序即消息中的出现顺序）</span>}
+                {gi === 0 && <span style={{ color: 'var(--semi-color-text-2)' }}>（勾选启用 · 行序即消息中的出现顺序）</span>}
               </div>
-              <div style={{ border: '1px solid rgba(28,31,35,.15)', borderRadius: 6, overflow: 'hidden' }}>
+              <div style={{ border: '1px solid var(--semi-color-border)', borderRadius: 6, overflow: 'hidden' }}>
                 {[
                   ...value
                     .filter((m) => group.kinds.includes(m.kind))

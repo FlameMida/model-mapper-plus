@@ -91,7 +91,7 @@ export default function NotificationEditor({ visible, originalName, siblingNames
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
               <Typography.Text>通知名称</Typography.Text>
-              <Input aria-label="通知名称" value={draft.name} onChange={(name) => edit({ name })} />
+              <Input aria-label="通知名称" placeholder="如：日报用量通知" value={draft.name} onChange={(name) => edit({ name })} />
             </div>
             {templateBlocked && <Typography.Text type="danger">{templateBlocked}</Typography.Text>}
             <label style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
