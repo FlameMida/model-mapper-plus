@@ -217,7 +217,7 @@ tasks:
       owner: "claude-code-main@Maverick-mini.local-pid-35706"
       worktree: ".worktrees/ku-T14"
       branch: "ku/T14"
-      base_commit: ""
+      base_commit: "224f5fe"
     model_declaration_id: "decl-001"
   T15:
     status: completed
