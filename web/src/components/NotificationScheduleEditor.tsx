@@ -63,7 +63,7 @@ export default function NotificationScheduleEditor({ value, onChange }: {
             </option>
           ))}
         </select>
-        {outOfRange && <span style={{ fontSize: 12, color: '#d4552a' }}>间隔需在 1 秒到 31 天之间</span>}
+        {outOfRange && <span style={{ fontSize: 12, color: 'var(--semi-color-danger)' }}>间隔需在 1 秒到 31 天之间</span>}
       </>
     )
   }
