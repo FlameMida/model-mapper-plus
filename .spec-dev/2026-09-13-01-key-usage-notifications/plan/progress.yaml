@@ -6,7 +6,7 @@ execution:
   integration_worktree: "/Users/maverick/cpa-model-mapper-plus/.worktrees/plan-2026-09-13-01-key-usage-notifications"
   integration_branch: "plan-2026-09-13-01-key-usage-notifications"
   base_commit: "f7ace3f"
-  validated_commit: "ee6f731"
+  validated_commit: "d21c296"
 tasks:
   T00: { status: completed, commit: "ec515043a356532a23ea70d288b8dc41aac3b0d4", tests: pass }
   T01:
@@ -125,3 +125,4 @@ notes:
   - "blocked/T07-a1: 跨票符号归属阻塞（delivery 三常量属 T04 store）；导航表补 T07←T04 语义依赖边；裁决选项A，待 T04 集成后重置基线解锁"
   - "accept/T04-a1: verifyResult 完整通过；集成 merge ee6f731 + 集成验证全绿（vet+相关范围 6.9s）；validated_commit → ee6f731"
   - "unlock/T07-a1: ku/T07 重置到 ee6f731（含 T04 常量），原 implementer 解锁继续"
+  - "accept/T07-a1: verifyResult 完整通过；集成 merge d21c296 + 集成验证全绿（vet+相关范围 6.4s）；validated_commit → d21c296；事故：主线程清理 implementer worktree 证据目录时未先验证 cp 成功，原红绿日志丢失，已从提交树真实重现（red 编译失败/green 全量重跑），后续归档一律先验证后清理"
