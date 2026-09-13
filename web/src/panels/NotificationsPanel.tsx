@@ -8,7 +8,7 @@ import { api } from '../api'
 import type { DeliveryRecord, NotificationSettings, NotificationStatus } from '../notifications'
 import NotificationModulesEditor from '../components/NotificationModulesEditor'
 import NotificationScheduleEditor from '../components/NotificationScheduleEditor'
-import PlatformIdentityEditor, { validatePlatforms } from '../components/PlatformIdentityEditor'
+import PlatformIdentityEditor, { FIELD_LABEL_STYLE, validatePlatforms } from '../components/PlatformIdentityEditor'
 
 type DeliveryFilter = { platform?: string; outcome?: string; notification_id?: string; key_fingerprint?: string }
 
@@ -92,6 +92,7 @@ export default function NotificationsPanel() {
       <Card title="全局默认通知" headerExtraContent={<Button theme="solid" loading={saving} onClick={() => void save()}>保存全局通知</Button>}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           <div style={{ display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap' }}>
+            <Typography.Text style={FIELD_LABEL_STYLE}>全局通知名称</Typography.Text>
             <Input aria-label="全局通知名称" style={{ width: 320 }} value={settings.global_default.name}
               onChange={(name) => setSettings({ ...settings, global_default: { ...settings.global_default, name } })} />
             <label style={{ display: 'flex', alignItems: 'center', gap: 8 }}>

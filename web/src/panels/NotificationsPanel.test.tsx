@@ -33,6 +33,8 @@ describe('NotificationsPanel', () => {
     render(<NotificationsPanel />)
     expect(await screen.findByText('运行中')).toBeInTheDocument()
     expect(await screen.findByDisplayValue('用量通知')).toBeInTheDocument()
+    // 全局通知名称输入框左侧常显标题（不依赖占位符）
+    expect(screen.getByText('全局通知名称')).toBeInTheDocument()
     expect(screen.getByText(/待发任务/)).toBeInTheDocument()
   })
 
