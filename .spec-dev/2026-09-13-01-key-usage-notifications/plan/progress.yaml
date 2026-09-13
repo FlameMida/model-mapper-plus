@@ -149,6 +149,7 @@ tasks:
     claim:
       key: "T10-a1"
       owner: "claude-code-main@Maverick-mini.local-pid-35706"
+      agent_id: "impl-T10@session-561c4d5a"
       worktree: ".worktrees/ku-T10"
       branch: "ku/T10"
       base_commit: "1770845"
