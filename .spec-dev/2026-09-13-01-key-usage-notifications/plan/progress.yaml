@@ -118,7 +118,15 @@ tasks:
       branch: "ku/T07"
       base_commit: "6681966"
     model_declaration_id: "decl-001"
-  T08: { status: pending }
+  T08:
+    status: in_progress
+    claim:
+      key: "T08-a1"
+      owner: "claude-code-main@Maverick-mini.local-pid-35706"
+      worktree: ".worktrees/ku-T08"
+      branch: "ku/T08"
+      base_commit: "d3f695c"
+    model_declaration_id: "decl-001"
   T09: { status: pending }
   T10: { status: pending }
   T11: { status: pending }
@@ -149,3 +157,4 @@ notes:
   - "accept/T05-a1: verifyResult 完整通过；真实 Keeper 契约核对修正替身（嵌套 quota 形状）；集成 merge 7e9e11a + 集成验证全绿；validated_commit → 7e9e11a"
   - "dispatch/T06: T06-a1 于 7e9e11a（含 T02+T03+T05）认领并派发（2026-09-13）"
   - "accept/T06-a1: verifyResult 完整通过；集成 merge d3f695c + 集成验证全绿（vet+相关范围 6.9s）；validated_commit → d3f695c"
+  - "dispatch/T08: T08-a1 于 d3f695c（含 T02-T07 全部产物）认领并派发（2026-09-13）——Go 侧汇合票"
