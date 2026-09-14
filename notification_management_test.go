@@ -164,3 +164,69 @@ func TestSettingsPutAudited(t *testing.T) {
 func contains(s, substr string) bool {
 	return strings.Contains(s, substr)
 }
+
+// 2026-09-14 确认：@所有人（at_all）仅全局通知语义；Key 级通知经管理保存时
+// 后端剥离 at_all，旧数据下次保存自动清理，API 层无法再写入 key 级 @所有人。
+func TestManagementPostKeyStripsKeyNotificationAtAll(t *testing.T) {
+	withTempNotificationState(t)
+	body := `{"key":"sk-k","enabled":true,"notifications":[{` +
+		`"id":"n1","name":"日报用量","enabled":true,` +
+		`"modules":[{"kind":"daily","period":"current"}],` +
+		`"platforms":[{"kind":"wecom","enabled":true,"webhook":"https://qyapi.weixin.qq.com/hook","user_ids":["maverick"],"at_all":true}]}]}`
+	resp := managementPostKey(pluginapi.ManagementRequest{Method: http.MethodPost, Body: []byte(body)})
+	if resp.StatusCode != http.StatusOK {
+		t.Fatalf("postKey: %d %s", resp.StatusCode, resp.Body)
+	}
+	st, _ := loadedStateSnapshot()
+	if len(st.KeyBindings) != 1 || len(st.KeyBindings[0].Notifications) != 1 {
+		t.Fatalf("bindings = %+v", st.KeyBindings)
+	}
+	if st.KeyBindings[0].Notifications[0].Platforms[0].AtAll {
+		t.Fatal("key-level notification at_all must be stripped on save")
+	}
+}
+
+func TestManagementPostKeyRejectsKeyNotificationAtAllWithoutUserIDs(t *testing.T) {
+	withTempNotificationState(t)
+	body := `{"key":"sk-k","enabled":true,"notifications":[{` +
+		`"id":"n1","name":"日报用量","enabled":true,` +
+		`"modules":[{"kind":"daily","period":"current"}],` +
+		`"platforms":[{"kind":"wecom","enabled":true,"webhook":"https://qyapi.weixin.qq.com/hook","at_all":true}]}]}`
+	resp := managementPostKey(pluginapi.ManagementRequest{Method: http.MethodPost, Body: []byte(body)})
+	if resp.StatusCode != http.StatusBadRequest {
+		t.Fatalf("postKey: %d %s", resp.StatusCode, resp.Body)
+	}
+	if !strings.Contains(string(resp.Body), "用户唯一 ID 为必填") {
+		t.Fatalf("want user-id required after at_all strip, got %s", resp.Body)
+	}
+	if strings.Contains(string(resp.Body), "或开启") {
+		t.Fatalf("key-level error must not suggest @所有人, got %s", resp.Body)
+	}
+}
+
+func TestManagementPostKeyAllowsFollowGlobalWithoutModules(t *testing.T) {
+	withTempNotificationState(t)
+	body := `{"key":"sk-k","enabled":true,"notifications":[{` +
+		`"id":"n1","name":"日报用量","enabled":true,"template_follows_global":true,` +
+		`"platforms":[{"kind":"wecom","enabled":true,"webhook":"https://qyapi.weixin.qq.com/hook","user_ids":["maverick"]}]}]}`
+	resp := managementPostKey(pluginapi.ManagementRequest{Method: http.MethodPost, Body: []byte(body)})
+	if resp.StatusCode != http.StatusOK {
+		t.Fatalf("follow-global without modules should save, got %d %s", resp.StatusCode, resp.Body)
+	}
+}
+
+func TestPutSettingsPreservesGlobalAtAll(t *testing.T) {
+	withTempNotificationState(t)
+	body := `{"enabled":true,"notifications":[{"id":"g1","name":"每日通知","enabled":true,` +
+		`"modules":[{"kind":"daily","period":"current"}],` +
+		`"schedule":{"kind":"interval","interval":86400,"time":"09:00:00"},` +
+		`"platforms":[{"kind":"wecom","enabled":true,"webhook":"https://qyapi.weixin.qq.com/hook","at_all":true}]}]}`
+	resp := dispatchManagement(mgmtRequest(http.MethodPut, "/v0/management/plugins/model-mapper-plus/notifications/settings", body))
+	if resp.StatusCode != http.StatusOK {
+		t.Fatalf("put: %d %s", resp.StatusCode, resp.Body)
+	}
+	got := dispatchManagement(mgmtRequest(http.MethodGet, "/v0/management/plugins/model-mapper-plus/notifications/settings", ""))
+	if !strings.Contains(string(got.Body), `"at_all":true`) {
+		t.Fatalf("global at_all must persist, got %s", got.Body)
+	}
+}

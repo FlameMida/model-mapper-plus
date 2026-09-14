@@ -149,3 +149,24 @@ describe('PlatformIdentityEditor member picker', () => {
     expect(fetchMembers).not.toHaveBeenCalled()
   })
 })
+
+// 2026-09-14 确认：@所有人仅全局通知语义——key scope 不渲染开关且 at_all 不再免除用户 ID。
+describe('scope：@所有人仅全局', () => {
+  const atAllNoUser: PlatformIdentity[] = [
+    { kind: 'wecom', enabled: true, webhook: 'https://w', at_all: true },
+  ]
+
+  it('key scope 隐藏 @所有人 开关，at_all 不免除用户 ID 必填', () => {
+    render(<PlatformIdentityEditor scope="key" value={atAllNoUser} onChange={() => {}} />)
+    expect(screen.queryByRole('switch', { name: '@所有人：企业微信' })).not.toBeInTheDocument()
+    expect(screen.getByText(/用户唯一 ID 为必填/)).toBeInTheDocument()
+    expect(validatePlatforms(atAllNoUser, 'key')).toHaveLength(1)
+  })
+
+  it('global scope 保留 @所有人 开关，at_all 免除用户 ID', () => {
+    render(<PlatformIdentityEditor scope="global" value={atAllNoUser} onChange={() => {}} />)
+    expect(screen.getByRole('switch', { name: '@所有人：企业微信' })).toBeInTheDocument()
+    expect(screen.queryByText(/用户唯一 ID 为必填/)).not.toBeInTheDocument()
+    expect(validatePlatforms(atAllNoUser, 'global')).toHaveLength(0)
+  })
+})

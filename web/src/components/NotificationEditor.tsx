@@ -1,14 +1,16 @@
 // 通知编辑抽屉（T13）。Semi SideSheet（medium）+ 双 Tab（通知模板 / 平台身份配置），
-// footer 三键「预览消息 / 取消 / 保存」（mockup 定稿）。草稿态随 props.initial 重置；
-// 保存拦截 = 名称必填 + 同 Key 唯一 + 模块非空（不跟随全局模板时）+ validatePlatforms，
-// 保存键 disable 兜底。名称/模块守卫在模板 Tab 内联展示；平台身份错误由
-// PlatformIdentityEditor 行内提示呈现（Semi Tabs 默认 keepDOM，文案必须唯一，避免重复）。
+// footer 三键「预览消息 / 取消 / 保存」（mockup 定稿）。草稿态随 props.initial 重置。
+// 保存拦截 = 名称必填 + 同 Key 唯一 + 模块非空（不跟随全局模板时）+ validatePlatforms
+// （按 scope：key 级无 @所有人）。错误定位到具体字段行内展示（名称错误在名称框下、
+// 模块错误在模块编辑器下、平台错误在平台字段行内）；保存点击时第一条错误以 Toast
+// 弹窗提示并切到出错 Tab（2026-09-14 确认）。
+// onSaved 可为 async（抽屉保存即落库路径）：reject 时抽屉保持打开，由调用方 Toast 错误。
+// key scope 保存时剥离平台 at_all（后端 managementPostKey 同样剥离，双保险）。
 // 预览针对已保存实体（POST /notifications/preview），抽屉内编辑不即时上传；dirty 时提示
-// 预览可能过期，预览成功后清除 dirty。保存本身不发请求：onSaved 把草稿交父级并入
-// binding/全局实体再走 postKey/putSettings（T14/T15，与既有「编辑绑定 → onOk → postKey」
-// 路径一致）；test-send 在 T14 列表行内（针对已保存通知），抽屉不重复。
-import { Banner, Button, Input, SideSheet, Switch, TabPane, Tabs, Typography } from '@douyinfe/semi-ui'
+// 预览可能过期，预览成功后清除 dirty。
+import { Banner, Button, Input, SideSheet, Switch, TabPane, Tabs, Toast, Typography } from '@douyinfe/semi-ui'
 import { useEffect, useMemo, useState } from 'react'
+import type { CSSProperties } from 'react'
 import { api } from '../api'
 import type { Notification } from '../notifications'
 import NotificationModulesEditor from './NotificationModulesEditor'
@@ -19,6 +21,9 @@ import PlatformIdentityEditor, { validatePlatforms } from './PlatformIdentityEdi
 // 需要一个起点对象，否则编辑器因空值守卫永远不渲染。
 const DEFAULT_SCHEDULE: NonNullable<Notification['schedule']> = { kind: 'interval', interval: 86400, time: '09:00:00' }
 
+// 分组小标题（与 NotificationModulesEditor 的「统计周期/渠道窗口」分组标题同款）
+const SECTION_TITLE_STYLE: CSSProperties = { fontSize: 12, color: 'var(--semi-color-text-1)', marginBottom: 6 }
+
 export default function NotificationEditor({ visible, originalName, siblingNames, initial, scope = 'key', onSaved, onClose }: {
   visible: boolean
   /** 编辑态原名（空串 = 新建）。 */
@@ -27,15 +32,17 @@ export default function NotificationEditor({ visible, originalName, siblingNames
   siblingNames: string[]
   /** 草稿；新建默认 template_follows_global=true / schedule_follows_global=true（T02 语义）。 */
   initial: Notification
-  /** global = 全局通知条目（自身不跟随全局，隐藏跟随开关）。 */
+  /** global = 全局通知条目（自身不跟随全局，隐藏跟随开关；仅全局展示 @所有人）。 */
   scope?: 'key' | 'global'
-  onSaved: (n: Notification) => void
+  /** 保存回调；返回 Promise 且 reject 时抽屉不关闭（保存即落库失败场景）。 */
+  onSaved: (n: Notification) => void | Promise<void>
   onClose: () => void
 }) {
   const [draft, setDraft] = useState<Notification>(initial)
   const [dirty, setDirty] = useState(false)
   const [preview, setPreview] = useState<string | null>(null)
   const [error, setError] = useState('')
+  const [activeTab, setActiveTab] = useState('template')
 
   // initial 变化（切换编辑对象）时重置草稿与临时状态
   useEffect(() => {
@@ -43,6 +50,7 @@ export default function NotificationEditor({ visible, originalName, siblingNames
     setDirty(false)
     setPreview(null)
     setError('')
+    setActiveTab('template')
   }, [initial])
 
   const edit = (patch: Partial<Notification>) => {
@@ -50,20 +58,20 @@ export default function NotificationEditor({ visible, originalName, siblingNames
     setDirty(true)
   }
 
-  // 模板 Tab 内联守卫：名称必填 / 同 Key 唯一 / 模块非空（平台守卫在 platforms Tab 行内提示）
-  const templateBlocked = useMemo(() => {
+  // 字段级守卫：名称错误渲染在名称输入框下、模块错误渲染在模块编辑器下（平台守卫在平台字段行内）
+  const nameError = useMemo(() => {
     const name = draft.name.trim()
     if (!name) return '通知名称为必填项'
     const others = siblingNames.filter((n) => originalName === '' || n !== originalName)
     if (others.includes(name)) return '同 Key 内已存在同名通知'
-    if (!draft.template_follows_global && !draft.modules?.length) return '至少启用一个统计模块'
     return ''
   }, [draft, siblingNames, originalName])
 
-  const platformsBlocked = useMemo(() => validatePlatforms(draft.platforms ?? [])[0] ?? '', [draft.platforms])
+  const modulesError = useMemo(() =>
+    (scope === 'global' || !draft.template_follows_global) && !draft.modules?.length
+      ? '至少启用一个统计模块' : '', [draft, scope])
 
-  // 保存拦截总开关：空串 = 可保存
-  const saveBlocked = templateBlocked || platformsBlocked
+  const platformsError = useMemo(() => validatePlatforms(draft.platforms ?? [], scope)[0] ?? '', [draft.platforms, scope])
 
   async function doPreview() {
     try {
@@ -76,9 +84,24 @@ export default function NotificationEditor({ visible, originalName, siblingNames
     }
   }
 
-  function doSave() {
-    if (saveBlocked) return
-    onSaved({ ...draft, name: draft.name.trim() })
+  async function doSave() {
+    // 第一条错误 Toast 提示并定位到出错 Tab；行内错误各自渲染在字段下方。
+    if (nameError || modulesError || platformsError) {
+      const first = nameError || modulesError || platformsError
+      Toast.error(first)
+      setActiveTab(nameError || modulesError ? 'template' : 'platforms')
+      return
+    }
+    const payload: Notification = { ...draft, name: draft.name.trim() }
+    // key 级通知无 @所有人（2026-09-14）：保存草稿时一并剥离，后端同样兜底。
+    if (scope === 'key') {
+      payload.platforms = (draft.platforms ?? []).map((p) => ({ ...p, at_all: false }))
+    }
+    try {
+      await onSaved(payload)
+    } catch {
+      return // 落库失败：调用方已 Toast，抽屉保持打开以便修正
+    }
     onClose()
   }
 
@@ -89,17 +112,17 @@ export default function NotificationEditor({ visible, originalName, siblingNames
         <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', alignItems: 'center' }}>
           <Button onClick={doPreview}>预览消息</Button>
           <Button onClick={onClose}>取消</Button>
-          <Button theme="solid" disabled={!!saveBlocked} onClick={doSave}>保存</Button>
+          <Button theme="solid" onClick={() => { void doSave() }}>保存</Button>
         </div>
       }>
-      <Tabs type="line">
+      <Tabs type="line" activeKey={activeTab} onChange={(k) => setActiveTab(k as string)}>
         <TabPane tab="通知模板" itemKey="template">
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
               <Typography.Text>通知名称</Typography.Text>
               <Input aria-label="通知名称" placeholder="如：日报用量通知" value={draft.name} onChange={(name) => edit({ name })} />
+              {nameError && <Typography.Text type="danger">{nameError}</Typography.Text>}
             </div>
-            {templateBlocked && <Typography.Text type="danger">{templateBlocked}</Typography.Text>}
             <label style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <Switch checked={draft.enabled} onChange={(enabled) => edit({ enabled })} />
               <Typography.Text>启用通知（关闭只停发，不删除配置）</Typography.Text>
@@ -113,7 +136,10 @@ export default function NotificationEditor({ visible, originalName, siblingNames
             )}
             {scope === 'key' && (draft.template_follows_global
               ? <Typography.Text type="tertiary">模块序列与周期将使用全局默认模板（来源：默认全局通知）</Typography.Text>
-              : <NotificationModulesEditor value={draft.modules ?? []} onChange={(modules) => edit({ modules })} />)}
+              : <>
+                  <NotificationModulesEditor value={draft.modules ?? []} onChange={(modules) => edit({ modules })} />
+                  {modulesError && <Typography.Text type="danger">{modulesError}</Typography.Text>}
+                </>)}
             {scope === 'key' && (
               <label style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <Switch checked={!!draft.schedule_follows_global}
@@ -123,19 +149,24 @@ export default function NotificationEditor({ visible, originalName, siblingNames
             )}
             {scope === 'key' && (draft.schedule_follows_global
               ? <Typography.Text type="tertiary">发送计划将使用全局默认计划（来源：默认全局通知）</Typography.Text>
-              : <NotificationScheduleEditor value={draft.schedule ?? DEFAULT_SCHEDULE}
-                onChange={(schedule) => edit({ schedule })} />)}
+              : <>
+                  <div style={SECTION_TITLE_STYLE}>发送计划</div>
+                  <NotificationScheduleEditor value={draft.schedule ?? DEFAULT_SCHEDULE}
+                    onChange={(schedule) => edit({ schedule })} />
+                </>)}
             {scope === 'global' && (
               <>
-                <NotificationModulesEditor value={draft.modules ?? []} onChange={(modules) => edit({ modules })} />
+                <div style={SECTION_TITLE_STYLE}>发送计划</div>
                 <NotificationScheduleEditor value={draft.schedule ?? DEFAULT_SCHEDULE}
                   onChange={(schedule) => edit({ schedule })} />
+                <NotificationModulesEditor value={draft.modules ?? []} onChange={(modules) => edit({ modules })} />
+                {modulesError && <Typography.Text type="danger">{modulesError}</Typography.Text>}
               </>
             )}
           </div>
         </TabPane>
         <TabPane tab="平台身份配置" itemKey="platforms">
-          <PlatformIdentityEditor value={draft.platforms ?? []} onChange={(platforms) => edit({ platforms })} />
+          <PlatformIdentityEditor value={draft.platforms ?? []} onChange={(platforms) => edit({ platforms })} scope={scope} />
         </TabPane>
       </Tabs>
       {dirty && (

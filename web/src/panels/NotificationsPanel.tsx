@@ -210,9 +210,22 @@ export default function NotificationsPanel() {
         <NotificationEditor visible scope="global" originalName={editing.originalName}
           siblingNames={globalList(settings).map((n) => n.name).filter((name) => name !== editing.originalName)}
           initial={editing.draft}
-          onSaved={(n) => setList(editing.originalName
-            ? globalList(settings).map((x) => (x.id === n.id ? { ...n, is_default: x.is_default } : x))
-            : [...globalList(settings), n])}
+          onSaved={async (n) => {
+            const list = editing.originalName
+              ? globalList(settings).map((x) => (x.id === n.id ? { ...n, is_default: x.is_default } : x))
+              : [...globalList(settings), n]
+            const next = { ...settings, notifications: list, global_default: list.find((x) => x.is_default) ?? list[0] }
+            setSettings(next)
+            // 抽屉保存即落库（2026-09-14）：行内「测试发送」始终对已保存实体操作，
+            // 消除「抽屉保存 ≠ 落库」两层保存陷阱；失败时抛错保持抽屉打开。
+            try {
+              await saveSettings(next)
+              Toast.success('全局通知已保存')
+            } catch (e) {
+              Toast.error((e as Error).message)
+              throw e
+            }
+          }}
           onClose={() => setEditing(null)} />
       )}
     </div>

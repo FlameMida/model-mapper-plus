@@ -187,12 +187,15 @@ func validateNotificationSchedule(s *NotificationSchedule, path string) error {
 }
 
 // validateNotificationEntity validates one notification entity (global default
-// or a key-owned entry); every error is anchored at path.
-func validateNotificationEntity(n *Notification, path string) error {
+// or a key-owned entry); every error is anchored at path. allowAtAll is true
+// only for global notifications: @所有人 is global-only (2026-09-14).
+func validateNotificationEntity(n *Notification, path string, allowAtAll bool) error {
 	if strings.TrimSpace(n.Name) == "" {
 		return fmt.Errorf("%s: 通知名称为必填", path)
 	}
-	if len(n.Modules) == 0 {
+	// Key-level followers inherit the pinned global template; they may omit
+	// modules. Global entries never carry the follow flag (normalize clears it).
+	if len(n.Modules) == 0 && !n.TemplateFollowsGlobal {
 		return fmt.Errorf("%s: 至少启用一个统计模块", path)
 	}
 	seenModules := make(map[ModuleKind]struct{}, len(n.Modules))
@@ -241,9 +244,12 @@ func validateNotificationEntity(n *Notification, path string) error {
 					break
 				}
 			}
-			// @所有人 satisfies the mention requirement on its own.
-			if !hasUserID && !p.AtAll {
-				return fmt.Errorf("%s.platforms[%d]: 启用通知时用户唯一 ID 为必填（或开启 @所有人）", path, i)
+			// @所有人 satisfies the mention requirement only on global entries.
+			if !hasUserID && !(allowAtAll && p.AtAll) {
+				if allowAtAll {
+					return fmt.Errorf("%s.platforms[%d]: 启用通知时用户唯一 ID 为必填（或开启 @所有人）", path, i)
+				}
+				return fmt.Errorf("%s.platforms[%d]: 启用通知时用户唯一 ID 为必填", path, i)
 			}
 		}
 		if p.Kind == PlatformWeCom && strings.TrimSpace(p.SignSecret) != "" {
@@ -326,7 +332,7 @@ func validateNotificationSettings(s *NotificationSettings) error {
 		if strings.TrimSpace(n.Name) == "" {
 			return fmt.Errorf("%s: 通知名称为必填", path)
 		}
-		if err := validateNotificationEntity(n, path); err != nil {
+		if err := validateNotificationEntity(n, path, true); err != nil {
 			return err
 		}
 		name := strings.TrimSpace(n.Name)
@@ -347,6 +353,18 @@ func validateNotificationSettings(s *NotificationSettings) error {
 	return nil
 }
 
+// stripKeyNotificationAtAll clears @所有人 from a binding's notification list
+// before it is persisted: at_all is global-only semantics (2026-09-14), so
+// key-level entries lose the flag on save and legacy data self-cleans on the
+// next save instead of failing validation.
+func stripKeyNotificationAtAll(b *KeyBinding) {
+	for i := range b.Notifications {
+		for j := range b.Notifications[i].Platforms {
+			b.Notifications[i].Platforms[j].AtAll = false
+		}
+	}
+}
+
 // validateKeyNotificationsEntity validates one binding's own notification
 // list, anchored at key_bindings[<index>].notifications[<j>], including
 // trim-based name uniqueness inside the binding. An empty list is valid (the
@@ -359,7 +377,7 @@ func validateKeyNotificationsEntity(index int, b *KeyBinding) error {
 	for j := range b.Notifications {
 		n := &b.Notifications[j]
 		path := fmt.Sprintf("key_bindings[%d].notifications[%d]", index, j)
-		if err := validateNotificationEntity(n, path); err != nil {
+		if err := validateNotificationEntity(n, path, false); err != nil {
 			return err
 		}
 		name := strings.TrimSpace(n.Name)

@@ -47,12 +47,17 @@ function FieldRow({ label, errorText, children }: { label: string; errorText?: s
   )
 }
 
-export function validatePlatforms(platforms: PlatformIdentity[]): string[] {
+/** 平台身份校验：enabled 平台必须带 Webhook；用户唯一 ID 必填——@所有人仅在
+ *  global scope 下可免除（2026-09-14 确认 key 级通知无 @所有人语义）。 */
+export function validatePlatforms(platforms: PlatformIdentity[], scope: 'key' | 'global' = 'global'): string[] {
   const errs: string[] = []
   for (const p of platforms) {
     if (!p.enabled) continue
     if (!p.webhook?.trim()) errs.push(`${p.kind}: Webhook 地址为必填项`)
-    if (!p.at_all && !p.user_ids?.some((u) => u.trim())) errs.push(`${p.kind}: 启用通知时用户唯一 ID 为必填（或开启 @所有人）`)
+    const hasUser = p.user_ids?.some((u) => u.trim())
+    if (scope === 'global' ? !p.at_all && !hasUser : !hasUser) {
+      errs.push(`${p.kind}: 启用通知时用户唯一 ID 为必填${scope === 'global' ? '（或开启 @所有人）' : ''}`)
+    }
   }
   return errs
 }
@@ -89,9 +94,11 @@ function memberFetchErrorText(state: MemberFetchState): string | undefined {
   return `${text}${retry}`
 }
 
-export default function PlatformIdentityEditor({ value, onChange }: {
+export default function PlatformIdentityEditor({ value, onChange, scope = 'global' }: {
   value: PlatformIdentity[]
   onChange: (p: PlatformIdentity[]) => void
+  /** key = Key 级通知：不渲染 @所有人 开关（2026-09-14 确认仅全局通知有 @所有人）。 */
+  scope?: 'key' | 'global'
 }) {
   const [active, setActive] = useState<PlatformKind>(PLATFORM_TABS[0].kind)
   // 本地草稿态：行内校验提示即时反映编辑，不依赖父组件回写（保存拦截由 T13 用 validatePlatforms 兜底）
@@ -151,7 +158,7 @@ export default function PlatformIdentityEditor({ value, onChange }: {
     <Tabs type="card" keepDOM={false} activeKey={active} onChange={(k) => setActive(k as PlatformKind)}>
       {PLATFORM_TABS.map(({ kind, label }) => {
         const p = draft[kind]
-        const missingUser = p.enabled && !p.at_all && !p.user_ids?.some((u) => u.trim())
+        const missingUser = p.enabled && (scope === 'global' ? !p.at_all : true) && !p.user_ids?.some((u) => u.trim())
         const missingHook = p.enabled && !p.webhook?.trim()
         const memberState = memberStates[kind]
 
@@ -184,7 +191,9 @@ export default function PlatformIdentityEditor({ value, onChange }: {
                 <Input aria-label="Webhook 地址" style={{ flex: 1 }} value={p.webhook ?? ''} placeholder="https://…"
                   onChange={(webhook) => update(kind, { webhook })} />
               </FieldRow>
-              <FieldRow label="用户唯一 ID" errorText={missingUser ? '启用通知时用户唯一 ID 为必填（或开启 @所有人）' : undefined}>
+              <FieldRow label="用户唯一 ID" errorText={missingUser
+                ? `启用通知时用户唯一 ID 为必填${scope === 'global' ? '（或开启 @所有人）' : ''}`
+                : undefined}>
                 <Select
                   aria-label="用户唯一 ID"
                   style={{ flex: 1 }}
@@ -199,13 +208,15 @@ export default function PlatformIdentityEditor({ value, onChange }: {
                   onDropdownVisibleChange={(visible) => { if (!visible) setSearches((prev) => ({ ...prev, [kind]: '' })) }}
                 />
               </FieldRow>
-              <FieldRow label="@所有人">
-                <Switch aria-label={`@所有人：${label}`} checked={!!p.at_all}
-                  onChange={(at_all) => update(kind, { at_all })} />
-                <Typography.Text type="tertiary" size="small">
-                  开启后无需填用户唯一 ID；{label === '企业微信' ? '此平台消息将以纯文本发送（企微 markdown 不支持 @所有人）' : '与已选成员同时生效'}
-                </Typography.Text>
-              </FieldRow>
+              {scope === 'global' && (
+                <FieldRow label="@所有人">
+                  <Switch aria-label={`@所有人：${label}`} checked={!!p.at_all}
+                    onChange={(at_all) => update(kind, { at_all })} />
+                  <Typography.Text type="tertiary" size="small">
+                    开启后无需填用户唯一 ID；{label === '企业微信' ? '此平台消息将以纯文本发送（企微 markdown 不支持 @所有人）' : '与已选成员同时生效'}
+                  </Typography.Text>
+                </FieldRow>
+              )}
               <FieldRow label="签名密钥">
                 {kind === 'wecom'
                   ? <Typography.Text type="tertiary">

@@ -202,6 +202,9 @@ func managementPostKey(req pluginapi.ManagementRequest) pluginapi.ManagementResp
 	// keyFromRequest looks up by it, so an untrimmed key would be writable but
 	// impossible to PATCH or DELETE afterwards.
 	binding.Key = strings.TrimSpace(binding.Key)
+	// @所有人 is global-only (2026-09-14): strip it before validation so the
+	// mention requirement falls back to user IDs for key-level entries.
+	stripKeyNotificationAtAll(&binding)
 	err := applyStateUpdate(func(st *State) error {
 		for i, b := range st.KeyBindings {
 			if b.Key == binding.Key {

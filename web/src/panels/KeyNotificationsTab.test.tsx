@@ -6,7 +6,8 @@
 //    error_code 文本，getByText 单元素断言会因 multiple elements 失败）。
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, expect, it, vi } from 'vitest'
+import { Toast } from '@douyinfe/semi-ui'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import KeyNotificationsTab from './KeyNotificationsTab'
 import type { KeyBinding } from '../api'
 
@@ -35,6 +36,8 @@ vi.mock('../api', () => ({
     },
   },
 }))
+
+afterEach(() => { Toast.destroyAll() })
 
 describe('KeyNotificationsTab', () => {
   it('empty state announces the active global notification', () => {
@@ -66,5 +69,43 @@ describe('KeyNotificationsTab', () => {
     const okButton = modalRoot.querySelector('.semi-button-primary') as HTMLButtonElement
     await user.click(okButton)
     expect(onChange).toHaveBeenCalledWith([])
+  })
+})
+
+// 2026-09-14 quick-fix：抽屉保存即落库 + 未落库行禁用测试发送（后端只有已保存实体）。
+describe('KeyNotificationsTab 抽屉保存即落库', () => {
+  it('disables test-send for rows not yet persisted', () => {
+    render(<KeyNotificationsTab binding={binding} siblingNames={[]} onChange={() => {}}
+      savedNotificationIds={[]} />)
+    expect(screen.getByRole('button', { name: '测试发送' })).toBeDisabled()
+  })
+
+  it('keeps test-send enabled for persisted rows', () => {
+    render(<KeyNotificationsTab binding={binding} siblingNames={[]} onChange={() => {}}
+      savedNotificationIds={['n1']} />)
+    expect(screen.getByRole('button', { name: '测试发送' })).toBeEnabled()
+  })
+
+  it('drawer save persists the list via persist prop and still updates the draft', async () => {
+    const onChange = vi.fn()
+    const persist = vi.fn().mockResolvedValue(undefined)
+    const user = userEvent.setup()
+    render(<KeyNotificationsTab binding={binding} siblingNames={[]} onChange={onChange} persist={persist} />)
+    await user.click(screen.getByRole('button', { name: '＋ 新增通知' }))
+    await userEvent.type(await screen.findByLabelText('通知名称'), '新通知')
+    await user.click(screen.getByRole('button', { name: '保存' }))
+    await waitFor(() => expect(persist).toHaveBeenCalledTimes(1))
+    expect(onChange).toHaveBeenCalledTimes(1)
+    expect(persist.mock.calls[0][0].map((n: { name: string }) => n.name)).toContain('新通知')
+  })
+
+  it('without persist (binding never saved) drawer save only updates the draft', async () => {
+    const onChange = vi.fn()
+    const user = userEvent.setup()
+    render(<KeyNotificationsTab binding={binding} siblingNames={[]} onChange={onChange} />)
+    await user.click(screen.getByRole('button', { name: '＋ 新增通知' }))
+    await userEvent.type(await screen.findByLabelText('通知名称'), '新通知')
+    await user.click(screen.getByRole('button', { name: '保存' }))
+    await waitFor(() => expect(onChange).toHaveBeenCalledTimes(1))
   })
 })

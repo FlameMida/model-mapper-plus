@@ -48,6 +48,13 @@ function ruleSummary(b: KeyBinding): string {
   return parts.join(' · ') || '—'
 }
 
+/** 当前编辑会话对应的已落库绑定（按 originalKey 匹配；新建时 originalKey 为空）。 */
+function savedBaseOf(originalKey: string, state: StateResponse): KeyBinding | undefined {
+  const key = originalKey.trim()
+  if (!key) return undefined
+  return state.key_bindings.find((b) => b.key === key)
+}
+
 interface Props {
   keyOptions: KeyOptionsState
   state: StateResponse
@@ -419,6 +426,23 @@ export default function KeysPanel({ state, onSaved, keyOptions }: Props) {
                 binding={editing}
                 siblingNames={[]}
                 onChange={(notifications) => setEditing({ ...editing, notifications })}
+                savedNotificationIds={savedBaseOf(originalKey, state)?.notifications?.map((n) => n.id) ?? []}
+                persist={savedBaseOf(originalKey, state)
+                  // 抽屉保存即落库（2026-09-14）：基于已保存绑定（originalKey）postKey 仅落
+                  // notifications，不携带编辑中的其它字段；新建未保存过时不提供通道。
+                  ? async (notifications) => {
+                      const savedBase = savedBaseOf(originalKey, state)
+                      if (!savedBase) return
+                      try {
+                        const s = await api.postKey({ ...normalizeBinding(savedBase), notifications })
+                        saved(s)
+                        Toast.success('Key 通知已保存')
+                      } catch (e) {
+                        showSaveError(e as ManagementAPIError)
+                        throw e
+                      }
+                    }
+                  : undefined}
               />
             </TabPane>
           </Tabs>

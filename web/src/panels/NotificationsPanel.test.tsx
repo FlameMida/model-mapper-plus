@@ -71,3 +71,21 @@ describe('NotificationsPanel', () => {
     expect(screen.getByLabelText('间隔单位')).toBeInTheDocument()
   })
 })
+
+// 2026-09-14 quick-fix：抽屉保存即落库——行内测试发送始终对已保存实体操作。
+describe('NotificationsPanel 抽屉保存即落库', () => {
+  it('drawer save auto-persists via putSettings', async () => {
+    vi.mocked(api.notifications.putSettings).mockClear()
+    render(<NotificationsPanel />)
+    await screen.findByText('用量通知')
+    await userEvent.click(screen.getByRole('button', { name: '编辑' }))
+    const name = await screen.findByLabelText('通知名称')
+    await userEvent.clear(name)
+    await userEvent.type(name, '每日通知')
+    await userEvent.click(screen.getByRole('button', { name: '保存' }))
+    await waitFor(() => expect(api.notifications.putSettings).toHaveBeenCalledTimes(1))
+    const sent = vi.mocked(api.notifications.putSettings).mock.calls[0][0]
+    expect(sent.notifications?.[0]?.name).toBe('每日通知')
+    await waitFor(() => expect(screen.getByText(/已保存/)).toBeInTheDocument())
+  })
+})
