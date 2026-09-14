@@ -99,7 +99,10 @@ type notificationStore struct{ db *bolt.DB }
 func openNotificationStore(path string) (*notificationStore, error) {
 	// The 3s file-lock timeout turns concurrent-open conflicts into a controlled
 	// unavailable error instead of an indefinite block (hot-reload contract).
-	db, err := bolt.Open(path, 0o600, &bolt.Options{Timeout: 3 * time.Second})
+	// A generous lock wait absorbs host hot-reload ordering: the retiring
+	// plugin instance releases the file lock during its shutdown, which can
+	// overlap this open (restarting after a .so swap beats a hard timeout).
+	db, err := bolt.Open(path, 0o600, &bolt.Options{Timeout: 15 * time.Second})
 	if err != nil {
 		return nil, fmt.Errorf("open notification store: %w", err)
 	}
