@@ -153,6 +153,29 @@ func TestFeishuMembersClientTokenRejected(t *testing.T) {
 	requireKeeperError(t, err, "authentication_failed")
 }
 
+// A marketplace/ISV app behind the self-built token endpoint answers
+// code:0 with an EMPTY token; the preflight must reject it up front without
+// touching the directory APIs (which would 401 with a blank bearer).
+func TestFeishuMembersClientEmptyTokenPreflight(t *testing.T) {
+	var directoryCalled bool
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		if r.URL.Path == "/open-apis/auth/v3/tenant_access_token/internal" {
+			fmt.Fprintf(w, `{"code":0,"msg":"ok","tenant_access_token":"","expire":6103}`)
+			return
+		}
+		directoryCalled = true
+		fmt.Fprintf(w, `{"code":0,"data":{"items":[],"has_more":false}}`)
+	}))
+	defer srv.Close()
+	t.Cleanup(pointFeishuMembersAt(srv.URL))
+	_, err := fetchFeishuMembers(context.Background(), "cli_x", "sec")
+	requireKeeperError(t, err, "authentication_failed")
+	if directoryCalled {
+		t.Fatal("empty token must be rejected before any directory call")
+	}
+}
+
 func TestDingtalkMembersClientFetches(t *testing.T) {
 	var tokenBody string
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

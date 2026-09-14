@@ -215,8 +215,36 @@ func feishuSDKError(ctx context.Context, err error) error {
 
 func fetchFeishuMembers(ctx context.Context, appID, appSecret string) ([]notificationMember, error) {
 	client := newFeishuMembersClient(appID, appSecret)
+
+	// Explicit token preflight. A marketplace/ISV app behind the self-built
+	// token endpoint answers code:0 with an EMPTY token, which the SDK
+	// happily caches; every directory call then 401s with a blank bearer and
+	// the failure reads as a confusing credential rejection. Reject it here
+	// with a precise log line instead.
+	tokenResp, err := client.GetTenantAccessTokenBySelfBuiltApp(ctx,
+		&larkcore.SelfBuiltTenantAccessTokenReq{AppID: appID, AppSecret: appSecret})
+	if err != nil {
+		return nil, feishuSDKError(ctx, err)
+	}
+	if tokenResp.Code != 0 {
+		logger.Warn("feishu member fetch token rejected", "code", tokenResp.Code, "msg", tokenResp.Msg)
+		return nil, &keeperError{Code: "authentication_failed"}
+	}
+	if tokenResp.TenantAccessToken == "" {
+		logger.Warn("feishu returned an empty tenant token — the app is likely a marketplace (ISV) app; the member picker needs a self-built (企业自建) app")
+		return nil, &keeperError{Code: "authentication_failed"}
+	}
+
 	budget := &memberBudget{}
 	collector := newCollectMembers()
+
+	// Directory-call status failures log the HTTP status: a silent 403
+	// (permissions not granted or the version carrying them unpublished)
+	// is the top real-world failure and must be diagnosable from the log.
+	feishuStatusError := func(status int, retryAfter string) error {
+		logger.Warn("feishu member fetch directory call rejected", "status", status)
+		return membersStatusError(status, retryAfter)
+	}
 
 	// Department tree: root (0) plus every descendant via fetch_child.
 	deptIDs := []string{"0"}
@@ -237,7 +265,7 @@ func fetchFeishuMembers(ctx context.Context, appID, appSecret string) ([]notific
 			return nil, feishuSDKError(ctx, err)
 		}
 		if resp.StatusCode != http.StatusOK {
-			return nil, membersStatusError(resp.StatusCode, resp.Header.Get("Retry-After"))
+			return nil, feishuStatusError(resp.StatusCode, resp.Header.Get("Retry-After"))
 		}
 		if !resp.Success() {
 			return nil, &keeperError{Code: "invalid_response"}
@@ -275,7 +303,7 @@ func fetchFeishuMembers(ctx context.Context, appID, appSecret string) ([]notific
 				return nil, feishuSDKError(ctx, err)
 			}
 			if resp.StatusCode != http.StatusOK {
-				return nil, membersStatusError(resp.StatusCode, resp.Header.Get("Retry-After"))
+				return nil, feishuStatusError(resp.StatusCode, resp.Header.Get("Retry-After"))
 			}
 			if !resp.Success() {
 				return nil, &keeperError{Code: "invalid_response"}
