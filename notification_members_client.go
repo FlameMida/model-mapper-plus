@@ -15,6 +15,7 @@ import (
 	"net/http"
 	"sort"
 	"strconv"
+	"sync"
 	"time"
 
 	lark "github.com/larksuite/oapi-sdk-go/v3"
@@ -51,12 +52,16 @@ var (
 	membersHTTPClient    = &http.Client{Timeout: 5 * time.Second}
 )
 
-// memberBudget bounds a single fetch chain.
+// memberBudget bounds a single fetch chain; safe for concurrent spenders
+// (feishu walks departments with bounded parallelism).
 type memberBudget struct {
+	mu       sync.Mutex
 	requests int
 }
 
 func (b *memberBudget) spend() error {
+	b.mu.Lock()
+	defer b.mu.Unlock()
 	b.requests++
 	if b.requests > maxMemberRequests {
 		return &keeperError{Code: "invalid_response"}
@@ -246,21 +251,21 @@ func fetchFeishuMembers(ctx context.Context, appID, appSecret string) ([]notific
 		return membersStatusError(status, retryAfter)
 	}
 
-	// Department tree: root (0) plus every descendant via fetch_child.
-	deptIDs := []string{"0"}
+	// Authorized scope drives traversal (partial scopes work — walking root
+	// children requires an all-member scope and fails with code 40004).
+	deptIDs := []string{}
 	pageToken := ""
 	for {
 		if err := budget.spend(); err != nil {
 			return nil, err
 		}
-		builder := larkcontact.NewChildrenDepartmentReqBuilder().
-			DepartmentId("0").
-			FetchChild(true).
+		builder := larkcontact.NewListScopeReqBuilder().
+			UserIdType("open_id").
 			PageSize(50)
 		if pageToken != "" {
 			builder = builder.PageToken(pageToken)
 		}
-		resp, err := client.Contact.V3.Department.Children(ctx, builder.Build())
+		resp, err := client.Contact.V3.Scope.List(ctx, builder.Build())
 		if err != nil {
 			return nil, feishuSDKError(ctx, err)
 		}
@@ -268,14 +273,11 @@ func fetchFeishuMembers(ctx context.Context, appID, appSecret string) ([]notific
 			return nil, feishuStatusError(resp.StatusCode, resp.Header.Get("Retry-After"))
 		}
 		if !resp.Success() {
+			logger.Warn("feishu member fetch scope rejected", "code", resp.Code, "msg", resp.Msg)
 			return nil, &keeperError{Code: "invalid_response"}
 		}
 		if resp.Data != nil {
-			for _, dept := range resp.Data.Items {
-				if dept.DepartmentId != nil {
-					deptIDs = append(deptIDs, *dept.DepartmentId)
-				}
-			}
+			deptIDs = append(deptIDs, resp.Data.DepartmentIds...)
 			if resp.Data.HasMore == nil || !*resp.Data.HasMore || resp.Data.PageToken == nil || *resp.Data.PageToken == "" {
 				break
 			}
@@ -285,48 +287,84 @@ func fetchFeishuMembers(ctx context.Context, appID, appSecret string) ([]notific
 		}
 	}
 
-	for _, deptID := range deptIDs {
-		token := ""
-		for {
-			if err := budget.spend(); err != nil {
-				return nil, err
-			}
-			builder := larkcontact.NewFindByDepartmentUserReqBuilder().
-				DepartmentId(deptID).
-				UserIdType("open_id").
-				PageSize(50)
-			if token != "" {
-				builder = builder.PageToken(token)
-			}
-			resp, err := client.Contact.V3.User.FindByDepartment(ctx, builder.Build())
-			if err != nil {
-				return nil, feishuSDKError(ctx, err)
-			}
-			if resp.StatusCode != http.StatusOK {
-				return nil, feishuStatusError(resp.StatusCode, resp.Header.Get("Retry-After"))
-			}
-			if !resp.Success() {
-				return nil, &keeperError{Code: "invalid_response"}
-			}
-			if resp.Data == nil {
-				break
-			}
-			for _, user := range resp.Data.Items {
-				if user.OpenId != nil {
-					name := ""
-					if user.Name != nil {
-						name = *user.Name
-					}
-					collector.add(*user.OpenId, name)
-				}
-			}
-			if resp.Data.HasMore == nil || !*resp.Data.HasMore || resp.Data.PageToken == nil || *resp.Data.PageToken == "" {
-				break
-			}
-			token = *resp.Data.PageToken
+	// Bounded-concurrency member fetch: the directory APIs allow 50 req/s,
+	// serial per-department calls would brush the 30s budget on orgs with
+	// hundreds of departments.
+	type deptMembers struct {
+		members []notificationMember
+		err     error
+	}
+	results := make([]deptMembers, len(deptIDs))
+	var wg sync.WaitGroup
+	sem := make(chan struct{}, 4)
+	for i, deptID := range deptIDs {
+		if err := budget.spend(); err != nil {
+			results[i] = deptMembers{err: err}
+			continue
+		}
+		wg.Add(1)
+		go func(i int, deptID string) {
+			defer wg.Done()
+			sem <- struct{}{}
+			defer func() { <-sem }()
+			members, err := fetchFeishuDepartmentMembers(ctx, client, budget, deptID, feishuStatusError)
+			results[i] = deptMembers{members: members, err: err}
+		}(i, deptID)
+	}
+	wg.Wait()
+	for _, result := range results {
+		if result.err != nil {
+			return nil, result.err
+		}
+		for _, m := range result.members {
+			collector.add(m.ID, m.Name)
 		}
 	}
 	return collector.sorted(), nil
+}
+
+// fetchFeishuDepartmentMembers pages through one department's direct users.
+func fetchFeishuDepartmentMembers(ctx context.Context, client *lark.Client, budget *memberBudget, deptID string, statusError func(int, string) error) ([]notificationMember, error) {
+	var members []notificationMember
+	token := ""
+	for {
+		if err := budget.spend(); err != nil {
+			return nil, err
+		}
+		builder := larkcontact.NewFindByDepartmentUserReqBuilder().
+			DepartmentId(deptID).
+			UserIdType("open_id").
+			PageSize(50)
+		if token != "" {
+			builder = builder.PageToken(token)
+		}
+		resp, err := client.Contact.V3.User.FindByDepartment(ctx, builder.Build())
+		if err != nil {
+			return nil, feishuSDKError(ctx, err)
+		}
+		if resp.StatusCode != http.StatusOK {
+			return nil, statusError(resp.StatusCode, resp.Header.Get("Retry-After"))
+		}
+		if !resp.Success() {
+			return nil, &keeperError{Code: "invalid_response"}
+		}
+		if resp.Data == nil {
+			return members, nil
+		}
+		for _, user := range resp.Data.Items {
+			if user.OpenId != nil {
+				name := ""
+				if user.Name != nil {
+					name = *user.Name
+				}
+				members = append(members, notificationMember{ID: *user.OpenId, Name: name})
+			}
+		}
+		if resp.Data.HasMore == nil || !*resp.Data.HasMore || resp.Data.PageToken == nil || *resp.Data.PageToken == "" {
+			return members, nil
+		}
+		token = *resp.Data.PageToken
+	}
 }
 
 // ——— DingTalk (no official Go SDK; thin REST) ———

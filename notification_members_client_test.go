@@ -48,6 +48,7 @@ func requireMembers(t *testing.T, got []notificationMember, want []notificationM
 
 func TestFeishuMembersClientFetches(t *testing.T) {
 	var tokenBody string
+	var childrenCalled bool
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		switch r.URL.Path {
@@ -55,28 +56,23 @@ func TestFeishuMembersClientFetches(t *testing.T) {
 			raw, _ := io.ReadAll(r.Body)
 			tokenBody = string(raw)
 			fmt.Fprintf(w, `{"code":0,"msg":"ok","tenant_access_token":"t-1","expire":7200}`)
+		case "/open-apis/contact/v3/scopes":
+			// The authorized scope drives traversal: partial scope works
+			// without all-member permissions (children(0) would 40004).
+			fmt.Fprintf(w, `{"code":0,"data":{"department_ids":["d1","d2"],"has_more":false}}`)
 		case "/open-apis/contact/v3/departments/0/children":
-			q := r.URL.Query()
-			if q.Get("fetch_child") != "true" {
-				t.Errorf("dept query=%v", q)
-			}
-			if q.Get("page_token") == "" {
-				fmt.Fprintf(w, `{"code":0,"data":{"items":[{"department_id":"d1"},{"department_id":"d2"}],"has_more":true,"page_token":"p2"}}`)
-			} else {
-				fmt.Fprintf(w, `{"code":0,"data":{"items":[],"has_more":false}}`)
-			}
+			childrenCalled = true
+			fmt.Fprintf(w, `{"code":0,"data":{"items":[],"has_more":false}}`)
 		case "/open-apis/contact/v3/users/find_by_department":
 			q := r.URL.Query()
 			if q.Get("user_id_type") != "open_id" {
 				t.Errorf("users query=%v", q)
 			}
 			switch q.Get("department_id") {
-			case "0":
-				fmt.Fprintf(w, `{"code":0,"data":{"items":[{"name":"Alice","open_id":"ou_a"},{"name":"Ghost","open_id":""}],"has_more":false}}`)
 			case "d1":
-				fmt.Fprintf(w, `{"code":0,"data":{"items":[{"name":"Bob","open_id":"ou_b"},{"name":"Alice","open_id":"ou_a"}],"has_more":false}}`)
+				fmt.Fprintf(w, `{"code":0,"data":{"items":[{"name":"Alice","open_id":"ou_a"},{"name":"Ghost","open_id":""}],"has_more":false}}`)
 			case "d2":
-				fmt.Fprintf(w, `{"code":0,"data":{"items":[],"has_more":false}}`)
+				fmt.Fprintf(w, `{"code":0,"data":{"items":[{"name":"Bob","open_id":"ou_b"},{"name":"Alice","open_id":"ou_a"}],"has_more":false}}`)
 			default:
 				t.Errorf("unexpected department %s", q.Get("department_id"))
 			}
@@ -92,6 +88,9 @@ func TestFeishuMembersClientFetches(t *testing.T) {
 	if !strings.Contains(tokenBody, "cli_x") || !strings.Contains(tokenBody, "app-sec") {
 		t.Fatalf("token body=%s", tokenBody)
 	}
+	if childrenCalled {
+		t.Fatal("must traverse the authorized scope, not root children (40004)")
+	}
 	// Empty IDs drop; cross-department duplicates merge; result sorts by (name, id).
 	requireMembers(t, got, []notificationMember{{ID: "ou_a", Name: "Alice"}, {ID: "ou_b", Name: "Bob"}})
 }
@@ -105,7 +104,7 @@ func TestFeishuMembersClientErrors(t *testing.T) {
 		{"dept http 401", "", "", "authentication_failed", http.StatusUnauthorized},
 		{"dept http 429", "", "", "rate_limited", http.StatusTooManyRequests},
 		{"dept http 500", "", "", "connection_failed", http.StatusInternalServerError},
-		{"users business code", `{"code":0,"data":{"items":[],"has_more":false}}`, `{"code":230002}`, "invalid_response", 0},
+		{"users business code", `{"code":0,"data":{"department_ids":["d1"],"has_more":false}}`, `{"code":230002}`, "invalid_response", 0},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			var usersDone bool
@@ -114,7 +113,7 @@ func TestFeishuMembersClientErrors(t *testing.T) {
 				switch r.URL.Path {
 				case "/open-apis/auth/v3/tenant_access_token/internal":
 					fmt.Fprintf(w, `{"code":0,"tenant_access_token":"t-1","expire":7200}`)
-				case "/open-apis/contact/v3/departments/0/children":
+				case "/open-apis/contact/v3/scopes":
 					if tc.deptStatus != 0 {
 						if tc.deptStatus == http.StatusTooManyRequests {
 							w.Header().Set("Retry-After", "30")
