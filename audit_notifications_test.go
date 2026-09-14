@@ -13,7 +13,8 @@ import (
 const auditNotificationSettingsBody = `{"enabled":true,"global_default":{"id":"global","name":"用量通知","enabled":true,
   "modules":[{"kind":"daily","period":"current"}],
   "schedule":{"kind":"interval","interval":86400,"time":"09:00:00"},
-  "platforms":[{"kind":"feishu","enabled":true,"webhook":"https://open.feishu.cn/hook/s3cr3t","user_ids":["ou_a"],"sign_secret":"sec1"}]}}`
+  "platforms":[{"kind":"feishu","enabled":true,"webhook":"https://open.feishu.cn/hook/s3cr3t","user_ids":["ou_a"],"sign_secret":"sec1",
+    "fetch_app_id":"cli_x","fetch_app_secret":"app-sec-1"}]}}`
 
 // Scenario S1/S5: notification settings land in the notifications module with
 // per-field projections, and webhook/sign-secret values stay masked while the
@@ -50,7 +51,7 @@ func TestManagementAuditNotificationSettingsProjection(t *testing.T) {
 		t.Fatal(err)
 	}
 	rawPage, _ := json.Marshal(page)
-	for _, secret := range []string{"s3cr3t", "sec1"} {
+	for _, secret := range []string{"s3cr3t", "sec1", "cli_x", "app-sec-1"} {
 		if bytes.Contains(raw, []byte(secret)) || bytes.Contains(rawPage, []byte(secret)) {
 			t.Errorf("notification secret leaked: %s", secret)
 		}

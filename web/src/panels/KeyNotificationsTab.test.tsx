@@ -31,6 +31,7 @@ vi.mock('../api', () => ({
           error_code: 'rate_limited', created_at: '2026-09-13T09:00:00Z' }],
       }),
       retryDelivery: vi.fn().mockResolvedValue({ job_id: 'j2' }),
+      fetchMembers: vi.fn(),
     },
   },
 }))

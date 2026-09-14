@@ -21,6 +21,7 @@ vi.mock('../api', () => ({
         platform: 'dingtalk', period_key: 'monthly:2026-08', outcome: 'failed',
         error_code: 'rate_limited', created_at: '2026-08-31T23:59:00Z' }] }),
       retryDelivery: vi.fn().mockResolvedValue({ job_id: 'j2' }),
+      fetchMembers: vi.fn(),
     },
   },
 }))

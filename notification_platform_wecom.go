@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 )
 
 type wecomAdapter struct {
@@ -22,11 +23,8 @@ func (a *wecomAdapter) send(ctx context.Context, msg outboundMessage) ([]deliver
 	results := make([]deliveryResult, 0, len(parts))
 	for _, part := range parts {
 		payload := map[string]any{
-			"msgtype": "markdown",
-			"markdown": map[string]any{
-				"content":        part,
-				"mentioned_list": a.userIDs,
-			},
+			"msgtype":  "markdown",
+			"markdown": map[string]any{"content": wecomComposeMarkdown(a.userIDs, part)},
 		}
 		status, respBody, retryAfter, err := postJSON(ctx, a.client, a.webhook, payload)
 		switch {
@@ -51,4 +49,20 @@ func (a *wecomAdapter) send(ctx context.Context, msg outboundMessage) ([]deliver
 		}
 	}
 	return results, nil
+}
+
+// wecomComposeMarkdown prefixes official <@userid> mention markers. The
+// mentioned_list field is only defined for msgtype=text and is silently
+// ignored on markdown, so markdown mentions must use the inline extension
+// syntax in content instead.
+func wecomComposeMarkdown(userIDs []string, body string) string {
+	if len(userIDs) == 0 {
+		return body
+	}
+	var b strings.Builder
+	for _, id := range userIDs {
+		b.WriteString("<@" + id + "> ")
+	}
+	b.WriteString(body)
+	return b.String()
 }

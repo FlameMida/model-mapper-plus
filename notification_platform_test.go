@@ -34,8 +34,26 @@ func TestWeComSendRequestShape(t *testing.T) {
 		t.Fatalf("results: %+v", results)
 	}
 	md := gotBody["markdown"].(map[string]any)
-	if gotBody["msgtype"] != "markdown" || !strings.Contains(md["content"].(string), "hello") {
-		t.Fatalf("body: %v", gotBody)
+	if gotBody["msgtype"] != "markdown" {
+		t.Fatalf("msgtype: %v", gotBody["msgtype"])
+	}
+	// mentioned_list 仅在官方 text 类型参数表中定义，markdown 下静默忽略：
+	// @ 必须走 content 内的 <@userid> 扩展语法。
+	if _, exists := md["mentioned_list"]; exists {
+		t.Fatal("markdown payload must not carry the text-only mentioned_list field")
+	}
+	content := md["content"].(string)
+	if !strings.HasPrefix(content, "<@u1> ") || !strings.Contains(content, "hello") {
+		t.Fatalf("content must prefix <@userid> markers then keep the body: %q", content)
+	}
+}
+
+func TestWeComComposeMarkdownWithoutUserIDs(t *testing.T) {
+	if got := wecomComposeMarkdown(nil, "plain body"); got != "plain body" {
+		t.Fatalf("no user IDs must keep body untouched: %q", got)
+	}
+	if got := wecomComposeMarkdown([]string{"u1", "u2"}, "body"); got != "<@u1> <@u2> body" {
+		t.Fatalf("each ID must become one <@userid> marker: %q", got)
 	}
 }
 

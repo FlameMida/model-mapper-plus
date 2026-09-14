@@ -50,7 +50,41 @@ export interface PlatformIdentity {
   user_ids?: string[]
   /** 仅 DingTalk/Feishu 支持；wecom 留空。 */
   sign_secret?: string
+  /** 以下为可选「成员拉取凭证」——仅用于拉取通讯录成员列表，不参与投递。
+   *  feishu: fetch_app_id + fetch_app_secret；dingtalk: fetch_app_key + fetch_app_secret；
+   *  wecom: fetch_corp_id + fetch_secret。 */
+  fetch_app_id?: string
+  fetch_app_secret?: string
+  fetch_app_key?: string
+  fetch_corp_id?: string
+  fetch_secret?: string
 }
+
+/** fetch-members 请求体：平台 + 平台对应的凭证字段（未保存也可拉取）。 */
+export interface PlatformFetchCredentials {
+  fetch_app_id?: string
+  fetch_app_secret?: string
+  fetch_app_key?: string
+  fetch_corp_id?: string
+  fetch_secret?: string
+}
+
+/** 通讯录成员行：显示名 + @ 所需平台唯一 ID（feishu ou_ open_id / 钉钉·企微 userid）。 */
+export interface NotificationMember {
+  id: string
+  name: string
+}
+
+/** POST /notifications/fetch-members 响应：永远 HTTP 200，失败也是状态信封
+ *  （上游 401/403 不得击穿 CPA 管理会话）。 */
+export type NotificationMembersResponse =
+  | { status: 'ready'; members: NotificationMember[]; fetched_at: string }
+  | {
+      status: 'unavailable'
+      members: []
+      error_code: 'configuration_error' | 'timeout' | 'connection_failed' | 'authentication_failed' | 'rate_limited' | 'invalid_response'
+      retry_after_seconds?: number
+    }
 
 /** 一个独立发送单元：模板模块 + 计划 + 平台身份。Key 级通知整体替换全局。 */
 export interface Notification {

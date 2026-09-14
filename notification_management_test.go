@@ -33,7 +33,8 @@ func TestPutSettingsPersistsAndEchoesPlaintext(t *testing.T) {
 	body := `{"enabled":true,"global_default":{"id":"global","name":"用量通知","enabled":true,
 	  "modules":[{"kind":"daily","period":"current"}],
 	  "schedule":{"kind":"interval","interval":86400,"time":"09:00:00"},
-	  "platforms":[{"kind":"feishu","enabled":true,"webhook":"https://open.feishu.cn/hook/s3cr3t","user_ids":["ou_a"],"sign_secret":"sec1"}]}}`
+	  "platforms":[{"kind":"feishu","enabled":true,"webhook":"https://open.feishu.cn/hook/s3cr3t","user_ids":["ou_a"],"sign_secret":"sec1",
+	    "fetch_app_id":"cli_x","fetch_app_secret":"app-sec-1"}]}}`
 	resp := dispatchManagement(mgmtRequest(http.MethodPut, "/v0/management/plugins/model-mapper-plus/notifications/settings", body))
 	if resp.StatusCode != http.StatusOK {
 		t.Fatalf("put: %d %s", resp.StatusCode, resp.Body)
@@ -45,6 +46,9 @@ func TestPutSettingsPersistsAndEchoesPlaintext(t *testing.T) {
 	}
 	if out.GlobalDefault.Platforms[0].Webhook != "https://open.feishu.cn/hook/s3cr3t" || out.GlobalDefault.Platforms[0].SignSecret != "sec1" {
 		t.Fatalf("must echo plaintext webhook/secret, got %+v", out.GlobalDefault.Platforms)
+	}
+	if out.GlobalDefault.Platforms[0].FetchAppID != "cli_x" || out.GlobalDefault.Platforms[0].FetchAppSecret != "app-sec-1" {
+		t.Fatalf("must echo plaintext fetch credentials, got %+v", out.GlobalDefault.Platforms[0])
 	}
 }
 

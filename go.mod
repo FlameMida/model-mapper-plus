@@ -6,6 +6,7 @@ require github.com/router-for-me/CLIProxyAPI/v7 v7.2.119
 
 require (
 	github.com/gin-gonic/gin v1.10.1
+	github.com/larksuite/oapi-sdk-go/v3 v3.12.0
 	github.com/tidwall/gjson v1.18.0
 	github.com/tidwall/sjson v1.2.5
 	go.etcd.io/bbolt v1.5.0

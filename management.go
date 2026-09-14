@@ -40,6 +40,7 @@ func handleManagementRegister() ([]byte, error) {
 			{Method: http.MethodPost, Path: managementRegisterBase + "/notifications/test-send", Description: "Send one test notification now."},
 			{Method: http.MethodGet, Path: managementRegisterBase + "/notifications/deliveries", Description: "List notification delivery records."},
 			{Method: http.MethodPost, Path: managementRegisterBase + "/notifications/deliveries/retry", Description: "Re-queue one delivery from its original payload."},
+			{Method: http.MethodPost, Path: managementRegisterBase + "/notifications/fetch-members", Description: "Fetch platform directory members with request-body credentials."},
 		},
 		Resources: []pluginapi.ResourceRoute{
 			{Path: "/index.html", Menu: "Model Mapper Plus", Description: "Model Mapper Plus admin UI."},

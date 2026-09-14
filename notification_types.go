@@ -86,13 +86,21 @@ type NotificationSchedule struct {
 }
 
 // PlatformIdentity is one platform target: webhook, @-user IDs and the
-// signature secret where the platform supports one (DingTalk, Feishu).
+// signature secret where the platform supports one (DingTalk, Feishu). The
+// fetch_* credential fields are optional directory-fetch credentials used
+// only by the member-picker (feishu: app id/secret, dingtalk: app key plus
+// the shared app secret, wecom: corp id/secret); they never join delivery.
 type PlatformIdentity struct {
-	Kind       PlatformKind `json:"kind"`
-	Enabled    bool         `json:"enabled"`
-	Webhook    string       `json:"webhook"`
-	UserIDs    []string     `json:"user_ids"`
-	SignSecret string       `json:"sign_secret"`
+	Kind           PlatformKind `json:"kind"`
+	Enabled        bool         `json:"enabled"`
+	Webhook        string       `json:"webhook"`
+	UserIDs        []string     `json:"user_ids"`
+	SignSecret     string       `json:"sign_secret"`
+	FetchAppID     string       `json:"fetch_app_id"`
+	FetchAppSecret string       `json:"fetch_app_secret"`
+	FetchAppKey    string       `json:"fetch_app_key"`
+	FetchCorpID    string       `json:"fetch_corp_id"`
+	FetchSecret    string       `json:"fetch_secret"`
 }
 
 var validModuleKinds = map[ModuleKind]bool{

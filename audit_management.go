@@ -298,11 +298,18 @@ func notificationList(st State) []Notification {
 func collectNotificationSecrets(values *[]string, notifications []Notification) {
 	for _, notification := range notifications {
 		for _, platform := range notification.Platforms {
-			if value := strings.TrimSpace(platform.Webhook); value != "" {
-				*values = append(*values, value)
-			}
-			if value := strings.TrimSpace(platform.SignSecret); value != "" {
-				*values = append(*values, value)
+			for _, value := range []string{
+				platform.Webhook,
+				platform.SignSecret,
+				platform.FetchAppID,
+				platform.FetchAppSecret,
+				platform.FetchAppKey,
+				platform.FetchCorpID,
+				platform.FetchSecret,
+			} {
+				if trimmed := strings.TrimSpace(value); trimmed != "" {
+					*values = append(*values, trimmed)
+				}
 			}
 		}
 	}

@@ -2,8 +2,11 @@ import { getKey, clearKey } from './session'
 import type {
   DeliveryRecord,
   Notification,
+  NotificationMembersResponse,
   NotificationSettings,
   NotificationStatus,
+  PlatformFetchCredentials,
+  PlatformKind,
   PreviewResponse as NotificationPreviewResponse,
 } from './notifications'
 
@@ -252,6 +255,9 @@ export const api = {
       return call<{ items: DeliveryRecord[] }>('GET', `/notifications/deliveries${q.size ? `?${q}` : ''}`)
     },
     retryDelivery: (id: string) => call<{ job_id: string }>('POST', '/notifications/deliveries/retry', { id }),
+    // 拉取平台通讯录成员（请求体带凭证，未保存也能拉）。失败也是 HTTP 200 信封。
+    fetchMembers: (req: { platform: PlatformKind; credentials: PlatformFetchCredentials }) =>
+      call<NotificationMembersResponse>('POST', '/notifications/fetch-members', req),
   },
 }
 

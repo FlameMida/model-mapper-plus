@@ -8,7 +8,7 @@ import { api } from '../api'
 import type { Notification } from '../notifications'
 
 vi.mock('../api', () => ({
-  api: { notifications: { preview: vi.fn() } },
+  api: { notifications: { preview: vi.fn(), fetchMembers: vi.fn() } },
 }))
 
 const draft: Notification = {

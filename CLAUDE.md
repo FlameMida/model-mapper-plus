@@ -99,6 +99,13 @@ The GitHub Actions workflow runs tests/vet on PRs, builds all release platforms 
 - **`/Users/flame/cpa-plugin-key-policy`** — 同生态的 c-shared 插件。本插件的 web 管理界面（`management.register`/`management.handle` + `go:embed` 单文件 UI + session/panelAuth/themeSync）、`state_file` 原子写与 YAML-seed 真相源不变量、CPA management 路由分发模式，均参照其实现。
 - **`/Users/flame/CLIProxyAPI`** — 宿主主程序。本插件依赖的 SDK（`sdk/pluginapi`、`sdk/pluginabi`）的契约、`ModelRouteRequest`/`ExecutorRequest`/`ManagementRequest` 的字段填充、`plugins.dir` 解析（`internal/config/plugin_path.go`）、`ServeManagementHTTP` 转发路径与 Windows shadow 拷贝（`internal/pluginhost/loader_windows.go`）都在这里。改 ABI/路由/host 交互前必读。
 
+## Notification member picker
+
+- `POST /notifications/fetch-members` authenticates with request-body credentials (works before saving), always answers HTTP 200 with a `ready`/`unavailable` envelope, sets `Cache-Control: no-store`, and never joins the audit gate or `managementMutationMu` — a slow upstream fetch must not block other management writes.
+- Feishu directory fetching rides the official `github.com/larksuite/oapi-sdk-go/v3` (SDK owns token + pagination; `feishuMembersBaseURL` is the test seam — mocks must set `Content-Type: application/json`, and children requests hit `/open-apis/contact/v3/departments/<id>/children` with department_id as a path param). DingTalk and WeCom have no official Go SDK, so `notification_members_client.go` keeps thin REST clients over the keeper closed-error discipline (`memberBudget` caps pagination).
+- The `fetch_*` credential fields on `PlatformIdentity` are picker-only and never join delivery. They echo in plaintext like webhooks but MUST stay in `collectNotificationSecrets` so they land `[REDACTED]` in audit records.
+- WeCom markdown mentions use inline `<@userid>` syntax in content (`wecomComposeMarkdown`); `mentioned_list` is defined for msgtype=text only and is silently ignored on markdown — do not reintroduce it.
+
 ## Local state and documentation
 
 Live smoke creates ignored local state under `.test-cpa/`; builds create ignored artifacts under `dist/`. Do not treat either directory as source.

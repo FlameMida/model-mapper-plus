@@ -136,6 +136,11 @@ func handleNotificationManagement(req pluginapi.ManagementRequest) (pluginapi.Ma
 		return managementNotificationDeliveries(req), true
 	case req.Method == http.MethodPost && path == notificationHandleBase+"/deliveries/retry":
 		return managementNotificationRetry(req), true
+	case req.Method == http.MethodPost && path == notificationHandleBase+"/fetch-members":
+		// Read-only over request-body credentials: no audit gate and no
+		// management mutation mutex — a slow upstream fetch must not block
+		// other management writes.
+		return managementNotificationFetchMembers(req), true
 	}
 	return pluginapi.ManagementResponse{}, false
 }
