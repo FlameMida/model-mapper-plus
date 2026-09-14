@@ -467,6 +467,10 @@ func fetchDingtalkMembers(ctx context.Context, appKey, appSecret string) ([]noti
 // ——— WeCom (no official Go SDK; thin REST) ———
 
 func wecomBusinessError(errcode int) error {
+	// Raw errcode goes to the log only; the response keeps the closed code.
+	// 60020 (untrusted IP) is the top real-world failure: calling server APIs
+	// requires the egress IP in the app's "企业可信IP" list.
+	logger.Warn("wecom member fetch business error", "errcode", errcode)
 	// 45009/45011 are WeCom's api-freq limit codes.
 	if errcode == 45009 || errcode == 45011 {
 		return &keeperError{Code: "rate_limited", RetryAfter: 60 * time.Second}
