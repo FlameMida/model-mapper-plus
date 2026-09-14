@@ -63,6 +63,8 @@ func TestFeishuMembersClientFetches(t *testing.T) {
 		case "/open-apis/contact/v3/departments/0/children":
 			childrenCalled = true
 			fmt.Fprintf(w, `{"code":0,"data":{"items":[],"has_more":false}}`)
+		case "/open-apis/contact/v3/departments/d1/children", "/open-apis/contact/v3/departments/d2/children":
+			fmt.Fprintf(w, `{"code":0,"data":{"items":[],"has_more":false}}`)
 		case "/open-apis/contact/v3/users/find_by_department":
 			q := r.URL.Query()
 			if q.Get("user_id_type") != "open_id" {
@@ -95,6 +97,58 @@ func TestFeishuMembersClientFetches(t *testing.T) {
 	requireMembers(t, got, []notificationMember{{ID: "ou_a", Name: "Alice"}, {ID: "ou_b", Name: "Bob"}})
 }
 
+// Scopes returns the selected departments only (not descendants) and may
+// also list individually authorized users. FindByDepartment is direct-only,
+// so the client must walk children of each authorized department and keep
+// scope user_ids — otherwise a parent-department or people-only scope
+// fetches an empty picker.
+func TestFeishuMembersClientFetchesNestedDepartmentsAndScopeUsers(t *testing.T) {
+	var rootChildrenCalled bool
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		switch {
+		case r.URL.Path == "/open-apis/auth/v3/tenant_access_token/internal":
+			fmt.Fprintf(w, `{"code":0,"msg":"ok","tenant_access_token":"t-1","expire":7200}`)
+		case r.URL.Path == "/open-apis/contact/v3/scopes":
+			fmt.Fprintf(w, `{"code":0,"data":{"department_ids":["d1"],"user_ids":["ou_solo"],"has_more":false}}`)
+		case r.URL.Path == "/open-apis/contact/v3/departments/0/children":
+			rootChildrenCalled = true
+			fmt.Fprintf(w, `{"code":0,"data":{"items":[],"has_more":false}}`)
+		case r.URL.Path == "/open-apis/contact/v3/departments/d1/children":
+			if r.URL.Query().Get("fetch_child") != "true" {
+				t.Errorf("d1 children fetch_child=%v", r.URL.Query())
+			}
+			fmt.Fprintf(w, `{"code":0,"data":{"items":[{"open_department_id":"d1c","department_id":"leaf"}],"has_more":false}}`)
+		case r.URL.Path == "/open-apis/contact/v3/users/find_by_department":
+			switch r.URL.Query().Get("department_id") {
+			case "d1":
+				fmt.Fprintf(w, `{"code":0,"data":{"items":[{"name":"Alice","open_id":"ou_a"}],"has_more":false}}`)
+			case "d1c":
+				fmt.Fprintf(w, `{"code":0,"data":{"items":[{"name":"Carol","open_id":"ou_c"}],"has_more":false}}`)
+			default:
+				t.Errorf("unexpected department %s", r.URL.Query().Get("department_id"))
+			}
+		default:
+			t.Errorf("unexpected path %s", r.URL.Path)
+		}
+	}))
+	defer srv.Close()
+	t.Cleanup(pointFeishuMembersAt(srv.URL))
+
+	got, err := fetchFeishuMembers(context.Background(), "cli_x", "app-sec")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if rootChildrenCalled {
+		t.Fatal("must not walk root children (40004 on partial scope)")
+	}
+	requireMembers(t, got, []notificationMember{
+		{ID: "ou_solo", Name: ""},
+		{ID: "ou_a", Name: "Alice"},
+		{ID: "ou_c", Name: "Carol"},
+	})
+}
+
 func TestFeishuMembersClientErrors(t *testing.T) {
 	for _, tc := range []struct {
 		name, dept, users, code string
@@ -124,6 +178,8 @@ func TestFeishuMembersClientErrors(t *testing.T) {
 						return
 					}
 					fmt.Fprint(w, tc.dept)
+				case "/open-apis/contact/v3/departments/d1/children":
+					fmt.Fprintf(w, `{"code":0,"data":{"items":[],"has_more":false}}`)
 				case "/open-apis/contact/v3/users/find_by_department":
 					usersDone = true
 					fmt.Fprint(w, tc.users)
@@ -241,7 +297,7 @@ func TestDingtalkMembersClientFetches(t *testing.T) {
 func TestDingtalkMembersClientErrors(t *testing.T) {
 	for _, tc := range []struct {
 		name, token, dept, users, code string
-		tokenStatus                     int
+		tokenStatus                    int
 	}{
 		{"token non-200 bad secret", "", "", "", "authentication_failed", http.StatusBadRequest},
 		{"token 429", "", "", "", "rate_limited", http.StatusTooManyRequests},

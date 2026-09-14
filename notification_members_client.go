@@ -19,8 +19,8 @@ import (
 	"time"
 
 	lark "github.com/larksuite/oapi-sdk-go/v3"
-	larkcontact "github.com/larksuite/oapi-sdk-go/v3/service/contact/v3"
 	larkcore "github.com/larksuite/oapi-sdk-go/v3/core"
+	larkcontact "github.com/larksuite/oapi-sdk-go/v3/service/contact/v3"
 )
 
 // notificationMember is one directory row: display name plus the platform
@@ -253,37 +253,35 @@ func fetchFeishuMembers(ctx context.Context, appID, appSecret string) ([]notific
 
 	// Authorized scope drives traversal (partial scopes work — walking root
 	// children requires an all-member scope and fails with code 40004).
-	deptIDs := []string{}
-	pageToken := ""
-	for {
-		if err := budget.spend(); err != nil {
+	// Scopes returns the selected departments, not their descendants, and
+	// FindByDepartment is direct-only, so each authorized department is
+	// expanded via FetchChild. Individually authorized users come from
+	// user_ids and never appear in the department walk.
+	deptIDs, userIDs, err := fetchFeishuAuthorizedScope(ctx, client, budget, feishuStatusError)
+	if err != nil {
+		return nil, err
+	}
+	seenDepts := map[string]bool{}
+	var allDepts []string
+	addDept := func(id string) {
+		id = trimMemberField(id)
+		if id == "" || seenDepts[id] {
+			return
+		}
+		seenDepts[id] = true
+		allDepts = append(allDepts, id)
+	}
+	for _, id := range deptIDs {
+		addDept(id)
+	}
+	authorized := append([]string{}, allDepts...)
+	for _, id := range authorized {
+		children, err := fetchFeishuChildDepartmentIDs(ctx, client, budget, id, feishuStatusError)
+		if err != nil {
 			return nil, err
 		}
-		builder := larkcontact.NewListScopeReqBuilder().
-			UserIdType("open_id").
-			PageSize(50)
-		if pageToken != "" {
-			builder = builder.PageToken(pageToken)
-		}
-		resp, err := client.Contact.V3.Scope.List(ctx, builder.Build())
-		if err != nil {
-			return nil, feishuSDKError(ctx, err)
-		}
-		if resp.StatusCode != http.StatusOK {
-			return nil, feishuStatusError(resp.StatusCode, resp.Header.Get("Retry-After"))
-		}
-		if !resp.Success() {
-			logger.Warn("feishu member fetch scope rejected", "code", resp.Code, "msg", resp.Msg)
-			return nil, &keeperError{Code: "invalid_response"}
-		}
-		if resp.Data != nil {
-			deptIDs = append(deptIDs, resp.Data.DepartmentIds...)
-			if resp.Data.HasMore == nil || !*resp.Data.HasMore || resp.Data.PageToken == nil || *resp.Data.PageToken == "" {
-				break
-			}
-			pageToken = *resp.Data.PageToken
-		} else {
-			break
+		for _, child := range children {
+			addDept(child)
 		}
 	}
 
@@ -294,10 +292,10 @@ func fetchFeishuMembers(ctx context.Context, appID, appSecret string) ([]notific
 		members []notificationMember
 		err     error
 	}
-	results := make([]deptMembers, len(deptIDs))
+	results := make([]deptMembers, len(allDepts))
 	var wg sync.WaitGroup
 	sem := make(chan struct{}, 4)
-	for i, deptID := range deptIDs {
+	for i, deptID := range allDepts {
 		if err := budget.spend(); err != nil {
 			results[i] = deptMembers{err: err}
 			continue
@@ -320,7 +318,102 @@ func fetchFeishuMembers(ctx context.Context, appID, appSecret string) ([]notific
 			collector.add(m.ID, m.Name)
 		}
 	}
+	for _, id := range userIDs {
+		collector.add(id, "")
+	}
 	return collector.sorted(), nil
+}
+
+func fetchFeishuAuthorizedScope(ctx context.Context, client *lark.Client, budget *memberBudget, statusError func(int, string) error) (deptIDs, userIDs []string, err error) {
+	pageToken := ""
+	for {
+		if err := budget.spend(); err != nil {
+			return nil, nil, err
+		}
+		builder := larkcontact.NewListScopeReqBuilder().
+			UserIdType("open_id").
+			DepartmentIdType("open_department_id").
+			PageSize(50)
+		if pageToken != "" {
+			builder = builder.PageToken(pageToken)
+		}
+		resp, err := client.Contact.V3.Scope.List(ctx, builder.Build())
+		if err != nil {
+			return nil, nil, feishuSDKError(ctx, err)
+		}
+		if resp.StatusCode != http.StatusOK {
+			return nil, nil, statusError(resp.StatusCode, resp.Header.Get("Retry-After"))
+		}
+		if !resp.Success() {
+			logger.Warn("feishu member fetch scope rejected", "code", resp.Code, "msg", resp.Msg)
+			return nil, nil, &keeperError{Code: "invalid_response"}
+		}
+		if resp.Data == nil {
+			return deptIDs, userIDs, nil
+		}
+		deptIDs = append(deptIDs, resp.Data.DepartmentIds...)
+		userIDs = append(userIDs, resp.Data.UserIds...)
+		if resp.Data.HasMore == nil || !*resp.Data.HasMore || resp.Data.PageToken == nil || *resp.Data.PageToken == "" {
+			return deptIDs, userIDs, nil
+		}
+		pageToken = *resp.Data.PageToken
+	}
+}
+
+func fetchFeishuChildDepartmentIDs(ctx context.Context, client *lark.Client, budget *memberBudget, deptID string, statusError func(int, string) error) ([]string, error) {
+	var ids []string
+	pageToken := ""
+	for {
+		if err := budget.spend(); err != nil {
+			return nil, err
+		}
+		builder := larkcontact.NewChildrenDepartmentReqBuilder().
+			DepartmentId(deptID).
+			DepartmentIdType("open_department_id").
+			FetchChild(true).
+			PageSize(50)
+		if pageToken != "" {
+			builder = builder.PageToken(pageToken)
+		}
+		resp, err := client.Contact.V3.Department.Children(ctx, builder.Build())
+		if err != nil {
+			return nil, feishuSDKError(ctx, err)
+		}
+		if resp.StatusCode != http.StatusOK {
+			return nil, statusError(resp.StatusCode, resp.Header.Get("Retry-After"))
+		}
+		if !resp.Success() {
+			logger.Warn("feishu member fetch children rejected", "code", resp.Code, "msg", resp.Msg, "department_id", deptID)
+			return nil, &keeperError{Code: "invalid_response"}
+		}
+		if resp.Data == nil {
+			return ids, nil
+		}
+		for _, dept := range resp.Data.Items {
+			if id := feishuDepartmentOpenID(dept); id != "" {
+				ids = append(ids, id)
+			}
+		}
+		if resp.Data.HasMore == nil || !*resp.Data.HasMore || resp.Data.PageToken == nil || *resp.Data.PageToken == "" {
+			return ids, nil
+		}
+		pageToken = *resp.Data.PageToken
+	}
+}
+
+func feishuDepartmentOpenID(dept *larkcontact.Department) string {
+	if dept == nil {
+		return ""
+	}
+	if dept.OpenDepartmentId != nil {
+		if id := trimMemberField(*dept.OpenDepartmentId); id != "" {
+			return id
+		}
+	}
+	if dept.DepartmentId != nil {
+		return trimMemberField(*dept.DepartmentId)
+	}
+	return ""
 }
 
 // fetchFeishuDepartmentMembers pages through one department's direct users.
@@ -333,6 +426,7 @@ func fetchFeishuDepartmentMembers(ctx context.Context, client *lark.Client, budg
 		}
 		builder := larkcontact.NewFindByDepartmentUserReqBuilder().
 			DepartmentId(deptID).
+			DepartmentIdType("open_department_id").
 			UserIdType("open_id").
 			PageSize(50)
 		if token != "" {
@@ -411,7 +505,7 @@ func fetchDingtalkMembers(ctx context.Context, appKey, appSecret string) ([]noti
 			return nil, err
 		}
 		var deptResp struct {
-			Errcode int      `json:"errcode"`
+			Errcode int       `json:"errcode"`
 			Result  []deptRow `json:"result"`
 		}
 		url := fmt.Sprintf("%s?access_token=%s", dingtalkDeptURL, token)
@@ -436,10 +530,10 @@ func fetchDingtalkMembers(ctx context.Context, appKey, appSecret string) ([]noti
 			}
 			var userResp struct {
 				Errcode int `json:"errcode"`
-				Result struct {
-					HasMore    bool `json:"has_more"`
+				Result  struct {
+					HasMore    bool  `json:"has_more"`
 					NextCursor int64 `json:"next_cursor"`
-					List []struct {
+					List       []struct {
 						UserID string `json:"userid"`
 						Name   string `json:"name"`
 					} `json:"list"`
@@ -506,7 +600,7 @@ func fetchWecomMembers(ctx context.Context, corpID, secret string) ([]notificati
 		return nil, err
 	}
 	var deptResp struct {
-		Errcode int `json:"errcode"`
+		Errcode    int `json:"errcode"`
 		Department []struct {
 			ID       int64 `json:"id"`
 			ParentID int64 `json:"parentid"`
