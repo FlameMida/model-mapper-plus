@@ -199,10 +199,12 @@ func newFeishuMembersClient(appID, appSecret string) *lark.Client {
 // feishuSDKError folds SDK-level failures into the closed code table: a
 // token CodeError means the credentials were rejected, context expiry is a
 // timeout, everything else is a transport failure. CodeError travels as a
-// value type out of the SDK token manager, so match by value.
+// value type out of the SDK token manager, so match by value. The raw
+// platform code/msg goes to the log only — never into the response envelope.
 func feishuSDKError(ctx context.Context, err error) error {
 	var codeError larkcore.CodeError
 	if errors.As(err, &codeError) && codeError.Code != 0 {
+		logger.Warn("feishu member fetch rejected by platform", "code", codeError.Code, "msg", codeError.Msg)
 		return &keeperError{Code: "authentication_failed"}
 	}
 	if ctx.Err() != nil {
@@ -310,11 +312,13 @@ func fetchDingtalkMembers(ctx context.Context, appKey, appSecret string) ([]noti
 		// authentication failure; transport/rate-limit codes pass through.
 		var ke *keeperError
 		if errors.As(err, &ke) && ke.Code == "invalid_response" {
+			logger.Warn("dingtalk member fetch token rejected", "status_hint", "non-200 token endpoint")
 			return nil, &keeperError{Code: "authentication_failed"}
 		}
 		return nil, err
 	}
 	if tokenResp.AccessToken == "" {
+		logger.Warn("dingtalk member fetch token rejected", "hint", "empty accessToken")
 		return nil, &keeperError{Code: "authentication_failed"}
 	}
 	token := tokenResp.AccessToken
@@ -414,6 +418,7 @@ func fetchWecomMembers(ctx context.Context, corpID, secret string) ([]notificati
 	}
 	if tokenResp.Errcode != 0 {
 		// Bad credentials surface as an auth failure; rate codes pass through.
+		logger.Warn("wecom member fetch token rejected", "errcode", tokenResp.Errcode)
 		if err := wecomBusinessError(tokenResp.Errcode); err != nil {
 			var ke *keeperError
 			if errors.As(err, &ke) && ke.Code == "rate_limited" {
