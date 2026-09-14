@@ -52,7 +52,7 @@ export function validatePlatforms(platforms: PlatformIdentity[]): string[] {
   for (const p of platforms) {
     if (!p.enabled) continue
     if (!p.webhook?.trim()) errs.push(`${p.kind}: Webhook 地址为必填项`)
-    if (!p.user_ids?.some((u) => u.trim())) errs.push(`${p.kind}: 启用通知时用户唯一 ID 为必填项`)
+    if (!p.at_all && !p.user_ids?.some((u) => u.trim())) errs.push(`${p.kind}: 启用通知时用户唯一 ID 为必填（或开启 @所有人）`)
   }
   return errs
 }
@@ -151,7 +151,7 @@ export default function PlatformIdentityEditor({ value, onChange }: {
     <Tabs type="card" keepDOM={false} activeKey={active} onChange={(k) => setActive(k as PlatformKind)}>
       {PLATFORM_TABS.map(({ kind, label }) => {
         const p = draft[kind]
-        const missingUser = p.enabled && !p.user_ids?.some((u) => u.trim())
+        const missingUser = p.enabled && !p.at_all && !p.user_ids?.some((u) => u.trim())
         const missingHook = p.enabled && !p.webhook?.trim()
         const memberState = memberStates[kind]
 
@@ -184,7 +184,7 @@ export default function PlatformIdentityEditor({ value, onChange }: {
                 <Input aria-label="Webhook 地址" style={{ flex: 1 }} value={p.webhook ?? ''} placeholder="https://…"
                   onChange={(webhook) => update(kind, { webhook })} />
               </FieldRow>
-              <FieldRow label="用户唯一 ID" errorText={missingUser ? '启用通知时用户唯一 ID 为必填项' : undefined}>
+              <FieldRow label="用户唯一 ID" errorText={missingUser ? '启用通知时用户唯一 ID 为必填（或开启 @所有人）' : undefined}>
                 <Select
                   aria-label="用户唯一 ID"
                   style={{ flex: 1 }}
@@ -198,6 +198,13 @@ export default function PlatformIdentityEditor({ value, onChange }: {
                   onSearch={(v) => setSearches((prev) => ({ ...prev, [kind]: v }))}
                   onDropdownVisibleChange={(visible) => { if (!visible) setSearches((prev) => ({ ...prev, [kind]: '' })) }}
                 />
+              </FieldRow>
+              <FieldRow label="@所有人">
+                <Switch aria-label={`@所有人：${label}`} checked={!!p.at_all}
+                  onChange={(at_all) => update(kind, { at_all })} />
+                <Typography.Text type="tertiary" size="small">
+                  开启后无需填用户唯一 ID；{label === '企业微信' ? '此平台消息将以纯文本发送（企微 markdown 不支持 @所有人）' : '与已选成员同时生效'}
+                </Typography.Text>
               </FieldRow>
               <FieldRow label="签名密钥">
                 {kind === 'wecom'

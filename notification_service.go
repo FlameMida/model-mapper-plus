@@ -200,10 +200,12 @@ func (s *notificationService) scheduleTick(ctx context.Context) {
 			continue
 		}
 		for _, n := range effectiveNotifications(&s.state, binding) {
-			if !n.Enabled || n.Schedule == nil {
+			// Schedule followers fire on the pinned global entry's plan.
+			sched := effectiveSchedule(&s.state, n)
+			if !n.Enabled || sched == nil {
 				continue
 			}
-			next, ok := nextTrigger(*n.Schedule, s.lastFire, NotificationLocation)
+			next, ok := nextTrigger(*sched, s.lastFire, NotificationLocation)
 			if !ok {
 				continue
 			}
@@ -253,12 +255,16 @@ func (s *notificationService) enqueueForPeriod(ctx context.Context, binding *Key
 	if !free {
 		return nil
 	}
-	data, err := s.collectStats(ctx, binding, n, now)
+	// Template followers collect and render with the pinned global entry's
+	// modules (the period key follows the same effective modules).
+	renderN := n
+	renderN.Modules = effectiveModules(&s.state, n)
+	data, err := s.collectStats(ctx, binding, renderN, now)
 	if err != nil {
 		return &keeperError{Code: controlled(err)}
 	}
-	body, _ := renderMessage(n, data, now)
-	periodKey := notificationPeriodKey(n, now)
+	body, _ := renderMessage(renderN, data, now)
+	periodKey := notificationPeriodKey(renderN, now)
 	for _, p := range targets {
 		if pendingJobExists(s.deps.Store, fp, n.ID, p.Kind) {
 			continue

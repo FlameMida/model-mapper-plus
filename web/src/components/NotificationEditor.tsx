@@ -19,7 +19,7 @@ import PlatformIdentityEditor, { validatePlatforms } from './PlatformIdentityEdi
 // 需要一个起点对象，否则编辑器因空值守卫永远不渲染。
 const DEFAULT_SCHEDULE: NonNullable<Notification['schedule']> = { kind: 'interval', interval: 86400, time: '09:00:00' }
 
-export default function NotificationEditor({ visible, originalName, siblingNames, initial, onSaved, onClose }: {
+export default function NotificationEditor({ visible, originalName, siblingNames, initial, scope = 'key', onSaved, onClose }: {
   visible: boolean
   /** 编辑态原名（空串 = 新建）。 */
   originalName: string
@@ -27,6 +27,8 @@ export default function NotificationEditor({ visible, originalName, siblingNames
   siblingNames: string[]
   /** 草稿；新建默认 template_follows_global=true / schedule_follows_global=true（T02 语义）。 */
   initial: Notification
+  /** global = 全局通知条目（自身不跟随全局，隐藏跟随开关）。 */
+  scope?: 'key' | 'global'
   onSaved: (n: Notification) => void
   onClose: () => void
 }) {
@@ -102,23 +104,34 @@ export default function NotificationEditor({ visible, originalName, siblingNames
               <Switch checked={draft.enabled} onChange={(enabled) => edit({ enabled })} />
               <Typography.Text>启用通知（关闭只停发，不删除配置）</Typography.Text>
             </label>
-            <label style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <Switch checked={!!draft.template_follows_global}
-                onChange={(template_follows_global) => edit({ template_follows_global })} />
-              <Typography.Text>跟随全局默认模板</Typography.Text>
-            </label>
-            {draft.template_follows_global
-              ? <Typography.Text type="tertiary">模块序列与周期将使用全局默认模板（来源：全局默认通知）</Typography.Text>
-              : <NotificationModulesEditor value={draft.modules ?? []} onChange={(modules) => edit({ modules })} />}
-            <label style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <Switch checked={!!draft.schedule_follows_global}
-                onChange={(schedule_follows_global) => edit({ schedule_follows_global })} />
-              <Typography.Text>跟随全局默认计划</Typography.Text>
-            </label>
-            {draft.schedule_follows_global
-              ? <Typography.Text type="tertiary">发送计划将使用全局默认计划（来源：全局默认通知）</Typography.Text>
+            {scope === 'key' && (
+              <label style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <Switch checked={!!draft.template_follows_global}
+                  onChange={(template_follows_global) => edit({ template_follows_global })} />
+                <Typography.Text>跟随全局默认模板</Typography.Text>
+              </label>
+            )}
+            {scope === 'key' && (draft.template_follows_global
+              ? <Typography.Text type="tertiary">模块序列与周期将使用全局默认模板（来源：默认全局通知）</Typography.Text>
+              : <NotificationModulesEditor value={draft.modules ?? []} onChange={(modules) => edit({ modules })} />)}
+            {scope === 'key' && (
+              <label style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <Switch checked={!!draft.schedule_follows_global}
+                  onChange={(schedule_follows_global) => edit({ schedule_follows_global })} />
+                <Typography.Text>跟随全局默认计划</Typography.Text>
+              </label>
+            )}
+            {scope === 'key' && (draft.schedule_follows_global
+              ? <Typography.Text type="tertiary">发送计划将使用全局默认计划（来源：默认全局通知）</Typography.Text>
               : <NotificationScheduleEditor value={draft.schedule ?? DEFAULT_SCHEDULE}
-                onChange={(schedule) => edit({ schedule })} />}
+                onChange={(schedule) => edit({ schedule })} />)}
+            {scope === 'global' && (
+              <>
+                <NotificationModulesEditor value={draft.modules ?? []} onChange={(modules) => edit({ modules })} />
+                <NotificationScheduleEditor value={draft.schedule ?? DEFAULT_SCHEDULE}
+                  onChange={(schedule) => edit({ schedule })} />
+              </>
+            )}
           </div>
         </TabPane>
         <TabPane tab="平台身份配置" itemKey="platforms">

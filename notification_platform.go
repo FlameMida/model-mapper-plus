@@ -51,11 +51,11 @@ func buildAdapter(p PlatformIdentity) (platformAdapter, error) {
 	client := &http.Client{Timeout: 10 * time.Second}
 	switch p.Kind {
 	case PlatformWeCom:
-		return &wecomAdapter{client: client, webhook: p.Webhook, userIDs: nonEmptyIDs(p.UserIDs)}, nil
+		return &wecomAdapter{client: client, webhook: p.Webhook, userIDs: nonEmptyIDs(p.UserIDs), atAll: p.AtAll}, nil
 	case PlatformFeishu:
-		return &feishuAdapter{client: client, webhook: p.Webhook, secret: p.SignSecret, userIDs: nonEmptyIDs(p.UserIDs)}, nil
+		return &feishuAdapter{client: client, webhook: p.Webhook, secret: p.SignSecret, userIDs: nonEmptyIDs(p.UserIDs), atAll: p.AtAll}, nil
 	case PlatformDingTalk:
-		return &dingtalkAdapter{client: client, webhook: p.Webhook, secret: p.SignSecret, userIDs: nonEmptyIDs(p.UserIDs)}, nil
+		return &dingtalkAdapter{client: client, webhook: p.Webhook, secret: p.SignSecret, userIDs: nonEmptyIDs(p.UserIDs), atAll: p.AtAll}, nil
 	default:
 		return nil, &keeperError{Code: "configuration_error"}
 	}

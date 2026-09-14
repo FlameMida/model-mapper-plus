@@ -33,8 +33,8 @@ func TestManagementAuditNotificationSettingsProjection(t *testing.T) {
 	if item.Module != "notifications" || item.ObjectType != "notification_settings" || item.ObjectRef != "global" || item.ObjectLabel != "全局通知设置" {
 		t.Fatalf("item=%+v", item)
 	}
-	for _, field := range []string{"notifications.enabled", "notifications.global_default.enabled",
-		"notifications.global_default.modules", "notifications.global_default.schedule", "notifications.global_default.platforms"} {
+	for _, field := range []string{"notifications.enabled", "notifications.list",
+		"notifications.global_default.platforms"} {
 		if _, exists := item.Changes[field]; !exists {
 			t.Fatalf("missing projection %s: %+v", field, item.Changes)
 		}

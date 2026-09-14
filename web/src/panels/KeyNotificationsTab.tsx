@@ -5,11 +5,13 @@
 // deliveries 查询按 notification_id 过滤（前端拿不到 key 指纹，通知 id 全局唯一），
 // 且全部自带 catch 兜底：Modal keepDOM 下页签随编辑弹窗挂载，请求失败不得抛未处理
 // rejection 污染宿主（KeysPanel 既有测试未 mock notifications API）。
-import { Button, Modal, Switch, Table, Tag, Toast, Typography } from '@douyinfe/semi-ui'
-import { useEffect, useState } from 'react'
+import { Button, Modal, Switch, Table, Toast, Typography } from '@douyinfe/semi-ui'
+import { useState } from 'react'
 import { api, type KeyBinding } from '../api'
-import type { DeliveryRecord, Notification } from '../notifications'
+import type { Notification } from '../notifications'
+import { scheduleSummary } from '../notificationSummary'
 import NotificationEditor from '../components/NotificationEditor'
+import { DeliveriesTable, LastDelivery } from '../components/NotificationDeliveries'
 
 /** 新建草稿：默认跟随全局模板与计划（2026-09-13 确认），平台身份三项全关待填。 */
 function newDraft(): Notification {
@@ -26,74 +28,6 @@ function newDraft(): Notification {
       { kind: 'dingtalk', enabled: false },
     ],
   }
-}
-
-/** 计划摘要：跟随全局 / 每隔 N 天(秒) [锚点] / 月初|月末 / 每年 M 月 D 日，含 HH:MM:SS。 */
-function scheduleSummary(n: Notification): string {
-  if (n.schedule_follows_global) return '跟随全局计划'
-  const s = n.schedule
-  if (!s) return '—'
-  if (s.kind === 'interval') {
-    const span = s.interval && s.interval % 86400 === 0
-      ? `每隔 ${s.interval / 86400} 天`
-      : `每隔 ${s.interval ?? 0} 秒`
-    return s.time ? `${span} ${s.time}` : span
-  }
-  if (s.kind === 'monthly') {
-    return s.month_end ? `月末 ${s.time}` : `每月 ${s.day ?? 1} 日 ${s.time}`
-  }
-  return `每年 ${s.month ?? 1} 月 ${s.day ?? 1} 日 ${s.time}`
-}
-
-function outcomeCell(r: DeliveryRecord) {
-  if (r.outcome === 'accepted') return <Tag color="green">已投递</Tag>
-  if (r.outcome === 'failed') return <Tag color="red">{r.error_code || 'failed'}</Tag>
-  return <Tag color="grey">{r.error_code || 'unknown'}</Tag>
-}
-
-/** 最近一次投递（列内摘要）：accepted 绿 / failed 红 + error_code / 无记录或失败灰。 */
-function LastDelivery({ notificationId }: { notificationId: string }) {
-  const [record, setRecord] = useState<DeliveryRecord | null>(null)
-  const [phase, setPhase] = useState<'loading' | 'ready' | 'error'>('loading')
-  useEffect(() => {
-    let alive = true
-    setPhase('loading')
-    api.notifications.deliveries({ notification_id: notificationId, limit: 1 })
-      .then((r) => { if (alive) { setRecord(r.items[0] ?? null); setPhase('ready') } })
-      .catch(() => { if (alive) setPhase('error') })
-    return () => { alive = false }
-  }, [notificationId])
-  if (phase !== 'ready') return <Typography.Text type="tertiary">—</Typography.Text>
-  if (!record) return <Typography.Text type="tertiary">暂无投递</Typography.Text>
-  return outcomeCell(record)
-}
-
-/** 展开行内的投递记录表（最近 20 条）；failed/unknown 行可重试并重拉。 */
-function DeliveriesTable({ notificationId }: { notificationId: string }) {
-  const [items, setItems] = useState<DeliveryRecord[] | null>(null)
-  const load = () => {
-    api.notifications.deliveries({ notification_id: notificationId, limit: 20 })
-      .then((r) => setItems(r.items))
-      .catch(() => setItems([]))
-  }
-  useEffect(() => { load() }, [notificationId])
-  return (
-    <Table dataSource={items ?? []} loading={items === null} rowKey="id" pagination={false} size="small"
-      columns={[
-        { title: '时间', dataIndex: 'created_at' },
-        { title: '平台', dataIndex: 'platform' },
-        { title: '周期', dataIndex: 'period_key' },
-        { title: '结果', dataIndex: 'outcome', render: (_: unknown, r: DeliveryRecord) => outcomeCell(r) },
-        { title: '详情', dataIndex: 'detail', render: (v?: string) => v || '—' },
-        { title: '', dataIndex: 'ops', render: (_: unknown, r: DeliveryRecord) => (
-          r.outcome !== 'accepted' ? (
-            <Button size="small" onClick={() =>
-              api.notifications.retryDelivery(r.id).then(load).catch((e: Error) => Toast.error(e.message))}
-            >重试</Button>
-          ) : null
-        ) },
-      ]} />
-  )
 }
 
 export default function KeyNotificationsTab({ binding, onChange, globalName, globalSchedule }: {

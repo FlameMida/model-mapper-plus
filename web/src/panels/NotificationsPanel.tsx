@@ -1,14 +1,17 @@
-// 全局通知面板（T15）。三区块：通知服务状态卡（15s 轮询 + 总开关）、全局默认通知实体卡、
-// 投递记录总查询（平台/结果/通知 ID/Key 指纹四筛选 + 失败/未知行重试）。
+// 全局通知面板。三区块：通知服务状态卡（15s 轮询 + 总开关）、全局通知多条列表卡
+// （v0.6.0 起支持多条：新增/编辑/设为默认/测试发送/删除，默认标记条是 Key 级
+// 「跟随全局」的解析来源）、投递记录总查询（平台/结果/通知 ID/Key 指纹四筛选 +
+// 失败/未知行重试）。
 // 契约：putSettings 响应是不含 notifications 块的 StateResponse（见 api.ts 注释），
 // 保存或切总开关后必须回读 getSettings() 刷新回显；unknown 为非终态投递，同样可重试。
-import { Button, Card, Input, Select, Switch, Table, Tag, Toast, Typography } from '@douyinfe/semi-ui'
+import { Button, Card, Input, Modal, Select, Switch, Table, Tag, Toast, Typography } from '@douyinfe/semi-ui'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { api } from '../api'
-import type { DeliveryRecord, NotificationSettings, NotificationStatus } from '../notifications'
-import NotificationModulesEditor from '../components/NotificationModulesEditor'
-import NotificationScheduleEditor from '../components/NotificationScheduleEditor'
-import PlatformIdentityEditor, { FIELD_LABEL_STYLE, validatePlatforms } from '../components/PlatformIdentityEditor'
+import type { DeliveryRecord, Notification, NotificationSettings, NotificationStatus } from '../notifications'
+import { scheduleText } from '../notificationSummary'
+import NotificationEditor from '../components/NotificationEditor'
+import { validatePlatforms } from '../components/PlatformIdentityEditor'
+import { DeliveriesTable, LastDelivery } from '../components/NotificationDeliveries'
 
 type DeliveryFilter = { platform?: string; outcome?: string; notification_id?: string; key_fingerprint?: string }
 
@@ -24,12 +27,35 @@ const OUTCOME_OPTIONS = [
   { value: 'unknown', label: '未知' },
 ]
 
+/** 列表视图：后端归一化保证 notifications 非空；旧数据以 global_default 兜底。 */
+function globalList(settings: NotificationSettings): Notification[] {
+  return settings.notifications?.length ? settings.notifications : [settings.global_default]
+}
+
+/** 新建全局通知草稿：默认标记由「设为默认」操作控制，新建条不带。 */
+function newGlobalDraft(): Notification {
+  return {
+    id: crypto.randomUUID(),
+    name: '',
+    enabled: true,
+    modules: [],
+    schedule: { kind: 'interval', interval: 86400, time: '09:00:00' },
+    platforms: [
+      { kind: 'wecom', enabled: false },
+      { kind: 'feishu', enabled: false },
+      { kind: 'dingtalk', enabled: false },
+    ],
+  }
+}
+
 export default function NotificationsPanel() {
   const [settings, setSettings] = useState<NotificationSettings | null>(null)
   const [status, setStatus] = useState<NotificationStatus | null>(null)
   const [saving, setSaving] = useState(false)
   const [deliveries, setDeliveries] = useState<DeliveryRecord[]>([])
   const [filter, setFilter] = useState<DeliveryFilter>({})
+  const [editing, setEditing] = useState<{ draft: Notification; originalName: string } | null>(null)
+  const [expanded, setExpanded] = useState<string>()
   // 通知 ID 筛选候选只增不减：筛选后回包可能不含其他 ID，避免选项塌缩。
   const [knownIds, setKnownIds] = useState<string[]>([])
   // 快速输入筛选时请求可能乱序返回；只采纳最后一次请求的结果。
@@ -66,13 +92,21 @@ export default function NotificationsPanel() {
 
   const save = async () => {
     if (!settings) return
-    const errs = validatePlatforms(settings.global_default.platforms ?? [])
-    if (errs.length) { Toast.error(errs[0]); return }
+    for (const n of globalList(settings)) {
+      const errs = validatePlatforms(n.platforms ?? [])
+      if (errs.length) { Toast.error(`${n.name || '未命名通知'}：${errs[0]}`); return }
+    }
     setSaving(true)
     try {
       await saveSettings(settings)
-      Toast.success('全局默认通知已保存')
+      Toast.success('全局通知已保存')
     } catch (e) { Toast.error((e as Error).message) } finally { setSaving(false) }
+  }
+
+  // 列表编辑操作：改 notifications 列表（落盘仍靠「保存全局通知」按钮）。
+  const setList = (list: Notification[]) => {
+    if (!settings) return
+    setSettings({ ...settings, notifications: list, global_default: list.find((n) => n.is_default) ?? list[0] })
   }
 
   if (!settings) return <Card title="通知">加载中…</Card>
@@ -89,25 +123,57 @@ export default function NotificationsPanel() {
           <Typography.Text>待发任务 {status?.pending_jobs ?? 0}{status?.next_fire ? ` · 下次触发 ${status.next_fire}` : ''}</Typography.Text>
         </div>
       </Card>
-      <Card title="全局默认通知" headerExtraContent={<Button theme="solid" loading={saving} onClick={() => void save()}>保存全局通知</Button>}>
+      <Card title="全局通知" headerExtraContent={
+        <div style={{ display: 'flex', gap: 8 }}>
+          <Button onClick={() => setEditing({ draft: newGlobalDraft(), originalName: '' })}>＋ 新增通知</Button>
+          <Button theme="solid" loading={saving} onClick={() => void save()}>保存全局通知</Button>
+        </div>
+      }>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <div style={{ display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap' }}>
-            <Typography.Text style={FIELD_LABEL_STYLE}>全局通知名称</Typography.Text>
-            <Input aria-label="全局通知名称" style={{ width: 320 }} value={settings.global_default.name}
-              onChange={(name) => setSettings({ ...settings, global_default: { ...settings.global_default, name } })} />
-            <label style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <Switch checked={settings.global_default.enabled} aria-label="启用全局默认通知"
-                onChange={(enabled) => setSettings({ ...settings, global_default: { ...settings.global_default, enabled } })} />
-              <Typography.Text>启用</Typography.Text>
-            </label>
-          </div>
-          <NotificationModulesEditor value={settings.global_default.modules ?? []}
-            onChange={(modules) => setSettings({ ...settings, global_default: { ...settings.global_default, modules } })} />
-          {/* schedule 为空（从未配置过）也要渲染编辑器并给默认计划，空值守卫会让全局计划永远无法编辑 */}
-          <NotificationScheduleEditor value={settings.global_default.schedule ?? { kind: 'interval', interval: 86400, time: '09:00:00' }}
-            onChange={(schedule) => setSettings({ ...settings, global_default: { ...settings.global_default, schedule } })} />
-          <PlatformIdentityEditor value={settings.global_default.platforms ?? []}
-            onChange={(platforms) => setSettings({ ...settings, global_default: { ...settings.global_default, platforms } })} />
+          <Typography.Text type="tertiary">
+            全局通知可配置多条，各自按自己的发送计划独立触发；「默认」标记条是 Key 级通知「跟随全局」的模板与计划来源。
+          </Typography.Text>
+          <Table dataSource={globalList(settings)} rowKey="id" pagination={false} size="small"
+            expandedRowKeys={expanded ? [expanded] : []}
+            onExpandedRowsChange={(keys) => setExpanded((keys ?? [])[0] as unknown as string | undefined)}
+            expandedRowRender={(n?: Notification) => <DeliveriesTable notificationId={n!.id} />}
+            columns={[
+              { title: '通知名称', render: (_: unknown, n: Notification) => (
+                <>{n.name}{n.is_default && <Tag color="blue" style={{ marginLeft: 8 }}>默认</Tag>}</>
+              ) },
+              { title: '启用', dataIndex: 'enabled', render: (_: unknown, n: Notification) => (
+                <Switch aria-label={`启用全局通知：${n.name}`} checked={n.enabled}
+                  onChange={(enabled) => setList(globalList(settings).map((x) => (x.id === n.id ? { ...x, enabled } : x)))} />
+              ) },
+              { title: '发送计划', render: (_: unknown, n: Notification) => (
+                <Typography.Text>{scheduleText(n.schedule)}</Typography.Text>
+              ) },
+              { title: '平台', render: (_: unknown, n: Notification) =>
+                (n.platforms ?? []).filter((p) => p.enabled).map((p) => p.kind + (p.at_all ? '(@所有人)' : '')).join('、') || '—' },
+              { title: '最近投递', render: (_: unknown, n: Notification) => <LastDelivery notificationId={n.id} /> },
+              { title: '操作', render: (_: unknown, n: Notification) => (
+                <>
+                  <Button size="small" style={{ marginRight: 4 }}
+                    onClick={() => setEditing({ draft: n, originalName: n.name })}>编辑</Button>
+                  {!n.is_default && (
+                    <Button size="small" style={{ marginRight: 4 }} onClick={() =>
+                      setList(globalList(settings).map((x) => ({ ...x, is_default: x.id === n.id })))
+                    }>设为默认</Button>
+                  )}
+                  <Button size="small" style={{ marginRight: 4 }} disabled={!n.enabled}
+                    onClick={() => api.notifications.testSend({ notification_id: n.id })
+                      .then(() => Toast.success('测试发送已受理'))
+                      .catch((e: Error) => Toast.error(e.message))}
+                  >测试发送</Button>
+                  <Button size="small" style={{ marginRight: 4 }}
+                    onClick={() => setExpanded(expanded === n.id ? undefined : n.id)}>投递记录</Button>
+                  <Button size="small" type="danger" onClick={() => Modal.confirm({
+                    title: '删除全局通知', content: `确认删除 ${n.name}？`,
+                    onOk: () => setList(globalList(settings).filter((x) => x.id !== n.id)),
+                  })}>删除</Button>
+                </>
+              ) },
+            ]} />
         </div>
       </Card>
       <Card title="投递记录">
@@ -140,6 +206,15 @@ export default function NotificationsPanel() {
                     .then(() => Toast.success('已重新入队')).catch((e: Error) => Toast.error(e.message))}>重试</Button> },
           ]} />
       </Card>
+      {editing && (
+        <NotificationEditor visible scope="global" originalName={editing.originalName}
+          siblingNames={globalList(settings).map((n) => n.name).filter((name) => name !== editing.originalName)}
+          initial={editing.draft}
+          onSaved={(n) => setList(editing.originalName
+            ? globalList(settings).map((x) => (x.id === n.id ? { ...n, is_default: x.is_default } : x))
+            : [...globalList(settings), n])}
+          onClose={() => setEditing(null)} />
+      )}
     </div>
   )
 }

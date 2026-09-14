@@ -48,6 +48,8 @@ export interface PlatformIdentity {
   enabled: boolean
   webhook?: string
   user_ids?: string[]
+  /** @所有人：开启后可免填用户唯一 ID（企微此平台消息将改以纯文本发送）。 */
+  at_all?: boolean
   /** 仅 DingTalk/Feishu 支持；wecom 留空。 */
   sign_secret?: string
   /** 以下为可选「成员拉取凭证」——仅用于拉取通讯录成员列表，不参与投递。
@@ -91,6 +93,8 @@ export interface Notification {
   id: string
   name: string
   enabled: boolean
+  /** 全局列表的默认标记：Key 级「跟随全局」解析到这一条（后端归一化保证恰一条）。 */
+  is_default?: boolean
   template_follows_global?: boolean
   schedule_follows_global?: boolean
   modules?: ModuleConfig[]
@@ -100,7 +104,10 @@ export interface Notification {
 
 export interface NotificationSettings {
   enabled: boolean
+  /** 旧单条字段：后端始终与默认标记条保持同步（读兼容/展示用）。 */
   global_default: Notification
+  /** 全局多条通知列表（v0.6.0 起为真相源）。 */
+  notifications?: Notification[]
 }
 
 /** GET /notifications/status：notificationStatus + notificationStatusView 扩展字段。 */

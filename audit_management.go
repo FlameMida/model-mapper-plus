@@ -292,6 +292,11 @@ func notificationList(st State) []Notification {
 	if st.Notifications == nil {
 		return nil
 	}
+	// The whole global list feeds secret collection; the synced global_default
+	// entry is covered by the same values.
+	if len(st.Notifications.Notifications) > 0 {
+		return st.Notifications.Notifications
+	}
 	return []Notification{st.Notifications.GlobalDefault}
 }
 
@@ -368,16 +373,14 @@ func auditBindingFields(binding *KeyBinding) map[string]any {
 }
 
 func auditNotificationSettingsFields(settings *NotificationSettings) map[string]any {
+	// The multi-entry global list is the source of truth; global_default stays
+	// projected for continuity with pre-v0.6.0 records.
 	fields := map[string]any{"notifications.enabled": nil,
-		"notifications.global_default.enabled":   nil,
-		"notifications.global_default.modules":   nil,
-		"notifications.global_default.schedule":  nil,
+		"notifications.list":                     nil,
 		"notifications.global_default.platforms": nil}
 	if settings != nil {
 		fields["notifications.enabled"] = settings.Enabled
-		fields["notifications.global_default.enabled"] = settings.GlobalDefault.Enabled
-		fields["notifications.global_default.modules"] = settings.GlobalDefault.Modules
-		fields["notifications.global_default.schedule"] = settings.GlobalDefault.Schedule
+		fields["notifications.list"] = settings.Notifications
 		fields["notifications.global_default.platforms"] = settings.GlobalDefault.Platforms
 	}
 	return fields

@@ -49,17 +49,23 @@ const (
 const GlobalNotificationID = "global"
 
 // NotificationSettings is the global notification block persisted in State.
+// Notifications is the source of truth (multi-entry since v0.6.0); the legacy
+// single GlobalDefault is kept in sync with the is_default entry so older
+// readers still work.
 type NotificationSettings struct {
-	Enabled       bool         `json:"enabled"`
-	GlobalDefault Notification `json:"global_default"`
+	Enabled       bool          `json:"enabled"`
+	GlobalDefault Notification  `json:"global_default"`
+	Notifications []Notification `json:"notifications,omitempty"`
 }
 
 // Notification is one independent send unit: template modules, schedule and
-// platform identities. Key-level notifications fully replace the global one.
+// platform identities. Key-level notifications fully replace the global list.
+// IsDefault pins the global entry that key-level followers resolve against.
 type Notification struct {
 	ID                    string                `json:"id"`
 	Name                  string                `json:"name"`
 	Enabled               bool                  `json:"enabled"`
+	IsDefault             bool                  `json:"is_default,omitempty"`
 	TemplateFollowsGlobal bool                  `json:"template_follows_global"`
 	ScheduleFollowsGlobal bool                  `json:"schedule_follows_global"`
 	Modules               []ModuleConfig        `json:"modules"`
@@ -95,6 +101,7 @@ type PlatformIdentity struct {
 	Enabled        bool         `json:"enabled"`
 	Webhook        string       `json:"webhook"`
 	UserIDs        []string     `json:"user_ids"`
+	AtAll          bool         `json:"at_all,omitempty"`
 	SignSecret     string       `json:"sign_secret"`
 	FetchAppID     string       `json:"fetch_app_id"`
 	FetchAppSecret string       `json:"fetch_app_secret"`
@@ -234,8 +241,9 @@ func validateNotificationEntity(n *Notification, path string) error {
 					break
 				}
 			}
-			if !hasUserID {
-				return fmt.Errorf("%s.platforms[%d]: 启用通知时用户唯一 ID 为必填", path, i)
+			// @所有人 satisfies the mention requirement on its own.
+			if !hasUserID && !p.AtAll {
+				return fmt.Errorf("%s.platforms[%d]: 启用通知时用户唯一 ID 为必填（或开启 @所有人）", path, i)
 			}
 		}
 		if p.Kind == PlatformWeCom && strings.TrimSpace(p.SignSecret) != "" {
@@ -245,12 +253,98 @@ func validateNotificationEntity(n *Notification, path string) error {
 	return nil
 }
 
-// validateNotificationSettings validates the global default notification.
-func validateNotificationSettings(s *NotificationSettings) error {
-	if strings.TrimSpace(s.GlobalDefault.Name) == "" {
-		return fmt.Errorf("notifications.global_default: 通知名称为必填")
+// normalizeNotificationSettings migrates and pins the global notification
+// list: a legacy single global_default becomes the one-entry list; exactly
+// one entry keeps the is_default pin (first wins); global_default stays in
+// sync with the pinned entry; global entries never carry follow-global flags.
+func normalizeNotificationSettings(s *NotificationSettings) {
+	if len(s.Notifications) == 0 {
+		s.Notifications = []Notification{s.GlobalDefault}
 	}
-	return validateNotificationEntity(&s.GlobalDefault, "notifications.global_default")
+	// Exactly one pin survives: the first flagged entry, else the first entry.
+	defaultIdx := 0
+	for i := range s.Notifications {
+		if s.Notifications[i].IsDefault {
+			defaultIdx = i
+			break
+		}
+	}
+	for i := range s.Notifications {
+		s.Notifications[i].IsDefault = i == defaultIdx
+		s.Notifications[i].TemplateFollowsGlobal = false
+		s.Notifications[i].ScheduleFollowsGlobal = false
+	}
+	s.GlobalDefault = s.Notifications[defaultIdx]
+}
+
+// defaultGlobalNotification returns the pinned global entry key-level
+// followers resolve against, or nil when nothing is configured.
+func defaultGlobalNotification(s *NotificationSettings) *Notification {
+	if s == nil {
+		return nil
+	}
+	for i := range s.Notifications {
+		if s.Notifications[i].IsDefault {
+			return &s.Notifications[i]
+		}
+	}
+	if len(s.Notifications) == 0 {
+		return nil
+	}
+	return &s.Notifications[0]
+}
+
+// effectiveModules resolves the modules a render should use: followers take
+// the pinned global entry's template, everything else its own.
+func effectiveModules(st *State, n Notification) []ModuleConfig {
+	if n.TemplateFollowsGlobal && st != nil && st.Notifications != nil {
+		if d := defaultGlobalNotification(st.Notifications); d != nil {
+			return d.Modules
+		}
+	}
+	return n.Modules
+}
+
+// effectiveSchedule resolves the schedule a tick should fire: followers take
+// the pinned global entry's plan, everything else its own.
+func effectiveSchedule(st *State, n Notification) *NotificationSchedule {
+	if n.ScheduleFollowsGlobal && st != nil && st.Notifications != nil {
+		if d := defaultGlobalNotification(st.Notifications); d != nil {
+			return d.Schedule
+		}
+	}
+	return n.Schedule
+}
+
+// validateNotificationSettings validates the global notification list.
+func validateNotificationSettings(s *NotificationSettings) error {
+	seenNames := map[string]int{}
+	seenIDs := map[string]int{}
+	for i := range s.Notifications {
+		n := &s.Notifications[i]
+		path := fmt.Sprintf("notifications.notifications[%d]", i)
+		if strings.TrimSpace(n.Name) == "" {
+			return fmt.Errorf("%s: 通知名称为必填", path)
+		}
+		if err := validateNotificationEntity(n, path); err != nil {
+			return err
+		}
+		name := strings.TrimSpace(n.Name)
+		if prev, exists := seenNames[name]; exists {
+			return fmt.Errorf("%s: 通知名称 %q 与第 %d 条通知重复", path, name, prev)
+		}
+		seenNames[name] = i
+		if id := strings.TrimSpace(n.ID); id != "" {
+			if prev, exists := seenIDs[id]; exists {
+				return fmt.Errorf("%s: 通知 ID %q 与第 %d 条通知重复", path, id, prev)
+			}
+			seenIDs[id] = i
+		}
+	}
+	if len(s.Notifications) == 0 {
+		return fmt.Errorf("notifications.notifications: 至少保留一条全局通知")
+	}
+	return nil
 }
 
 // validateKeyNotificationsEntity validates one binding's own notification
@@ -288,15 +382,20 @@ func validateKeyNotifications(st *State) error {
 }
 
 // effectiveNotifications returns the notifications governing a binding:
-// its own list when non-empty (fully replacing the global default), otherwise
-// a single-element slice with the global default entity. Copies are returned
-// so callers cannot mutate persisted state through the result.
+// its own list when non-empty (fully replacing the global list), otherwise
+// the whole global notification list. Copies are returned so callers cannot
+// mutate persisted state through the result.
 func effectiveNotifications(st *State, binding *KeyBinding) []Notification {
 	if len(binding.Notifications) > 0 {
 		return cloneNotifications(binding.Notifications)
 	}
 	if st.Notifications == nil {
 		return nil
+	}
+	// Legacy states (or in-memory snapshots) may still carry only the single
+	// global_default; fall back to it so nothing resolves to an empty list.
+	if len(st.Notifications.Notifications) > 0 {
+		return cloneNotifications(st.Notifications.Notifications)
 	}
 	return cloneNotifications([]Notification{st.Notifications.GlobalDefault})
 }

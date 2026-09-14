@@ -38,8 +38,8 @@ describe('NotificationEditor', () => {
     const { onSaved } = renderEditor({
       platforms: [{ kind: 'feishu', enabled: true, webhook: 'https://f' }],
     })
-    await userEvent.click(screen.getByRole('button', { name: '保存' }))
-    expect(await screen.findByText(/用户唯一 ID/)).toBeInTheDocument()
+    const save = screen.getByRole('button', { name: '保存' })
+    expect(save).toBeDisabled()
     expect(onSaved).not.toHaveBeenCalled()
   })
 

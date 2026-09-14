@@ -163,6 +163,9 @@ func validateState(st State) error {
 		)
 	}
 	if st.Notifications != nil {
+		// Migrate/pin the global list first (legacy single global_default
+		// becomes the one-entry list), then validate the normalized shape.
+		normalizeNotificationSettings(st.Notifications)
 		if err := validateNotificationSettings(st.Notifications); err != nil {
 			return err
 		}

@@ -31,12 +31,14 @@ vi.mock('../api', () => ({
 afterEach(() => { Toast.destroyAll() })
 
 describe('NotificationsPanel', () => {
-  it('renders service status and global entity editor', async () => {
+  it('renders service status and the global notification list', async () => {
     render(<NotificationsPanel />)
     expect(await screen.findByText('运行中')).toBeInTheDocument()
-    expect(await screen.findByDisplayValue('用量通知')).toBeInTheDocument()
-    // 全局通知名称输入框左侧常显标题（不依赖占位符）
-    expect(screen.getByText('全局通知名称')).toBeInTheDocument()
+    // 全局通知列表化（v0.6.0）：条目名在表格中，新增/保存按钮随卡片展示。
+    expect(await screen.findByText('用量通知')).toBeInTheDocument()
+    expect(screen.getByText('全局通知')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: '＋ 新增通知' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: '保存全局通知' })).toBeInTheDocument()
     expect(screen.getByText(/待发任务/)).toBeInTheDocument()
   })
 
@@ -53,9 +55,9 @@ describe('NotificationsPanel', () => {
     await waitFor(() => expect(screen.getByText(/已重新入队/)).toBeInTheDocument())
   })
 
-  // 回归：schedule 为空（从未配置）也必须渲染计划编辑器并给默认计划，
-  // 旧空值守卫会让全局发送计划永远无法编辑。
-  it('renders schedule editor even when the global schedule is unset', async () => {
+  // 全局列表化后，计划编辑在编辑器内：schedule 为空的旧数据在表格显示 '—'，
+  // 打开编辑器时以默认计划（每天 09:00）兜底渲染计划编辑器。
+  it('opens the editor with a default schedule when the entry has none', async () => {
     vi.mocked(api.notifications.getSettings).mockResolvedValueOnce({
       enabled: true,
       global_default: { id: 'global', name: '用量通知', enabled: true,
@@ -63,6 +65,8 @@ describe('NotificationsPanel', () => {
         platforms: [] },
     })
     render(<NotificationsPanel />)
+    await screen.findByText('用量通知')
+    await userEvent.click(await screen.findByRole('button', { name: '编辑' }))
     expect(await screen.findByText('每隔')).toBeInTheDocument()
     expect(screen.getByLabelText('间隔单位')).toBeInTheDocument()
   })

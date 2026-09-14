@@ -57,7 +57,7 @@ describe('PlatformIdentityEditor', () => {
     await userEvent.click(screen.getByText('飞书'))
     await userEvent.click(screen.getByRole('switch', { name: /启用飞书/ }))
     // 本地草稿态校验提示（保存拦截由 T13 用 validatePlatforms 兜底）
-    expect(await screen.findByText('启用通知时用户唯一 ID 为必填项')).toBeInTheDocument()
+    expect(await screen.findByText(/用户唯一 ID 为必填/)).toBeInTheDocument()
     expect(onChange).toHaveBeenCalled()
   })
 })

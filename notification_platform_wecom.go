@@ -16,15 +16,31 @@ type wecomAdapter struct {
 	client  *http.Client
 	webhook string
 	userIDs []string
+	atAll   bool
 }
 
 func (a *wecomAdapter) send(ctx context.Context, msg outboundMessage) ([]deliveryResult, error) {
 	parts := splitMessage(msg.Body, wecomMarkdownLimit)
 	results := make([]deliveryResult, 0, len(parts))
 	for _, part := range parts {
-		payload := map[string]any{
-			"msgtype":  "markdown",
-			"markdown": map[string]any{"content": wecomComposeMarkdown(a.userIDs, part)},
+		// @all only exists on msgtype=text (mentioned_list); WeCom markdown
+		// has no at-all syntax, so at-all sends drop to plain text.
+		var payload map[string]any
+		if a.atAll {
+			// text content carries no mention syntax; named mentions ride
+			// mentioned_list alongside "@all".
+			payload = map[string]any{
+				"msgtype": "text",
+				"text": map[string]any{
+					"content":        part,
+					"mentioned_list": append(append([]string{}, a.userIDs...), "@all"),
+				},
+			}
+		} else {
+			payload = map[string]any{
+				"msgtype":  "markdown",
+				"markdown": map[string]any{"content": wecomComposeMarkdown(a.userIDs, part)},
+			}
 		}
 		status, respBody, retryAfter, err := postJSON(ctx, a.client, a.webhook, payload)
 		switch {

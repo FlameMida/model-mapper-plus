@@ -148,7 +148,7 @@ func handleNotificationManagement(req pluginapi.ManagementRequest) (pluginapi.Ma
 // managementNotificationSettingsGet echoes the saved settings with plaintext
 // webhook URLs and sign secrets (spec 2026-09-13); a state without
 // notifications returns the zero-value default entity so the UI starts from
-// a renderable shape.
+// a renderable shape. Legacy states normalize to the multi-entry list shape.
 func managementNotificationSettingsGet() pluginapi.ManagementResponse {
 	st, _ := loadedStateSnapshot()
 	settings := st.Notifications
@@ -158,7 +158,9 @@ func managementNotificationSettingsGet() pluginapi.ManagementResponse {
 		}}
 		settings = &zero
 	}
-	return managementJSON(http.StatusOK, settings)
+	normalized := *settings
+	normalizeNotificationSettings(&normalized)
+	return managementJSON(http.StatusOK, &normalized)
 }
 
 // managementNotificationSettingsPut replaces the global notification block:
@@ -172,6 +174,9 @@ func managementNotificationSettingsPut(req pluginapi.ManagementRequest) pluginap
 		return managementError(http.StatusBadRequest, "通知配置格式无效: "+err.Error())
 	}
 	err := applyStateUpdate(func(st *State) error {
+		// Normalize first: legacy single-global_default bodies migrate to the
+		// one-entry list and the is_default pin settles before validation.
+		normalizeNotificationSettings(&body)
 		st.Notifications = &body
 		return validateNotificationSettings(&body)
 	})
@@ -224,7 +229,10 @@ func notificationGlobalName() string {
 	if st.Notifications == nil {
 		return ""
 	}
-	return st.Notifications.GlobalDefault.Name
+	if d := defaultGlobalNotification(st.Notifications); d != nil {
+		return d.Name
+	}
+	return ""
 }
 
 // resolveNotificationEntity picks the notification entity a preview or
@@ -235,6 +243,19 @@ func resolveNotificationEntity(st *State, key, notificationID string) (*Notifica
 	if key == "" {
 		if st.Notifications == nil {
 			return nil, nil, errors.New("no notification configured")
+		}
+		// The pinned global entry answers an empty notification_id; an
+		// explicit id selects any entry of the global list.
+		if notificationID != "" {
+			for i := range st.Notifications.Notifications {
+				if st.Notifications.Notifications[i].ID == notificationID {
+					return &st.Notifications.Notifications[i], nil, nil
+				}
+			}
+			return nil, nil, errors.New("通知不存在：请检查通知是否已保存")
+		}
+		if d := defaultGlobalNotification(st.Notifications); d != nil {
+			return d, nil, nil
 		}
 		n := st.Notifications.GlobalDefault
 		return &n, nil, nil
@@ -295,6 +316,10 @@ func renderNotificationPreview(binding *KeyBinding, n Notification) (string, []s
 			warnings = append(warnings, controlled(err))
 		}
 		data = collected
+	}
+	// Template followers preview with the pinned global entry's modules.
+	if st, ok := loadedStateSnapshot(); ok {
+		n.Modules = effectiveModules(&st, n)
 	}
 	text, renderWarn := renderMessage(n, data, now)
 	warnings = append(warnings, renderWarn.Incomplete...)

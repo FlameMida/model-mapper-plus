@@ -24,6 +24,7 @@ type feishuAdapter struct {
 	webhook string
 	secret  string
 	userIDs []string
+	atAll   bool
 }
 
 func (a *feishuAdapter) send(ctx context.Context, msg outboundMessage) ([]deliveryResult, error) {
@@ -32,7 +33,7 @@ func (a *feishuAdapter) send(ctx context.Context, msg outboundMessage) ([]delive
 	for _, part := range parts {
 		payload := map[string]any{
 			"msg_type": "text",
-			"content":  map[string]any{"text": feishuComposeText(a.userIDs, part)},
+			"content":  map[string]any{"text": feishuComposeText(a.userIDs, a.atAll, part)},
 		}
 		if a.secret != "" {
 			ts := time.Now().Unix()
@@ -64,12 +65,16 @@ func (a *feishuAdapter) send(ctx context.Context, msg outboundMessage) ([]delive
 	return results, nil
 }
 
-// feishuComposeText prefixes inline @-markers for Open IDs and appends any
-// remaining (non Open-ID) user references as a plain-text list at the end of
-// the text: external Feishu groups only resolve Open IDs (spec).
-func feishuComposeText(userIDs []string, body string) string {
+// feishuComposeText prefixes inline @-markers for Open IDs and the official
+// "all" marker when at-all is on, and appends any remaining (non Open-ID)
+// user references as a plain-text list at the end of the text: external
+// Feishu groups only resolve Open IDs (spec).
+func feishuComposeText(userIDs []string, atAll bool, body string) string {
 	var inline strings.Builder
 	var others []string
+	if atAll {
+		inline.WriteString("<at user_id=\"all\"></at> ")
+	}
 	for _, id := range userIDs {
 		if strings.HasPrefix(id, "ou_") {
 			inline.WriteString("<at user_id=\"" + id + "\"></at> ")

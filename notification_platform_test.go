@@ -128,3 +128,66 @@ func TestSplitMessageRespectsSectionBoundary(t *testing.T) {
 		}
 	}
 }
+
+// @所有人：飞书用官方 all 标记内联；钉钉 at.isAtAll；企微降级 text 类型携带 @all。
+func TestAtAllPlatformShapes(t *testing.T) {
+	t.Run("feishu inlines the official all marker", func(t *testing.T) {
+		var gotBody map[string]any
+		srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			raw, _ := io.ReadAll(r.Body)
+			json.Unmarshal(raw, &gotBody)
+			w.Write([]byte(`{"code":0,"msg":"success"}`))
+		}))
+		defer srv.Close()
+		ad, _ := buildAdapter(PlatformIdentity{Kind: PlatformFeishu, Enabled: true, Webhook: srv.URL, AtAll: true})
+		results, _ := ad.send(context.Background(), outboundMessage{Body: "hi"})
+		if results[0].Outcome != deliveryAccepted {
+			t.Fatalf("%+v", results)
+		}
+		text := gotBody["content"].(map[string]any)["text"].(string)
+		if !strings.Contains(text, "<at user_id=\"all\"></at>") || !strings.Contains(text, "hi") {
+			t.Fatalf("at-all text=%q", text)
+		}
+	})
+	t.Run("dingtalk rides at.isAtAll", func(t *testing.T) {
+		var gotBody map[string]any
+		srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			raw, _ := io.ReadAll(r.Body)
+			json.Unmarshal(raw, &gotBody)
+			w.Write([]byte(`{"errcode":0,"errmsg":"ok"}`))
+		}))
+		defer srv.Close()
+		ad, _ := buildAdapter(PlatformIdentity{Kind: PlatformDingTalk, Enabled: true, Webhook: srv.URL, AtAll: true})
+		results, _ := ad.send(context.Background(), outboundMessage{Title: "t", Body: "hi"})
+		if results[0].Outcome != deliveryAccepted {
+			t.Fatalf("%+v", results)
+		}
+		if gotBody["at"].(map[string]any)["isAtAll"] != true {
+			t.Fatalf("at=%v", gotBody["at"])
+		}
+	})
+	t.Run("wecom drops to text with @all", func(t *testing.T) {
+		var gotBody map[string]any
+		srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			raw, _ := io.ReadAll(r.Body)
+			json.Unmarshal(raw, &gotBody)
+			w.Write([]byte(`{"errcode":0,"errmsg":"ok"}`))
+		}))
+		defer srv.Close()
+		ad, _ := buildAdapter(PlatformIdentity{Kind: PlatformWeCom, Enabled: true, Webhook: srv.URL, UserIDs: []string{"u1"}, AtAll: true})
+		results, _ := ad.send(context.Background(), outboundMessage{Title: "t", Body: "hello"})
+		if results[0].Outcome != deliveryAccepted {
+			t.Fatalf("%+v", results)
+		}
+		if gotBody["msgtype"] != "text" {
+			t.Fatalf("at-all must send text, got %v", gotBody["msgtype"])
+		}
+		list := gotBody["text"].(map[string]any)["mentioned_list"].([]any)
+		if list[len(list)-1] != "@all" || list[0] != "u1" {
+			t.Fatalf("mentioned_list=%v", list)
+		}
+		if !strings.Contains(gotBody["text"].(map[string]any)["content"].(string), "hello") {
+			t.Fatalf("content=%v", gotBody["text"])
+		}
+	})
+}

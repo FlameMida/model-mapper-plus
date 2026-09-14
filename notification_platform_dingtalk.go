@@ -24,6 +24,7 @@ type dingtalkAdapter struct {
 	webhook string
 	secret  string
 	userIDs []string
+	atAll   bool
 }
 
 func (a *dingtalkAdapter) send(ctx context.Context, msg outboundMessage) ([]deliveryResult, error) {
@@ -33,7 +34,7 @@ func (a *dingtalkAdapter) send(ctx context.Context, msg outboundMessage) ([]deli
 		payload := map[string]any{
 			"msgtype":  "markdown",
 			"markdown": map[string]any{"title": msg.Title, "text": part},
-			"at":       map[string]any{"atUserIds": a.userIDs},
+			"at": map[string]any{"atUserIds": a.userIDs, "isAtAll": a.atAll},
 		}
 		status, respBody, retryAfter, err := postJSON(ctx, a.client, a.signedURL(), payload)
 		switch {
