@@ -253,7 +253,7 @@ func resolveNotificationEntity(st *State, key, notificationID string) (*Notifica
 		}
 	}
 	if notificationID != "" {
-		return nil, nil, errors.New("通知不存在")
+		return nil, nil, errors.New("通知不存在：Key 级通知新增/编辑后需先保存 Key 配置，再测试发送")
 	}
 	return &list[0], &binding, nil
 }

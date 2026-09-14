@@ -15,6 +15,10 @@ import NotificationModulesEditor from './NotificationModulesEditor'
 import NotificationScheduleEditor from './NotificationScheduleEditor'
 import PlatformIdentityEditor, { validatePlatforms } from './PlatformIdentityEditor'
 
+// 默认计划（每天 09:00）：跟随全局创建的通知从未落过独立 schedule，关闭跟随时
+// 需要一个起点对象，否则编辑器因空值守卫永远不渲染。
+const DEFAULT_SCHEDULE: NonNullable<Notification['schedule']> = { kind: 'interval', interval: 86400, time: '09:00:00' }
+
 export default function NotificationEditor({ visible, originalName, siblingNames, initial, onSaved, onClose }: {
   visible: boolean
   /** 编辑态原名（空串 = 新建）。 */
@@ -113,8 +117,8 @@ export default function NotificationEditor({ visible, originalName, siblingNames
             </label>
             {draft.schedule_follows_global
               ? <Typography.Text type="tertiary">发送计划将使用全局默认计划（来源：全局默认通知）</Typography.Text>
-              : (draft.schedule &&
-                <NotificationScheduleEditor value={draft.schedule} onChange={(schedule) => edit({ schedule })} />)}
+              : <NotificationScheduleEditor value={draft.schedule ?? DEFAULT_SCHEDULE}
+                onChange={(schedule) => edit({ schedule })} />}
           </div>
         </TabPane>
         <TabPane tab="平台身份配置" itemKey="platforms">

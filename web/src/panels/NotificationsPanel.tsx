@@ -103,9 +103,9 @@ export default function NotificationsPanel() {
           </div>
           <NotificationModulesEditor value={settings.global_default.modules ?? []}
             onChange={(modules) => setSettings({ ...settings, global_default: { ...settings.global_default, modules } })} />
-          {settings.global_default.schedule &&
-            <NotificationScheduleEditor value={settings.global_default.schedule}
-              onChange={(schedule) => setSettings({ ...settings, global_default: { ...settings.global_default, schedule } })} />}
+          {/* schedule 为空（从未配置过）也要渲染编辑器并给默认计划，空值守卫会让全局计划永远无法编辑 */}
+          <NotificationScheduleEditor value={settings.global_default.schedule ?? { kind: 'interval', interval: 86400, time: '09:00:00' }}
+            onChange={(schedule) => setSettings({ ...settings, global_default: { ...settings.global_default, schedule } })} />
           <PlatformIdentityEditor value={settings.global_default.platforms ?? []}
             onChange={(platforms) => setSettings({ ...settings, global_default: { ...settings.global_default, platforms } })} />
         </div>

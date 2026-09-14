@@ -2,6 +2,7 @@ import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { Toast } from '@douyinfe/semi-ui'
+import { api } from '../api'
 import NotificationsPanel from './NotificationsPanel'
 
 vi.mock('../api', () => ({
@@ -50,5 +51,19 @@ describe('NotificationsPanel', () => {
     render(<NotificationsPanel />)
     await userEvent.click(await screen.findByRole('button', { name: '重试' }))
     await waitFor(() => expect(screen.getByText(/已重新入队/)).toBeInTheDocument())
+  })
+
+  // 回归：schedule 为空（从未配置）也必须渲染计划编辑器并给默认计划，
+  // 旧空值守卫会让全局发送计划永远无法编辑。
+  it('renders schedule editor even when the global schedule is unset', async () => {
+    vi.mocked(api.notifications.getSettings).mockResolvedValueOnce({
+      enabled: true,
+      global_default: { id: 'global', name: '用量通知', enabled: true,
+        modules: [{ kind: 'daily', period: 'current' }],
+        platforms: [] },
+    })
+    render(<NotificationsPanel />)
+    expect(await screen.findByText('每隔')).toBeInTheDocument()
+    expect(screen.getByLabelText('间隔单位')).toBeInTheDocument()
   })
 })

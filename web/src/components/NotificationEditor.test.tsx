@@ -59,4 +59,12 @@ describe('NotificationEditor', () => {
     expect(screen.queryByRole('checkbox', { name: '日统计' })).not.toBeInTheDocument()
     expect(screen.getByText(/跟随全局默认模板/)).toBeInTheDocument()
   })
+
+  // 回归：跟随全局创建的通知 schedule 为空，关闭跟随后必须出现计划编辑器
+  // （旧实现的空值守卫让编辑器永远不渲染）。
+  it('renders schedule editor with a default when unfollowing global without a saved schedule', () => {
+    renderEditor({ schedule_follows_global: false, schedule: null })
+    expect(screen.getByText('每隔')).toBeInTheDocument()
+    expect(screen.getByLabelText('间隔单位')).toBeInTheDocument()
+  })
 })
