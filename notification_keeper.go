@@ -113,7 +113,7 @@ func (s *keeperStatsSource) collectForPeriod(ctx context.Context, apiKey string,
 	if !ok {
 		return periodStats{}, &keeperError{Code: "invalid_response"}
 	}
-	items, cov, err := s.fetchAnalysis(ctx, start, end, now)
+	_, cov, err := s.fetchAnalysis(ctx, start, end, now)
 	if err != nil {
 		return periodStats{}, err
 	}
@@ -121,6 +121,15 @@ func (s *keeperStatsSource) collectForPeriod(ctx context.Context, apiKey string,
 		Start: start, End: end, PeriodKey: periodKeyOf(kind, period, now),
 		Incomplete: cov.incomplete, MissingFrom: cov.missingFrom, MissingTo: cov.missingTo,
 		Channels: []channelStats{},
+	}
+	rows, _, err := s.collectAuthChannelsPeriod(ctx, apiKey, kind, period, now)
+	if err == nil && len(rows) > 0 {
+		stats.Channels = rows
+		return stats, nil
+	}
+	items, _, err := s.fetchAnalysis(ctx, start, end, now)
+	if err != nil {
+		return periodStats{}, err
 	}
 	total, _ := channelShares(items)
 	for _, it := range items {
@@ -311,8 +320,11 @@ func (s *keeperStatsSource) lookupAPIKeyID(ctx context.Context, apiKey string) (
 }
 
 func (s *keeperStatsSource) collectAuthChannels(ctx context.Context, apiKey string) ([]channelStats, map[string]int64, error) {
-	now := s.now()
-	start, end, ok := periodRange(ModuleDaily, PeriodCurrent, now, NotificationLocation)
+	return s.collectAuthChannelsPeriod(ctx, apiKey, ModuleDaily, PeriodCurrent, s.now())
+}
+
+func (s *keeperStatsSource) collectAuthChannelsPeriod(ctx context.Context, apiKey string, kind ModuleKind, period PeriodKind, now time.Time) ([]channelStats, map[string]int64, error) {
+	start, end, ok := periodRange(kind, period, now, NotificationLocation)
 	if !ok {
 		return nil, nil, &keeperError{Code: "invalid_response"}
 	}

@@ -193,7 +193,9 @@ export default function NotificationEditor({ visible, originalName, siblingNames
             const skin = PLATFORM_SKIN[p.kind] ?? PLATFORM_SKIN.feishu
             return (
               <div key={p.kind} style={{ padding: 12, background: skin.bg, minHeight: 280 }}>
-                <div style={{ fontSize: 12, color: '#666', marginBottom: 10 }}>{skin.title}</div>
+                <div style={{ fontSize: 12, color: '#666', marginBottom: 10 }}>
+                  {skin.title}{p.kind === 'dingtalk' ? `（会话列表标题：${draft.name}）` : ''}
+                </div>
                 <div style={{ background: skin.bubble, borderRadius: 8, padding: 12, whiteSpace: 'pre-wrap', fontSize: 13, lineHeight: 1.65 }}>
                   {p.text}
                 </div>

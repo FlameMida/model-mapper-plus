@@ -49,8 +49,7 @@ func newStatsSourceStub(t *testing.T, handler http.HandlerFunc) (*keeperStatsSou
 func TestCollectChannelStatsAndShare(t *testing.T) {
 	src, _ := newStatsSourceStub(t, func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/api/v1/usage/analysis" {
-			t.Errorf("path %s", r.URL.Path)
-			w.WriteHeader(404)
+			w.WriteHeader(http.StatusNotFound)
 			return
 		}
 		// Real Keeper contract (usage_filter.go parseUsageFilterQuery →

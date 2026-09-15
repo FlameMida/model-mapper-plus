@@ -221,6 +221,19 @@ func (s *notificationService) authChannelIDs(ctx context.Context) []string {
 	return ids
 }
 
+func (s *notificationService) liveState() State {
+	if snap, ok := loadedStateSnapshot(); ok {
+		return snap
+	}
+	return s.state
+}
+
+func activeNotificationService() *notificationService {
+	activeNotification.Lock()
+	defer activeNotification.Unlock()
+	return activeNotification.svc
+}
+
 func clockScope(fp string) string {
 	if fp == "" || fp == "global" {
 		return "global"
@@ -252,11 +265,12 @@ func (s *notificationService) scheduleTick(ctx context.Context) {
 			nextFire = next
 		}
 	}
+	channels := s.authChannelIDs(ctx)
 	for _, n := range globalNotificationList(&st) {
 		if !n.Enabled || n.Schedule == nil {
 			continue
 		}
-		for _, ch := range s.authChannelIDs(ctx) {
+		for _, ch := range channels {
 			last, _ := s.deps.Store.Clock(n.ID, "global", ch)
 			due, next := dueAt(*n.Schedule, last, now, NotificationLocation)
 			if due {
@@ -333,8 +347,9 @@ func (s *notificationService) enqueueForPeriod(ctx context.Context, binding *Key
 		return nil
 	}
 	renderN := n
-	renderN.Modules = effectiveModules(&s.state, n)
-	data, err := s.collectStats(ctx, &b, renderN, now)
+	st := s.liveState()
+	renderN.Modules = effectiveModules(&st, n)
+	data, err := s.collectStats(ctx, &b, renderN, now, channel)
 	if err != nil {
 		return &keeperError{Code: controlled(err)}
 	}
@@ -368,7 +383,7 @@ func (s *notificationService) enqueueForPeriod(ctx context.Context, binding *Key
 // collectStats gathers every configured module's data: cumulative statistics
 // via the keeper source, window/reset-card material via the auth-index bridge
 // and the quota cache.
-func (s *notificationService) collectStats(ctx context.Context, binding *KeyBinding, n Notification, now time.Time) (statsData, error) {
+func (s *notificationService) collectStats(ctx context.Context, binding *KeyBinding, n Notification, now time.Time, channel string) (statsData, error) {
 	data := statsData{DisplayName: binding.Alias, Periods: map[string]periodStats{}}
 	if s.deps.Source == nil {
 		return data, &keeperError{Code: "configuration_error"}
@@ -386,10 +401,35 @@ func (s *notificationService) collectStats(ctx context.Context, binding *KeyBind
 			data.Periods[ps.PeriodKey] = ps
 		}
 	}
+	if channel != "" && channel != "-" {
+		data = filterStatsToChannel(data, channel)
+		for _, ps := range data.Periods {
+			for _, ch := range ps.Channels {
+				if ch.Label != "" {
+					data.DisplayName = ch.Label
+					break
+				}
+			}
+		}
+	}
 	if needWindows {
-		indexes, err := identifyAuthIndex(s.cfg, []string{binding.Key})
-		if err != nil {
-			return data, err
+		indexes := []string{}
+		if channel != "" && channel != "-" {
+			indexes = []string{channel}
+		} else {
+			seen := map[string]bool{}
+			for _, ps := range data.Periods {
+				for _, ch := range ps.Channels {
+					id := ch.Identity
+					if id == "" {
+						id = ch.Name
+					}
+					if id != "" && !seen[id] {
+						seen[id] = true
+						indexes = append(indexes, id)
+					}
+				}
+			}
 		}
 		windows, cards, plan, err := s.deps.Source.collectWindows(ctx, indexes, now)
 		if err != nil {
@@ -446,7 +486,9 @@ func (s *notificationService) sendTick(ctx context.Context) {
 			continue
 		}
 		if res.Outcome == deliveryAccepted {
-			_ = s.deps.Store.SetClock(j.NotificationID, clockScope(j.KeyFingerprint), j.Channel, now)
+			if err := s.deps.Store.SetClock(j.NotificationID, clockScope(j.KeyFingerprint), j.Channel, now); err != nil {
+				s.setStatusError("store_write_failed")
+			}
 		}
 		if res.Outcome == deliveryFailed && res.RetryAfter > 0 {
 			s.requeueForRetry(j, now.Add(res.RetryAfter))
@@ -462,7 +504,7 @@ func (s *notificationService) deliverOne(ctx context.Context, j notificationJob)
 	if err := json.Unmarshal(j.Payload, &msg); err != nil {
 		return deliveryResult{Outcome: deliveryUnknown, ErrorCode: "invalid_payload", Detail: "job payload unreadable"}
 	}
-	identity, ok := identityForJob(s.state, j.NotificationID, j.KeyFingerprint, j.Platform)
+	identity, ok := identityForJob(s.liveState(), j.NotificationID, j.KeyFingerprint, j.Platform)
 	if !ok {
 		return deliveryResult{Outcome: deliveryUnknown, ErrorCode: "target_unavailable", Detail: "no enabled platform identity for job"}
 	}
