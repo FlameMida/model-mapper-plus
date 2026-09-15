@@ -3,7 +3,7 @@
 spec_dev:
   version: 1
   feature: notification-dispatch-preview
-  status: draft
+  status: active
   covers:
     - "notification_*.go"
     - "web/src/panels/NotificationsPanel.tsx"

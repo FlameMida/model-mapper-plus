@@ -28,6 +28,8 @@ spec_dev:
 
 # Key 渠道用量通知设计
 
+> **Superseded-pending (2026-09-15)** — 本 spec 的「Requirement: 多通知配置与继承」「Requirement: 模板与消息结构」「Requirement: Key 渠道消耗与占比」「Requirement: 发送计划」「Requirement: 平台身份配置」「Requirement: 投递、限流与恢复」将被 .spec-dev/2026-09-15-01-notification-dispatch-preview/spec/notification-dispatch-preview-design.md 部分取代（待其交付）；新工作以新 spec 为准，本 spec 仍描述当前已实现行为。
+
 ## 背景与目标
 
 当前 mapper 只有 Key、渠道定向和 Keeper 别名能力，没有定时发送用量通知的配置、统计存档或投递记录。新功能在 mapper 内提供多条 Key 通知，统计数据统一来自 `/Users/maverick/cpa-usage-keeper`，并通过企业微信、飞书、钉钉群机器人发送。
