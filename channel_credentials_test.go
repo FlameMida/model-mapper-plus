@@ -107,5 +107,5 @@ func TestChannelCredentialsMixedSelection(t *testing.T) {
 	if !reflect.DeepEqual(seen, map[string]int{"codex:apikey:chosen": 3, "chosen.json": 3}) {
 		t.Fatalf("pool=%v", seen)
 	}
-	assertChannelTargetAuthNotFound(t, schedulerEnvelope(t, schedulerRequest("proof-key", candidates[1])))
+	assertChannelTargetUnavailable(t, schedulerEnvelope(t, schedulerRequest("proof-key", candidates[1])), 1, 0, 2)
 }

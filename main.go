@@ -807,6 +807,35 @@ func schedulerCandidateTargeted(candidate pluginapi.SchedulerAuthCandidate, targ
 
 const channelTargetAuthNotFoundMessage = `{"error":{"type":"auth_not_found","code":"auth_not_found","message":"no usable auth candidate in channel target"}}`
 
+// channelTargetUnavailableBody builds the structured pool-empty error body. detail
+// carries aggregate counts only — credential IDs, supplier names and client keys
+// must never appear in a body that reaches the calling client.
+func channelTargetUnavailableBody(candidateCount int, target *ChannelTarget) string {
+	suppliers, authIDs := 0, 0
+	if target != nil {
+		suppliers, authIDs = len(target.Suppliers), len(target.AuthIDs)
+	}
+	raw, err := json.Marshal(map[string]any{
+		"error": map[string]any{
+			"type": "auth_not_found",
+			"code": "auth_not_found",
+			"message": "all credentials in the channel target are currently unavailable " +
+				"(cooling down, refreshing, or quota-limited); retry later",
+			"detail": map[string]any{
+				"candidates": candidateCount,
+				"binding": map[string]any{
+					"suppliers": suppliers,
+					"auth_ids":  authIDs,
+				},
+			},
+		},
+	})
+	if err != nil {
+		return channelTargetAuthNotFoundMessage
+	}
+	return string(raw)
+}
+
 type pluginMethodError struct {
 	Code       string
 	Message    string
@@ -837,8 +866,8 @@ func handleSchedulerPick(raw []byte) ([]byte, error) {
 	if len(pool) == 0 {
 		return nil, &pluginMethodError{
 			Code:       "auth_not_found",
-			Message:    channelTargetAuthNotFoundMessage,
-			HTTPStatus: http.StatusServiceUnavailable,
+			Message:    channelTargetUnavailableBody(len(req.Candidates), binding.ChannelTarget),
+			HTTPStatus: http.StatusTooManyRequests,
 		}
 	}
 	return json.Marshal(pluginapi.SchedulerPickResponse{
