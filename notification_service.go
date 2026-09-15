@@ -338,6 +338,9 @@ func (s *notificationService) enqueueForPeriod(ctx context.Context, binding *Key
 	if err != nil {
 		return &keeperError{Code: controlled(err)}
 	}
+	if channel != "" && channel != "-" {
+		data = filterStatsToChannel(data, channel)
+	}
 	body, _ := renderMessage(renderN, data, now)
 	periodKey := notificationPeriodKey(renderN, now)
 	for _, p := range targets {

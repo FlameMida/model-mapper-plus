@@ -103,16 +103,16 @@ func renderMessage(n Notification, d statsData, now time.Time) (string, renderWa
 			}
 			fmt.Fprintf(&b, "▍%s · %s（%s）\n", head, scope, periodRangeLabel(start, end))
 			for _, ch := range ps.Channels {
-				fmt.Fprintf(&b, "%s：%s tokens · ", ch.Label, abbreviateTokens(ch.Tokens))
+				fmt.Fprintf(&b, "%s\n", ch.Label)
+				fmt.Fprintf(&b, "用量 %s tokens\n", abbreviateTokens(ch.Tokens))
 				if ch.ShareKnown {
-					fmt.Fprintf(&b, "%.2f%%", ch.Share*100)
+					fmt.Fprintf(&b, "占比 %.2f%%\n", ch.Share*100)
 				} else {
-					b.WriteString(msgUnknownShare)
+					fmt.Fprintf(&b, "%s\n", msgUnknownShare)
 				}
 				if ch.CostAvailable {
-					fmt.Fprintf(&b, " · ≈$%.2f", ch.CostUSD)
+					fmt.Fprintf(&b, "折算 ≈ $%.2f\n", ch.CostUSD)
 				}
-				b.WriteString("\n")
 			}
 			if ps.Incomplete {
 				note := fmt.Sprintf("%s~%s 历史数据不完整", ps.MissingFrom, ps.MissingTo)
@@ -142,8 +142,8 @@ func renderMessage(n Notification, d statsData, now time.Time) (string, renderWa
 				fmt.Fprintf(&b, "已用 %s tokens\n", abbreviateTokens(w.UsedTokens))
 			}
 			if w.ResetKnown {
-				fmt.Fprintf(&b, "%s 重置 · 还剩 %d 天 %d 小时\n",
-					w.ResetAt.In(NotificationLocation).Format("2006-01-02 15:04"), w.RemainingDays, w.RemainingHours)
+				fmt.Fprintf(&b, "重置 %s\n", w.ResetAt.In(NotificationLocation).Format("2006-01-02 15:04"))
+				fmt.Fprintf(&b, "还剩 %d 天 %d 小时\n", w.RemainingDays, w.RemainingHours)
 			}
 			b.WriteString("\n")
 			continue
@@ -155,4 +155,20 @@ func renderMessage(n Notification, d statsData, now time.Time) (string, renderWa
 
 	b.WriteString(msgAmountNote)
 	return strings.TrimRight(b.String(), "\n"), warn
+}
+
+func filterStatsToChannel(d statsData, identity string) statsData {
+	out := d
+	out.Periods = map[string]periodStats{}
+	for k, ps := range d.Periods {
+		filtered := ps
+		filtered.Channels = nil
+		for _, ch := range ps.Channels {
+			if ch.Identity == identity || ch.Name == identity {
+				filtered.Channels = append(filtered.Channels, ch)
+			}
+		}
+		out.Periods[k] = filtered
+	}
+	return out
 }
