@@ -1,11 +1,11 @@
 format_version: 1
-current: T04
+current: null
 tasks:
   T00: { status: completed, commit: de334c694974d9390e87e3c82e69baa39122a267 }
   T01: { status: completed, commit: 7899a413920fbef0e6e641e5688734de1a60e6ab, tests: pass }
   T02: { status: completed, commit: 12c5acc4e0bc548836f30a3737163eb38b8f789c }
   T03: { status: completed, tests: skip }
-  T04: { status: in_progress }
+  T04: { status: completed, commit: 27aebcbb04ca94e0df14f770a22580e6356dd274, tests: pass }
 resources: []
 notes:
   - "T00 来源工作区 /Users/maverick/cpa-model-mapper-plus @ main @ de334c694974d9390e87e3c82e69baa39122a267；实施工作区即 resources 所记路径。EnterWorktree 默认基线 origin/main(3b04b2f) 落后本地 HEAD 5 提交（spec/plan 均在本地），故从本地 HEAD 手工 git worktree add，再经 EnterWorktree path 切入会话。基线验证：go build ./... OK；go test . -count=1 -run 'TestChannelTarget|TestHandleMethod' 32 passed。"
