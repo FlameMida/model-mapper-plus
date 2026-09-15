@@ -29,13 +29,11 @@ spec_dev:
 
 # 渠道定向与 Fast 控制 设计
 
-> **Superseded-pending (2026-09-15)** — 本 spec 的「Requirement: 定向池空时显式报错不降级」「Requirement: 渠道定向候选池过滤」「Requirement: AI Providers 凭据目录与精确勾选」（池空错误形态相关表述）将被 .spec-dev/2026-09-15-02-channel-target-empty-pool-error-form/spec/channel-target-empty-pool-error-form-design.md 部分取代（待其交付）；新工作以新 spec 为准，本 spec 仍描述当前已实现行为。
-
 ## 背景与目标
 
 key 绑定目前只能追加模型映射规则和做访问禁用。需要两个新控制维度：(1) 把某个客户端 key 的请求**定向**到指定的 AI 供应商 / 认证文件集合（候选池内正常调度，池空报错不降级）；(2) 对每个 key 控制 **fast 模式**准入——关闭时把 fast 请求覆盖成普通请求。
 
-**成功标准**：绑定渠道定向后，该 key 的请求只可能由“宿主交给 Scheduler 的当前可选候选”与“所选供应商 ∪ 所选凭据”的交集中的凭据执行，交集为空时 HTTP 503 且绝不降级到池外；关闭 Fast 允许后，该 key 的任何 fast 标记（`speed:"fast"` body 字段或 `fast-mode-2026-02-01` beta 头）在到达上游前被剥离；管理 UI 可视化配置两者。
+**成功标准**：绑定渠道定向后，该 key 的请求只可能由“宿主交给 Scheduler 的当前可选候选”与“所选供应商 ∪ 所选凭据”的交集中的凭据执行，交集为空时 HTTP 429 且绝不降级到池外；关闭 Fast 允许后，该 key 的任何 fast 标记（`speed:"fast"` body 字段或 `fast-mode-2026-02-01` beta 头）在到达上游前被剥离；管理 UI 可视化配置两者。
 
 ## 非目标
 
@@ -69,7 +67,7 @@ key 绑定目前只能追加模型映射规则和做访问禁用。需要两个�
 - 开关粒度：每 key 一个渠道定向总开关 —— 配置保留不丢失，数据结构与 UI 都最简。
 - 多认证文件语义：插件自持计数器在池内轮转（round-robin，按 ID 确定性排序）——SDK 契约下 `DelegateBuiltin` 不受候选池约束（宿主在全量分片上重挑）、钉死单个 AuthID 又无轮转，插件侧轮转是同时保住「池隔离」与「多文件分摊」的唯一实现路径；计数器驻内存、重启归零可接受。
 - 选择粒度：供应商整选 + 凭据单选可混选，取并集 —— 整选是动态语义（供应商新增文件自动入池），不做保存时展开。
-- 池空行为：报错不降级——插件 ABI 保留 `HTTPStatus=503` / `Code=auth_not_found`，并把 message 编码为同时含 `error.type` 与 `error.code` 的完整 JSON。CPA v7.2.119 的 RPC 适配层会丢弃 typed code，但会保留 HTTP 状态与 message；OpenAI/Codex 错误路径原样透传 JSON，Claude `/v1/messages` 重包装后保留 `error.type=auth_not_found`。
+- 池空行为：报错不降级——插件 ABI 保留 `HTTPStatus=429` / `Code=auth_not_found`，message 为结构化 JSON（含可重试语义 `error.message` 与仅聚合计数的 `error.detail`，现行契约见 .spec-dev/2026-09-15-02-channel-target-empty-pool-error-form/spec/channel-target-empty-pool-error-form-design.md），编码为同时含 `error.type` 与 `error.code` 的完整 JSON。CPA v7.2.119 的 RPC 适配层会丢弃 typed code，但会保留 HTTP 状态与 message；OpenAI/Codex 错误路径原样透传 JSON，Claude `/v1/messages` 重包装后保留 `error.type=auth_not_found`。
 - 响应模型名：非流式还原 + 流式透传 —— 与 key-policy 先例一致，流式 SSE 改写风险高。
 - 定向与映射关系：定向优先、跳过本插件的规则映射 —— 定向是「换执行路径」不是「改模型名」；路由决策返回 Handled=false 即自然实现。
 - fast 判定范围：精准剥离 Claude 协议的 `speed:"fast"` 与 `fast-mode-2026-02-01` beta 头 —— CPA 中 fast 的唯一真实语义，广义变体属推测性设计。
@@ -77,7 +75,7 @@ key 绑定目前只能追加模型映射规则和做访问禁用。需要两个�
 - fast 与定向相互独立可叠加 —— 无用户场景支撑联动规则。
 - preview 感知定向：dry-run 返回定向解析结果 —— 预览与生产行为同步，避免误导。
 - Scheduler 共存冲突接受失效风险 —— 宿主全局单实例，UI 不检测。
-- 不绕过宿主前置候选收窄 —— 目标凭据因 cooldown 或全局优先级较低而未进入 Candidates 时，插件返回 503，不尝试选择不在 Candidates 中的 AuthID。
+- 不绕过宿主前置候选收窄 —— 目标凭据因 cooldown 或全局优先级较低而未进入 Candidates 时，插件返回 429，不尝试选择不在 Candidates 中的 AuthID。
 
 ## 取代与共存
 
@@ -88,6 +86,8 @@ key 绑定目前只能追加模型映射规则和做访问禁用。需要两个�
 ## 行为规范（Requirements）
 
 ### Requirement: 渠道定向候选池过滤
+
+> **Superseded (2026-09-15)** — by .spec-dev/2026-09-15-02-channel-target-empty-pool-error-form/spec/channel-target-empty-pool-error-form-design.md#渠道定向候选池过滤；原文保留仅作历史参考。
 
 当某 key 的渠道定向开关开启时，该 key 发起的每个模型请求 SHALL 只能由候选池内的凭据执行：候选 = 宿主交给 Scheduler 的 Candidates ∩（所选供应商 ∪ 单独所选凭据）。宿主在 Scheduler 前已按模型能力、可用性、cooldown 与全局最高优先级收窄 Candidates；插件 SHALL NOT 选择不在 Candidates 中的 AuthID。池内多个凭据时插件按确定性顺序（ID 排序）轮转分配。
 
@@ -130,6 +130,8 @@ key 绑定目前只能追加模型映射规则和做访问禁用。需要两个�
 - **THEN** F1 正常参与 K 的定向池内调度，不受模型 A 的失败状态影响
 
 ### Requirement: 定向池空时显式报错不降级
+
+> **Superseded (2026-09-15)** — by .spec-dev/2026-09-15-02-channel-target-empty-pool-error-form/spec/channel-target-empty-pool-error-form-design.md#定向池空时显式报错不降级；原文保留仅作历史参考。
 
 宿主征询插件调度且过滤后候选池为空时（如目标凭据未进入 Candidates、或目标供应商不在本次解析结果中），请求 SHALL 以 HTTP 503 的 `auth_not_found` 类错误失败，SHALL NOT 静默改用池外凭据。插件 ABI SHALL 保留 `Code=auth_not_found`，且 message SHALL 是同时含 `error.type=auth_not_found` 与 `error.code=auth_not_found` 的合法 JSON；对 CPA v7.2.119 客户端，OpenAI/Codex 协议断言 `error.code`，Claude `/v1/messages` 断言 `error.type`。
 
@@ -181,7 +183,7 @@ key 绑定目前只能追加模型映射规则和做访问禁用。需要两个�
 
 ### Requirement: AI Providers 凭据目录与精确勾选
 
-认证文件和 AI Providers 凭据 SHALL 统一按 `suppliers ∪ auth_ids` 过滤，AI Providers 无特殊豁免；同模型、同供应商内的未选凭据亦不得进入候选池（供应商整选覆盖的条目除外）。保持现有保存结构、池内轮转、池空 503 及宿主预过滤边界。
+认证文件和 AI Providers 凭据 SHALL 统一按 `suppliers ∪ auth_ids` 过滤，AI Providers 无特殊豁免；同模型、同供应商内的未选凭据亦不得进入候选池（供应商整选覆盖的条目除外）。保持现有保存结构、池内轮转、池空 429 及宿主预过滤边界。
 
 前端 SHALL 读取 `auth-files` 及 `gemini-api-key`、`interactions-api-key`、`claude-api-key`、`codex-api-key`、`xai-api-key`、`openai-compatibility`、`vertex-api-key`，将配置数组按宿主原始顺序提交插件 `POST /channel-credentials`。插件用 Go 标准库复现本地 CPA `d1a024e9400bc65bd78ccd908945cf2eacc2835e` 的 ID 算法和内部 provider 命名，不修改宿主、不引入依赖、不依赖浏览器安全上下文。
 
@@ -333,7 +335,7 @@ PATCH /keys SHALL 支持 channel_target 与 fast_allowed 字段的局部更新�
 | Fast 覆盖 | `request.intercept_before`（已有） | 现有 handler 内追加非终止改写分支 |
 | 响应还原 | `response.intercept_after`（新注册） | `ResponseInterceptor` 能力 + 薄还原 |
 
-- `handleSchedulerPick`：过滤（usable 状态 ∧ 池内归属）→ 空池报 503 → 非空按 ID 确定性排序后由插件自持计数器轮转选一个（round-robin；计数器驻内存，绑定池变化时归零）。不用 `DelegateBuiltin`——它在宿主全量凭据分片上重挑、会绕开候选池。Candidates 由宿主做过模型能力、可用性、cooldown 与全局最高优先级预过滤，插件仅防御性排除显式不可用状态；`error` 可能只是历史失败，必须保留宿主判定可用的此类候选。空池时插件仍设置 typed `Code=auth_not_found`，同时把 message 编码为合法 JSON `{"error":{"type":"auth_not_found","code":"auth_not_found","message":"…"}}`，以兼容宿主 RPC 丢失 typed code 后的三协议错误转换路径。
+- `handleSchedulerPick`：过滤（usable 状态 ∧ 池内归属）→ 空池报 429 → 非空按 ID 确定性排序后由插件自持计数器轮转选一个（round-robin；计数器驻内存，绑定池变化时归零）。不用 `DelegateBuiltin`——它在宿主全量凭据分片上重挑、会绕开候选池。Candidates 由宿主做过模型能力、可用性、cooldown 与全局最高优先级预过滤，插件仅防御性排除显式不可用状态；`error` 可能只是历史失败，必须保留宿主判定可用的此类候选。空池时插件仍设置 typed `Code=auth_not_found`，同时把 message 编码为合法 JSON `{"error":{"type":"auth_not_found","code":"auth_not_found","message":"…","detail":{…}}}`，以兼容宿主 RPC 丢失 typed code 后的三协议错误转换路径。
 - fast 剥离：blocked 检查之后追加；handler 开始时只加载一次不可变 rule-source 快照，blocked 与 Fast 都基于该快照判定。改写仅在「绑定存在且 fast_allowed 显式 false」时发生。
 - `handleResponseInterceptAfter`：Stream 直接透传；否则提取 key、确认定向开启后调 `rewriteModelFields(body, RequestedModel)`。
 - 客户端 key 识别统一走 `apiKeyFromHeaders`（Authorization Bearer / x-api-key），scheduler 从 `Options.Headers`、response 从 `RequestHeaders` 提取；提取失败一律 fail-open。
@@ -355,14 +357,14 @@ type KeyBinding struct {
 }
 ```
 
-定向请求路径：客户端 → routeModel 返回 Handled=false（跳过映射）→ 宿主按原始模型名解析 providers → 宿主按模型能力、可用性、cooldown 与全局最高优先级层预过滤 → conductor 调 scheduler.pick → 插件过滤候选（usable 状态 ∧ (Provider∈Suppliers ∨ ID∈AuthIDs)，Provider 大小写不敏感比较）→ 空→503 / 非空→插件轮转计数器选 AuthID。usable 排除表为 disabled/expired/revoked/invalid/unavailable/cooldown/cooling_down/quota_exhausted/exhausted/blocked；不排除宿主已判定可用的历史 `error` 状态。
+定向请求路径：客户端 → routeModel 返回 Handled=false（跳过映射）→ 宿主按原始模型名解析 providers → 宿主按模型能力、可用性、cooldown 与全局最高优先级层预过滤 → conductor 调 scheduler.pick → 插件过滤候选（usable 状态 ∧ (Provider∈Suppliers ∨ ID∈AuthIDs)，Provider 大小写不敏感比较）→ 空→429 / 非空→插件轮转计数器选 AuthID。usable 排除表为 disabled/expired/revoked/invalid/unavailable/cooldown/cooling_down/quota_exhausted/exhausted/blocked；不排除宿主已判定可用的历史 `error` 状态。
 
-这个顺序意味着插件只能在宿主已提供的 Candidates 内收窄，无法召回因 cooldown 或较低全局优先级而缺席的目标凭据：若池外仍有 active 候选，插件收到的交集为空并返回 503；只有宿主全局无任何候选且未调用 Scheduler 时，宿主才可能直接返回原生 429 `model_cooldown` 与 `Retry-After`。插件不模拟该分支。
+这个顺序意味着插件只能在宿主已提供的 Candidates 内收窄，无法召回因 cooldown 或较低全局优先级而缺席的目标凭据：若池外仍有 active 候选，插件收到的交集为空并返回 429；只有宿主全局无任何候选且未调用 Scheduler 时，宿主才可能直接返回原生 429 `model_cooldown` 与 `Retry-After`。插件不模拟该分支。
 
 ### 关键接口
 
 - 注册能力新增：`Capabilities.Scheduler=true`、`ResponseInterceptor=true`；dispatchMethod 增加 `scheduler.pick`、`response.intercept_after` 分支。
-- Scheduler 空池错误：`HTTPStatus=503`、typed `Code=auth_not_found`，`Message` 为同时包含 `error.type`、`error.code` 与人类可读 `error.message` 的合法 JSON；OpenAI/Codex 路径使用 JSON 内的 code，Claude 路径使用 JSON 内的 type。
+- Scheduler 空池错误：`HTTPStatus=429`、typed `Code=auth_not_found`，`Message` 为同时包含 `error.type`、`error.code` 与人类可读 `error.message` 及聚合计数 `error.detail` 的合法 JSON；OpenAI/Codex 路径使用 JSON 内的 code，Claude 路径使用 JSON 内的 type。
 - `PATCH /keys` patch 结构增加 `*ChannelTarget`（json tag `channel_target`）与 `*bool`（`fast_allowed`）。
 - `POST /preview` 响应增加 `channel_target`（{enabled,resolved:{suppliers,auth_ids}}）与 `mapping_skipped` 字段（omitempty，向后兼容）。
 - 前端 `listCpaCredentials()` 合并 `listCpaAuthFiles()` 和七类配置接口，调用插件 `POST /channel-credentials` 解析后返回统一目录。原有 `CpaAuthFile` 类型扩展可选 `source`、`provider_label`、`base_url` 字段以兼容旧文件目录。
@@ -371,9 +373,9 @@ type KeyBinding struct {
 
 | 场景 | 行为 |
 |---|---|
-| 宿主征询调度时池内无可用候选 | HTTP 503；OpenAI/Codex 响应含 `error.code=auth_not_found`，Claude 响应含 `error.type=auth_not_found`；绝不放行池外 |
-| 目标凭据 cooldown、池外仍有 active 候选 | 目标在 Scheduler 前被排除，插件过滤池外候选后返回上述 503 |
-| 目标凭据优先级低于池外 active 候选 | 目标被全局最高优先级层排除，插件过滤池外候选后返回上述 503 |
+| 宿主征询调度时池内无可用候选 | HTTP 429；OpenAI/Codex 响应含 `error.code=auth_not_found`，Claude 响应含 `error.type=auth_not_found`；绝不放行池外 |
+| 目标凭据 cooldown、池外仍有 active 候选 | 目标在 Scheduler 前被排除，插件过滤池外候选后返回上述 429 |
+| 目标凭据优先级低于池外 active 候选 | 目标被全局最高优先级层排除，插件过滤池外候选后返回上述 429 |
 | 宿主全局无任何可选凭据 | 宿主 MAY 在 Scheduler 前原生返回 429 `model_cooldown` + `Retry-After`；插件不承诺、不模拟 |
 | scheduler/response 回调拿不到 key | Handled=false / 原样返回（fail-open） |
 | 目标供应商不在本次解析结果 | 该部分候选缺席，等效池收窄；全空同上报错 |
@@ -390,9 +392,9 @@ type KeyBinding struct {
 | 供应商整选动态入池 | unit | 任务内 TDD | 测试通过 |
 | 池内多凭据轮转分摊 | unit | 任务内 TDD | 测试通过 |
 | 无法识别上下文时 fail-open | unit | 任务内 TDD | 测试通过 |
-| 池内候选全部不可用时返回协议兼容 JSON 错误 | unit | 任务内 TDD | typed code、JSON type/code 与 HTTP 503 断言通过 |
-| 目标 cooldown、池外 active 时不越池 | unit | 任务内 TDD | 503 且未选择池外 AuthID |
-| 目标低优先级、池外高优先级时不越池 | unit | 任务内 TDD | 503 且未选择池外 AuthID |
+| 池内候选全部不可用时返回协议兼容 JSON 错误 | unit | 任务内 TDD | typed code、JSON type/code 与 HTTP 429 断言通过 |
+| 目标 cooldown、池外 active 时不越池 | unit | 任务内 TDD | 429 且未选择池外 AuthID |
+| 目标低优先级、池外高优先级时不越池 | unit | 任务内 TDD | 429 且未选择池外 AuthID |
 | 定向时模型名不被改写 | unit | 任务内 TDD | 测试通过 |
 | 非流式还原 / 流式透传 | unit | 任务内 TDD | 测试通过 |
 | 仅 body 带 speed / 仅 beta 头 / 默认放行 | unit | 任务内 TDD | 测试通过 |
@@ -402,9 +404,9 @@ type KeyBinding struct {
 | B 版导航混选 / 搜索批选 / 总开关置灰 / 加载失败 | component (vitest) | 任务内 TDD | 测试通过 |
 | wire 缺失数组与 provider/auth ID 规范化 | component (vitest) | 任务内 TDD | 不崩溃、回显/缺失/保存语义一致 |
 | 定向请求实际落在目标认证文件 | e2e | 验收任务 (D) | smoke-local 通过（CPA 日志断言凭据） |
-| 目标 cooldown、池外 active 时收到 503 且不落池外 | e2e | 验收任务 (D) | 有可安全恢复的测试凭据时执行，否则以原因和替代证据标记 DEFERRED |
-| 目标低优先级、池外高优先级时收到 503 且不落池外 | integration/e2e | 验收任务 (D) | 可控 fixture 或 smoke-local 证明宿主预过滤边界 |
-| v7.2.119 与本地 v7.2.139 三协议错误兼容对比 | integration/e2e | 验收任务 (D)；宿主只读，构建输出在 `/tmp` | 两版本均断言 HTTP 503；OpenAI/Codex 断言 `error.code`，Claude 断言 `error.type`；差异单独记录 |
+| 目标 cooldown、池外 active 时收到 429 且不落池外 | e2e | 验收任务 (D) | 有可安全恢复的测试凭据时执行，否则以原因和替代证据标记 DEFERRED |
+| 目标低优先级、池外高优先级时收到 429 且不落池外 | integration/e2e | 验收任务 (D) | 可控 fixture 或 smoke-local 证明宿主预过滤边界 |
+| v7.2.119 与本地 v7.2.139 三协议错误兼容对比 | integration/e2e | 验收任务 (D)；宿主只读，构建输出在 `/tmp` | 两版本均断言 HTTP 429；OpenAI/Codex 断言 `error.code`，Claude 断言 `error.type`；差异单独记录 |
 | fast 关闭后上游收到普通请求 | e2e | 验收任务 (D) | smoke-local 通过 |
 | 定向 + fast 组合叠加 | e2e | 验收任务 (D) | smoke-local 通过 |
 | 编辑表单全流程人工审查 | visual | 验收任务 (D) | 截图/录屏归档 acceptance/ |
@@ -412,7 +414,7 @@ type KeyBinding struct {
 ## 风险与边缘情况
 
 1. **Scheduler 单实例冲突**：宿主全局只认第一个声明 Scheduler 的插件；与 cpa-plugin-key-policy 同时启用时本插件的定向静默失效。spec 与 README 注明，不做运行时检测（已裁决接受）。另有一个全局副作用：宿主检测到插件 scheduler 后所有请求走 `pickNextLegacy` 慢路径（放弃内建 fast-path，语义不变）。
-2. **宿主前置过滤不可逆**：Scheduler 看不到因 cooldown 或全局较低优先级而缺席的目标凭据，也拿不到足以安全重建 per-model cooldown/`Retry-After` 的状态；混合池场景只能返回 503。验收必须覆盖 cooldown 与优先级两类缺席，且严禁越池选择。
+2. **宿主前置过滤不可逆**：Scheduler 看不到因 cooldown 或全局较低优先级而缺席的目标凭据，也拿不到足以安全重建 per-model cooldown/`Retry-After` 的状态；混合池场景只能返回 429。验收必须覆盖 cooldown 与优先级两类缺席，且严禁越池选择。
 3. **RPC typed code 丢失**：CPA v7.2.119 RPC 适配只保留 HTTP status 与 message。插件以 JSON message 携带 type/code 兼容三协议；该方案依赖宿主错误转换行为，须在固定 v7.2.119 与本地 v7.2.139 上对比验证。若新版行为不同，只记录兼容差异并回到设计评审，不得修改宿主仓库。
 4. **协议错误外形不同**：OpenAI/Codex 可稳定断言 `error.code`，Claude 重包装只保留 `error.type`，不能要求三个入口返回完全相同 JSON。
 5. **供应商键规范化**：宿主侧 provider 常为小写，但存量配置可能含空白或大小写变体；后端匹配使用 trim + EqualFold，前端 canonical key 大小写不敏感并保留首次展示值。auth ID 只 trim，仍大小写敏感。

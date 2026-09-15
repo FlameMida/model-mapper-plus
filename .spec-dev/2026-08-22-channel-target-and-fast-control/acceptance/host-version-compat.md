@@ -1,5 +1,7 @@
 # CLIProxyAPI 双版本三协议错误兼容验收
 
+> 2026-09-15 注：池空错误形态已变更为 HTTP 429 + 结构化错误体（现行契约见 .spec-dev/2026-09-15-02-channel-target-empty-pool-error-form/spec/channel-target-empty-pool-error-form-design.md）。下表为变更前（503 形态）的历史验收记录；429 形态的宿主兼容验收由本特性验收任务（T03）重跑后追加。
+
 - 时间：2026-08-24（Asia/Shanghai）
 - 结果：**PASS，6/6**
 - 插件：`model-mapper-plus v0.0.0-acceptance.5f0e922`
