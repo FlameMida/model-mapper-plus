@@ -33,6 +33,7 @@ var (
 	bucketJobs       = []byte("jobs")
 	bucketDeliveries = []byte("deliveries")
 	bucketSnapshots  = []byte("snapshots")
+	bucketClock      = []byte("clock")
 )
 
 // keyFingerprint returns the stable 16-hex-char fingerprint of an API key.
@@ -46,6 +47,7 @@ type notificationJob struct {
 	KeyFingerprint string
 	NotificationID string
 	Platform       PlatformKind
+	Channel        string
 	PeriodKey      string
 	State          string
 	Payload        []byte
@@ -107,7 +109,7 @@ func openNotificationStore(path string) (*notificationStore, error) {
 		return nil, fmt.Errorf("open notification store: %w", err)
 	}
 	err = db.Update(func(tx *bolt.Tx) error {
-		for _, name := range [][]byte{bucketRevision, bucketJobs, bucketDeliveries, bucketSnapshots} {
+		for _, name := range [][]byte{bucketRevision, bucketJobs, bucketDeliveries, bucketSnapshots, bucketClock} {
 			if _, err := tx.CreateBucketIfNotExists(name); err != nil {
 				return fmt.Errorf("create bucket %s: %w", name, err)
 			}
@@ -168,7 +170,48 @@ func readRevision(tx *bolt.Tx) uint64 {
 // jobKey is the merge dimension: same fingerprint/notification/platform/period
 // collapses onto one stored job entry.
 func jobKey(j notificationJob) string {
-	return j.KeyFingerprint + "/" + j.NotificationID + "/" + string(j.Platform) + "/" + j.PeriodKey
+	ch := j.Channel
+	if ch == "" {
+		ch = "-"
+	}
+	return j.KeyFingerprint + "/" + j.NotificationID + "/" + ch + "/" + string(j.Platform) + "/" + j.PeriodKey
+}
+
+func clockKey(notificationID, scope, channel string) string {
+	if channel == "" {
+		channel = "-"
+	}
+	return notificationID + "/" + scope + "/" + channel
+}
+
+func (s *notificationStore) Clock(notificationID, scope, channel string) (time.Time, bool) {
+	var raw []byte
+	_ = s.db.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket(bucketClock)
+		if b == nil {
+			return nil
+		}
+		raw = append([]byte(nil), b.Get([]byte(clockKey(notificationID, scope, channel)))...)
+		return nil
+	})
+	if len(raw) == 0 {
+		return time.Time{}, false
+	}
+	t, err := time.Parse(time.RFC3339, string(raw))
+	if err != nil {
+		return time.Time{}, false
+	}
+	return t, true
+}
+
+func (s *notificationStore) SetClock(notificationID, scope, channel string, t time.Time) error {
+	return s.db.Update(func(tx *bolt.Tx) error {
+		b := tx.Bucket(bucketClock)
+		if b == nil {
+			return fmt.Errorf("bucket %s missing", bucketClock)
+		}
+		return b.Put([]byte(clockKey(notificationID, scope, channel)), []byte(t.In(NotificationLocation).Format(time.RFC3339)))
+	})
 }
 
 // UpsertJob inserts a job, merging into an existing pending job of the same
