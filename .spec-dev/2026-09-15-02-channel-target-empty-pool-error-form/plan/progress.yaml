@@ -1,0 +1,11 @@
+format_version: 1
+current: null
+tasks:
+  T00: { status: pending }
+  T01: { status: pending }
+  T02: { status: pending }
+  T03: { status: pending }
+  T04: { status: pending }
+resources:
+  - "worktree: .worktrees/plan/2026-09-15-02-channel-target-empty-pool-error-form —— git worktree remove .worktrees/plan/2026-09-15-02-channel-target-empty-pool-error-form（T00 建立后按实际路径与归属更新本行；复用隔离时改为保留/移交回执）"
+notes: []
