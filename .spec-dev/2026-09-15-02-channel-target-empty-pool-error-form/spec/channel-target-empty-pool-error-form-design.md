@@ -10,7 +10,7 @@ spec_dev:
     - "main.go"
     - "main_test.go"
     - "scheduler_test.go"
-  sync_commit: null        # 最近一次"代码与本 spec 已同步"的提交 SHA；由 executing-plans
+  sync_commit: 27aebcbb04ca94e0df14f770a22580e6356dd274  # 最近一次"代码与本 spec 已同步"的提交 SHA；由 executing-plans
                            # 收尾在合并后写入（计划最终任务的锚定步骤）。
                            # git diff <sync_commit>..HEAD -- <covers> = 此后的代码变化
   supersedes:              # 本 spec 取代的旧 spec 路径列表（仓库根相对），设计期由阶段 6 取代分流
