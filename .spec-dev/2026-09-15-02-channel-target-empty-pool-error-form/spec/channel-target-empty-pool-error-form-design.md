@@ -5,7 +5,7 @@
 spec_dev:
   version: 1
   feature: channel-target-empty-pool-error-form
-  status: draft            # draft | active | superseded —— 仅 active 参与漂移拦截
+  status: active           # draft | active | superseded —— 仅 active 参与漂移拦截
   covers:                  # 该特性拥有的代码 glob；无代码产物时留空数组 []
     - "main.go"
     - "main_test.go"

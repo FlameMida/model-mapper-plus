@@ -29,6 +29,8 @@ spec_dev:
 
 # 渠道定向与 Fast 控制 设计
 
+> **Superseded-pending (2026-09-15)** — 本 spec 的「Requirement: 定向池空时显式报错不降级」「Requirement: 渠道定向候选池过滤」「Requirement: AI Providers 凭据目录与精确勾选」（池空错误形态相关表述）将被 .spec-dev/2026-09-15-02-channel-target-empty-pool-error-form/spec/channel-target-empty-pool-error-form-design.md 部分取代（待其交付）；新工作以新 spec 为准，本 spec 仍描述当前已实现行为。
+
 ## 背景与目标
 
 key 绑定目前只能追加模型映射规则和做访问禁用。需要两个新控制维度：(1) 把某个客户端 key 的请求**定向**到指定的 AI 供应商 / 认证文件集合（候选池内正常调度，池空报错不降级）；(2) 对每个 key 控制 **fast 模式**准入——关闭时把 fast 请求覆盖成普通请求。
