@@ -1,0 +1,226 @@
+{
+  "console": [
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "type": "verbose",
+      "text": "[DOM] Password field is not contained in a form: (More info: https://goo.gl/9p2vKq) %o"
+    },
+    {
+      "type": "verbose",
+      "text": "[DOM] Password field is not contained in a form: (More info: https://goo.gl/9p2vKq) %o"
+    },
+    {
+      "type": "verbose",
+      "text": "[DOM] Password field is not contained in a form: (More info: https://goo.gl/9p2vKq) %o"
+    },
+    {
+      "type": "verbose",
+      "text": "[DOM] Password field is not contained in a form: (More info: https://goo.gl/9p2vKq) %o"
+    },
+    {
+      "type": "verbose",
+      "text": "[DOM] Password field is not contained in a form: (More info: https://goo.gl/9p2vKq) %o"
+    },
+    {
+      "type": "verbose",
+      "text": "[DOM] Password field is not contained in a form: (More info: https://goo.gl/9p2vKq) %o"
+    },
+    {
+      "type": "verbose",
+      "text": "[DOM] Password field is not contained in a form: (More info: https://goo.gl/9p2vKq) %o"
+    },
+    {
+      "type": "verbose",
+      "text": "[DOM] Password field is not contained in a form: (More info: https://goo.gl/9p2vKq) %o"
+    }
+  ],
+  "pageerror": [],
+  "list_text": "通知名称\t启用\t发送计划\t下次发送\t平台\t最近投递\t操作\n\n验收日报\n默认\n\t\n\t每隔 1 天 09:00:00\t2026-09-15 12:12:23\twecom、feishu、dingtalk\t\nwecom_errcode\n\t\n编辑\n测试发送\n投递记录\n删除",
+  "next_fire_rfc3339": false,
+  "desktop": {
+    "box": {
+      "x": 180,
+      "y": 80,
+      "width": 1080,
+      "height": 1396.1875
+    },
+    "titles": [
+      "预览消息结构还原 · 非客户端截图企业微信 · markdownai_1\n验收日报\n未知/未提供 · 未知/未提供\n\n▍日统计 · 本期累计（2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n▍月统计 · 本期累计（2026-09-01 ~ 2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n金额为 Keeper 价格折算，非上游账单\n\nai_2\n验收日报\n未知/未提供 · 未知/未提供\n\n▍日统计 · 本期累计（2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n▍月统计 · 本期累计（2026-09-01 ~ 2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n金额为 Keeper 价格折算，非上游账单飞书 · textai_1\n验收日报\n未知/未提供 · 未知/未提供\n\n▍日统计 · 本期累计（2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n▍月统计 · 本期累计（2026-09-01 ~ 2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n金额为 Keeper 价格折算，非上游账单\n\nai_2\n验收日报\n未知/未提供 · 未知/未提供\n\n▍日统计 · 本期累计（2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n▍月统计 · 本期累计（2026-09-01 ~ 2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n金额为 Keeper 价格折算，非上游账单钉钉 · markdown（会话列表标题：验收日报）ai_1\n验收日报\n未知/未提供 · 未知/未提供\n\n▍日统计 · 本期累计（2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n▍月统计 · 本期累计（2026-09-01 ~ 2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n金额为 Keeper 价格折算，非上游账单\n\nai_2\n验收日报\n未知/未提供 · 未知/未提供\n\n▍日统计 · 本期累计（2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n▍月统计 · 本期累计（2026-09-01 ~ 2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n金额为 Keeper 价格折算，非上游账单关闭",
+      "结构还原 · 非客户端截图企业微信 · markdownai_1\n验收日报\n未知/未提供 · 未知/未提供\n\n▍日统计 · 本期累计（2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n▍月统计 · 本期累计（2026-09-01 ~ 2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n金额为 Keeper 价格折算，非上游账单\n\nai_2\n验收日报\n未知/未提供 · 未知/未提供\n\n▍日统计 · 本期累计（2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n▍月统计 · 本期累计（2026-09-01 ~ 2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n金额为 Keeper 价格折算，非上游账单飞书 · textai_1\n验收日报\n未知/未提供 · 未知/未提供\n\n▍日统计 · 本期累计（2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n▍月统计 · 本期累计（2026-09-01 ~ 2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n金额为 Keeper 价格折算，非上游账单\n\nai_2\n验收日报\n未知/未提供 · 未知/未提供\n\n▍日统计 · 本期累计（2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n▍月统计 · 本期累计（2026-09-01 ~ 2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n金额为 Keeper 价格折算，非上游账单钉钉 · markdown（会话列表标题：验收日报）ai_1\n验收日报\n未知/未提供 · 未知/未提供\n\n▍日统计 · 本期累计（2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n▍月统计 · 本期累计（2026-09-01 ~ 2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n金额为 Keeper 价格折算，非上游账单\n\nai_2\n验收日报\n未知/未提供 · 未知/未提供\n\n▍日统计 · 本期累计（2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n▍月统计 · 本期累计（2026-09-01 ~ 2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n金额为 Keeper 价格折算，非上游账单",
+      "企业微信 · markdownai_1\n验收日报\n未知/未提供 · 未知/未提供\n\n▍日统计 · 本期累计（2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n▍月统计 · 本期累计（2026-09-01 ~ 2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n金额为 Keeper 价格折算，非上游账单\n\nai_2\n验收日报\n未知/未提供 · 未知/未提供\n\n▍日统计 · 本期累计（2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n▍月统计 · 本期累计（2026-09-01 ~ 2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n金额为 Keeper 价格折算，非上游账单飞书 · textai_1\n验收日报\n未知/未提供 · 未知/未提供\n\n▍日统计 · 本期累计（2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n▍月统计 · 本期累计（2026-09-01 ~ 2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n金额为 Keeper 价格折算，非上游账单\n\nai_2\n验收日报\n未知/未提供 · 未知/未提供\n\n▍日统计 · 本期累计（2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n▍月统计 · 本期累计（2026-09-01 ~ 2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n金额为 Keeper 价格折算，非上游账单钉钉 · markdown（会话列表标题：验收日报）ai_1\n验收日报\n未知/未提供 · 未知/未提供\n\n▍日统计 · 本期累计（2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n▍月统计 · 本期累计（2026-09-01 ~ 2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n金额为 Keeper 价格折算，非上游账单\n\nai_2\n验收日报\n未知/未提供 · 未知/未提供\n\n▍日统计 · 本期累计（2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n▍月统计 · 本期累计（2026-09-01 ~ 2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n金额为 Keeper 价格折算，非上游账单",
+      "企业微信 · markdownai_1\n验收日报\n未知/未提供 · 未知/未提供\n\n▍日统计 · 本期累计（2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n▍月统计 · 本期累计（2026-09-01 ~ 2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n金额为 Keeper 价格折算，非上游账单\n\nai_2\n验收日报\n未知/未提供 · 未知/未提供\n\n▍日统计 · 本期累计（2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n▍月统计 · 本期累计（2026-09-01 ~ 2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n金额为 Keeper 价格折算，非上游账单",
+      "企业微信 · markdown",
+      "飞书 · textai_1\n验收日报\n未知/未提供 · 未知/未提供\n\n▍日统计 · 本期累计（2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n▍月统计 · 本期累计（2026-09-01 ~ 2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n金额为 Keeper 价格折算，非上游账单\n\nai_2\n验收日报\n未知/未提供 · 未知/未提供\n\n▍日统计 · 本期累计（2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n▍月统计 · 本期累计（2026-09-01 ~ 2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n金额为 Keeper 价格折算，非上游账单",
+      "飞书 · text",
+      "钉钉 · markdown（会话列表标题：验收日报）ai_1\n验收日报\n未知/未提供 · 未知/未提供\n\n▍日统计 · 本期累计（2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n▍月统计 · 本期累计（2026-09-01 ~ 2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n金额为 Keeper 价格折算，非上游账单\n\nai_2\n验收日报\n未知/未提供 · 未知/未提供\n\n▍日统计 · 本期累计（2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n▍月统计 · 本期累计（2026-09-01 ~ 2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n金额为 Keeper 价格折算，非上游账单",
+      "钉钉 · markdown（会话列表标题：验收日报）"
+    ],
+    "overflow": {
+      "clientWidth": 1080,
+      "scrollWidth": 1080,
+      "overflowX": "visible",
+      "bodyScrollWidth": 1030,
+      "bodyClientWidth": 1030,
+      "bodyOverflowX": "visible"
+    },
+    "cols": [
+      {
+        "title": "企业微信 · markdownai_1\n验收日报\n未知/未提供 · 未知/未提供\n\n▍日统计 · 本期累计（2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n▍月统计 · 本期累计（2026-09-01 ~ 2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n金额为 Keeper 价格折算，非上游账单\n\nai_2\n验收日报\n未知/未提供 · 未知/未提供\n\n▍日统计 · 本期累计（2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n▍月统计 · 本期累计（2026-09-01 ~ 2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n金额为 Keeper 价格折算，非上游账单",
+        "x": 359.5,
+        "y": 360.12811279296875,
+        "w": 721,
+        "h": 849.9312133789062
+      },
+      {
+        "title": "企业微信 · markdown",
+        "x": 359.5,
+        "y": 360.12811279296875,
+        "w": 240.3297119140625,
+        "h": 849.9312133789062
+      },
+      {
+        "title": "飞书 · text",
+        "x": 599.8297119140625,
+        "y": 360.12811279296875,
+        "w": 240.32965087890625,
+        "h": 849.9312133789062
+      },
+      {
+        "title": "钉钉 · markdown（会话列表标题：验收日报）",
+        "x": 840.1593627929688,
+        "y": 360.12811279296875,
+        "w": 240.34063720703125,
+        "h": 849.9312133789062
+      }
+    ],
+    "lines_ok": true,
+    "mixed_metric_line": false,
+    "has_wecom": true,
+    "has_feishu": true,
+    "has_dingtalk": true,
+    "has_dingtalk_title_note": true,
+    "sample": "预览消息\n结构还原 · 非客户端截图\n企业微信 · markdown\nai_1\n验收日报\n未知/未提供 · 未知/未提供\n\n▍日统计 · 本期累计（2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n▍月统计 · 本期累计（2026-09-01 ~ 2026-09-15）\nCodex\n用量 2.00M tokens"
+  },
+  "narrow": {
+    "box": {
+      "x": -690,
+      "y": 80,
+      "width": 1080,
+      "height": 1396.1875
+    },
+    "titles": [
+      "预览消息结构还原 · 非客户端截图企业微信 · markdownai_1\n验收日报\n未知/未提供 · 未知/未提供\n\n▍日统计 · 本期累计（2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n▍月统计 · 本期累计（2026-09-01 ~ 2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n金额为 Keeper 价格折算，非上游账单\n\nai_2\n验收日报\n未知/未提供 · 未知/未提供\n\n▍日统计 · 本期累计（2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n▍月统计 · 本期累计（2026-09-01 ~ 2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n金额为 Keeper 价格折算，非上游账单飞书 · textai_1\n验收日报\n未知/未提供 · 未知/未提供\n\n▍日统计 · 本期累计（2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n▍月统计 · 本期累计（2026-09-01 ~ 2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n金额为 Keeper 价格折算，非上游账单\n\nai_2\n验收日报\n未知/未提供 · 未知/未提供\n\n▍日统计 · 本期累计（2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n▍月统计 · 本期累计（2026-09-01 ~ 2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n金额为 Keeper 价格折算，非上游账单钉钉 · markdown（会话列表标题：验收日报）ai_1\n验收日报\n未知/未提供 · 未知/未提供\n\n▍日统计 · 本期累计（2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n▍月统计 · 本期累计（2026-09-01 ~ 2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n金额为 Keeper 价格折算，非上游账单\n\nai_2\n验收日报\n未知/未提供 · 未知/未提供\n\n▍日统计 · 本期累计（2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n▍月统计 · 本期累计（2026-09-01 ~ 2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n金额为 Keeper 价格折算，非上游账单关闭",
+      "结构还原 · 非客户端截图企业微信 · markdownai_1\n验收日报\n未知/未提供 · 未知/未提供\n\n▍日统计 · 本期累计（2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n▍月统计 · 本期累计（2026-09-01 ~ 2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n金额为 Keeper 价格折算，非上游账单\n\nai_2\n验收日报\n未知/未提供 · 未知/未提供\n\n▍日统计 · 本期累计（2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n▍月统计 · 本期累计（2026-09-01 ~ 2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n金额为 Keeper 价格折算，非上游账单飞书 · textai_1\n验收日报\n未知/未提供 · 未知/未提供\n\n▍日统计 · 本期累计（2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n▍月统计 · 本期累计（2026-09-01 ~ 2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n金额为 Keeper 价格折算，非上游账单\n\nai_2\n验收日报\n未知/未提供 · 未知/未提供\n\n▍日统计 · 本期累计（2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n▍月统计 · 本期累计（2026-09-01 ~ 2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n金额为 Keeper 价格折算，非上游账单钉钉 · markdown（会话列表标题：验收日报）ai_1\n验收日报\n未知/未提供 · 未知/未提供\n\n▍日统计 · 本期累计（2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n▍月统计 · 本期累计（2026-09-01 ~ 2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n金额为 Keeper 价格折算，非上游账单\n\nai_2\n验收日报\n未知/未提供 · 未知/未提供\n\n▍日统计 · 本期累计（2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n▍月统计 · 本期累计（2026-09-01 ~ 2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n金额为 Keeper 价格折算，非上游账单",
+      "企业微信 · markdownai_1\n验收日报\n未知/未提供 · 未知/未提供\n\n▍日统计 · 本期累计（2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n▍月统计 · 本期累计（2026-09-01 ~ 2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n金额为 Keeper 价格折算，非上游账单\n\nai_2\n验收日报\n未知/未提供 · 未知/未提供\n\n▍日统计 · 本期累计（2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n▍月统计 · 本期累计（2026-09-01 ~ 2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n金额为 Keeper 价格折算，非上游账单飞书 · textai_1\n验收日报\n未知/未提供 · 未知/未提供\n\n▍日统计 · 本期累计（2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n▍月统计 · 本期累计（2026-09-01 ~ 2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n金额为 Keeper 价格折算，非上游账单\n\nai_2\n验收日报\n未知/未提供 · 未知/未提供\n\n▍日统计 · 本期累计（2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n▍月统计 · 本期累计（2026-09-01 ~ 2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n金额为 Keeper 价格折算，非上游账单钉钉 · markdown（会话列表标题：验收日报）ai_1\n验收日报\n未知/未提供 · 未知/未提供\n\n▍日统计 · 本期累计（2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n▍月统计 · 本期累计（2026-09-01 ~ 2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n金额为 Keeper 价格折算，非上游账单\n\nai_2\n验收日报\n未知/未提供 · 未知/未提供\n\n▍日统计 · 本期累计（2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n▍月统计 · 本期累计（2026-09-01 ~ 2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n金额为 Keeper 价格折算，非上游账单",
+      "企业微信 · markdownai_1\n验收日报\n未知/未提供 · 未知/未提供\n\n▍日统计 · 本期累计（2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n▍月统计 · 本期累计（2026-09-01 ~ 2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n金额为 Keeper 价格折算，非上游账单\n\nai_2\n验收日报\n未知/未提供 · 未知/未提供\n\n▍日统计 · 本期累计（2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n▍月统计 · 本期累计（2026-09-01 ~ 2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n金额为 Keeper 价格折算，非上游账单",
+      "企业微信 · markdown",
+      "飞书 · textai_1\n验收日报\n未知/未提供 · 未知/未提供\n\n▍日统计 · 本期累计（2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n▍月统计 · 本期累计（2026-09-01 ~ 2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n金额为 Keeper 价格折算，非上游账单\n\nai_2\n验收日报\n未知/未提供 · 未知/未提供\n\n▍日统计 · 本期累计（2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n▍月统计 · 本期累计（2026-09-01 ~ 2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n金额为 Keeper 价格折算，非上游账单",
+      "飞书 · text",
+      "钉钉 · markdown（会话列表标题：验收日报）ai_1\n验收日报\n未知/未提供 · 未知/未提供\n\n▍日统计 · 本期累计（2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n▍月统计 · 本期累计（2026-09-01 ~ 2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n金额为 Keeper 价格折算，非上游账单\n\nai_2\n验收日报\n未知/未提供 · 未知/未提供\n\n▍日统计 · 本期累计（2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n▍月统计 · 本期累计（2026-09-01 ~ 2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n金额为 Keeper 价格折算，非上游账单",
+      "钉钉 · markdown（会话列表标题：验收日报）"
+    ],
+    "overflow": {
+      "clientWidth": 1080,
+      "scrollWidth": 1080,
+      "overflowX": "visible",
+      "bodyScrollWidth": 1030,
+      "bodyClientWidth": 1030,
+      "bodyOverflowX": "visible"
+    },
+    "cols": [
+      {
+        "title": "企业微信 · markdownai_1\n验收日报\n未知/未提供 · 未知/未提供\n\n▍日统计 · 本期累计（2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n▍月统计 · 本期累计（2026-09-01 ~ 2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n金额为 Keeper 价格折算，非上游账单\n\nai_2\n验收日报\n未知/未提供 · 未知/未提供\n\n▍日统计 · 本期累计（2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n▍月统计 · 本期累计（2026-09-01 ~ 2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n金额为 Keeper 价格折算，非上游账单",
+        "x": -568.288330078125,
+        "y": 293.1280517578125,
+        "w": 836.57666015625,
+        "h": 986.1756591796875
+      },
+      {
+        "title": "企业微信 · markdown",
+        "x": -568.288330078125,
+        "y": 293.1280517578125,
+        "w": 278.8546447753906,
+        "h": 986.1756591796875
+      },
+      {
+        "title": "飞书 · text",
+        "x": -289.4336853027344,
+        "y": 293.1280517578125,
+        "w": 278.8547058105469,
+        "h": 986.1756591796875
+      },
+      {
+        "title": "钉钉 · markdown（会话列表标题：验收日报）",
+        "x": -10.5789794921875,
+        "y": 293.1280517578125,
+        "w": 278.8673095703125,
+        "h": 986.1756591796875
+      }
+    ],
+    "lines_ok": true,
+    "mixed_metric_line": false,
+    "has_wecom": true,
+    "has_feishu": true,
+    "has_dingtalk": true,
+    "has_dingtalk_title_note": true,
+    "sample": "预览消息\n结构还原 · 非客户端截图\n企业微信 · markdown\nai_1\n验收日报\n未知/未提供 · 未知/未提供\n\n▍日统计 · 本期累计（2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n▍月统计 · 本期累计（2026-09-01 ~ 2026-09-15）\nCodex\n用量 2.00M tokens"
+  },
+  "two_col": {
+    "box": {
+      "x": 180,
+      "y": 80,
+      "width": 1080,
+      "height": 1353.3125
+    },
+    "titles": [
+      "预览消息结构还原 · 非客户端截图企业微信 · markdownai_1\n验收日报\n未知/未提供 · 未知/未提供\n\n▍日统计 · 本期累计（2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n▍月统计 · 本期累计（2026-09-01 ~ 2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n金额为 Keeper 价格折算，非上游账单\n\nai_2\n验收日报\n未知/未提供 · 未知/未提供\n\n▍日统计 · 本期累计（2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n▍月统计 · 本期累计（2026-09-01 ~ 2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n金额为 Keeper 价格折算，非上游账单飞书 · textai_1\n验收日报\n未知/未提供 · 未知/未提供\n\n▍日统计 · 本期累计（2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n▍月统计 · 本期累计（2026-09-01 ~ 2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n金额为 Keeper 价格折算，非上游账单\n\nai_2\n验收日报\n未知/未提供 · 未知/未提供\n\n▍日统计 · 本期累计（2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n▍月统计 · 本期累计（2026-09-01 ~ 2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n金额为 Keeper 价格折算，非上游账单关闭",
+      "结构还原 · 非客户端截图企业微信 · markdownai_1\n验收日报\n未知/未提供 · 未知/未提供\n\n▍日统计 · 本期累计（2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n▍月统计 · 本期累计（2026-09-01 ~ 2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n金额为 Keeper 价格折算，非上游账单\n\nai_2\n验收日报\n未知/未提供 · 未知/未提供\n\n▍日统计 · 本期累计（2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n▍月统计 · 本期累计（2026-09-01 ~ 2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n金额为 Keeper 价格折算，非上游账单飞书 · textai_1\n验收日报\n未知/未提供 · 未知/未提供\n\n▍日统计 · 本期累计（2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n▍月统计 · 本期累计（2026-09-01 ~ 2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n金额为 Keeper 价格折算，非上游账单\n\nai_2\n验收日报\n未知/未提供 · 未知/未提供\n\n▍日统计 · 本期累计（2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n▍月统计 · 本期累计（2026-09-01 ~ 2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n金额为 Keeper 价格折算，非上游账单",
+      "企业微信 · markdownai_1\n验收日报\n未知/未提供 · 未知/未提供\n\n▍日统计 · 本期累计（2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n▍月统计 · 本期累计（2026-09-01 ~ 2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n金额为 Keeper 价格折算，非上游账单\n\nai_2\n验收日报\n未知/未提供 · 未知/未提供\n\n▍日统计 · 本期累计（2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n▍月统计 · 本期累计（2026-09-01 ~ 2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n金额为 Keeper 价格折算，非上游账单飞书 · textai_1\n验收日报\n未知/未提供 · 未知/未提供\n\n▍日统计 · 本期累计（2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n▍月统计 · 本期累计（2026-09-01 ~ 2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n金额为 Keeper 价格折算，非上游账单\n\nai_2\n验收日报\n未知/未提供 · 未知/未提供\n\n▍日统计 · 本期累计（2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n▍月统计 · 本期累计（2026-09-01 ~ 2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n金额为 Keeper 价格折算，非上游账单",
+      "企业微信 · markdownai_1\n验收日报\n未知/未提供 · 未知/未提供\n\n▍日统计 · 本期累计（2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n▍月统计 · 本期累计（2026-09-01 ~ 2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n金额为 Keeper 价格折算，非上游账单\n\nai_2\n验收日报\n未知/未提供 · 未知/未提供\n\n▍日统计 · 本期累计（2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n▍月统计 · 本期累计（2026-09-01 ~ 2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n金额为 Keeper 价格折算，非上游账单",
+      "企业微信 · markdown",
+      "飞书 · textai_1\n验收日报\n未知/未提供 · 未知/未提供\n\n▍日统计 · 本期累计（2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n▍月统计 · 本期累计（2026-09-01 ~ 2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n金额为 Keeper 价格折算，非上游账单\n\nai_2\n验收日报\n未知/未提供 · 未知/未提供\n\n▍日统计 · 本期累计（2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n▍月统计 · 本期累计（2026-09-01 ~ 2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n金额为 Keeper 价格折算，非上游账单",
+      "飞书 · text"
+    ],
+    "overflow": {
+      "clientWidth": 1080,
+      "scrollWidth": 1080,
+      "overflowX": "visible",
+      "bodyScrollWidth": 1030,
+      "bodyClientWidth": 1030,
+      "bodyOverflowX": "visible"
+    },
+    "cols": [
+      {
+        "title": "企业微信 · markdownai_1\n验收日报\n未知/未提供 · 未知/未提供\n\n▍日统计 · 本期累计（2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n▍月统计 · 本期累计（2026-09-01 ~ 2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n金额为 Keeper 价格折算，非上游账单\n\nai_2\n验收日报\n未知/未提供 · 未知/未提供\n\n▍日统计 · 本期累计（2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n▍月统计 · 本期累计（2026-09-01 ~ 2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n金额为 Keeper 价格折算，非上游账单",
+        "x": 359.5,
+        "y": 353.6968994140625,
+        "w": 721,
+        "h": 819.918701171875
+      },
+      {
+        "title": "企业微信 · markdown",
+        "x": 359.5,
+        "y": 353.6968994140625,
+        "w": 360.5,
+        "h": 819.918701171875
+      },
+      {
+        "title": "飞书 · text",
+        "x": 720,
+        "y": 353.6968994140625,
+        "w": 360.5,
+        "h": 819.918701171875
+      }
+    ],
+    "lines_ok": true,
+    "mixed_metric_line": false,
+    "has_wecom": true,
+    "has_feishu": true,
+    "has_dingtalk": false,
+    "has_dingtalk_title_note": false,
+    "sample": "预览消息\n结构还原 · 非客户端截图\n企业微信 · markdown\nai_1\n验收日报\n未知/未提供 · 未知/未提供\n\n▍日统计 · 本期累计（2026-09-15）\nCodex\n用量 2.00M tokens\n占比 100.00%\n折算 ≈ $31.24\nClaude\n用量 500.00K tokens\n占比 100.00%\n折算 ≈ $4.50\n\n▍月统计 · 本期累计（2026-09-01 ~ 2026-09-15）\nCodex\n用量 2.00M tokens"
+  }
+}

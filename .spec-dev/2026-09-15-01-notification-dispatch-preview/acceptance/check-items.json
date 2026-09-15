@@ -1,0 +1,59 @@
+{
+  "coverage_note": "T08 只执行计划验收任务两行（visual + manual）。spec 中任务内 TDD 行已由 T01–T07 覆盖，本轮不复跑全量。无 playwright MCP，降级为 Python Playwright + Chrome channel=chrome，目标为 MAPPER_ACCEPTANCE_SERVE 回环夹具（127.0.0.1:31819），不是线上 CPA。裁剪 a11y / perf-web / perf-api。standard 档：pass 项不派证据审计。真实三平台群消息未获 webhook 授权，记 manual-pending。验收前发现 web/dist 未烘焙 T07 三栏 Modal，已 web-build 后重跑。",
+  "items": [
+    {
+      "check": "桌面预览弹窗三栏并排、指标分行、结构还原皮肤",
+      "dimension": "visual",
+      "tier": "A",
+      "requirement_ref": "预览弹窗三栏皮肤",
+      "ops": "登录夹具管理页 → 通知 → 编辑已保存三平台通知 → 预览消息；视口 1440×900",
+      "result": "pass",
+      "evidence_ref": "acceptance/preview-desktop-3col.png",
+      "notes": "企业微信 · markdown / 飞书 · text / 钉钉 · markdown（会话列表标题：验收日报）三列同 y、相邻 x。用量/占比/折算各占一行，无 tokens 与 % 同行。渠道块 ai_1、ai_2 在同一列内堆叠。"
+    },
+    {
+      "check": "窄屏 390 预览三栏可横向滚动",
+      "dimension": "visual",
+      "tier": "A",
+      "requirement_ref": "预览弹窗三栏皮肤",
+      "ops": "同上后 set_viewport 390×844；测量 .semi-modal-wrap overflow/scrollWidth；scrollLeft=0 与 345 复拍",
+      "result": "warn",
+      "evidence_ref": "acceptance/preview-390-3col.png; acceptance/preview-390-scroll-left.png",
+      "notes": ".semi-modal-wrap overflow-x:auto、scrollWidth 1080 > clientWidth 390，可滚到企微/飞书/钉钉。默认首屏停在最右栏（钉钉），需向左滑才看到企微。",
+      "recheck": {
+        "status": "维持",
+        "evidence_ref": "acceptance/preview-390-scroll-left.png"
+      }
+    },
+    {
+      "check": "未启用平台不出现在预览",
+      "dimension": "visual",
+      "tier": "A",
+      "requirement_ref": "预览弹窗三栏皮肤",
+      "ops": "PUT 关闭钉钉 → 刷新 → 预览",
+      "result": "pass",
+      "evidence_ref": "acceptance/preview-desktop-2col.png",
+      "notes": "仅企业微信与飞书两列；文案与列盒均无钉钉。"
+    },
+    {
+      "check": "列表下次发送为人类友好 CST",
+      "dimension": "visual",
+      "tier": "A",
+      "requirement_ref": "下次发送人类友好",
+      "ops": "通知列表截图表头与行",
+      "result": "pass",
+      "evidence_ref": "acceptance/list-next-fire.png",
+      "notes": "表头含「下次发送」；单元格为 YYYY-MM-DD HH:mm:ss，无 T / +08:00。"
+    },
+    {
+      "check": "真实三平台群消息结构与预览一致",
+      "dimension": "visual",
+      "tier": "A",
+      "requirement_ref": "测试发送",
+      "ops": "未授权真实 webhook；夹具 robot URL 试发仅得到平台错误码",
+      "result": "unverified",
+      "evidence_ref": "acceptance/fail-notifications.png",
+      "notes": "无企微/飞书/钉钉生产授权。夹具投递记录为 wecom_errcode / feishu_code / dingtalk_errcode，不能对照群内结构。按计划记 manual-pending。"
+    }
+  ]
+}
