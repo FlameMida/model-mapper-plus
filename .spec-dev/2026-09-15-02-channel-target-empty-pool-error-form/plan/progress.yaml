@@ -1,11 +1,12 @@
 format_version: 1
 current: null
 tasks:
-  T00: { status: pending }
+  T00: { status: completed, commit: de334c694974d9390e87e3c82e69baa39122a267 }
   T01: { status: pending }
   T02: { status: pending }
   T03: { status: pending }
   T04: { status: pending }
 resources:
-  - "worktree: .worktrees/plan/2026-09-15-02-channel-target-empty-pool-error-form —— git worktree remove .worktrees/plan/2026-09-15-02-channel-target-empty-pool-error-form（T00 建立后按实际路径与归属更新本行；复用隔离时改为保留/移交回执）"
-notes: []
+  - "worktree: /Users/maverick/cpa-model-mapper-plus/.worktrees/plan/2026-09-15-02-channel-target-empty-pool-error-form（created，本计划所有；分支 plan/2026-09-15-02-channel-target-empty-pool-error-form；清理：git worktree remove 该路径，先于清理确认已合并）"
+notes:
+  - "T00 来源工作区 /Users/maverick/cpa-model-mapper-plus @ main @ de334c694974d9390e87e3c82e69baa39122a267；实施工作区即 resources 所记路径。EnterWorktree 默认基线 origin/main(3b04b2f) 落后本地 HEAD 5 提交（spec/plan 均在本地），故从本地 HEAD 手工 git worktree add，再经 EnterWorktree path 切入会话。基线验证：go build ./... OK；go test . -count=1 -run 'TestChannelTarget|TestHandleMethod' 32 passed。"
