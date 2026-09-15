@@ -1,0 +1,124 @@
+<h2>方案 A 已选 · 每个指标单独一行</h2>
+<p class="subtitle">
+  三栏并排不变。渠道名单独一行，用量 / 占比 / 折算 / 窗口 / 重置各占一行，不再用「·」挤在同一行。
+  若这样排版可以，点选「就用这个」并确认。
+</p>
+
+<div class="options">
+  <div class="option" data-choice="metrics-multiline" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>就用这个</h3>
+      <p>三栏并排 + 指标分行。写入预览弹窗契约。</p>
+    </div>
+  </div>
+  <div class="option" data-choice="metrics-tweak" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>还要改</h3>
+      <p>在终端说明要动哪一块（间距、标题、@、窗口行等）。</p>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="mockup">
+    <div class="mockup-header"><span class="dots"></span>管理页 · 预览消息</div>
+    <div class="mockup-body" style="background:rgba(15,17,21,.45); padding:20px;">
+      <div style="background:#fff; border-radius:12px; max-width:1100px; margin:0 auto; box-shadow:0 16px 48px rgba(0,0,0,.18); overflow:hidden;">
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:12px 16px; border-bottom:1px solid rgba(28,31,35,.08);">
+          <strong>预览消息</strong>
+          <span style="font-size:12px; color:rgba(28,31,35,.45);">结构还原 · 非客户端截图</span>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr 1fr;">
+
+          <div style="padding:12px; background:#ededed; border-right:1px solid rgba(0,0,0,.06);">
+            <div style="font-size:12px; color:#666; margin-bottom:10px;">企业微信 · markdown</div>
+            <div style="display:flex; gap:8px; align-items:flex-start;">
+              <div style="width:36px; height:36px; border-radius:4px; background:#07c160; color:#fff; font-size:11px; display:flex; align-items:center; justify-content:center; flex:none;">用量</div>
+              <div style="min-width:0;">
+                <div style="font-size:12px; color:#666; margin-bottom:4px;">用量通知机器人</div>
+                <div style="background:#fff; border-radius:4px; padding:10px 12px; font-size:13px; line-height:1.65; color:#1a1a1a;">
+                  <div style="font-weight:600;">日报用量通知</div>
+                  <div>Codex 主号</div>
+                  <div>Pro 20x</div>
+                  <div style="margin-top:10px; color:#0066cc;">▍日统计 · 本期累计</div>
+                  <div style="color:#888; font-size:12px;">2026-09-15</div>
+                  <div style="margin-top:8px; font-weight:600;">Codex</div>
+                  <div>用量 800.00K tokens</div>
+                  <div>占比 <span style="color:#008000;">40.00%</span></div>
+                  <div>折算 ≈ $12.34</div>
+                  <div style="margin-top:10px; color:#0066cc;">▍Weekly 窗口</div>
+                  <div>已用 2.40M tokens</div>
+                  <div>重置 2026-09-17 00:00</div>
+                  <div>还剩 1 天 12 小时</div>
+                  <div style="margin-top:10px; color:#888; font-size:12px;">金额为 Keeper 价格折算，非上游账单</div>
+                  <div style="margin-top:8px;"><span style="background:#e8f3ff; color:#0066cc; border-radius:2px; padding:0 4px;">@maverick</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div style="padding:12px; background:#f5f6f7; border-right:1px solid rgba(0,0,0,.06);">
+            <div style="font-size:12px; color:#666; margin-bottom:10px;">飞书 · text</div>
+            <div style="display:flex; gap:8px; align-items:flex-start;">
+              <div style="width:36px; height:36px; border-radius:8px; background:#3370ff; color:#fff; font-size:11px; display:flex; align-items:center; justify-content:center; flex:none;">用</div>
+              <div style="min-width:0;">
+                <div style="font-size:12px; color:#8f959e; margin-bottom:4px;">用量通知机器人</div>
+                <div style="background:#fff; border-radius:0 10px 10px 10px; padding:10px 12px; font-size:13px; line-height:1.65; color:#1f2329; box-shadow:0 1px 2px rgba(31,35,41,.08); white-space:pre-wrap;">日报用量通知
+Codex 主号
+Pro 20x
+
+▍日统计 · 本期累计
+2026-09-15
+Codex
+用量 800.00K tokens
+占比 40.00%
+折算 ≈ $12.34
+
+▍Weekly 窗口
+已用 2.40M tokens
+重置 2026-09-17 00:00
+还剩 1 天 12 小时
+
+金额为 Keeper 价格折算，非上游账单
+<span style="color:#3370ff;">@maverick</span></div>
+              </div>
+            </div>
+          </div>
+
+          <div style="padding:12px; background:#f3f3f3;">
+            <div style="font-size:12px; color:#666; margin-bottom:10px;">钉钉 · markdown（会话列表标题：日报用量通知）</div>
+            <div style="display:flex; gap:8px; align-items:flex-start;">
+              <div style="width:36px; height:36px; border-radius:6px; background:#0089ff; color:#fff; font-size:11px; display:flex; align-items:center; justify-content:center; flex:none;">机</div>
+              <div style="min-width:0;">
+                <div style="font-size:12px; color:#666; margin-bottom:4px;">用量通知机器人</div>
+                <div style="background:#fff; border-radius:8px; padding:10px 12px; font-size:13px; line-height:1.65; color:#171a1d;">
+                  <div style="font-weight:600; font-size:15px; margin-bottom:6px;">日报用量通知</div>
+                  <div>Codex 主号</div>
+                  <div>Pro 20x</div>
+                  <div style="margin-top:10px; font-weight:600;">▍日统计 · 本期累计</div>
+                  <div style="color:#8a8f8d; font-size:12px;">2026-09-15</div>
+                  <div style="margin-top:8px; font-weight:600;">Codex</div>
+                  <div>用量 800.00K tokens</div>
+                  <div>占比 40.00%</div>
+                  <div>折算 ≈ $12.34</div>
+                  <div style="margin-top:10px; font-weight:600;">▍Weekly 窗口</div>
+                  <div>已用 2.40M tokens</div>
+                  <div>重置 2026-09-17 00:00</div>
+                  <div>还剩 1 天 12 小时</div>
+                  <div style="margin-top:10px; color:#8a8f8d; font-size:12px;">金额为 Keeper 价格折算，非上游账单</div>
+                  <div style="margin-top:8px; color:#0089ff;">@maverick</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+        <div style="padding:10px 16px; border-top:1px solid rgba(28,31,35,.08); text-align:right;">
+          <span class="mock-button secondary">关闭</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
