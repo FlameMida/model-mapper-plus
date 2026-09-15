@@ -10,7 +10,7 @@ const (
 	msgUnknownPlan     = "未知/未提供"
 	msgUnknownShare    = "占比未知"
 	msgResetCardsUnset = "未提供"
-	msgAmountNote      = "金额为 Keeper 价格折算，非上游账单"
+	msgStatsTimePrefix = "统计时间："
 )
 
 // statsData carries everything renderMessage needs: per-period channel stats
@@ -75,10 +75,11 @@ func periodRangeLabel(start, end time.Time) string {
 
 // renderMessage assembles one notification message in section style: title
 // and identity lines, then one ▍-headed section per configured module in
-// order, closing with the amount note. Missing period data, unmatched window
-// groups skip their section (spec: missing windows are omitted). A checked
-// reset-card module always renders: nil is 未提供, 0 is 0 张. Incomplete
-// periods get an ⚠ line and a renderWarnings entry.
+// order, closing with the actual stats time in NotificationLocation.
+// Missing period data, unmatched window groups skip their section (spec:
+// missing windows are omitted). A checked reset-card module always renders:
+// nil is 未提供, 0 is 0 张. Incomplete periods get an ⚠ line and a
+// renderWarnings entry.
 func renderMessage(n Notification, d statsData, now time.Time) (string, renderWarnings) {
 	var warn renderWarnings
 	var b strings.Builder
@@ -160,7 +161,8 @@ func renderMessage(n Notification, d statsData, now time.Time) (string, renderWa
 		}
 	}
 
-	b.WriteString(msgAmountNote)
+	b.WriteString(msgStatsTimePrefix)
+	b.WriteString(formatNextFire(now))
 	return strings.TrimRight(b.String(), "\n"), warn
 }
 

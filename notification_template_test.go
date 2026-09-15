@@ -60,11 +60,31 @@ func TestRenderMessageSectionLayout(t *testing.T) {
 		"Claude\n用量 800.00K tokens\n占比 40.00%\n折算 ≈ $12.34",
 		"Grok\n用量 12.00K tokens\n占比未知",
 		"▍Weekly 窗口", "重置 2026-09-17 00:00:00", "还剩 3 天 12 小时",
-		"▍重置卡（2 张）", msgAmountNote,
+		"▍重置卡（2 张）", "统计时间：2026-09-13 17:00:00",
 	} {
 		if !strings.Contains(out, want) {
 			t.Fatalf("missing %q in:\n%s", want, out)
 		}
+	}
+	if strings.Contains(out, "金额为 Keeper 价格折算，非上游账单") {
+		t.Fatalf("amount disclaimer must not appear:\n%s", out)
+	}
+}
+
+func TestRenderMessageStatsTimeUsesActualNow(t *testing.T) {
+	n := Notification{Name: "日报用量通知", Modules: []ModuleConfig{{Kind: ModuleDaily, Period: PeriodCurrent}}}
+	d := statsData{DisplayName: "Codex 主号", Plan: "Pro 20x", Periods: map[string]periodStats{
+		"daily:2026-09-15": {Channels: []channelStats{
+			{Label: "Codex", Tokens: 1, ShareKnown: true, CostAvailable: false},
+		}},
+	}}
+	now := time.Date(2026, 9, 15, 16, 46, 32, 0, NotificationLocation)
+	out, _ := renderMessage(n, d, now)
+	if !strings.Contains(out, "统计时间：2026-09-15 16:46:32") {
+		t.Fatalf("footer must use the actual render time:\n%s", out)
+	}
+	if strings.Contains(out, "金额为 Keeper 价格折算，非上游账单") {
+		t.Fatalf("amount disclaimer must not appear:\n%s", out)
 	}
 }
 
