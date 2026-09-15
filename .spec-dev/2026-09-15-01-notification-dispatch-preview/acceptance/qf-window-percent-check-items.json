@@ -1,0 +1,95 @@
+{
+  "coverage_note": "quick-fix 验收按变更面裁剪：只验 5H/Weekly 窗口已用/剩余百分比与重置卡每张到期行。未复跑 09-15 矩阵中调度时钟、全局拆条、预览三栏布局、飞书补名、人类友好时间等未触及行。裁剪 e2e(浏览器)、visual、a11y、perf-web、perf-api（本次无 UI/性能改动；detect-env 无 Playwright/k6）。无 playwright MCP。standard 档：无 fail/warn，不诊断；pass 项不派证据审计。真实三平台群消息未授权 → unverified。T08 visual 报告仍在 acceptance-report.md，本轮不覆盖。",
+  "items": [
+    {
+      "check": "窗口百分比与重置卡到期分行",
+      "dimension": "unit",
+      "tier": "D",
+      "requirement_ref": "模板与消息结构 / 窗口百分比与重置卡到期分行",
+      "ops": "go test . -count=1 -run TestRenderMessageWindowPercentsAndResetCardExpiry",
+      "result": "pass",
+      "evidence_ref": "acceptance/qf-window-percent-tests.log#TestRenderMessageWindowPercentsAndResetCardExpiry",
+      "notes": "正文含独立行「已用 1.20M tokens」「已用 28.00%」「剩余 72.00%」以及「2026-09-13 19:00:00 到期 · 还剩 0 天 2 小时」。"
+    },
+    {
+      "check": "缺百分比不伪造 0%",
+      "dimension": "unit",
+      "tier": "D",
+      "requirement_ref": "模板与消息结构 / 窗口百分比与重置卡到期分行",
+      "ops": "go test . -count=1 -run TestRenderMessageOmitsUnknownWindowPercents",
+      "result": "pass",
+      "evidence_ref": "acceptance/qf-window-percent-tests.log#TestRenderMessageOmitsUnknownWindowPercents",
+      "notes": "仅有 tokens、无 PercentKnown 时正文不含 %。"
+    },
+    {
+      "check": "Keeper usedPercent / remainingFraction 投影为已用与剩余百分比",
+      "dimension": "integration",
+      "tier": "D",
+      "requirement_ref": "模板与消息结构 / 窗口百分比与重置卡到期分行",
+      "ops": "go test . -count=1 -run TestParseQuotaCacheProjectsWindowPercents",
+      "result": "pass",
+      "evidence_ref": "acceptance/qf-window-percent-tests.log#TestParseQuotaCacheProjectsWindowPercents",
+      "notes": "5h usedPercent=28 → 已用 28 / 剩余 72；weekly remainingFraction=0.75 → 已用 25 / 剩余 75。"
+    },
+    {
+      "check": "可用重置卡保留到期时间与倒计时",
+      "dimension": "integration",
+      "tier": "D",
+      "requirement_ref": "渠道窗口与认证信息 / 两个窗口与重置卡",
+      "ops": "go test . -count=1 -run TestParseResetCreditsKeepsAvailableExpiry",
+      "result": "pass",
+      "evidence_ref": "acceptance/qf-window-percent-tests.log#TestParseResetCreditsKeepsAvailableExpiry",
+      "notes": "available 卡保留 expiresAt；consumed 卡丢弃；17:00 对 19:00 为还剩 0 天 2 小时。"
+    },
+    {
+      "check": "cache 已有张数仍拉取 reset-credits 明细",
+      "dimension": "integration",
+      "tier": "D",
+      "requirement_ref": "渠道窗口与认证信息 / 两个窗口与重置卡",
+      "ops": "go test . -count=1 -run TestCollectWindowsFetchesResetCardExpiryWhenCacheHasCount",
+      "result": "pass",
+      "evidence_ref": "acceptance/qf-window-percent-tests.log#TestCollectWindowsFetchesResetCardExpiryWhenCacheHasCount",
+      "notes": "quota cache 已有 availableCount=2 仍 GET reset-credits，返回 2 张卡到期。"
+    },
+    {
+      "check": "CPA 降级 remainingFraction 投影百分比",
+      "dimension": "integration",
+      "tier": "D",
+      "requirement_ref": "模板与消息结构 / 窗口百分比与重置卡到期分行",
+      "ops": "go test . -count=1 -run TestCollectWindowsFallsBackToCPAQuota",
+      "result": "pass",
+      "evidence_ref": "acceptance/qf-window-percent-tests.log#TestCollectWindowsFallsBackToCPAQuota",
+      "notes": "5h remainingFraction=0.4 → 已用 60 / 剩余 40；weekly 0.8 → 已用 20 / 剩余 80。"
+    },
+    {
+      "check": "5H/Weekly 缺失、重置倒计时与重置卡张数仍成立",
+      "dimension": "unit",
+      "tier": "D",
+      "requirement_ref": "渠道窗口与认证信息",
+      "ops": "go test . -count=1 -run 'TestCollectWindowsParsesQuotaCache|TestRenderMessageSectionLayout'",
+      "result": "pass",
+      "evidence_ref": "acceptance/qf-window-percent-tests.log#TestCollectWindowsParsesQuotaCache",
+      "notes": "daily 窗口仍不渲染；Weekly 重置行与「重置卡（2 张）」仍在。"
+    },
+    {
+      "check": "桌面/窄屏预览弹窗",
+      "dimension": "visual",
+      "tier": "A",
+      "requirement_ref": "预览遮罩与分平台结构还原",
+      "ops": "未执行：本次未改预览弹窗布局",
+      "result": "unverified",
+      "evidence_ref": "",
+      "notes": "变更面裁剪。既有 T08 证据见 acceptance-report.md。"
+    },
+    {
+      "check": "真实三平台群消息",
+      "dimension": "other",
+      "tier": "A",
+      "requirement_ref": "投递、限流与恢复",
+      "ops": "未执行：本轮未授权真实 webhook",
+      "result": "unverified",
+      "evidence_ref": "",
+      "notes": "manual-pending。"
+    }
+  ]
+}

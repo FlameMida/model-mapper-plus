@@ -53,10 +53,21 @@ type windowStat struct {
 	GroupKey, Label      string
 	UsedTokens           int64
 	WindowUsageAvailable bool
+	UsedPercent          float64
+	RemainingPercent     float64
+	PercentKnown         bool
 	ResetAt              time.Time
 	ResetKnown           bool
 	RemainingDays        int
 	RemainingHours       int
+}
+
+// resetCardStat is one available Codex reset credit. RemainingDays/Hours
+// floor the distance from the observation time, same as window reset.
+type resetCardStat struct {
+	ExpiresAt      time.Time
+	RemainingDays  int
+	RemainingHours int
 }
 
 // keeperStatsSource collects notification statistics from Keeper. The now
@@ -530,15 +541,16 @@ func parseAnalysisComposition(raw []byte) ([]analysisItem, error) {
 // groupKey) are
 // rendered; missing usage/reset fields keep their "unknown" flags. The reset
 // credits endpoint supplements the cached available count when the cache
-// entry does not carry one; wantResetCards=false skips that supplementary
-// round trips for callers that only need the plan (stats-only notifications).
+// entry does not carry one. When the reset-card module is on, the collector
+// still GETs reset-credits so each card's expiresAt can render; wantResetCards=false
+// skips that supplementary round trip for callers that only need the plan.
 //
 // Refresh-first (2026-09-15): every round triggers a Keeper refresh task
 // before reading the cache (throttled per quotaRefreshThrottle), then polls
 // the cache inside a bounded budget. A cache that never yields data degrades
 // to an empty outcome instead of an error, so stats-only notifications keep
 // delivering and windowed ones skip their missing sections.
-func (s *keeperStatsSource) collectWindows(ctx context.Context, authIndexes []string, now time.Time, wantResetCards bool) ([]windowStat, *int, string, error) {
+func (s *keeperStatsSource) collectWindows(ctx context.Context, authIndexes []string, now time.Time, wantResetCards bool) ([]windowStat, *int, []resetCardStat, string, error) {
 	if quotaIndexesLookRedacted(authIndexes) {
 		if catalog := s.identityIndexes(ctx); len(catalog) > 0 {
 			authIndexes = expandQuotaAuthIndexes(authIndexes, catalog)
@@ -547,7 +559,7 @@ func (s *keeperStatsSource) collectWindows(ctx context.Context, authIndexes []st
 	s.triggerQuotaRefresh(ctx, authIndexes)
 	windows, cards, plan, raw, err := s.quotaCacheOnce(ctx, authIndexes, now)
 	if err != nil && !errors.Is(err, errQuotaCacheEmpty) {
-		return nil, nil, "", err
+		return nil, nil, nil, "", err
 	}
 	if !quotaCacheHasData(windows, cards, plan) {
 		interval := s.pollInterval
@@ -578,7 +590,7 @@ func (s *keeperStatsSource) collectWindows(ctx context.Context, authIndexes []st
 			}
 			windows, cards, plan, raw, err = s.quotaCacheOnce(ctx, authIndexes, now)
 			if err != nil && !errors.Is(err, errQuotaCacheEmpty) {
-				return nil, nil, "", err
+				return nil, nil, nil, "", err
 			}
 		}
 	}
@@ -592,10 +604,12 @@ func (s *keeperStatsSource) collectWindows(ctx context.Context, authIndexes []st
 			}
 		}
 	}
-	// Header-style Codex caches often have windows but omit the flattened
-	// count. Reset credits are Codex-only: walk requested indexes then cache
-	// items, skip non-Codex 4xx, and stop at the first known count.
-	if wantResetCards && cards == nil {
+	// Reset credits are Codex-only: walk requested indexes then cache items,
+	// skip non-Codex 4xx, and stop at the first known count or card list.
+	// Cache availableCount is not enough for per-card expiry, so this round
+	// trip still runs when the flattened count is already present.
+	var cardItems []resetCardStat
+	if wantResetCards {
 		seen := map[string]struct{}{}
 		indexes := append([]string{}, authIndexes...)
 		for _, item := range decodedCacheItems(raw) {
@@ -610,12 +624,15 @@ func (s *keeperStatsSource) collectWindows(ctx context.Context, authIndexes []st
 				continue
 			}
 			seen[index] = struct{}{}
-			count, err := s.fetchResetCards(ctx, quotaCacheItemRef{AuthIndex: index})
+			count, items, err := s.fetchResetCards(ctx, quotaCacheItemRef{AuthIndex: index}, now)
 			if err != nil {
-				return nil, nil, "", err
+				return nil, nil, nil, "", err
 			}
-			if count != nil {
-				cards = count
+			if count != nil || len(items) > 0 {
+				if count != nil {
+					cards = count
+				}
+				cardItems = items
 				break
 			}
 		}
@@ -623,7 +640,7 @@ func (s *keeperStatsSource) collectWindows(ctx context.Context, authIndexes []st
 	if plan == "" {
 		plan = s.identityPlan(ctx, authIndexes)
 	}
-	return windows, cards, plan, nil
+	return windows, cards, cardItems, plan, nil
 }
 
 const keeperSensitiveMask = "*********"
@@ -859,13 +876,13 @@ func decodedCacheItems(raw []byte) []quotaCacheItemRef {
 // fetchResetCards GETs /api/v1/quota/reset-credits/:auth_index (quota.go
 // route; ProviderResetCreditsOutput{availableCount, credits}). A nil count
 // means "not provided", not zero.
-func (s *keeperStatsSource) fetchResetCards(ctx context.Context, item quotaCacheItemRef) (*int, error) {
+func (s *keeperStatsSource) fetchResetCards(ctx context.Context, item quotaCacheItemRef, now time.Time) (*int, []resetCardStat, error) {
 	if item.AuthIndex == "" {
-		return nil, nil
+		return nil, nil, nil
 	}
 	resp, err := s.client.authenticatedRequest(ctx, http.MethodGet, "/api/v1/quota/reset-credits/"+url.PathEscape(item.AuthIndex), nil)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
@@ -874,45 +891,52 @@ func (s *keeperStatsSource) fetchResetCards(ctx context.Context, item quotaCache
 			resp.StatusCode != http.StatusForbidden &&
 			resp.StatusCode != http.StatusTooManyRequests {
 			_, _ = readKeeperBody(ctx, resp.Body)
-			return nil, nil
+			return nil, nil, nil
 		}
-		return nil, keeperHTTPError(resp)
+		return nil, nil, keeperHTTPError(resp)
 	}
 	raw, err := readKeeperBody(ctx, resp.Body)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	return parseResetCredits(raw)
+	return parseResetCredits(raw, now)
 }
 
 // parseResetCredits reads Keeper's reset-credits envelope. A JSON null
 // availableCount is "not provided" unless the credits list itself has rows
 // (same fallback Codex Check uses when the details API omits the aggregate).
-func parseResetCredits(raw []byte) (*int, error) {
+func parseResetCredits(raw []byte, now time.Time) (*int, []resetCardStat, error) {
 	var payload struct {
 		AvailableCount *int `json:"availableCount"`
 		Credits        []struct {
-			Status string `json:"status"`
+			Status    string `json:"status"`
+			ExpiresAt string `json:"expiresAt"`
 		} `json:"credits"`
 	}
 	if err := json.Unmarshal(raw, &payload); err != nil {
-		return nil, &keeperError{Code: "invalid_response"}
+		return nil, nil, &keeperError{Code: "invalid_response"}
+	}
+	available := 0
+	var items []resetCardStat
+	for _, credit := range payload.Credits {
+		status := strings.ToLower(strings.TrimSpace(credit.Status))
+		if status != "" && status != "available" {
+			continue
+		}
+		available++
+		if at, ok := parseQuotaResetAt(credit.ExpiresAt); ok {
+			days, hours := remainingCountdown(at, now)
+			items = append(items, resetCardStat{ExpiresAt: at, RemainingDays: days, RemainingHours: hours})
+		}
 	}
 	if payload.AvailableCount != nil {
 		count := *payload.AvailableCount
-		return &count, nil
+		return &count, items, nil
 	}
-	n := 0
-	for _, credit := range payload.Credits {
-		status := strings.ToLower(strings.TrimSpace(credit.Status))
-		if status == "" || status == "available" {
-			n++
-		}
+	if available == 0 {
+		return nil, nil, nil
 	}
-	if n == 0 {
-		return nil, nil
-	}
-	return &n, nil
+	return &available, items, nil
 }
 
 // keeperWindowGroup maps one Keeper QuotaRow onto the renderer 5h/weekly
@@ -934,6 +958,44 @@ func keeperWindowGroup(key, label, groupKey string) (string, bool) {
 	return cpaWindowGroupKey(label)
 }
 
+func applyWindowPercents(w *windowStat, usedPercent, remainingFraction *float64) {
+	if w == nil {
+		return
+	}
+	var used, remain float64
+	usedOK, remainOK := false, false
+	if usedPercent != nil {
+		used = *usedPercent
+		usedOK = true
+	}
+	if remainingFraction != nil {
+		remain = *remainingFraction * 100
+		remainOK = true
+	}
+	if usedOK && !remainOK {
+		remain = 100 - used
+		remainOK = true
+	}
+	if remainOK && !usedOK {
+		used = 100 - remain
+		usedOK = true
+	}
+	if !usedOK || !remainOK {
+		return
+	}
+	w.PercentKnown = true
+	w.UsedPercent = used
+	w.RemainingPercent = remain
+}
+
+func remainingCountdown(at, now time.Time) (days, hours int) {
+	remaining := int64(at.Sub(now).Seconds())
+	if remaining < 0 {
+		remaining = 0
+	}
+	return int(remaining / 86400), int((remaining % 86400) / 3600)
+}
+
 func parseQuotaResetAt(raw string) (time.Time, bool) {
 	raw = strings.TrimSpace(raw)
 	for _, layout := range []string{time.RFC3339Nano, time.RFC3339} {
@@ -947,6 +1009,13 @@ func parseQuotaResetAt(raw string) (time.Time, bool) {
 func derefString(p *string) string {
 	if p == nil {
 		return ""
+	}
+	return *p
+}
+
+func derefFloat(p *float64) float64 {
+	if p == nil {
+		return 0
 	}
 	return *p
 }
@@ -967,12 +1036,14 @@ func parseQuotaCache(raw []byte, now time.Time) ([]windowStat, *int, string, err
 		AuthIndex string `json:"auth_index"`
 		Quota     *struct {
 			Quota []struct {
-				Key               *string `json:"key"`
-				Label             *string `json:"label"`
-				GroupKey          *string `json:"groupKey"`
-				GroupLabel        *string `json:"groupLabel"`
-				WindowUsageTokens *int64  `json:"window_usage_tokens"`
-				ResetAt           *string `json:"resetAt"`
+				Key               *string  `json:"key"`
+				Label             *string  `json:"label"`
+				GroupKey          *string  `json:"groupKey"`
+				GroupLabel        *string  `json:"groupLabel"`
+				UsedPercent       *float64 `json:"usedPercent"`
+				RemainingFraction *float64 `json:"remainingFraction"`
+				WindowUsageTokens *int64   `json:"window_usage_tokens"`
+				ResetAt           *string  `json:"resetAt"`
 			} `json:"quota"`
 			Subscription *struct {
 				Provider *string `json:"provider"`
@@ -1015,16 +1086,12 @@ func parseQuotaCache(raw []byte, now time.Time) ([]windowStat, *int, string, err
 				w.WindowUsageAvailable = true
 				w.UsedTokens = *row.WindowUsageTokens
 			}
+			applyWindowPercents(&w, row.UsedPercent, row.RemainingFraction)
 			if row.ResetAt != nil {
 				if resetAt, ok := parseQuotaResetAt(*row.ResetAt); ok {
 					w.ResetKnown = true
 					w.ResetAt = resetAt
-					remaining := int64(resetAt.Sub(now).Seconds())
-					if remaining < 0 {
-						remaining = 0
-					}
-					w.RemainingDays = int(remaining / 86400)
-					w.RemainingHours = int((remaining % 86400) / 3600)
+					w.RemainingDays, w.RemainingHours = remainingCountdown(resetAt, now)
 				}
 			}
 			windows = append(windows, w)

@@ -211,12 +211,14 @@ func TestCollectWindowsParsesQuotaCache(t *testing.T) {
 				t.Errorf("auth_indexes payload: %v", req.AuthIndexes)
 			}
 			w.Write([]byte(quotaCacheBody))
+		case "/api/v1/quota/reset-credits/ai_1":
+			w.Write([]byte(`{"availableCount":2,"credits":[]}`))
 		default:
 			t.Errorf("unexpected %s %s", r.Method, r.URL.Path)
 			w.WriteHeader(http.StatusNotFound)
 		}
 	})
-	windows, cards, plan, err := src.collectWindows(context.Background(), []string{"ai_1"}, time.Now(), true)
+	windows, cards, _, plan, err := src.collectWindows(context.Background(), []string{"ai_1"}, time.Now(), true)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -289,7 +291,7 @@ func TestIdentifyAuthIndexExactMatch(t *testing.T) {
 		t.Fatal(err)
 	}
 	src := &keeperStatsSource{client: client, now: time.Now}
-	windows, cards, plan, err := src.collectWindows(context.Background(), matched, time.Now(), true)
+	windows, cards, _, plan, err := src.collectWindows(context.Background(), matched, time.Now(), true)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -362,7 +364,7 @@ func TestCollectWindowsRefreshesBeforeCache(t *testing.T) {
 			w.WriteHeader(http.StatusNotFound)
 		}
 	})
-	windows, cards, plan, err := src.collectWindows(context.Background(), []string{"ai_1"}, time.Now(), false)
+	windows, cards, _, plan, err := src.collectWindows(context.Background(), []string{"ai_1"}, time.Now(), false)
 	if err != nil {
 		t.Fatalf("refresh-first collection must not fail: %v", err)
 	}
@@ -402,7 +404,7 @@ func TestCollectWindowsRefreshThrottle(t *testing.T) {
 	})
 	advance := func(d time.Duration) { *clockPtr = clockPtr.Add(d) }
 	for i := 0; i < 3; i++ {
-		if _, _, _, err := src.collectWindows(context.Background(), []string{"ai_1"}, time.Now(), false); err != nil {
+		if _, _, _, _, err := src.collectWindows(context.Background(), []string{"ai_1"}, time.Now(), false); err != nil {
 			t.Fatalf("round %d: %v", i, err)
 		}
 		advance(30 * time.Second)
@@ -433,7 +435,7 @@ func TestCollectWindowsEmptyAfterRefreshStaysClosed(t *testing.T) {
 			w.WriteHeader(http.StatusNotFound)
 		}
 	})
-	windows, cards, plan, err := src.collectWindows(context.Background(), []string{"ai_1"}, time.Now(), false)
+	windows, cards, _, plan, err := src.collectWindows(context.Background(), []string{"ai_1"}, time.Now(), false)
 	if err != nil {
 		t.Fatalf("empty-after-refresh must degrade without an error, got %v", err)
 	}
@@ -509,7 +511,7 @@ func TestCollectWindowsFallsBackToCPAQuota(t *testing.T) {
 	}
 	for i, tc := range rounds {
 		advance(tc.advance)
-		windows, cards, plan, err := src.collectWindows(context.Background(), []string{"ai_1"}, *clockPtr, false)
+		windows, cards, _, plan, err := src.collectWindows(context.Background(), []string{"ai_1"}, *clockPtr, false)
 		if err != nil {
 			t.Fatalf("round %d: %v", i, err)
 		}
@@ -536,6 +538,12 @@ func TestCollectWindowsFallsBackToCPAQuota(t *testing.T) {
 		}
 		if !five.ResetKnown || five.RemainingDays != 0 || five.RemainingHours < 10 || five.RemainingHours > 19 {
 			t.Fatalf("5h reset countdown out of range: %+v", five)
+		}
+		if !five.PercentKnown || five.UsedPercent != 60 || five.RemainingPercent != 40 {
+			t.Fatalf("CPA 5h remainingFraction must project percents: %+v", five)
+		}
+		if !weekly.PercentKnown || weekly.UsedPercent != 20 || weekly.RemainingPercent != 80 {
+			t.Fatalf("CPA weekly remainingFraction must project percents: %+v", weekly)
 		}
 		if !weekly.ResetKnown || weekly.RemainingDays != 3 || weekly.RemainingHours < 15 || weekly.RemainingHours > 23 {
 			t.Fatalf("weekly reset countdown out of range: %+v", weekly)
@@ -601,7 +609,7 @@ func TestCollectWindowsFallsBackToIdentitySubscription(t *testing.T) {
 			w.WriteHeader(http.StatusNotFound)
 		}
 	})
-	_, _, plan, err := src.collectWindows(context.Background(), []string{"ai_1"}, time.Now(), false)
+	_, _, _, plan, err := src.collectWindows(context.Background(), []string{"ai_1"}, time.Now(), false)
 	if err != nil {
 		t.Fatalf("identity subscription fallback must not fail: %v", err)
 	}
@@ -620,6 +628,41 @@ const mixedCacheWithoutResetCards = `{"items":[
  {"auth_index":"claude_1","status":"completed","quota":{"id":"q-claude","quota":[{"key":"five_hour","label":"5h"}]}},
  {"auth_index":"ai_1","status":"completed","quota":{"id":"q-codex","quota":[{"key":"rate_limit.primary_window","label":"5h"}]}}
 ]}`
+
+func TestCollectWindowsFetchesResetCardExpiryWhenCacheHasCount(t *testing.T) {
+	t.Setenv("CPA_KEEPER_LOGIN_PASSWORD", "stub-secret")
+	var sawResetCredits bool
+	src, _ := newStatsSourceStub(t, func(w http.ResponseWriter, r *http.Request) {
+		switch {
+		case r.URL.Path == "/api/v1/quota/refresh":
+			w.Write([]byte(`{"accepted":1,"skipped":0,"limit":1}`))
+		case r.URL.Path == "/api/v1/quota/cache":
+			w.Write([]byte(quotaCacheBody))
+		case r.URL.Path == "/api/v1/quota/reset-credits/ai_1":
+			sawResetCredits = true
+			w.Write([]byte(`{"availableCount":2,"credits":[
+			  {"id":"c1","status":"available","expiresAt":"2026-09-13T19:00:00+08:00"},
+			  {"id":"c2","status":"available","expiresAt":"2026-09-14T12:00:00+08:00"}
+			]}`))
+		default:
+			t.Errorf("unexpected %s %s", r.Method, r.URL.Path)
+			w.WriteHeader(http.StatusNotFound)
+		}
+	})
+	_, cards, items, _, err := src.collectWindows(context.Background(), []string{"ai_1"}, time.Date(2026, 9, 13, 17, 0, 0, 0, NotificationLocation), true)
+	if err != nil {
+		t.Fatalf("cache count plus reset-credits must not fail: %v", err)
+	}
+	if !sawResetCredits {
+		t.Fatal("must GET reset-credits for per-card expiry even when cache already has availableCount")
+	}
+	if cards == nil || *cards != 2 {
+		t.Fatalf("cards: %v", cards)
+	}
+	if len(items) != 2 || items[0].ExpiresAt.IsZero() || items[0].RemainingHours != 2 {
+		t.Fatalf("per-card expiry: %+v", items)
+	}
+}
 
 func TestCollectWindowsFetchesCodexResetCardsWhenCacheOmitsCount(t *testing.T) {
 	t.Setenv("CPA_KEEPER_LOGIN_PASSWORD", "stub-secret")
@@ -640,7 +683,7 @@ func TestCollectWindowsFetchesCodexResetCardsWhenCacheOmitsCount(t *testing.T) {
 			w.WriteHeader(http.StatusNotFound)
 		}
 	})
-	_, cards, _, err := src.collectWindows(context.Background(), []string{"ai_1"}, time.Now(), true)
+	_, cards, _, _, err := src.collectWindows(context.Background(), []string{"ai_1"}, time.Now(), true)
 	if err != nil {
 		t.Fatalf("Codex reset-credits supplement must not fail: %v", err)
 	}
@@ -672,7 +715,7 @@ func TestCollectWindowsSkipsNonCodexResetCredits(t *testing.T) {
 			w.WriteHeader(http.StatusNotFound)
 		}
 	})
-	_, cards, _, err := src.collectWindows(context.Background(), []string{"claude_1", "ai_1"}, time.Now(), true)
+	_, cards, _, _, err := src.collectWindows(context.Background(), []string{"claude_1", "ai_1"}, time.Now(), true)
 	if err != nil {
 		t.Fatalf("Claude unsupported reset-credits must not abort Codex cards: %v", err)
 	}
@@ -698,7 +741,7 @@ func TestCollectWindowsCountsResetCreditsWhenAvailableCountNull(t *testing.T) {
 			w.WriteHeader(http.StatusNotFound)
 		}
 	})
-	_, cards, _, err := src.collectWindows(context.Background(), []string{"ai_1"}, time.Now(), true)
+	_, cards, _, _, err := src.collectWindows(context.Background(), []string{"ai_1"}, time.Now(), true)
 	if err != nil {
 		t.Fatalf("null availableCount with credits must not fail: %v", err)
 	}
@@ -763,7 +806,7 @@ func TestCollectWindowsResolvesRedactedAuthIndex(t *testing.T) {
 			w.WriteHeader(http.StatusNotFound)
 		}
 	})
-	windows, cards, plan, err := src.collectWindows(context.Background(), []string{redacted}, time.Now(), true)
+	windows, cards, _, plan, err := src.collectWindows(context.Background(), []string{redacted}, time.Now(), true)
 	if err != nil {
 		t.Fatalf("redacted analysis key must still collect: %v", err)
 	}
@@ -798,6 +841,52 @@ func TestParseQuotaCacheAcceptsRealCodexRows(t *testing.T) {
 	}
 	if windows[1].GroupKey != "weekly" || windows[1].WindowUsageAvailable {
 		t.Fatalf("weekly window: %+v", windows[1])
+	}
+}
+
+func TestParseQuotaCacheProjectsWindowPercents(t *testing.T) {
+	now := time.Date(2026, 9, 13, 17, 0, 0, 0, NotificationLocation)
+	raw := []byte(`{"items":[{"auth_index":"ai_1","status":"completed","quota":{"quota":[
+	  {"key":"rate_limit.primary_window","label":"5h","usedPercent":28,"window_usage_tokens":1200000},
+	  {"key":"rate_limit.secondary_window","label":"Weekly","remainingFraction":0.75}
+	]}}]}`)
+	windows, _, _, err := parseQuotaCache(raw, now)
+	if err != nil {
+		t.Fatalf("parse: %v", err)
+	}
+	if len(windows) != 2 {
+		t.Fatalf("windows: %+v", windows)
+	}
+	five, weekly := windows[0], windows[1]
+	if !five.PercentKnown || five.UsedPercent != 28 || five.RemainingPercent != 72 {
+		t.Fatalf("5h usedPercent must project used+remaining: %+v", five)
+	}
+	if !weekly.PercentKnown || weekly.UsedPercent != 25 || weekly.RemainingPercent != 75 {
+		t.Fatalf("weekly remainingFraction must project used+remaining: %+v", weekly)
+	}
+}
+
+func TestParseResetCreditsKeepsAvailableExpiry(t *testing.T) {
+	now := time.Date(2026, 9, 13, 17, 0, 0, 0, NotificationLocation)
+	count, items, err := parseResetCredits([]byte(`{"availableCount":2,"credits":[
+	  {"id":"c1","status":"available","expiresAt":"2026-09-13T19:00:00+08:00"},
+	  {"id":"c2","status":"consumed","expiresAt":"2026-09-14T12:00:00+08:00"},
+	  {"id":"c3","status":"available","expiresAt":"2026-09-14T12:00:00+08:00"}
+	]}`), now)
+	if err != nil {
+		t.Fatalf("parse: %v", err)
+	}
+	if count == nil || *count != 2 {
+		t.Fatalf("count: %v", count)
+	}
+	if len(items) != 2 {
+		t.Fatalf("available cards: %+v", items)
+	}
+	if items[0].ExpiresAt.IsZero() || items[0].RemainingDays != 0 || items[0].RemainingHours != 2 {
+		t.Fatalf("first card expiry: %+v", items[0])
+	}
+	if items[1].ExpiresAt.IsZero() || items[1].RemainingDays != 0 || items[1].RemainingHours != 19 {
+		t.Fatalf("second card expiry: %+v", items[1])
 	}
 }
 

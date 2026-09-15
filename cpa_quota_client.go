@@ -61,8 +61,11 @@ func cpaWindowGroupKey(window string) (string, bool) {
 // CPA quota carries no used-token figure, so the usage line stays unknown and
 // only the reset countdown renders; an unparseable resetTime keeps the whole
 // reset block unknown instead of inventing a zero.
-func cpaWindowStat(group, label, resetTime string, now time.Time) windowStat {
+func cpaWindowStat(group, label, resetTime string, remainingFraction float64, remainingKnown bool, now time.Time) windowStat {
 	w := windowStat{GroupKey: group, Label: label}
+	if remainingKnown {
+		applyWindowPercents(&w, nil, &remainingFraction)
+	}
 	if strings.TrimSpace(resetTime) == "" {
 		return w
 	}
@@ -136,9 +139,9 @@ func (c *cpaQuotaClient) fetchQuota(ctx context.Context, authIndex string, now t
 		Groups []struct {
 			DisplayName string `json:"displayName"`
 			Buckets     []struct {
-				Window    string  `json:"window"`
-				ResetTime string  `json:"resetTime"`
-				Remaining float64 `json:"remainingFraction"`
+				Window            string   `json:"window"`
+				ResetTime         string   `json:"resetTime"`
+				RemainingFraction *float64 `json:"remainingFraction"`
 			} `json:"buckets"`
 		} `json:"groups"`
 	}
@@ -156,7 +159,7 @@ func (c *cpaQuotaClient) fetchQuota(ctx context.Context, authIndex string, now t
 			if g.DisplayName != "" {
 				label = g.DisplayName
 			}
-			windows = append(windows, cpaWindowStat(group, label, b.ResetTime, now))
+			windows = append(windows, cpaWindowStat(group, label, b.ResetTime, derefFloat(b.RemainingFraction), b.RemainingFraction != nil, now))
 		}
 	}
 	plan := ""

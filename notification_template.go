@@ -21,8 +21,9 @@ type statsData struct {
 	Plan         string
 	PlanProvider string
 	Periods     map[string]periodStats
-	Windows     []windowStat
-	ResetCards  *int
+	Windows        []windowStat
+	ResetCards     *int
+	ResetCardItems []resetCardStat
 }
 
 // renderWarnings lists the annotations renderMessage had to add because the
@@ -145,6 +146,10 @@ func renderMessage(n Notification, d statsData, now time.Time) (string, renderWa
 			if w.WindowUsageAvailable {
 				fmt.Fprintf(&b, "已用 %s tokens\n", abbreviateTokens(w.UsedTokens))
 			}
+			if w.PercentKnown {
+				fmt.Fprintf(&b, "已用 %.2f%%\n", w.UsedPercent)
+				fmt.Fprintf(&b, "剩余 %.2f%%\n", w.RemainingPercent)
+			}
 			if w.ResetKnown {
 				fmt.Fprintf(&b, "重置 %s\n", formatNextFire(w.ResetAt))
 				fmt.Fprintf(&b, "还剩 %d 天 %d 小时\n", w.RemainingDays, w.RemainingHours)
@@ -156,7 +161,14 @@ func renderMessage(n Notification, d statsData, now time.Time) (string, renderWa
 			if d.ResetCards == nil {
 				fmt.Fprintf(&b, "▍重置卡（%s）\n\n", msgResetCardsUnset)
 			} else {
-				fmt.Fprintf(&b, "▍重置卡（%d 张）\n\n", *d.ResetCards)
+				fmt.Fprintf(&b, "▍重置卡（%d 张）\n", *d.ResetCards)
+				for _, card := range d.ResetCardItems {
+					if card.ExpiresAt.IsZero() {
+						continue
+					}
+					fmt.Fprintf(&b, "%s 到期 · 还剩 %d 天 %d 小时\n", formatNextFire(card.ExpiresAt), card.RemainingDays, card.RemainingHours)
+				}
+				b.WriteString("\n")
 			}
 		}
 	}

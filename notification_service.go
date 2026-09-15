@@ -436,7 +436,7 @@ func (s *notificationService) collectStats(ctx context.Context, binding *KeyBind
 		}
 	}
 	if len(indexes) > 0 {
-		windows, cards, plan, err := s.deps.Source.collectWindows(ctx, indexes, now, needWindows)
+		windows, cards, cardItems, plan, err := s.deps.Source.collectWindows(ctx, indexes, now, needWindows)
 		if err != nil {
 			if needWindows {
 				return data, err
@@ -446,6 +446,7 @@ func (s *notificationService) collectStats(ctx context.Context, binding *KeyBind
 		} else {
 			data.Windows = windows
 			data.ResetCards = cards
+			data.ResetCardItems = cardItems
 			if data.Plan == "" {
 				data.Plan = plan
 			}

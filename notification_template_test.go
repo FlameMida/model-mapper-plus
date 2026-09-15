@@ -22,8 +22,13 @@ func renderFixture() (Notification, statsData) {
 				Channels: []channelStats{{Name: "sk-1", Label: "Claude", Tokens: 8640000, CostUSD: 132.5, CostAvailable: true, ShareKnown: false}}},
 		},
 		Windows: []windowStat{{GroupKey: "weekly", Label: "Weekly", UsedTokens: 2400000, WindowUsageAvailable: true,
+			UsedPercent: 25, RemainingPercent: 75, PercentKnown: true,
 			ResetAt: time.Date(2026, 9, 17, 0, 0, 0, 0, NotificationLocation), ResetKnown: true, RemainingDays: 3, RemainingHours: 12}},
 		ResetCards: intPtr(2),
+		ResetCardItems: []resetCardStat{
+			{ExpiresAt: time.Date(2026, 9, 13, 19, 0, 0, 0, NotificationLocation), RemainingDays: 0, RemainingHours: 2},
+			{ExpiresAt: time.Date(2026, 9, 14, 12, 0, 0, 0, NotificationLocation), RemainingDays: 0, RemainingHours: 19},
+		},
 	}
 	return n, d
 }
@@ -59,8 +64,12 @@ func TestRenderMessageSectionLayout(t *testing.T) {
 		"▍日统计 · 本期累计（2026-09-13）",
 		"Claude\n用量 800.00K tokens\n占比 40.00%\n折算 ≈ $12.34",
 		"Grok\n用量 12.00K tokens\n占比未知",
-		"▍Weekly 窗口", "重置 2026-09-17 00:00:00", "还剩 3 天 12 小时",
-		"▍重置卡（2 张）", "统计时间：2026-09-13 17:00:00",
+		"▍Weekly 窗口", "已用 2.40M tokens", "已用 25.00%", "剩余 75.00%",
+		"重置 2026-09-17 00:00:00", "还剩 3 天 12 小时",
+		"▍重置卡（2 张）",
+		"2026-09-13 19:00:00 到期 · 还剩 0 天 2 小时",
+		"2026-09-14 12:00:00 到期 · 还剩 0 天 19 小时",
+		"统计时间：2026-09-13 17:00:00",
 	} {
 		if !strings.Contains(out, want) {
 			t.Fatalf("missing %q in:\n%s", want, out)
@@ -161,6 +170,44 @@ func TestRenderMessageUnknownPlanAndMissingWindow(t *testing.T) {
 	}
 	if !strings.Contains(out, "▍重置卡（未提供）") {
 		t.Fatalf("checked reset-card module must render 未提供, got:\n%s", out)
+	}
+}
+
+func TestRenderMessageWindowPercentsAndResetCardExpiry(t *testing.T) {
+	n := Notification{Name: "用量", Modules: []ModuleConfig{{Kind: ModuleWindow5H}, {Kind: ModuleResetCards}}}
+	d := statsData{
+		DisplayName: "Codex 主号", Plan: "Pro 20x",
+		Windows: []windowStat{{
+			GroupKey: "5h", Label: "5H", WindowUsageAvailable: true, UsedTokens: 1200000,
+			UsedPercent: 28, RemainingPercent: 72, PercentKnown: true,
+		}},
+		ResetCards: intPtr(2),
+		ResetCardItems: []resetCardStat{
+			{ExpiresAt: time.Date(2026, 9, 13, 19, 0, 0, 0, NotificationLocation), RemainingDays: 0, RemainingHours: 2},
+		},
+	}
+	out, _ := renderMessage(n, d, time.Date(2026, 9, 13, 17, 0, 0, 0, NotificationLocation))
+	if !strings.Contains(out, "已用 1.20M tokens\n已用 28.00%\n剩余 72.00%\n") {
+		t.Fatalf("5h window must show used tokens then used/remaining percent on their own lines:\n%s", out)
+	}
+	if !strings.Contains(out, "▍重置卡（2 张）\n2026-09-13 19:00:00 到期 · 还剩 0 天 2 小时\n") {
+		t.Fatalf("each reset card must occupy its own expiry line:\n%s", out)
+	}
+	for _, line := range strings.Split(out, "\n") {
+		if strings.Contains(line, "tokens") && strings.Contains(line, "%") {
+			t.Fatalf("window metrics packed on one line: %q", line)
+		}
+	}
+}
+
+func TestRenderMessageOmitsUnknownWindowPercents(t *testing.T) {
+	n := Notification{Name: "用量", Modules: []ModuleConfig{{Kind: ModuleWeeklyWindow}}}
+	d := statsData{DisplayName: "Codex 主号", Plan: "Pro 20x", Windows: []windowStat{{
+		GroupKey: "weekly", Label: "Weekly", WindowUsageAvailable: true, UsedTokens: 10,
+	}}}
+	out, _ := renderMessage(n, d, time.Date(2026, 9, 13, 17, 0, 0, 0, NotificationLocation))
+	if strings.Contains(out, "%") {
+		t.Fatalf("unknown window percents must be omitted, not invented:\n%s", out)
 	}
 }
 

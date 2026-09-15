@@ -1,0 +1,11 @@
+{
+  "command": "go test . -count=1 -timeout 60s -v -run '^Test(RenderMessageWindowPercentsAndResetCardExpiry|RenderMessageOmitsUnknownWindowPercents|RenderMessageSectionLayout|ParseQuotaCacheProjectsWindowPercents|ParseResetCreditsKeepsAvailableExpiry|CollectWindowsFetchesResetCardExpiryWhenCacheHasCount|CollectWindowsFallsBackToCPAQuota|CollectWindowsParsesQuotaCache|CollectWindowsFetchesCodexResetCardsWhenCacheOmitsCount|ParseQuotaCacheAcceptsRealCodexRows)$'",
+  "cwd": "/Users/maverick/cpa-model-mapper-plus",
+  "exit_code": 0,
+  "elapsed_s": 0.432,
+  "passed": 10,
+  "failed": 0,
+  "log": "acceptance/qf-window-percent-tests.log",
+  "sha256": "7e00d70f02932a7a061b21b63d4e6266321b90fc1ece9a81578f4362b6b63923",
+  "ran_at": "2026-09-15T17:57:00+08:00"
+}
