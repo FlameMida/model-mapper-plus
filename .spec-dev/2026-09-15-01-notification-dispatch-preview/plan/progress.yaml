@@ -1,14 +1,14 @@
 format_version: 1
-current: T03
+current: T08
 tasks:
   T00: { status: completed, commit: 4b3fb10b10f879e22ddccc676880cd353aa62fe0, tests: pass }
   T01: { status: completed, commit: eeb87b85e99501a8f3b7365218e51a3ff9c35ab6, tests: pass }
   T02: { status: completed, commit: f7ceeb47cd755193b4d990108c398ce48cf09010, tests: pass }
-  T03: { status: pending }
-  T04: { status: pending }
-  T05: { status: pending }
-  T06: { status: pending }
-  T07: { status: pending }
+  T03: { status: completed, commit: abfa84fc60a994bcfb79853e5a0d328918f1b131, tests: pass }
+  T04: { status: completed, commit: 5024032, tests: pass }
+  T05: { status: completed, commit: e034709, tests: pass }
+  T06: { status: completed, commit: 12882da, tests: pass }
+  T07: { status: completed, commit: ab78e3f99baf4a3254b5710b014db6259e772589, tests: pass }
   T08: { status: pending }
   T09: { status: pending }
 resources:
