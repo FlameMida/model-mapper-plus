@@ -15,14 +15,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Build/package one platform: `make package VERSION=0.1.2 GOOS=windows GOARCH=amd64`
 - Package already-built artifacts into `dist/release/`: `make package VERSION=0.1.2`
 - Run live local smoke (against a running CPA): set `CPA_SMOKE_MGMT_KEY` and `CPA_SMOKE_CLIENT_KEY`, then `make smoke-local`
-- Dev loop on a mac host with a docker CPA: `make dev-so` cross-compiles a linux/amd64 `.so` (via `zig`, `brew install zig`) with a fresh UI and copies it to `CPA_PLUGINS_DIR` (default `/Users/flame/CLIProxyAPI/plugins`); `make dev-ui` runs the vite dev server on :5173 proxying `/v0/management` to `CPA_HOST` (default `http://127.0.0.1:8317`). Override `ZIG`, `CPA_PLUGINS_DIR`, `CPA_HOST` as needed.
+- Dev loop: `make dev-so` auto-detects the plugin target (running CPA container → existing deploy → host `GOOS/GOARCH`) and copies the matching `.so` / `.dylib` / `.dll` to `CPA_PLUGINS_DIR/<goos>/<goarch>/` (default `/Users/flame/CLIProxyAPI/plugins`); `make dev-ui` runs the vite dev server on :5173 proxying `/v0/management` to `CPA_HOST` (default `http://127.0.0.1:8317`). Override `CPA_PLUGINS_DIR`, `CPA_HOST`, `CPA_CONTAINER`, `ZIG` as needed.
 - Clean build output: `make clean`
 
 Do not run `go test ./.github/scripts`; that directory contains multiple `package main` scripts and will collide on duplicate `main`/`run` symbols. Test script files explicitly as shown above.
 
 ## Local development & debugging
 
-Target setup: **mac host + docker CPA (linux/amd64)**, the CPA `plugins` dir bind-mounted to `CPA_PLUGINS_DIR` (default `/Users/flame/CLIProxyAPI/plugins`). Host toolchain: `go`, `npm`, and `zig` (`brew install zig`) for cgo cross-compilation.
+Target setup: **host CPA or mac host + docker CPA**. The CPA `plugins` dir is `CPA_PLUGINS_DIR` (default `/Users/flame/CLIProxyAPI/plugins`). Host toolchain: `go`, `npm`, and `zig` (`brew install zig`) when cross-compiling a linux `.so` from macOS. `make dev-so` reads the container arch automatically; you do not set `DEV_SO_GOARCH` for the usual case.
 
 Prerequisites on the CPA side (its `config.yaml`): `plugins.enabled: true`, a `plugins.configs.model-mapper-plus` block, a `remote-management.secret-key` (for the admin UI + smoke), and at least one entry in `api-keys` (client key for chat requests).
 
@@ -34,7 +34,7 @@ Prerequisites on the CPA side (its `config.yaml`): `plugins.enabled: true`, a `p
 | Frontend only | `make dev-ui` (vite on :5173) | before shipping, `make dev-so` to bake the new UI into the `.so` |
 | Mapping behavior | `CPA_SMOKE_MGMT_KEY=… CPA_SMOKE_CLIENT_KEY=… make smoke-local` | reads pass/fail per case |
 
-`make dev-so` = `web-build` (fresh `web/dist/index.html`) → zig cross-compile `linux/amd64` `.so` → `cp` into `CPA_PLUGINS_DIR/linux/amd64/`.
+`make dev-so` = `web-build` (fresh `web/dist/index.html`) → auto-detect `goos/goarch` → compile the matching plugin → `cp` into `CPA_PLUGINS_DIR/<goos>/<goarch>/`.
 
 `make dev-ui` = vite dev server; `/v0/management` is proxied to `CPA_HOST` (default `http://127.0.0.1:8317`), so the SPA talks to the running CPA.
 
@@ -46,7 +46,7 @@ Prerequisites on the CPA side (its `config.yaml`): `plugins.enabled: true`, a `p
 
 ### Tunable variables
 
-- Build/deploy: `ZIG` (default `zig`), `CPA_PLUGINS_DIR`, `CPA_HOST`
+- Build/deploy: `ZIG` (default `zig`, only for mac→linux cross-compile), `CPA_PLUGINS_DIR`, `CPA_HOST`, `CPA_CONTAINER`
 - Smoke: `CPA_SMOKE_MGMT_KEY`, `CPA_SMOKE_CLIENT_KEY`, `CPA_SMOKE_BASE_URL` (default `http://127.0.0.1:8317`), `CPA_SMOKE_WRONG_KEY`, and `CPA_SMOKE_MODEL_PASSTHROUGH` / `_CHAIN_SRC` / `_CHAIN_MID` / `_CHAIN_DST` (defaults `deepseek-v4-flash` / `deepseek-v4-pro` / `deepseek-v4-flash` / `gpt-5.4-mini` — set to models your upstream actually serves)
 
 ### Gotchas

@@ -28,16 +28,22 @@ LINUX_AMD64_OUT := $(DIST_DIR)/linux_amd64/$(PLUGIN_NAME)-v$(PLUGIN_VERSION).so
 LINUX_AMD64_CC ?=
 LINUX_AMD64_CC_BIN := $(firstword $(LINUX_AMD64_CC))
 
-# --- dev helpers (mac host + docker CPA) ---
-# ZIG: cross C compiler for linux/amd64 .so (brew install zig). Override if zig is elsewhere.
+# --- dev helpers ---
+# ZIG: cross C compiler when make dev-so must build a linux .so from macOS.
 ZIG ?= zig
-# CPA_PLUGINS_DIR: host path mounted into your docker CPA as its plugins dir.
+# CPA_PLUGINS_DIR: host path of the CPA plugins dir (docker mount or native).
 # Defaults to the author's docker layout; override for your own.
 CPA_PLUGINS_DIR ?= /Users/flame/CLIProxyAPI/plugins
 # CPA host:port the vite dev server proxies API calls to.
 CPA_HOST ?= http://127.0.0.1:8317
+# Optional overrides. When unset, scripts/dev-so-target.sh auto-detects:
+# running/stopped CPA container → existing plugin file → host GOOS/GOARCH.
+DEV_SO_GOOS ?=
+DEV_SO_GOARCH ?=
+DEV_SO_SKIP_DOCKER ?=
+CPA_CONTAINER ?=
 
-.PHONY: test test-scripts vet web-build build-platform-go build-platform build-windows-amd64 build-linux-amd64 build-linux-amd64-go build package-platform package install-local install-linux-amd64 smoke-local smoke-persistence dev-so dev-ui clean print-version
+.PHONY: test test-scripts vet web-build build-platform-go build-platform build-windows-amd64 build-linux-amd64 build-linux-amd64-go build package-platform package install-local install-linux-amd64 smoke-local smoke-persistence dev-so dev-ui clean print-version print-dev-so-arch print-dev-so-target
 
 test:
 	$(GO) test ./...
@@ -46,10 +52,18 @@ test:
 test-scripts:
 	@bash scripts/test-version.sh
 	@bash scripts/test-ci-yaml.sh
+	@bash scripts/test-dev-so-arch.sh
 
 # 打印当前 PLUGIN_VERSION（调试与脚本用）。
 print-version:
 	@echo "$(PLUGIN_VERSION)"
+
+# 打印 make dev-so 将使用的目标平台（goos/goarch，调试与脚本用）。
+print-dev-so-arch print-dev-so-target:
+	@CPA_PLUGINS_DIR="$(CPA_PLUGINS_DIR)" CPA_HOST="$(CPA_HOST)" \
+		DEV_SO_GOOS="$(DEV_SO_GOOS)" DEV_SO_GOARCH="$(DEV_SO_GOARCH)" \
+		DEV_SO_SKIP_DOCKER="$(DEV_SO_SKIP_DOCKER)" CPA_CONTAINER="$(CPA_CONTAINER)" \
+		bash scripts/dev-so-target.sh
 
 # Build the single-file admin UI into web/dist/index.html (embedded by go:embed).
 # Every plugin library build depends on this so the .so/.dll always carries a fresh UI.
@@ -140,15 +154,34 @@ smoke-persistence:
 	@if [ -f .env ]; then set -a; . ./.env; set +a; fi; \
 	$(GO) run .github/scripts/smoke-persistence.go
 
-# dev-so: cross-compile linux/amd64 .so via zig (with fresh UI + dev SHA version)
-# and copy it as the FIXED name model-mapper-plus.so into your docker CPA's plugins
-# dir (cp 覆盖，热重载友好）。部署前清理该 ID 的 release 残留（避免 CPA cleanup 冲突）。
+# dev-so: 自动识别目标平台后编译对应拓展（linux .so / darwin .dylib / windows .dll），
+# 以固定名覆写部署到 CPA_PLUGINS_DIR/<goos>/<goarch>/（热重载友好）。
+# 部署前清理该 ID 的 release 残留（避免 CPA cleanup 冲突）。
 dev-so: web-build
-	@$(MAKE) --no-print-directory build-platform-go GOOS=linux GOARCH=amd64 GO="$(GO)" DIST_DIR="$(DIST_DIR)" PLUGIN_NAME="$(PLUGIN_NAME)" PLUGIN_VERSION="$(PLUGIN_VERSION)" BUILD_CC="$(ZIG) cc -target x86_64-linux-gnu" LDFLAGS="$(LDFLAGS)" VERSION_LDFLAGS="$(VERSION_LDFLAGS)"
-	@mkdir -p "$(CPA_PLUGINS_DIR)/linux/amd64"
-	@rm -f "$(CPA_PLUGINS_DIR)/linux/amd64/$(PLUGIN_NAME)-v"*.so
-	cp $(DIST_DIR)/linux_amd64/$(PLUGIN_NAME)-v$(PLUGIN_VERSION).so "$(CPA_PLUGINS_DIR)/linux/amd64/$(PLUGIN_NAME).so"
-	@echo ">> deployed $(PLUGIN_NAME).so (v$(PLUGIN_VERSION)) -> $(CPA_PLUGINS_DIR)/linux/amd64/ (restart/reload your CPA to pick it up)"
+	@target=$$(CPA_PLUGINS_DIR="$(CPA_PLUGINS_DIR)" CPA_HOST="$(CPA_HOST)" \
+		DEV_SO_GOOS="$(DEV_SO_GOOS)" DEV_SO_GOARCH="$(DEV_SO_GOARCH)" \
+		DEV_SO_SKIP_DOCKER="$(DEV_SO_SKIP_DOCKER)" CPA_CONTAINER="$(CPA_CONTAINER)" \
+		bash scripts/dev-so-target.sh) || exit 1; \
+	goos=$${target%/*}; goarch=$${target#*/}; \
+	case "$$goos" in windows) ext=".dll" ;; darwin) ext=".dylib" ;; *) ext=".so" ;; esac; \
+	build_cc=""; \
+	if [ "$$goos" = linux ] && [ "$$(uname -s)" != Linux ]; then \
+		case "$$goarch" in \
+			amd64) zig_t=x86_64-linux-gnu ;; \
+			arm64) zig_t=aarch64-linux-gnu ;; \
+			*) echo "unsupported linux plugin arch '$$goarch'"; exit 1 ;; \
+		esac; \
+		if ! command -v "$(ZIG)" >/dev/null 2>&1; then \
+			echo "zig is required to cross-compile linux/$$goarch from $$(uname -s) (brew install zig)"; \
+			exit 1; \
+		fi; \
+		build_cc="$(ZIG) cc -target $$zig_t"; \
+	fi; \
+	$(MAKE) --no-print-directory build-platform-go GOOS="$$goos" GOARCH="$$goarch" GO="$(GO)" DIST_DIR="$(DIST_DIR)" PLUGIN_NAME="$(PLUGIN_NAME)" PLUGIN_VERSION="$(PLUGIN_VERSION)" BUILD_CC="$$build_cc" LDFLAGS="$(LDFLAGS)" VERSION_LDFLAGS="$(VERSION_LDFLAGS)"; \
+	mkdir -p "$(CPA_PLUGINS_DIR)/$$goos/$$goarch"; \
+	rm -f "$(CPA_PLUGINS_DIR)/$$goos/$$goarch/$(PLUGIN_NAME)-v"*$$ext; \
+	cp "$(DIST_DIR)/$${goos}_$${goarch}/$(PLUGIN_NAME)-v$(PLUGIN_VERSION)$$ext" "$(CPA_PLUGINS_DIR)/$$goos/$$goarch/$(PLUGIN_NAME)$$ext"; \
+	echo ">> deployed $(PLUGIN_NAME)$$ext (v$(PLUGIN_VERSION)) -> $(CPA_PLUGINS_DIR)/$$goos/$$goarch/ (restart/reload your CPA to pick it up)"
 
 # dev-ui: vite dev server on :5173, proxying /v0/management to your CPA.
 dev-ui:
