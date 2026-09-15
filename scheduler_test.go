@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"strings"
 	"testing"
 	"time"
 
@@ -31,9 +32,9 @@ func schedulerEnvelope(t *testing.T, req pluginapi.SchedulerPickRequest) plugina
 	return env
 }
 
-func assertChannelTargetAuthNotFound(t *testing.T, env pluginabi.Envelope) {
+func assertChannelTargetUnavailable(t *testing.T, env pluginabi.Envelope, wantCandidates, wantSuppliers, wantAuthIDs int) {
 	t.Helper()
-	if env.OK || env.Error == nil || env.Error.Code != "auth_not_found" || env.Error.HTTPStatus != http.StatusServiceUnavailable {
+	if env.OK || env.Error == nil || env.Error.Code != "auth_not_found" || env.Error.HTTPStatus != http.StatusTooManyRequests {
 		t.Fatalf("envelope = %+v", env)
 	}
 	var body struct {
@@ -41,6 +42,13 @@ func assertChannelTargetAuthNotFound(t *testing.T, env pluginabi.Envelope) {
 			Type    string `json:"type"`
 			Code    string `json:"code"`
 			Message string `json:"message"`
+			Detail  struct {
+				Candidates int `json:"candidates"`
+				Binding    struct {
+					Suppliers int `json:"suppliers"`
+					AuthIDs   int `json:"auth_ids"`
+				} `json:"binding"`
+			} `json:"detail"`
 		} `json:"error"`
 	}
 	if err := json.Unmarshal([]byte(env.Error.Message), &body); err != nil {
@@ -48,6 +56,14 @@ func assertChannelTargetAuthNotFound(t *testing.T, env pluginabi.Envelope) {
 	}
 	if body.Error.Type != "auth_not_found" || body.Error.Code != "auth_not_found" || body.Error.Message == "" {
 		t.Fatalf("error body = %+v", body)
+	}
+	if !strings.Contains(body.Error.Message, "retry") {
+		t.Fatalf("error message lacks retry semantics: %q", body.Error.Message)
+	}
+	if body.Error.Detail.Candidates != wantCandidates ||
+		body.Error.Detail.Binding.Suppliers != wantSuppliers || body.Error.Detail.Binding.AuthIDs != wantAuthIDs {
+		t.Fatalf("error detail = %+v want candidates=%d suppliers=%d auth_ids=%d",
+			body.Error.Detail, wantCandidates, wantSuppliers, wantAuthIDs)
 	}
 }
 
@@ -156,7 +172,7 @@ func TestChannelTargetScheduler(t *testing.T) {
 		env := schedulerEnvelope(t, schedulerRequest("sk-k",
 			pluginapi.SchedulerAuthCandidate{ID: "outside", Provider: "claude", Status: "active"},
 		))
-		assertChannelTargetAuthNotFound(t, env)
+		assertChannelTargetUnavailable(t, env, 1, 0, 1)
 	})
 
 	t.Run("目标 cooldown、池外 active 时不越池", func(t *testing.T) {
@@ -165,7 +181,7 @@ func TestChannelTargetScheduler(t *testing.T) {
 			pluginapi.SchedulerAuthCandidate{ID: "f1", Provider: "claude", Status: "cooldown"},
 			pluginapi.SchedulerAuthCandidate{ID: "outside", Provider: "claude", Status: "active"},
 		))
-		assertChannelTargetAuthNotFound(t, env)
+		assertChannelTargetUnavailable(t, env, 2, 0, 1)
 	})
 
 	t.Run("目标低优先级、池外高优先级时不越池", func(t *testing.T) {
@@ -174,7 +190,30 @@ func TestChannelTargetScheduler(t *testing.T) {
 		env := schedulerEnvelope(t, schedulerRequest("sk-k",
 			pluginapi.SchedulerAuthCandidate{ID: "outside", Provider: "claude", Status: "active"},
 		))
-		assertChannelTargetAuthNotFound(t, env)
+		assertChannelTargetUnavailable(t, env, 1, 0, 1)
+	})
+
+	t.Run("错误体脱敏", func(t *testing.T) {
+		seedSchedulerBinding(t, KeyBinding{Key: "sk-k", ChannelTarget: &ChannelTarget{Enabled: true, AuthIDs: []string{"f1"}}})
+		env := schedulerEnvelope(t, schedulerRequest("sk-k",
+			pluginapi.SchedulerAuthCandidate{ID: "outside-secret-id", Provider: "claude-secret-provider", Status: "active"},
+		))
+		assertChannelTargetUnavailable(t, env, 1, 0, 1)
+		for _, secret := range []string{"outside-secret-id", "claude-secret-provider", "sk-k", "f1"} {
+			if strings.Contains(env.Error.Message, secret) {
+				t.Fatalf("error body leaks %q: %s", secret, env.Error.Message)
+			}
+		}
+	})
+
+	t.Run("suppliers 整选池空 detail 对称", func(t *testing.T) {
+		seedSchedulerBinding(t, KeyBinding{Key: "sk-k", ChannelTarget: &ChannelTarget{Enabled: true, Suppliers: []string{"codex"}}})
+		env := schedulerEnvelope(t, schedulerRequest("sk-k",
+			pluginapi.SchedulerAuthCandidate{ID: "a", Provider: "claude", Status: "active"},
+			pluginapi.SchedulerAuthCandidate{ID: "b", Provider: "claude", Status: "active"},
+			pluginapi.SchedulerAuthCandidate{ID: "c", Provider: "gemini", Status: "active"},
+		))
+		assertChannelTargetUnavailable(t, env, 3, 1, 0)
 	})
 
 	t.Run("宿主全局无候选 MAY 在 Scheduler 前返回 429", func(t *testing.T) {

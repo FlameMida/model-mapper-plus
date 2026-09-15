@@ -1,11 +1,16 @@
 format_version: 1
-current: null
+current: T04
 tasks:
-  T00: { status: pending }
-  T01: { status: pending }
-  T02: { status: pending }
-  T03: { status: pending }
-  T04: { status: pending }
+  T00: { status: completed, commit: de334c694974d9390e87e3c82e69baa39122a267 }
+  T01: { status: completed, commit: 7899a413920fbef0e6e641e5688734de1a60e6ab, tests: pass }
+  T02: { status: completed, commit: 12c5acc4e0bc548836f30a3737163eb38b8f789c }
+  T03: { status: completed, tests: skip }
+  T04: { status: in_progress }
 resources:
-  - "worktree: .worktrees/plan/2026-09-15-02-channel-target-empty-pool-error-form —— git worktree remove .worktrees/plan/2026-09-15-02-channel-target-empty-pool-error-form（T00 建立后按实际路径与归属更新本行；复用隔离时改为保留/移交回执）"
-notes: []
+  - "worktree: /Users/maverick/cpa-model-mapper-plus/.worktrees/plan/2026-09-15-02-channel-target-empty-pool-error-form（created，本计划所有；分支 plan/2026-09-15-02-channel-target-empty-pool-error-form；清理：git worktree remove 该路径，先于清理确认已合并）"
+notes:
+  - "T00 来源工作区 /Users/maverick/cpa-model-mapper-plus @ main @ de334c694974d9390e87e3c82e69baa39122a267；实施工作区即 resources 所记路径。EnterWorktree 默认基线 origin/main(3b04b2f) 落后本地 HEAD 5 提交（spec/plan 均在本地），故从本地 HEAD 手工 git worktree add，再经 EnterWorktree path 切入会话。基线验证：go build ./... OK；go test . -count=1 -run 'TestChannelTarget|TestHandleMethod' 32 passed。"
+  - "T01 小偏差：helper 调用点实际 4 处（任务只列 scheduler_test.go 3 处），channel_credentials_test.go:110 已同步改签名，期望计数 (1,0,2)，提交信息已注明。本 worktree 内 git 命令须用绝对路径 /usr/bin/git（rtk 重写会被 worktree 隔离 hook 拒绝）。"
+  - "T02 小偏差：回写清单 C 表遗漏 4 处非 Requirement 区 503（验收矩阵 D 行 405-407 与风险节 415），spec「取代与共存」节明确要求同步，已一并改为 429，提交信息已注明。旧 spec 残留 503 仅存于两条 Superseded Requirement 正文内 6 处（历史保留）。"
+  - "T03 真机冒烟未跑：本机无 docker CPA、8317 无监听。用户 2026-09-15 指示合入 main，按票面记未验证缺口，不伪造通过。报告见 acceptance/acceptance-report.md。"
+  - "T04 全量 go test ./... -count=1：584 passed。无孤儿测试。旧 spec 503 仅剩两条已标注 Superseded Requirement 正文。"
