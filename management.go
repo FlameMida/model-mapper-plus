@@ -5,6 +5,7 @@ import (
 	"errors"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/router-for-me/CLIProxyAPI/v7/sdk/pluginapi"
 )
@@ -147,6 +148,16 @@ func managementGetState() pluginapi.ManagementResponse {
 	if version == 0 {
 		version = stateVersion
 	}
+	_ = withNotificationStore(func(store *notificationStore) error {
+		now := time.Now()
+		for i := range st.KeyBindings {
+			fp := keyFingerprint(st.KeyBindings[i].Key)
+			for j := range st.KeyBindings[i].Notifications {
+				projectNotificationNextFire(&st.KeyBindings[i].Notifications[j], fp, []string{"-"}, store, now)
+			}
+		}
+		return nil
+	})
 	return managementJSON(http.StatusOK, stateResponse{
 		Version: version, Rules: st.Rules,
 		KeyBindings: st.KeyBindings, UpdatedAt: st.UpdatedAt, Persisted: persisted,

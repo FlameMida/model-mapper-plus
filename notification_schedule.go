@@ -61,6 +61,84 @@ func nextTrigger(s NotificationSchedule, after time.Time, loc *time.Location) (t
 	return time.Time{}, false
 }
 
+func dueAt(sched NotificationSchedule, lastSuccess, now time.Time, loc *time.Location) (due bool, next time.Time) {
+	now = now.In(loc)
+	switch sched.Kind {
+	case ScheduleInterval:
+		if sched.Interval <= 0 {
+			return false, time.Time{}
+		}
+		if lastSuccess.IsZero() {
+			return true, now
+		}
+		last := lastSuccess.In(loc)
+		gap := time.Duration(sched.Interval) * time.Second
+		next = last.Add(gap)
+		if !now.Before(next) {
+			return true, now
+		}
+		return false, next
+	case ScheduleMonthly, ScheduleYearly:
+		occ := lastOccurrence(sched, now, loc)
+		if occ.IsZero() {
+			return false, time.Time{}
+		}
+		if lastSuccess.IsZero() || lastSuccess.In(loc).Before(occ) {
+			return true, occ
+		}
+		n, ok := nextTrigger(sched, now, loc)
+		if !ok {
+			return false, time.Time{}
+		}
+		return false, n
+	default:
+		return false, time.Time{}
+	}
+}
+
+func lastOccurrence(sched NotificationSchedule, now time.Time, loc *time.Location) time.Time {
+	n := now.In(loc)
+	switch sched.Kind {
+	case ScheduleMonthly:
+		h, m, sec, ok := parseDayTime(sched.Time)
+		if !ok {
+			return time.Time{}
+		}
+		cand := monthBoundary(n.Year(), n.Month(), sched.MonthEnd, h, m, sec, loc)
+		if !cand.After(n) {
+			return cand
+		}
+		y, mo := n.Year(), n.Month()-1
+		if mo < time.January {
+			y--
+			mo = time.December
+		}
+		return monthBoundary(y, mo, sched.MonthEnd, h, m, sec, loc)
+	case ScheduleYearly:
+		h, m, sec, ok := parseDayTime(sched.Time)
+		if !ok || sched.Month < 1 || sched.Month > 12 || sched.Day < 1 || sched.Day > 31 {
+			return time.Time{}
+		}
+		for y := n.Year(); y >= n.Year()-8; y-- {
+			t := time.Date(y, time.Month(sched.Month), sched.Day, h, m, sec, 0, loc)
+			if t.Day() != sched.Day {
+				continue
+			}
+			if !t.After(n) {
+				return t
+			}
+		}
+	}
+	return time.Time{}
+}
+
+func formatNextFire(t time.Time) string {
+	if t.IsZero() {
+		return ""
+	}
+	return t.In(NotificationLocation).Format("2006-01-02 15:04:05")
+}
+
 func monthBoundary(year int, month time.Month, monthEnd bool, h, m, sec int, loc *time.Location) time.Time {
 	if monthEnd {
 		return time.Date(year, month+1, 0, h, m, sec, 0, loc) // day 0 = 当月最后一天

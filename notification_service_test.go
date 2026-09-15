@@ -42,7 +42,25 @@ func (a *stubAdapter) count() int {
 	return len(a.sent)
 }
 
+func isolateNotificationServiceGlobals(t *testing.T) {
+	t.Helper()
+	loadedStateMu.Lock()
+	prev := loadedHolder
+	loadedHolder = stateHolder{src: ruleSourceFromConfig(defaultConfig())}
+	loadedStateMu.Unlock()
+	prevCollector := _statsCollector
+	prevCh := _testChannels
+	t.Cleanup(func() {
+		loadedStateMu.Lock()
+		loadedHolder = prev
+		loadedStateMu.Unlock()
+		_statsCollector = prevCollector
+		_testChannels = prevCh
+	})
+}
+
 func TestServiceFiresDueScheduleAndPersistsJob(t *testing.T) {
+	isolateNotificationServiceGlobals(t)
 	store := openTestStore(t) // T04 测试辅助
 	now := time.Date(2026, 9, 13, 9, 0, 30, 0, NotificationLocation)
 	clock := now
@@ -70,6 +88,7 @@ func TestServiceFiresDueScheduleAndPersistsJob(t *testing.T) {
 }
 
 func TestServiceNoDuplicatePendingForSamePeriod(t *testing.T) {
+	isolateNotificationServiceGlobals(t)
 	// 同周期已有任意非 superseded 任务（含 pending）→ 不再生成（限流合并语义的上游闸门）
 	store := openTestStore(t)
 	_, err := store.UpsertJob(notificationJob{ID: "seed", KeyFingerprint: keyFingerprint("sk-k1"),
@@ -119,6 +138,109 @@ func stubSourceForState(st State) *keeperStatsSource {
 // tick: the same due-check as scheduleTick (lastFire at its zero start value)
 // plus the real throttle gate (pendingJobExists), returning the platform
 // targets that would be enqueued.
+func TestScheduleSecondIntervalTickEnqueues(t *testing.T) {
+	isolateNotificationServiceGlobals(t)
+	store := openTestStore(t)
+	t0 := time.Date(2026, 9, 15, 8, 0, 0, 0, NotificationLocation)
+	now := t0
+	st := serviceTestState()
+	normalizeNotificationSettings(st.Notifications)
+	_testChannels = []string{"ai_1"}
+	t.Cleanup(func() { _testChannels = nil })
+	svc := &notificationService{state: st, deps: serviceDeps{
+		Now: func() time.Time { return now }, Store: store, Source: stubSourceForState(st),
+	}}
+	svc.scheduleTick(context.Background())
+	claimed, err := store.ClaimDueJobs(t0.Add(time.Minute), 20)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, j := range claimed {
+		if err := store.FinishJob(j.ID, deliveryAccepted, "", ""); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if err := store.SetClock(st.Notifications.Notifications[0].ID, "global", "ai_1", t0); err != nil {
+		t.Fatal(err)
+	}
+	now = t0.Add(15 * time.Second)
+	svc.scheduleTick(context.Background())
+	now = t0.Add(60 * time.Second)
+	svc.scheduleTick(context.Background())
+	due, _ := store.ClaimDueJobs(now.Add(time.Minute), 20)
+	if len(due) == 0 {
+		t.Fatal("T+60s must enqueue after a 15s poll")
+	}
+}
+
+func TestSchedulePollDoesNotSlideInterval(t *testing.T) {
+	isolateNotificationServiceGlobals(t)
+	store := openTestStore(t)
+	t0 := time.Date(2026, 9, 15, 8, 0, 0, 0, NotificationLocation)
+	now := t0
+	st := serviceTestState()
+	st.Notifications.GlobalDefault.Schedule = &NotificationSchedule{Kind: ScheduleInterval, Interval: 86400}
+	normalizeNotificationSettings(st.Notifications)
+	_testChannels = []string{"ai_1"}
+	t.Cleanup(func() { _testChannels = nil })
+	svc := &notificationService{state: st, deps: serviceDeps{
+		Now: func() time.Time { return now }, Store: store, Source: stubSourceForState(st),
+	}}
+	svc.scheduleTick(context.Background())
+	_ = store.SetClock(st.Notifications.Notifications[0].ID, "global", "ai_1", t0)
+	now = t0.Add(15 * time.Second)
+	svc.scheduleTick(context.Background())
+	want := formatNextFire(t0.Add(24 * time.Hour))
+	if svc.Status().NextFire != want {
+		t.Fatalf("next_fire=%q want %q", svc.Status().NextFire, want)
+	}
+}
+
+func TestGlobalChannelLoopIndependentOfKeyBindings(t *testing.T) {
+	isolateNotificationServiceGlobals(t)
+	store := openTestStore(t)
+	st := serviceTestState()
+	st.KeyBindings[0].Notifications = []Notification{{
+		ID: "key-n", Name: "专属", Enabled: true,
+		Modules:   []ModuleConfig{{Kind: ModuleDaily, Period: PeriodCurrent}},
+		Schedule:  &NotificationSchedule{Kind: ScheduleInterval, Interval: 60},
+		Platforms: []PlatformIdentity{{Kind: PlatformFeishu, Enabled: true, Webhook: "https://k", UserIDs: []string{"ou_k"}}},
+	}}
+	normalizeNotificationSettings(st.Notifications)
+	_testChannels = []string{"ai_1", "ai_2"}
+	t.Cleanup(func() { _testChannels = nil })
+	now := time.Date(2026, 9, 15, 8, 0, 0, 0, NotificationLocation)
+	svc := &notificationService{state: st, deps: serviceDeps{
+		Now: func() time.Time { return now }, Store: store, Source: stubSourceForState(st),
+	}}
+	svc.scheduleTick(context.Background())
+	due, _ := store.ClaimDueJobs(now.Add(time.Minute), 20)
+	var globalCh int
+	for _, j := range due {
+		if j.NotificationID == st.Notifications.Notifications[0].ID && (j.Channel == "ai_1" || j.Channel == "ai_2") {
+			globalCh++
+		}
+	}
+	if globalCh < 2 {
+		t.Fatalf("global must still enqueue both channels, jobs=%+v", due)
+	}
+}
+
+func TestIdentityUsesNotificationWebhook(t *testing.T) {
+	st := State{Notifications: &NotificationSettings{Enabled: true, Notifications: []Notification{{
+		ID: "g", Enabled: true, Platforms: []PlatformIdentity{{Kind: PlatformFeishu, Enabled: true, Webhook: "https://g"}},
+	}}}, KeyBindings: []KeyBinding{
+		{Key: "sk-k1", Enabled: true},
+		{Key: "sk-k2", Enabled: true, Notifications: []Notification{{
+			ID: "k", Enabled: true, Platforms: []PlatformIdentity{{Kind: PlatformFeishu, Enabled: true, Webhook: "https://k"}},
+		}}},
+	}}
+	got, ok := identityForJob(st, "k", keyFingerprint("sk-k2"), PlatformFeishu)
+	if !ok || got.Webhook != "https://k" {
+		t.Fatalf("want https://k, got %+v ok=%v", got, ok)
+	}
+}
+
 func collectDueGenerations(t *testing.T, store *notificationStore, st State, now time.Time) []string {
 	t.Helper()
 	var generated []string
@@ -140,7 +262,7 @@ func collectDueGenerations(t *testing.T, store *notificationStore, st State, now
 				if !p.Enabled {
 					continue
 				}
-				if pendingJobExists(store, fp, n.ID, p.Kind) {
+				if pendingJobExists(store, fp, n.ID, p.Kind, "") {
 					continue
 				}
 				generated = append(generated, string(p.Kind)+"/"+notificationPeriodKey(n, now))

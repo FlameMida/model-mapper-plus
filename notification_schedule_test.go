@@ -70,3 +70,60 @@ func TestParseDayTimeInvalid(t *testing.T) {
 		}
 	}
 }
+
+func TestDueAtIntervalSecondBeat(t *testing.T) {
+	last := mustTime(t, "2026-09-15T08:00:00+08:00")
+	now := last.Add(60 * time.Second)
+	due, _ := dueAt(NotificationSchedule{Kind: ScheduleInterval, Interval: 60}, last, now, NotificationLocation)
+	if !due {
+		t.Fatal("T+60s must be due for a 60s interval")
+	}
+}
+
+func TestDueAtIntervalDoesNotSlideWithPoll(t *testing.T) {
+	last := mustTime(t, "2026-09-15T08:00:00+08:00")
+	now := last.Add(15 * time.Second)
+	due, next := dueAt(NotificationSchedule{Kind: ScheduleInterval, Interval: 86400}, last, now, NotificationLocation)
+	if due {
+		t.Fatal("15s poll must not fire a 1-day interval")
+	}
+	want := last.Add(24 * time.Hour)
+	if !next.Equal(want) {
+		t.Fatalf("next = %s, want %s", next, want)
+	}
+}
+
+func TestDueAtMonthlyCatchupLatestOnly(t *testing.T) {
+	last := mustTime(t, "2026-07-15T12:00:00+08:00")
+	now := mustTime(t, "2026-09-15T10:00:00+08:00")
+	due, next := dueAt(NotificationSchedule{Kind: ScheduleMonthly, Time: "09:00:00"}, last, now, NotificationLocation)
+	if !due {
+		t.Fatal("must catch up the latest missed month start")
+	}
+	if next.Format("2006-01-02 15:04:05") != "2026-09-01 09:00:00" {
+		t.Fatalf("catch-up point = %s, want 2026-09-01 09:00:00", next.Format("2006-01-02 15:04:05"))
+	}
+}
+
+func TestFormatNextFireHumanCST(t *testing.T) {
+	got := formatNextFire(mustTime(t, "2026-09-15T08:44:47+08:00"))
+	if got != "2026-09-15 08:44:47" {
+		t.Fatalf("got %q", got)
+	}
+	if len(got) > 0 && (containsRune(got, 'T') || containsPlusOffset(got)) {
+		t.Fatalf("must not use RFC3339 as the only display, got %q", got)
+	}
+}
+
+func containsRune(s string, r rune) bool {
+	for _, c := range s {
+		if c == r {
+			return true
+		}
+	}
+	return false
+}
+
+func containsPlusOffset(s string) bool {
+	return len(s) >= 6 && s[len(s)-6] == '+'
+}

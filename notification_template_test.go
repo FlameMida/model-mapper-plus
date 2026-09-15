@@ -30,14 +30,35 @@ func renderFixture() (Notification, statsData) {
 
 func intPtr(v int) *int { return &v }
 
+func TestPeriodChannelMetricsEachOnOwnLine(t *testing.T) {
+	n := Notification{Name: "日报用量通知", Modules: []ModuleConfig{{Kind: ModuleDaily, Period: PeriodCurrent}}}
+	d := statsData{DisplayName: "Codex 主号", Plan: "Pro 20x", Periods: map[string]periodStats{
+		"daily:2026-09-13": {Channels: []channelStats{
+			{Label: "Codex", Tokens: 800000, Share: 0.4, ShareKnown: true, CostUSD: 12.34, CostAvailable: true},
+		}},
+	}}
+	out, _ := renderMessage(n, d, time.Date(2026, 9, 13, 17, 0, 0, 0, NotificationLocation))
+	if !strings.Contains(out, "Codex\n用量 800.00K tokens\n") {
+		t.Fatalf("channel name and usage must be on their own lines:\n%s", out)
+	}
+	if !strings.Contains(out, "占比 40.00%\n") || !strings.Contains(out, "折算 ≈ $12.34") {
+		t.Fatalf("share and cost must be on their own lines:\n%s", out)
+	}
+	for _, line := range strings.Split(out, "\n") {
+		if strings.Contains(line, "tokens") && (strings.Contains(line, "%") || strings.Contains(line, "$")) {
+			t.Fatalf("metrics packed on one line: %q", line)
+		}
+	}
+}
+
 func TestRenderMessageSectionLayout(t *testing.T) {
 	n, d := renderFixture()
 	out, _ := renderMessage(n, d, time.Date(2026, 9, 13, 17, 0, 0, 0, NotificationLocation))
 	for _, want := range []string{
 		"日报用量通知", "研发主账号 · Pro 20x",
 		"▍日统计 · 本期累计（2026-09-13）",
-		"Claude：800.00K tokens · 40.00% · ≈$12.34",
-		"Grok：12.00K tokens · 占比未知 · ≈$0.21",
+		"Claude\n用量 800.00K tokens\n占比 40.00%\n折算 ≈ $12.34",
+		"Grok\n用量 12.00K tokens\n占比未知",
 		"▍Weekly 窗口", "还剩 3 天 12 小时",
 		"▍重置卡（2 张）", msgAmountNote,
 	} {

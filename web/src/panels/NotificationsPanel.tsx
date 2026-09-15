@@ -148,6 +148,7 @@ export default function NotificationsPanel() {
               { title: '发送计划', render: (_: unknown, n: Notification) => (
                 <Typography.Text>{scheduleText(n.schedule)}</Typography.Text>
               ) },
+              { title: '下次发送', render: (_: unknown, n: Notification) => n.next_fire || '—' },
               { title: '平台', render: (_: unknown, n: Notification) =>
                 (n.platforms ?? []).filter((p) => p.enabled).map((p) => p.kind + (p.at_all ? '(@所有人)' : '')).join('、') || '—' },
               { title: '最近投递', render: (_: unknown, n: Notification) => <LastDelivery notificationId={n.id} /> },

@@ -19,8 +19,11 @@ const full: PlatformIdentity[] = [
 
 describe('validatePlatforms', () => {
   it('flags enabled platform missing user ids', () => {
-    const errs = validatePlatforms([{ kind: 'feishu', enabled: true, webhook: 'https://x' }])
+    const errs = validatePlatforms([{ kind: 'feishu', enabled: true, webhook: 'https://x' }], 'key')
     expect(errs.join()).toContain('用户唯一 ID')
+  })
+  it('global enabled platform may omit user ids', () => {
+    expect(validatePlatforms([{ kind: 'feishu', enabled: true, webhook: 'https://x' }], 'global')).toHaveLength(0)
   })
   it('passes full config', () => {
     expect(validatePlatforms(full)).toHaveLength(0)
@@ -53,7 +56,7 @@ describe('PlatformIdentityEditor', () => {
       { kind: 'feishu', enabled: false, webhook: 'https://w' },
       { kind: 'wecom', enabled: false },
     ]
-    render(<PlatformIdentityEditor value={missing} onChange={onChange} />)
+    render(<PlatformIdentityEditor scope="key" value={missing} onChange={onChange} />)
     await userEvent.click(screen.getByText('飞书'))
     await userEvent.click(screen.getByRole('switch', { name: /启用飞书/ }))
     // 本地草稿态校验提示（保存拦截由 T13 用 validatePlatforms 兜底）

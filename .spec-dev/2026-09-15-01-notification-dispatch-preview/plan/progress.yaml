@@ -1,16 +1,18 @@
 format_version: 1
-current: null
+current: T08
 tasks:
-  T00: { status: pending }
-  T01: { status: pending }
-  T02: { status: pending }
-  T03: { status: pending }
-  T04: { status: pending }
-  T05: { status: pending }
-  T06: { status: pending }
-  T07: { status: pending }
+  T00: { status: completed, commit: 4b3fb10b10f879e22ddccc676880cd353aa62fe0, tests: pass }
+  T01: { status: completed, commit: eeb87b85e99501a8f3b7365218e51a3ff9c35ab6, tests: pass }
+  T02: { status: completed, commit: f7ceeb47cd755193b4d990108c398ce48cf09010, tests: pass }
+  T03: { status: completed, commit: abfa84fc60a994bcfb79853e5a0d328918f1b131, tests: pass }
+  T04: { status: completed, commit: 50240329c5bfca8bde5d914a7a6bca33026f09a7, tests: pass }
+  T05: { status: completed, commit: e034709d373c73ed1f17decafd7a95d8020ae023, tests: pass }
+  T06: { status: completed, commit: 12882dad0fb067d817679c01eede133b3e98a77e, tests: pass }
+  T07: { status: completed, commit: ab78e3f99baf4a3254b5710b014db6259e772589, tests: pass }
   T08: { status: pending }
   T09: { status: pending }
 resources:
-  - "worktree: .worktrees/plan/2026-09-15-01-notification-dispatch-preview —— git worktree remove .worktrees/plan/2026-09-15-01-notification-dispatch-preview && git branch -D plan/2026-09-15-01-notification-dispatch-preview"
-notes: []
+  - "worktree: /Users/maverick/cpa-model-mapper-plus/.worktrees/plan/2026-09-15-01-notification-dispatch-preview —— git worktree remove /Users/maverick/cpa-model-mapper-plus/.worktrees/plan/2026-09-15-01-notification-dispatch-preview && git branch -D plan/2026-09-15-01-notification-dispatch-preview"
+notes:
+  - "T00 created worktree. source=/Users/maverick/cpa-model-mapper-plus branch=main HEAD=4b3fb10. isolation=/Users/maverick/cpa-model-mapper-plus/.worktrees/plan/2026-09-15-01-notification-dispatch-preview branch=plan/2026-09-15-01-notification-dispatch-preview. baseline: go Test(Notification|ManagementNotification|Keeper) 41 passed; pnpm --prefix web test 196 passed."
+

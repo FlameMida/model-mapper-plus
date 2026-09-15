@@ -50,17 +50,24 @@ func TestPutSettingsPersistsAndEchoesPlaintext(t *testing.T) {
 	if out.GlobalDefault.Platforms[0].FetchAppID != "cli_x" || out.GlobalDefault.Platforms[0].FetchAppSecret != "app-sec-1" {
 		t.Fatalf("must echo plaintext fetch credentials, got %+v", out.GlobalDefault.Platforms[0])
 	}
+	if out.GlobalDefault.NextFire == "" {
+		t.Fatal("settings must project next_fire")
+	}
+	if strings.Contains(out.GlobalDefault.NextFire, "T") || strings.Contains(out.GlobalDefault.NextFire, "+08") {
+		t.Fatalf("next_fire must be human CST, got %q", out.GlobalDefault.NextFire)
+	}
 }
 
-// Scenario: 缺少 user_ids 的启用平台保存被拒绝
-func TestPutSettingsRejectsMissingIdentity(t *testing.T) {
+// Scenario: 全局启用平台可免填用户唯一 ID
+func TestPutSettingsAllowsGlobalWithoutUserIDs(t *testing.T) {
 	withTempNotificationState(t)
 	body := `{"enabled":true,"global_default":{"id":"global","name":"用量通知","enabled":true,
 	  "modules":[{"kind":"daily","period":"current"}],
-	  "platforms":[{"kind":"feishu","enabled":true,"webhook":"https://x"}]}}`
+	  "schedule":{"kind":"interval","interval":86400,"time":"09:00:00"},
+	  "platforms":[{"kind":"feishu","enabled":true,"webhook":"https://open.feishu.cn/hook/x"}]}}`
 	resp := dispatchManagement(mgmtRequest(http.MethodPut, "/v0/management/plugins/model-mapper-plus/notifications/settings", body))
-	if resp.StatusCode != http.StatusBadRequest {
-		t.Fatalf("missing user_ids must 400, got %d", resp.StatusCode)
+	if resp.StatusCode != http.StatusOK {
+		t.Fatalf("global may omit user_ids, got %d %s", resp.StatusCode, resp.Body)
 	}
 }
 
@@ -80,15 +87,22 @@ func TestPreviewRendersSavedConfigWithoutSending(t *testing.T) {
 		t.Fatalf("preview: %d %s", resp.StatusCode, resp.Body)
 	}
 	var out struct {
-		Text     string   `json:"text"`
-		Warnings []string `json:"warnings"`
-		Bytes    int      `json:"bytes"`
+		Text      string   `json:"text"`
+		Warnings  []string `json:"warnings"`
+		Bytes     int      `json:"bytes"`
+		Platforms []struct {
+			Kind string `json:"kind"`
+			Text string `json:"text"`
+		} `json:"platforms"`
 	}
 	if err := json.Unmarshal(resp.Body, &out); err != nil {
 		t.Fatal(err)
 	}
 	if !contains(out.Text, "用量通知") || out.Bytes == 0 {
 		t.Fatalf("preview must render saved entity: %+v", out)
+	}
+	if len(out.Platforms) != 1 || out.Platforms[0].Kind != "feishu" || !contains(out.Platforms[0].Text, "用量通知") {
+		t.Fatalf("preview must include enabled platforms: %+v", out.Platforms)
 	}
 	// Keeper 未配置（withTempNotificationState 里 URL=""）→ 预览含受控警告而非 0 值
 	if len(out.Warnings) == 0 {

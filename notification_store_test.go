@@ -64,6 +64,41 @@ func TestDifferentPeriodJobsDoNotMerge(t *testing.T) {
 	}
 }
 
+func TestUpsertJobDoesNotMergeDifferentChannels(t *testing.T) {
+	s := openTestStore(t)
+	now := time.Now()
+	a := notificationJob{ID: "a", KeyFingerprint: "fp", NotificationID: "n", Platform: PlatformFeishu,
+		PeriodKey: "daily:2026-09-13", Channel: "ai_1", State: jobPending, NextAttempt: now, CreatedAt: now}
+	b := a
+	b.ID = "b"
+	b.Channel = "ai_2"
+	if _, err := s.UpsertJob(a); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := s.UpsertJob(b); err != nil {
+		t.Fatal(err)
+	}
+	due, _ := s.ClaimDueJobs(now.Add(time.Minute), 10)
+	if len(due) != 2 {
+		t.Fatalf("different channels must not merge, got %d", len(due))
+	}
+}
+
+func TestClockRoundTrip(t *testing.T) {
+	s := openTestStore(t)
+	ts := time.Date(2026, 9, 15, 8, 0, 0, 0, NotificationLocation)
+	if err := s.SetClock("n1", "global", "ai_1", ts); err != nil {
+		t.Fatal(err)
+	}
+	got, ok := s.Clock("n1", "global", "ai_1")
+	if !ok || !got.Equal(ts) {
+		t.Fatalf("clock = %v ok=%v", got, ok)
+	}
+	if _, ok := s.Clock("n1", "global", "missing"); ok {
+		t.Fatal("missing clock key must be absent")
+	}
+}
+
 func TestRecoverOnBootMarksSendingUnknown(t *testing.T) {
 	s := openTestStore(t)
 	now := time.Now()

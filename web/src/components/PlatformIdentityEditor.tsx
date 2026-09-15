@@ -55,8 +55,8 @@ export function validatePlatforms(platforms: PlatformIdentity[], scope: 'key' | 
     if (!p.enabled) continue
     if (!p.webhook?.trim()) errs.push(`${p.kind}: Webhook 地址为必填项`)
     const hasUser = p.user_ids?.some((u) => u.trim())
-    if (scope === 'global' ? !p.at_all && !hasUser : !hasUser) {
-      errs.push(`${p.kind}: 启用通知时用户唯一 ID 为必填${scope === 'global' ? '（或开启 @所有人）' : ''}`)
+    if (scope === 'key' && !hasUser) {
+      errs.push(`${p.kind}: 启用通知时用户唯一 ID 为必填`)
     }
   }
   return errs
@@ -158,14 +158,14 @@ export default function PlatformIdentityEditor({ value, onChange, scope = 'globa
     <Tabs type="card" keepDOM={false} activeKey={active} onChange={(k) => setActive(k as PlatformKind)}>
       {PLATFORM_TABS.map(({ kind, label }) => {
         const p = draft[kind]
-        const missingUser = p.enabled && (scope === 'global' ? !p.at_all : true) && !p.user_ids?.some((u) => u.trim())
+        const missingUser = p.enabled && scope === 'key' && !p.user_ids?.some((u) => u.trim())
         const missingHook = p.enabled && !p.webhook?.trim()
         const memberState = memberStates[kind]
 
         // 成员选项三元组（照 keyOptions 模式）；已选但未拉取到的 ID 补保留项，不丢手动值。
         let options = (memberState.members ?? []).map((m) => ({
           value: m.id,
-          label: `${m.name} · ${m.id}`,
+          label: m.name ? `${m.name} · ${m.id}` : m.id,
           searchText: `${m.name} ${m.id}`.toLocaleLowerCase(),
         }))
         for (const id of p.user_ids ?? []) {
@@ -191,9 +191,7 @@ export default function PlatformIdentityEditor({ value, onChange, scope = 'globa
                 <Input aria-label="Webhook 地址" style={{ flex: 1 }} value={p.webhook ?? ''} placeholder="https://…"
                   onChange={(webhook) => update(kind, { webhook })} />
               </FieldRow>
-              <FieldRow label="用户唯一 ID" errorText={missingUser
-                ? `启用通知时用户唯一 ID 为必填${scope === 'global' ? '（或开启 @所有人）' : ''}`
-                : undefined}>
+              <FieldRow label="用户唯一 ID" errorText={missingUser ? '启用通知时用户唯一 ID 为必填' : undefined}>
                 <Select
                   aria-label="用户唯一 ID"
                   style={{ flex: 1 }}

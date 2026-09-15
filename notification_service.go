@@ -45,14 +45,13 @@ type notificationStatus struct {
 }
 
 type notificationService struct {
-	cfg      Config
-	state    State
-	deps     serviceDeps
-	cancel   context.CancelFunc
-	wg       sync.WaitGroup
-	mu       sync.Mutex
-	status   notificationStatus
-	lastFire time.Time
+	cfg    Config
+	state  State
+	deps   serviceDeps
+	cancel context.CancelFunc
+	wg     sync.WaitGroup
+	mu     sync.Mutex
+	status notificationStatus
 }
 
 // activeNotification holds the process-wide instance; restart swaps it under
@@ -68,6 +67,10 @@ var activeNotification struct {
 // T05 collection path runs. Only the HTTP boundary is replaceable; the
 // collection logic itself is never bypassed in production.
 var _statsCollector func(s *keeperStatsSource, ctx context.Context, apiKey string, kind ModuleKind, period PeriodKind, now time.Time) (periodStats, error)
+
+// _testChannels, when non-nil, is the global auth-channel set used by
+// scheduleTick in tests (T03 replaces this with collectAuthChannels).
+var _testChannels []string
 
 // collectPeriodStats routes one statistics module through the stub hook or
 // the real keeper source.
@@ -187,44 +190,129 @@ func (s *notificationService) loop(ctx context.Context, fn func(context.Context)
 	}
 }
 
-// scheduleTick is the generation gate: for every enabled binding and
-// effective notification whose next trigger is due, enqueue one job set for
-// the current period. lastFire starts at zero, so the first tick evaluates
-// immediately; afterwards each tick advances it.
+func globalNotificationList(st *State) []Notification {
+	if st == nil || st.Notifications == nil {
+		return nil
+	}
+	if len(st.Notifications.Notifications) > 0 {
+		return st.Notifications.Notifications
+	}
+	return []Notification{st.Notifications.GlobalDefault}
+}
+
+func (s *notificationService) authChannelIDs(ctx context.Context) []string {
+	if _testChannels != nil {
+		return _testChannels
+	}
+	if s.deps.Source == nil || s.deps.Source.client == nil {
+		return []string{"-"}
+	}
+	rows, _, err := s.deps.Source.collectAuthChannels(ctx, "")
+	if err != nil {
+		s.setStatusError(controlled(err))
+		return nil
+	}
+	ids := make([]string, 0, len(rows))
+	for _, r := range rows {
+		if r.Identity != "" {
+			ids = append(ids, r.Identity)
+		}
+	}
+	return ids
+}
+
+func (s *notificationService) liveState() State {
+	if snap, ok := loadedStateSnapshot(); ok {
+		return snap
+	}
+	return s.state
+}
+
+func activeNotificationService() *notificationService {
+	activeNotification.Lock()
+	defer activeNotification.Unlock()
+	return activeNotification.svc
+}
+
+func clockScope(fp string) string {
+	if fp == "" || fp == "global" {
+		return "global"
+	}
+	return fp
+}
+
+// scheduleTick evaluates due global channel jobs and dedicated key
+// notifications against persisted clocks. It never treats the poll instant
+// as the plan anchor.
 func (s *notificationService) scheduleTick(ctx context.Context) {
 	now := s.deps.Now()
+	st := s.state
+	if snap, ok := loadedStateSnapshot(); ok {
+		st = snap
+	}
+	if st.Notifications == nil || !st.Notifications.Enabled {
+		s.mu.Lock()
+		s.status.NextFire = ""
+		s.mu.Unlock()
+		return
+	}
 	var nextFire time.Time
-	for i := range s.state.KeyBindings {
-		binding := &s.state.KeyBindings[i]
-		if !binding.Enabled {
+	note := func(next time.Time) {
+		if next.IsZero() {
+			return
+		}
+		if nextFire.IsZero() || next.Before(nextFire) {
+			nextFire = next
+		}
+	}
+	channels := s.authChannelIDs(ctx)
+	for _, n := range globalNotificationList(&st) {
+		if !n.Enabled || n.Schedule == nil {
 			continue
 		}
-		for _, n := range effectiveNotifications(&s.state, binding) {
-			// Schedule followers fire on the pinned global entry's plan.
-			sched := effectiveSchedule(&s.state, n)
-			if !n.Enabled || sched == nil {
-				continue
-			}
-			next, ok := nextTrigger(*sched, s.lastFire, NotificationLocation)
-			if !ok {
-				continue
-			}
-			if next.After(now) {
-				if nextFire.IsZero() || next.Before(nextFire) {
-					nextFire = next
+		for _, ch := range channels {
+			last, _ := s.deps.Store.Clock(n.ID, "global", ch)
+			due, next := dueAt(*n.Schedule, last, now, NotificationLocation)
+			if due {
+				if err := s.enqueueForPeriod(ctx, nil, n, now, ch); err != nil {
+					s.setStatusError(err.Error())
 				}
-				continue
-			}
-			if err := s.enqueueForPeriod(ctx, binding, n, now); err != nil {
-				s.setStatusError(err.Error())
+				_, follow := dueAt(*n.Schedule, now, now, NotificationLocation)
+				note(follow)
+			} else {
+				note(next)
 			}
 		}
 	}
-	s.lastFire = now
-	s.mu.Lock()
-	if !nextFire.IsZero() {
-		s.status.NextFire = nextFire.Format(time.RFC3339)
+	for i := range st.KeyBindings {
+		binding := &st.KeyBindings[i]
+		if !binding.Enabled || len(binding.Notifications) == 0 {
+			continue
+		}
+		fp := keyFingerprint(binding.Key)
+		for _, n := range binding.Notifications {
+			if !n.Enabled {
+				continue
+			}
+			sched := effectiveSchedule(&st, n)
+			if sched == nil {
+				continue
+			}
+			last, _ := s.deps.Store.Clock(n.ID, fp, "-")
+			due, next := dueAt(*sched, last, now, NotificationLocation)
+			if due {
+				if err := s.enqueueForPeriod(ctx, binding, n, now, ""); err != nil {
+					s.setStatusError(err.Error())
+				}
+				_, follow := dueAt(*sched, now, now, NotificationLocation)
+				note(follow)
+			} else {
+				note(next)
+			}
+		}
 	}
+	s.mu.Lock()
+	s.status.NextFire = formatNextFire(nextFire)
 	s.mu.Unlock()
 }
 
@@ -232,8 +320,13 @@ func (s *notificationService) scheduleTick(ctx context.Context) {
 // one pending job per enabled platform of the notification. Failures keep
 // any existing archive untouched and surface their closed code; they never
 // degrade to a zero-value send.
-func (s *notificationService) enqueueForPeriod(ctx context.Context, binding *KeyBinding, n Notification, now time.Time) error {
-	fp := keyFingerprint(binding.Key)
+func (s *notificationService) enqueueForPeriod(ctx context.Context, binding *KeyBinding, n Notification, now time.Time, channel string) error {
+	fp := "global"
+	b := KeyBinding{}
+	if binding != nil {
+		fp = keyFingerprint(binding.Key)
+		b = *binding
+	}
 	var targets []PlatformIdentity
 	for _, p := range n.Platforms {
 		if p.Enabled {
@@ -243,11 +336,9 @@ func (s *notificationService) enqueueForPeriod(ctx context.Context, binding *Key
 	if len(targets) == 0 {
 		return nil
 	}
-	// 限流合并的上游闸门：任一目标仍有在途任务时整体不采集不生成，
-	// 避免重置退避中的 NextAttempt；其他目标各自再按维度把关。
 	free := false
 	for _, p := range targets {
-		if !pendingJobExists(s.deps.Store, fp, n.ID, p.Kind) {
+		if !pendingJobExists(s.deps.Store, fp, n.ID, p.Kind, channel) {
 			free = true
 			break
 		}
@@ -255,18 +346,20 @@ func (s *notificationService) enqueueForPeriod(ctx context.Context, binding *Key
 	if !free {
 		return nil
 	}
-	// Template followers collect and render with the pinned global entry's
-	// modules (the period key follows the same effective modules).
 	renderN := n
-	renderN.Modules = effectiveModules(&s.state, n)
-	data, err := s.collectStats(ctx, binding, renderN, now)
+	st := s.liveState()
+	renderN.Modules = effectiveModules(&st, n)
+	data, err := s.collectStats(ctx, &b, renderN, now, channel)
 	if err != nil {
 		return &keeperError{Code: controlled(err)}
+	}
+	if channel != "" && channel != "-" {
+		data = filterStatsToChannel(data, channel)
 	}
 	body, _ := renderMessage(renderN, data, now)
 	periodKey := notificationPeriodKey(renderN, now)
 	for _, p := range targets {
-		if pendingJobExists(s.deps.Store, fp, n.ID, p.Kind) {
+		if pendingJobExists(s.deps.Store, fp, n.ID, p.Kind, channel) {
 			continue
 		}
 		payload, err := json.Marshal(outboundMessage{Title: n.Name, Body: body, UserIDs: nonEmptyIDs(p.UserIDs)})
@@ -275,7 +368,7 @@ func (s *notificationService) enqueueForPeriod(ctx context.Context, binding *Key
 		}
 		if _, err := s.deps.Store.UpsertJob(notificationJob{
 			ID: newJobID(), KeyFingerprint: fp, NotificationID: n.ID, Platform: p.Kind,
-			PeriodKey: periodKey, State: jobPending, Payload: payload,
+			Channel: channel, PeriodKey: periodKey, State: jobPending, Payload: payload,
 			NextAttempt: now, CreatedAt: now, Revision: s.deps.Store.Revision(),
 		}); err != nil {
 			return &keeperError{Code: "store_write_failed"}
@@ -290,7 +383,7 @@ func (s *notificationService) enqueueForPeriod(ctx context.Context, binding *Key
 // collectStats gathers every configured module's data: cumulative statistics
 // via the keeper source, window/reset-card material via the auth-index bridge
 // and the quota cache.
-func (s *notificationService) collectStats(ctx context.Context, binding *KeyBinding, n Notification, now time.Time) (statsData, error) {
+func (s *notificationService) collectStats(ctx context.Context, binding *KeyBinding, n Notification, now time.Time, channel string) (statsData, error) {
 	data := statsData{DisplayName: binding.Alias, Periods: map[string]periodStats{}}
 	if s.deps.Source == nil {
 		return data, &keeperError{Code: "configuration_error"}
@@ -308,10 +401,35 @@ func (s *notificationService) collectStats(ctx context.Context, binding *KeyBind
 			data.Periods[ps.PeriodKey] = ps
 		}
 	}
+	if channel != "" && channel != "-" {
+		data = filterStatsToChannel(data, channel)
+		for _, ps := range data.Periods {
+			for _, ch := range ps.Channels {
+				if ch.Label != "" {
+					data.DisplayName = ch.Label
+					break
+				}
+			}
+		}
+	}
 	if needWindows {
-		indexes, err := identifyAuthIndex(s.cfg, []string{binding.Key})
-		if err != nil {
-			return data, err
+		indexes := []string{}
+		if channel != "" && channel != "-" {
+			indexes = []string{channel}
+		} else {
+			seen := map[string]bool{}
+			for _, ps := range data.Periods {
+				for _, ch := range ps.Channels {
+					id := ch.Identity
+					if id == "" {
+						id = ch.Name
+					}
+					if id != "" && !seen[id] {
+						seen[id] = true
+						indexes = append(indexes, id)
+					}
+				}
+			}
 		}
 		windows, cards, plan, err := s.deps.Source.collectWindows(ctx, indexes, now)
 		if err != nil {
@@ -367,6 +485,11 @@ func (s *notificationService) sendTick(ctx context.Context) {
 			s.setStatusError("store_write_failed")
 			continue
 		}
+		if res.Outcome == deliveryAccepted {
+			if err := s.deps.Store.SetClock(j.NotificationID, clockScope(j.KeyFingerprint), j.Channel, now); err != nil {
+				s.setStatusError("store_write_failed")
+			}
+		}
 		if res.Outcome == deliveryFailed && res.RetryAfter > 0 {
 			s.requeueForRetry(j, now.Add(res.RetryAfter))
 		}
@@ -381,7 +504,7 @@ func (s *notificationService) deliverOne(ctx context.Context, j notificationJob)
 	if err := json.Unmarshal(j.Payload, &msg); err != nil {
 		return deliveryResult{Outcome: deliveryUnknown, ErrorCode: "invalid_payload", Detail: "job payload unreadable"}
 	}
-	identity, ok := s.identityFor(j.Platform)
+	identity, ok := identityForJob(s.liveState(), j.NotificationID, j.KeyFingerprint, j.Platform)
 	if !ok {
 		return deliveryResult{Outcome: deliveryUnknown, ErrorCode: "target_unavailable", Detail: "no enabled platform identity for job"}
 	}
@@ -396,16 +519,33 @@ func (s *notificationService) deliverOne(ctx context.Context, j notificationJob)
 	return mergeDeliveryResults(parts)
 }
 
-// identityFor finds an enabled platform identity of the requested kind in the
-// current state; a job whose target was removed reports target_unavailable
-// instead of guessing a webhook.
-func (s *notificationService) identityFor(kind PlatformKind) (PlatformIdentity, bool) {
-	for i := range s.state.KeyBindings {
-		for _, n := range effectiveNotifications(&s.state, &s.state.KeyBindings[i]) {
-			for _, p := range n.Platforms {
-				if p.Kind == kind && p.Enabled {
-					return p, true
-				}
+func identityForJob(st State, nid, fingerprint string, kind PlatformKind) (PlatformIdentity, bool) {
+	pick := func(n Notification) (PlatformIdentity, bool) {
+		if n.ID != nid {
+			return PlatformIdentity{}, false
+		}
+		for _, p := range n.Platforms {
+			if p.Kind == kind && p.Enabled {
+				return p, true
+			}
+		}
+		return PlatformIdentity{}, false
+	}
+	if clockScope(fingerprint) == "global" {
+		for _, n := range globalNotificationList(&st) {
+			if p, ok := pick(n); ok {
+				return p, true
+			}
+		}
+		return PlatformIdentity{}, false
+	}
+	for i := range st.KeyBindings {
+		if keyFingerprint(st.KeyBindings[i].Key) != fingerprint {
+			continue
+		}
+		for _, n := range st.KeyBindings[i].Notifications {
+			if p, ok := pick(n); ok {
+				return p, true
 			}
 		}
 	}
@@ -418,7 +558,7 @@ func (s *notificationService) identityFor(kind PlatformKind) (PlatformIdentity, 
 func (s *notificationService) requeueForRetry(j notificationJob, next time.Time) {
 	if _, err := s.deps.Store.UpsertJob(notificationJob{
 		ID: newJobID(), KeyFingerprint: j.KeyFingerprint, NotificationID: j.NotificationID,
-		Platform: j.Platform, PeriodKey: j.PeriodKey, State: jobPending,
+		Platform: j.Platform, Channel: j.Channel, PeriodKey: j.PeriodKey, State: jobPending,
 		Payload: j.Payload, NextAttempt: next, CreatedAt: next,
 	}); err != nil {
 		s.setStatusError("store_write_failed")
@@ -485,7 +625,7 @@ func supersededStaleJobs(store *notificationStore, rev uint64) (int, error) {
 // notification, platform) already has an in-flight pending/sending job —
 // the throttle gate upstream of the store merge, keeping regeneration from
 // resetting a backoff wait.
-func pendingJobExists(store *notificationStore, fingerprint, notificationID string, platform PlatformKind) bool {
+func pendingJobExists(store *notificationStore, fingerprint, notificationID string, platform PlatformKind, channel string) bool {
 	var exists bool
 	_ = store.db.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket(bucketJobs)
@@ -501,7 +641,7 @@ func pendingJobExists(store *notificationStore, fingerprint, notificationID stri
 			if j.State != jobPending && j.State != jobSending {
 				continue
 			}
-			if j.KeyFingerprint == fingerprint && j.NotificationID == notificationID && j.Platform == platform {
+			if j.KeyFingerprint == fingerprint && j.NotificationID == notificationID && j.Platform == platform && j.Channel == channel {
 				exists = true
 				return nil
 			}

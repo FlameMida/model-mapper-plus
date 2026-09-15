@@ -160,7 +160,50 @@ func managementNotificationSettingsGet() pluginapi.ManagementResponse {
 	}
 	normalized := *settings
 	normalizeNotificationSettings(&normalized)
+	_ = withNotificationStore(func(store *notificationStore) error {
+		projectSettingsNextFire(&normalized, store)
+		return nil
+	})
 	return managementJSON(http.StatusOK, &normalized)
+}
+
+func projectNotificationNextFire(n *Notification, scope string, channels []string, store *notificationStore, now time.Time) {
+	if n == nil || n.Schedule == nil || store == nil {
+		return
+	}
+	if len(channels) == 0 {
+		channels = []string{"-"}
+	}
+	var earliest time.Time
+	for _, ch := range channels {
+		last, _ := store.Clock(n.ID, scope, ch)
+		_, next := dueAt(*n.Schedule, last, now, NotificationLocation)
+		if next.IsZero() {
+			continue
+		}
+		if earliest.IsZero() || next.Before(earliest) {
+			earliest = next
+		}
+	}
+	n.NextFire = formatNextFire(earliest)
+}
+
+func projectSettingsNextFire(settings *NotificationSettings, store *notificationStore) {
+	if settings == nil || store == nil {
+		return
+	}
+	now := time.Now()
+	channels := []string{"-"}
+	if svc := activeNotificationService(); svc != nil {
+		channels = svc.authChannelIDs(context.Background())
+		if len(channels) == 0 {
+			channels = []string{"-"}
+		}
+	}
+	for i := range settings.Notifications {
+		projectNotificationNextFire(&settings.Notifications[i], "global", channels, store, now)
+	}
+	projectNotificationNextFire(&settings.GlobalDefault, "global", channels, store, now)
 }
 
 // managementNotificationSettingsPut replaces the global notification block:
@@ -310,7 +353,7 @@ func renderNotificationPreview(binding *KeyBinding, n Notification) (string, []s
 	} else {
 		collector := &notificationService{cfg: loadedConfig(), deps: serviceDeps{Source: source}}
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-		collected, err := collector.collectStats(ctx, binding, n, now)
+		collected, err := collector.collectStats(ctx, binding, n, now, "")
 		cancel()
 		if err != nil {
 			warnings = append(warnings, controlled(err))
@@ -329,6 +372,56 @@ func renderNotificationPreview(binding *KeyBinding, n Notification) (string, []s
 	return text, warnings
 }
 
+func previewChannelIDs(binding *KeyBinding) []string {
+	if _testChannels != nil {
+		return _testChannels
+	}
+	src := notificationStatsSource()
+	if src == nil || src.client == nil {
+		return []string{"-"}
+	}
+	key := ""
+	if binding != nil {
+		key = binding.Key
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	rows, _, err := src.collectAuthChannels(ctx, key)
+	if err != nil || len(rows) == 0 {
+		return []string{"-"}
+	}
+	ids := make([]string, 0, len(rows))
+	for _, r := range rows {
+		if r.Identity != "" {
+			ids = append(ids, r.Identity)
+		}
+	}
+	if len(ids) == 0 {
+		return []string{"-"}
+	}
+	return ids
+}
+
+func stackedPreview(binding *KeyBinding, n Notification) (string, []string) {
+	global := binding == nil || strings.TrimSpace(binding.Key) == ""
+	if !global {
+		return renderNotificationPreview(binding, n)
+	}
+	var parts, warns []string
+	for _, ch := range previewChannelIDs(binding) {
+		text, w := renderNotificationPreview(binding, n)
+		if ch != "" && ch != "-" {
+			text = ch + "\n" + text
+		}
+		parts = append(parts, text)
+		warns = append(warns, w...)
+	}
+	if len(parts) == 0 {
+		return renderNotificationPreview(binding, n)
+	}
+	return strings.Join(parts, "\n\n"), warns
+}
+
 func managementNotificationPreview(req pluginapi.ManagementRequest) pluginapi.ManagementResponse {
 	var body struct {
 		Key            string `json:"key"`
@@ -342,8 +435,22 @@ func managementNotificationPreview(req pluginapi.ManagementRequest) pluginapi.Ma
 	if err != nil {
 		return managementError(http.StatusNotFound, err.Error())
 	}
-	text, warnings := renderNotificationPreview(binding, *n)
-	return managementJSON(http.StatusOK, map[string]any{"text": text, "warnings": warnings, "bytes": len(text)})
+	text, warnings := stackedPreview(binding, *n)
+	var platforms []map[string]any
+	for _, p := range n.Platforms {
+		if !p.Enabled {
+			continue
+		}
+		titleNote := ""
+		if p.Kind == PlatformDingTalk {
+			titleNote = "（会话列表标题：" + n.Name + "）"
+		}
+		platforms = append(platforms, map[string]any{"kind": p.Kind, "text": text, "warnings": warnings, "title_note": titleNote})
+	}
+	if platforms == nil {
+		platforms = []map[string]any{}
+	}
+	return managementJSON(http.StatusOK, map[string]any{"text": text, "warnings": warnings, "bytes": len(text), "platforms": platforms})
 }
 
 // managementNotificationTestSend renders the chosen entity from the saved
@@ -372,10 +479,12 @@ func managementNotificationTestSend(req pluginapi.ManagementRequest) pluginapi.M
 	if len(targets) == 0 {
 		return managementError(http.StatusBadRequest, "没有已启用的平台，无法发送")
 	}
-	text, _ := renderNotificationPreview(binding, *n)
-	fingerprint := ""
-	if binding != nil {
+	fingerprint := "global"
+	channels := []string{""}
+	if binding != nil && strings.TrimSpace(binding.Key) != "" {
 		fingerprint = keyFingerprint(binding.Key)
+	} else {
+		channels = previewChannelIDs(binding)
 	}
 	now := time.Now().UTC()
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
@@ -384,31 +493,35 @@ func managementNotificationTestSend(req pluginapi.ManagementRequest) pluginapi.M
 	err = withNotificationStore(func(s *notificationStore) error {
 		rev := s.Revision()
 		periodKey := notificationPeriodKey(*n, now)
-		for _, p := range targets {
-			payload, err := json.Marshal(outboundMessage{Title: n.Name, Body: text, UserIDs: nonEmptyIDs(p.UserIDs)})
-			if err != nil {
-				return err
+		for _, ch := range channels {
+			text, _ := renderNotificationPreview(binding, *n)
+			if ch != "" && ch != "-" {
+				text = ch + "\n" + text
 			}
-			jobID := newJobID()
-			if _, err := s.UpsertJob(notificationJob{
-				ID: jobID, KeyFingerprint: fingerprint, NotificationID: n.ID, Platform: p.Kind,
-				PeriodKey: periodKey, State: jobPending, Payload: payload,
-				NextAttempt: now, CreatedAt: now, Revision: rev,
-			}); err != nil {
-				return err
-			}
-			// A merge dimension reuses the existing pending job; finish that one
-			// so the recorded outcome is attached to the row that will be sent.
-			actual := pendingJobIDFor(s, fingerprint, n.ID, p.Kind, periodKey)
-			if actual == "" {
-				actual = jobID
-			}
-			res := deliverTestMessage(ctx, p, outboundMessage{Title: n.Name, Body: text, UserIDs: nonEmptyIDs(p.UserIDs)})
-			if err := s.FinishJob(actual, res.Outcome, res.ErrorCode, res.Detail); err != nil {
-				return err
-			}
-			if id := latestDeliveryIDFor(s, fingerprint, n.ID, p.Kind, actual); id != "" {
-				ids = append(ids, id)
+			for _, p := range targets {
+				payload, err := json.Marshal(outboundMessage{Title: n.Name, Body: text, UserIDs: nonEmptyIDs(p.UserIDs)})
+				if err != nil {
+					return err
+				}
+				jobID := newJobID()
+				if _, err := s.UpsertJob(notificationJob{
+					ID: jobID, KeyFingerprint: fingerprint, NotificationID: n.ID, Platform: p.Kind,
+					Channel: ch, PeriodKey: periodKey, State: jobPending, Payload: payload,
+					NextAttempt: now, CreatedAt: now, Revision: rev,
+				}); err != nil {
+					return err
+				}
+				actual := pendingJobIDFor(s, fingerprint, n.ID, p.Kind, periodKey)
+				if actual == "" {
+					actual = jobID
+				}
+				res := deliverTestMessage(ctx, p, outboundMessage{Title: n.Name, Body: text, UserIDs: nonEmptyIDs(p.UserIDs)})
+				if err := s.FinishJob(actual, res.Outcome, res.ErrorCode, res.Detail); err != nil {
+					return err
+				}
+				if id := latestDeliveryIDFor(s, fingerprint, n.ID, p.Kind, actual); id != "" {
+					ids = append(ids, id)
+				}
 			}
 		}
 		return nil

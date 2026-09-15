@@ -53,13 +53,18 @@ describe('NotificationEditor', () => {
   })
 
   it('shows stale-preview banner after edit and previews saved entity', async () => {
-    vi.mocked(api.notifications.preview).mockResolvedValue({ text: '预览文本', warnings: [], bytes: 12 })
+    vi.mocked(api.notifications.preview).mockResolvedValue({
+      text: '预览文本', warnings: [], bytes: 12,
+      platforms: [{ kind: 'feishu', text: 'Codex\n用量 1 tokens' }],
+    })
     render(<NotificationEditor visible originalName="" siblingNames={[]}
       initial={draft} onSaved={() => {}} onClose={() => {}} />)
     fireEvent.change(screen.getByLabelText('通知名称'), { target: { value: '改名' } })
     expect(screen.getByText(/预览.*过期/)).toBeInTheDocument()
     await userEvent.click(screen.getByRole('button', { name: '预览消息' }))
-    await waitFor(() => expect(screen.getByText('预览文本')).toBeInTheDocument())
+    await waitFor(() => expect(screen.getByText(/用量 1 tokens/)).toBeInTheDocument())
+    expect(screen.getByText('飞书 · text')).toBeInTheDocument()
+    expect(screen.queryByText('企业微信 · markdown')).not.toBeInTheDocument()
   })
 
   it('follow-global switches hide module editing', () => {

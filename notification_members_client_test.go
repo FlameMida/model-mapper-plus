@@ -119,6 +119,8 @@ func TestFeishuMembersClientFetchesNestedDepartmentsAndScopeUsers(t *testing.T) 
 				t.Errorf("d1 children fetch_child=%v", r.URL.Query())
 			}
 			fmt.Fprintf(w, `{"code":0,"data":{"items":[{"open_department_id":"d1c","department_id":"leaf"}],"has_more":false}}`)
+		case r.URL.Path == "/open-apis/contact/v3/users/batch":
+			fmt.Fprintf(w, `{"code":0,"data":{"items":[{"name":"Solo","open_id":"ou_solo"}]}}`)
 		case r.URL.Path == "/open-apis/contact/v3/users/find_by_department":
 			switch r.URL.Query().Get("department_id") {
 			case "d1":
@@ -143,9 +145,9 @@ func TestFeishuMembersClientFetchesNestedDepartmentsAndScopeUsers(t *testing.T) 
 		t.Fatal("must not walk root children (40004 on partial scope)")
 	}
 	requireMembers(t, got, []notificationMember{
-		{ID: "ou_solo", Name: ""},
 		{ID: "ou_a", Name: "Alice"},
 		{ID: "ou_c", Name: "Carol"},
+		{ID: "ou_solo", Name: "Solo"},
 	})
 }
 

@@ -15,6 +15,7 @@ import (
 	"net/http"
 	"sort"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -321,7 +322,47 @@ func fetchFeishuMembers(ctx context.Context, appID, appSecret string) ([]notific
 	for _, id := range userIDs {
 		collector.add(id, "")
 	}
+	if err := fillFeishuMissingNames(ctx, client, collector, budget, feishuStatusError); err != nil {
+		logger.Warn("feishu member name batch skipped", "err", err)
+	}
 	return collector.sorted(), nil
+}
+
+func fillFeishuMissingNames(ctx context.Context, client *lark.Client, collector *collectMembers, budget *memberBudget, statusError func(int, string) error) error {
+	var missing []string
+	for _, row := range collector.rows {
+		if strings.TrimSpace(row.Name) == "" && strings.TrimSpace(row.ID) != "" {
+			missing = append(missing, row.ID)
+		}
+	}
+	for i := 0; i < len(missing); i += 50 {
+		end := i + 50
+		if end > len(missing) {
+			end = len(missing)
+		}
+		if err := budget.spend(); err != nil {
+			return err
+		}
+		req := larkcontact.NewBatchUserReqBuilder().UserIds(missing[i:end]).UserIdType("open_id").Build()
+		resp, err := client.Contact.V3.User.Batch(ctx, req)
+		if err != nil {
+			return nil
+		}
+		if resp.StatusCode != http.StatusOK || !resp.Success() || resp.Data == nil {
+			return nil
+		}
+		for _, user := range resp.Data.Items {
+			if user == nil || user.OpenId == nil {
+				continue
+			}
+			name := ""
+			if user.Name != nil {
+				name = *user.Name
+			}
+			collector.add(*user.OpenId, name)
+		}
+	}
+	return nil
 }
 
 func fetchFeishuAuthorizedScope(ctx context.Context, client *lark.Client, budget *memberBudget, statusError func(int, string) error) (deptIDs, userIDs []string, err error) {

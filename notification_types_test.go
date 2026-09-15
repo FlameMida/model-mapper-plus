@@ -27,6 +27,14 @@ func TestValidateKeyNotificationsNameUnique(t *testing.T) {
 	}
 }
 
+func TestGlobalEnabledPlatformMayOmitUserIDs(t *testing.T) {
+	n := validNotification()
+	n.Platforms = []PlatformIdentity{{Kind: PlatformFeishu, Enabled: true, Webhook: "https://x"}}
+	if err := validateNotificationEntity(&n, "notifications[0]", true); err != nil {
+		t.Fatalf("global may omit user ids: %v", err)
+	}
+}
+
 func TestValidateEnabledPlatformRequiresIdentity(t *testing.T) {
 	n := validNotification()
 	n.Platforms = []PlatformIdentity{{Kind: PlatformFeishu, Enabled: true, Webhook: "https://x", UserIDs: nil}}

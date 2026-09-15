@@ -28,8 +28,6 @@ spec_dev:
 
 # Key 渠道用量通知设计
 
-> **Superseded-pending (2026-09-15)** — 本 spec 的「Requirement: 多通知配置与继承」「Requirement: 模板与消息结构」「Requirement: Key 渠道消耗与占比」「Requirement: 发送计划」「Requirement: 平台身份配置」「Requirement: 投递、限流与恢复」将被 .spec-dev/2026-09-15-01-notification-dispatch-preview/spec/notification-dispatch-preview-design.md 部分取代（待其交付）；新工作以新 spec 为准，本 spec 仍描述当前已实现行为。
-
 ## 背景与目标
 
 当前 mapper 只有 Key、渠道定向和 Keeper 别名能力，没有定时发送用量通知的配置、统计存档或投递记录。新功能在 mapper 内提供多条 Key 通知，统计数据统一来自 `/Users/maverick/cpa-usage-keeper`，并通过企业微信、飞书、钉钉群机器人发送。
@@ -122,6 +120,8 @@ spec_dev:
 
 ### Requirement: 多通知配置与继承
 
+> **Superseded (2026-09-15)** — by .spec-dev/2026-09-15-01-notification-dispatch-preview/spec/notification-dispatch-preview-design.md#多通知配置与继承；原文保留仅作历史参考。
+
 每个 Key SHALL 支持零条或多条通知；每条通知 SHALL 独立保存名称、启用状态、模板模块、统计周期、发送计划、平台目标和投递状态。未配置专属模板或计划时 SHALL 分别回退全局默认值。
 
 #### Scenario: 同一 Key 的多条通知互相独立
@@ -149,6 +149,8 @@ spec_dev:
 - **THEN** 全局默认通知不再对 X 发送；X 的发送完全由专属通知接管，全局默认通知对其他无通知 Key 不受影响。
 
 ### Requirement: 模板与消息结构
+
+> **Superseded (2026-09-15)** — by .spec-dev/2026-09-15-01-notification-dispatch-preview/spec/notification-dispatch-preview-design.md#模板与消息结构；原文保留仅作历史参考。
 
 通知 SHALL 使用通知名称作为消息标题，消息开头 SHALL 自动包含认证配置的 Keeper 自定义命名和套餐等级；模板 SHALL 支持勾选模块和调整模块顺序，但 SHALL NOT 改变系统计算的 Token、百分比、金额、窗口或重置卡字段。
 
@@ -181,6 +183,8 @@ spec_dev:
 - **THEN** 已知数据照常展示，缺失日期明确标注“历史数据不完整”，缺失日期不计为零。
 
 ### Requirement: Key 渠道消耗与占比
+
+> **Superseded (2026-09-15)** — by .spec-dev/2026-09-15-01-notification-dispatch-preview/spec/notification-dispatch-preview-design.md#Key-渠道消耗与占比；原文保留仅作历史参考。
 
 每个 Key 的通知 SHALL 按当前渠道权限逐渠道展示 Token 精确数量、同期渠道占比和 USD 折算金额；占比 SHALL 使用同一统计周期的该渠道所有 Key Token 总消耗作为分母。
 
@@ -220,6 +224,8 @@ spec_dev:
 
 ### Requirement: 发送计划
 
+> **Superseded (2026-09-15)** — by .spec-dev/2026-09-15-01-notification-dispatch-preview/spec/notification-dispatch-preview-design.md#发送计划；原文保留仅作历史参考。
+
 每条通知 SHALL 支持固定间隔和日历定时两类计划。固定间隔 SHALL 可选秒、分、时、天；每月计划 SHALL 只能选择月初或月末；每年计划 SHALL 选择月份、日期和时间且不得配置年份间隔；发送时间 SHALL 支持秒级 TimePicker。
 
 #### Scenario: 三类计划
@@ -235,6 +241,8 @@ spec_dev:
 - **THEN** 月末按月末触发；2 月 29 日在非闰年跳过并记录下一次有效时间，不静默改成其他日期。
 
 ### Requirement: 平台身份配置
+
+> **Superseded (2026-09-15)** — by .spec-dev/2026-09-15-01-notification-dispatch-preview/spec/notification-dispatch-preview-design.md#平台身份配置；原文保留仅作历史参考。
 
 每条通知 SHALL 在其编辑抽屉内提供“通知模板”和“平台身份配置”两个外层 Tab，平台身份配置内 SHALL 有企业微信、飞书、钉钉三个 Tab。每个平台 SHALL 独立保存 Webhook、用户唯一 ID、签名密钥和启用状态，其中签名密钥按平台支持情况保存（企业微信群机器人无独立加签，其面板 SHALL 明确说明“此平台无签名密钥”而不渲染该字段）；页面 SHALL 不提供目标群字段。平台身份配置打开时 SHALL 默认选中第一个平台 Tab（企业微信）；Webhook 地址、用户唯一 ID、签名密钥字段 SHALL 在输入框左侧显示常显标题，不得仅以占位符说明字段含义（2026-09-14 确认，Key 通知抽屉与全局默认通知面板共用同一编辑器、同样适用）。全局通知的平台身份 SHALL 提供「@所有人」开关，开启后该平台可免填用户唯一 ID；Key 级通知 SHALL 不提供该开关，保存时 SHALL 剥离 at_all，启用平台必须填写用户唯一 ID（2026-09-14 确认）。编辑抽屉保存校验失败时 SHALL 在出错字段行内展示原因，并以 Toast 提示第一条错误、切到对应 Tab；保存键 SHALL 保持可点击，不得静默禁用（2026-09-14 确认）。全局通知模板 Tab SHALL 展示可操作的发送计划编辑器（不跟随全局）；发送计划区块 SHALL 有常显分组标题。
 
@@ -291,6 +299,8 @@ spec_dev:
 - **THEN** 任务记录受控错误码和未知字段，已有存档不被清空，通知正文不把失败转成零值。
 
 ### Requirement: 投递、限流与恢复
+
+> **Superseded (2026-09-15)** — by .spec-dev/2026-09-15-01-notification-dispatch-preview/spec/notification-dispatch-preview-design.md#投递限流与恢复；原文保留仅作历史参考。
 
 通知 SHALL 在发送前持久化任务状态，发送后持久化平台受理结果；同 Key、同平台目标、同统计周期的待发任务 SHALL 合并并保留最新值。已发成功任务 SHALL 不自动重发；已开始但无确认结果的任务 SHALL 恢复为 unknown。
 
