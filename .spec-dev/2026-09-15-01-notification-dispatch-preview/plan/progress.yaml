@@ -9,7 +9,7 @@ tasks:
   T05: { status: completed, commit: e034709d373c73ed1f17decafd7a95d8020ae023, tests: pass }
   T06: { status: completed, commit: 12882dad0fb067d817679c01eede133b3e98a77e, tests: pass }
   T07: { status: completed, commit: ab78e3f99baf4a3254b5710b014db6259e772589, tests: pass }
-  T08: { status: completed, commit: da50811cfe7a80173de2ce29089d6b1a257f23e8, tests: pass }
+  T08: { status: completed, commit: c5392fc0961300793a21e86dd607a7e49f281123, tests: pass }
   T09: { status: completed, commit: b38e9e2aedc1b2678cd8de95da29c0933b96a2f9, tests: pass }
 resources: []
 notes:
