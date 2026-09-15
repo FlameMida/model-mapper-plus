@@ -338,8 +338,10 @@ func notificationStatsSource() *keeperStatsSource {
 // renderNotificationPreview collects the current statistics for one entity
 // and renders the body exactly as the service would. Every collection failure
 // becomes a closed warning instead of a fabricated zero value; missing
-// sections are skipped by the renderer.
-func renderNotificationPreview(binding *KeyBinding, n Notification) (string, []string) {
+// sections are skipped by the renderer. The channel mirrors the dispatch path
+// (2026-09-15 quick-fix): global per-channel previews pass the channel so the
+// display name and the filtered statistics match the delivered message.
+func renderNotificationPreview(binding *KeyBinding, n Notification, channel string) (string, []string) {
 	if binding == nil {
 		binding = &KeyBinding{}
 	}
@@ -353,7 +355,7 @@ func renderNotificationPreview(binding *KeyBinding, n Notification) (string, []s
 	} else {
 		collector := &notificationService{cfg: loadedConfig(), deps: serviceDeps{Source: source}}
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-		collected, err := collector.collectStats(ctx, binding, n, now, "")
+		collected, err := collector.collectStats(ctx, binding, n, now, channel)
 		cancel()
 		if err != nil {
 			warnings = append(warnings, controlled(err))
@@ -405,11 +407,11 @@ func previewChannelIDs(binding *KeyBinding) []string {
 func stackedPreview(binding *KeyBinding, n Notification) (string, []string) {
 	global := binding == nil || strings.TrimSpace(binding.Key) == ""
 	if !global {
-		return renderNotificationPreview(binding, n)
+		return renderNotificationPreview(binding, n, "")
 	}
 	var parts, warns []string
 	for _, ch := range previewChannelIDs(binding) {
-		text, w := renderNotificationPreview(binding, n)
+		text, w := renderNotificationPreview(binding, n, ch)
 		if ch != "" && ch != "-" {
 			text = ch + "\n" + text
 		}
@@ -417,7 +419,7 @@ func stackedPreview(binding *KeyBinding, n Notification) (string, []string) {
 		warns = append(warns, w...)
 	}
 	if len(parts) == 0 {
-		return renderNotificationPreview(binding, n)
+		return renderNotificationPreview(binding, n, "")
 	}
 	return strings.Join(parts, "\n\n"), warns
 }
@@ -494,7 +496,7 @@ func managementNotificationTestSend(req pluginapi.ManagementRequest) pluginapi.M
 		rev := s.Revision()
 		periodKey := notificationPeriodKey(*n, now)
 		for _, ch := range channels {
-			text, _ := renderNotificationPreview(binding, *n)
+			text, _ := renderNotificationPreview(binding, *n, ch)
 			if ch != "" && ch != "-" {
 				text = ch + "\n" + text
 			}

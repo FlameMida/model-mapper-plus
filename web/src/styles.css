@@ -29,3 +29,19 @@ html[data-theme="dark"] body {
   white-space: normal;
   overflow-wrap: anywhere;
 }
+
+/* Notification preview cards mirror each IM client's chat surface (structure
+   restoration, not pixel-perfect skins). Light values keep the historical
+   palette; the dark theme swaps in dark-mode surfaces so the body text
+   (inheriting --semi-color-text-0) stays readable on the bubble. */
+.preview-skin--wecom { background: #ededed; }
+.preview-skin--feishu { background: #f5f6f7; }
+.preview-skin--dingtalk { background: #f3f3f3; }
+.preview-skin__title { color: #666; }
+.preview-skin__bubble { background: #fff; }
+
+html[data-theme="dark"] .preview-skin--wecom { background: #1a1a1a; }
+html[data-theme="dark"] .preview-skin--feishu { background: #1f2329; }
+html[data-theme="dark"] .preview-skin--dingtalk { background: #16181a; }
+html[data-theme="dark"] .preview-skin__title { color: #8a9099; }
+html[data-theme="dark"] .preview-skin__bubble { background: #2c2c2c; }

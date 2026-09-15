@@ -6,6 +6,7 @@ package main
 
 import (
 	"context"
+	"net/http"
 	"strings"
 	"sync"
 	"testing"
@@ -270,4 +271,83 @@ func collectDueGenerations(t *testing.T, store *notificationStore, st State, now
 		}
 	}
 	return generated
+}
+
+// statsOnlyNotification builds a notification with cumulative modules only —
+// no 5H/weekly window and no reset cards — the shape that previously never
+// reached the Keeper quota/cache endpoint and thus never had a plan.
+func statsOnlyNotification() Notification {
+	return Notification{Name: "验收日报", Enabled: true,
+		Modules: []ModuleConfig{{Kind: ModuleDaily, Period: PeriodCurrent}}}
+}
+
+// statsCollectorWithIdentity stubs the cumulative statistics with one channel
+// row carrying a real auth identity so collectStats has an index to query the
+// quota/cache endpoint with.
+func statsCollectorWithIdentity() func(*keeperStatsSource, context.Context, string, ModuleKind, PeriodKind, time.Time) (periodStats, error) {
+	return func(_ *keeperStatsSource, _ context.Context, _ string, kind ModuleKind, period PeriodKind, now time.Time) (periodStats, error) {
+		return periodStats{
+			PeriodKey: periodKeyOf(kind, period, now),
+			Channels: []channelStats{{Name: "ai_1", Label: "研发主账号", Identity: "ai_1",
+				Tokens: 400, Share: 0.4, ShareKnown: true}},
+		}, nil
+	}
+}
+
+// TestCollectStatsFetchesPlanWithoutWindowModules pins the spec guarantee that
+// a notification opening line always carries the Keeper plan tier, even when
+// no window module is configured (quota/cache used to be gated behind
+// needWindows, leaving every stats-only notification at 未知/未提供).
+func TestCollectStatsFetchesPlanWithoutWindowModules(t *testing.T) {
+	t.Setenv("CPA_KEEPER_LOGIN_PASSWORD", "stub-secret")
+	prev := _statsCollector
+	_statsCollector = statsCollectorWithIdentity()
+	t.Cleanup(func() { _statsCollector = prev })
+	src, _ := newStatsSourceStub(t, func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/api/v1/quota/refresh":
+			// refresh-first rounds trigger the refresh endpoint first.
+			w.Write([]byte(`{"accepted":1,"skipped":0,"limit":1}`))
+		case "/api/v1/quota/cache":
+			w.Write([]byte(quotaCacheBody))
+		default:
+			t.Errorf("unexpected %s %s", r.Method, r.URL.Path)
+			w.WriteHeader(http.StatusNotFound)
+		}
+	})
+	collector := &notificationService{deps: serviceDeps{Source: src}}
+	data, err := collector.collectStats(context.Background(), &KeyBinding{Alias: "研发主账号"},
+		statsOnlyNotification(), time.Date(2026, 9, 15, 9, 0, 0, 0, NotificationLocation), "")
+	if err != nil {
+		t.Fatalf("stats-only collection must not fail: %v", err)
+	}
+	if data.Plan == "" {
+		t.Fatalf("stats-only notification must still carry the Keeper plan, got empty")
+	}
+}
+
+// TestCollectStatsPlanFailureKeepsStatsOnlyDelivery is the degradation guard:
+// when the quota/cache endpoint fails, a stats-only notification must still
+// collect (empty plan) instead of failing the whole send the way windowed
+// notifications legitimately do.
+func TestCollectStatsPlanFailureKeepsStatsOnlyDelivery(t *testing.T) {
+	t.Setenv("CPA_KEEPER_LOGIN_PASSWORD", "stub-secret")
+	prev := _statsCollector
+	_statsCollector = statsCollectorWithIdentity()
+	t.Cleanup(func() { _statsCollector = prev })
+	src, _ := newStatsSourceStub(t, func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+	})
+	collector := &notificationService{deps: serviceDeps{Source: src}}
+	data, err := collector.collectStats(context.Background(), &KeyBinding{Alias: "研发主账号"},
+		statsOnlyNotification(), time.Date(2026, 9, 15, 9, 0, 0, 0, NotificationLocation), "")
+	if err != nil {
+		t.Fatalf("plan fetch failure must degrade, not fail stats-only collection: %v", err)
+	}
+	if data.Plan != "" {
+		t.Fatalf("failed plan fetch must keep the plan empty, got %q", data.Plan)
+	}
+	if len(data.Periods) == 0 {
+		t.Fatalf("cumulative statistics must survive the plan fetch failure")
+	}
 }

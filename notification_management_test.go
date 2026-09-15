@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"path/filepath"
@@ -242,5 +243,45 @@ func TestPutSettingsPreservesGlobalAtAll(t *testing.T) {
 	got := dispatchManagement(mgmtRequest(http.MethodGet, "/v0/management/plugins/model-mapper-plus/notifications/settings", ""))
 	if !strings.Contains(string(got.Body), `"at_all":true`) {
 		t.Fatalf("global at_all must persist, got %s", got.Body)
+	}
+}
+
+// 2026-09-15 quick-fix：全局预览每块正文按渠道渲染（与到期发送一致）——
+// 展示名取该渠道的 Keeper 命名而非恒为「未知/未提供」，统计只含该渠道。
+func TestStackedPreviewRendersPerChannelDisplayName(t *testing.T) {
+	withTempNotificationState(t)
+	// 预览的统计源需要一个非 nil service；client 为 nil 的 source 让
+	// 累计统计走 _statsCollector stub，配额降级链安静退化。
+	prevSvc := activeNotification.svc
+	activeNotification.svc = &notificationService{deps: serviceDeps{Source: &keeperStatsSource{now: time.Now}}}
+	t.Cleanup(func() { activeNotification.svc = prevSvc })
+	prevCollector := _statsCollector
+	_statsCollector = func(_ *keeperStatsSource, _ context.Context, _ string, kind ModuleKind, period PeriodKind, now time.Time) (periodStats, error) {
+		return periodStats{
+			PeriodKey: periodKeyOf(kind, period, now),
+			Channels: []channelStats{
+				{Name: "ai_1", Label: "Codex", Identity: "ai_1", Tokens: 800, ShareKnown: false},
+				{Name: "ai_2", Label: "Claude", Identity: "ai_2", Tokens: 200, ShareKnown: false},
+			},
+		}, nil
+	}
+	t.Cleanup(func() { _statsCollector = prevCollector })
+	prevCh := _testChannels
+	_ = prevCh
+	_testChannels = []string{"ai_1", "ai_2"}
+	t.Cleanup(func() { _testChannels = prevCh })
+
+	n := Notification{Name: "日报用量", Enabled: true,
+		Modules: []ModuleConfig{{Kind: ModuleDaily, Period: PeriodCurrent}}}
+	text, warnings := stackedPreview(nil, n)
+	if !contains(text, "Codex ·") || !contains(text, "Claude ·") {
+		t.Fatalf("channel display name must replace 未知/未提供: %q (warnings=%v)", text, warnings)
+	}
+	// 每块只渲染自己渠道的统计行：800 只在 ai_1 块，200 只在 ai_2 块。
+	if got := strings.Count(text, "用量 800 tokens"); got != 1 {
+		t.Fatalf("ai_1 stats must render once, got %d: %q", got, text)
+	}
+	if got := strings.Count(text, "用量 200 tokens"); got != 1 {
+		t.Fatalf("ai_2 stats must render once, got %d: %q", got, text)
 	}
 }

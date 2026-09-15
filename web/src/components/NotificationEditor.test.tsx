@@ -151,3 +151,29 @@ describe('NotificationEditor quick-fix', () => {
     expect(onClose).not.toHaveBeenCalled()
   })
 })
+
+// 2026-09-15 quick-fix：预览卡片皮肤色随主题切换（深色主题下结构还原预览
+// 不再白底浅字）。颜色交给 styles.css 的 .preview-skin--* 双主题规则，
+// 内联样式不再写死浅色背景。
+describe('NotificationEditor preview theming', () => {
+  it('preview cards use theme-switchable skin classes without hardcoded light colors', async () => {
+    vi.mocked(api.notifications.preview).mockResolvedValue({
+      text: '预览文本', warnings: [], bytes: 12,
+      platforms: [
+        { kind: 'feishu', text: '正文A' },
+        { kind: 'wecom', text: '正文B' },
+      ],
+    })
+    renderEditor()
+    await userEvent.click(screen.getByRole('button', { name: '预览消息' }))
+    await waitFor(() => expect(screen.getByText('正文A')).toBeInTheDocument())
+    const bubble = screen.getByText('正文A').closest('.preview-skin__bubble')
+    expect(bubble).not.toBeNull()
+    expect(bubble!.getAttribute('style') ?? '').not.toContain('background')
+    const card = bubble!.closest('.preview-skin--feishu')
+    expect(card).not.toBeNull()
+    expect(card!.querySelector('.preview-skin__title')?.textContent).toContain('飞书 · text')
+    const wecomBubble = screen.getByText('正文B').closest('.preview-skin__bubble')
+    expect(wecomBubble!.closest('.preview-skin--wecom')).not.toBeNull()
+  })
+})

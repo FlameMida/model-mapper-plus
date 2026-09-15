@@ -8,10 +8,12 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"net/url"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -62,6 +64,101 @@ type windowStat struct {
 type keeperStatsSource struct {
 	client *keeperClient
 	now    func() time.Time
+	// cpa is the optional degraded window/plan source backed by the CPA
+	// host's own management quota endpoint (unconfigured = nil).
+	cpa *cpaQuotaClient
+	// refresh-first throttling and polling knobs; zero values fall back to
+	// the package defaults, tests inject a movable clock via sleep.
+	refreshMu    sync.Mutex
+	lastRefresh  map[string]time.Time
+	sleep        func(time.Duration)
+	pollInterval time.Duration
+	pollBudget   time.Duration
+}
+
+// Keeper quota refresh-first policy knobs: every collection round triggers a
+// refresh task first (throttled), then polls the cache within a bounded
+// budget so a cold identity still gets its windows/plan.
+const (
+	quotaRefreshThrottle = 60 * time.Second
+	quotaPollInterval    = 400 * time.Millisecond
+	quotaPollBudget      = 2400 * time.Millisecond
+)
+
+// errQuotaCacheEmpty marks a syntactically valid cache response that carries
+// no completed entries — the "not refreshed yet" state the poll loop waits
+// on. Its closed code stays invalid_response for callers outside the poll.
+var errQuotaCacheEmpty = &keeperError{Code: "invalid_response"}
+
+// triggerQuotaRefresh POSTs the refresh endpoint for the given identities,
+// throttled to one trigger per quotaRefreshThrottle per index set. Failures
+// are silently swallowed: the cache may still hold earlier data and the
+// refresh endpoint has no closed codes worth surfacing here.
+func (s *keeperStatsSource) triggerQuotaRefresh(ctx context.Context, authIndexes []string) {
+	if len(authIndexes) == 0 || s.client == nil {
+		return
+	}
+	key := strings.Join(authIndexes, "\x00")
+	now := s.now()
+	s.refreshMu.Lock()
+	if s.lastRefresh == nil {
+		s.lastRefresh = map[string]time.Time{}
+	}
+	if last, ok := s.lastRefresh[key]; ok && now.Sub(last) < quotaRefreshThrottle {
+		s.refreshMu.Unlock()
+		return
+	}
+	s.lastRefresh[key] = now
+	s.refreshMu.Unlock()
+	body, err := json.Marshal(struct {
+		AuthIndexes []string `json:"auth_indexes"`
+	}{authIndexes})
+	if err != nil {
+		return
+	}
+	resp, err := s.client.authenticatedRequest(ctx, http.MethodPost, "/api/v1/quota/refresh", body)
+	if err != nil {
+		return
+	}
+	defer resp.Body.Close()
+	_, _ = readKeeperBody(ctx, resp.Body)
+}
+
+// quotaCacheHasData reports whether a cache read produced anything the
+// renderer could use (windows, reset cards or the plan tier).
+func quotaCacheHasData(windows []windowStat, cards *int, plan string) bool {
+	return len(windows) > 0 || cards != nil || plan != ""
+}
+
+// quotaCacheOnce performs one cache read and parse, returning the raw payload
+// for the reset-card fallback path.
+func (s *keeperStatsSource) quotaCacheOnce(ctx context.Context, authIndexes []string, now time.Time) ([]windowStat, *int, string, []byte, error) {
+	if s.client == nil {
+		return nil, nil, "", nil, &keeperError{Code: "configuration_error"}
+	}
+	body, err := json.Marshal(struct {
+		AuthIndexes []string `json:"auth_indexes"`
+	}{authIndexes})
+	if err != nil {
+		return nil, nil, "", nil, &keeperError{Code: "invalid_response"}
+	}
+	resp, err := s.client.authenticatedRequest(ctx, http.MethodPost, "/api/v1/quota/cache", body)
+	if err != nil {
+		return nil, nil, "", nil, err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		return nil, nil, "", nil, keeperHTTPError(resp)
+	}
+	raw, err := readKeeperBody(ctx, resp.Body)
+	if err != nil {
+		return nil, nil, "", nil, err
+	}
+	windows, cards, plan, err := parseQuotaCache(raw, now)
+	if err != nil {
+		return nil, nil, "", raw, err
+	}
+	return windows, cards, plan, raw, nil
 }
 
 // newKeeperStatsSource validates the live plugin configuration the same way
@@ -73,7 +170,8 @@ func newKeeperStatsSource(cfg Config) (*keeperStatsSource, string) {
 		return nil, ""
 	}
 	loadedConfigMu.RLock()
-	stale := cfg.UsageKeeperURL != loadedCfg.UsageKeeperURL || cfg.UsageKeeperPasswordEnv != loadedCfg.UsageKeeperPasswordEnv
+	stale := cfg.UsageKeeperURL != loadedCfg.UsageKeeperURL || cfg.UsageKeeperPasswordEnv != loadedCfg.UsageKeeperPasswordEnv ||
+		cfg.CPAManagementURL != loadedCfg.CPAManagementURL || cfg.CPAManagementKeyEnv != loadedCfg.CPAManagementKeyEnv
 	loadedConfigMu.RUnlock()
 	if stale {
 		return nil, "configuration_error"
@@ -82,7 +180,15 @@ func newKeeperStatsSource(cfg Config) (*keeperStatsSource, string) {
 	if err != nil {
 		return nil, "configuration_error"
 	}
-	return &keeperStatsSource{client: client, now: time.Now}, ""
+	// The CPA management endpoint is an optional degraded quota source; an
+	// unusable URL only disables that leg, never the Keeper statistics.
+	var cpa *cpaQuotaClient
+	if strings.TrimSpace(cfg.CPAManagementURL) != "" {
+		if c, err := newCPAQuotaClient(cfg.CPAManagementURL, cfg.CPAManagementKeyEnv); err == nil {
+			cpa = c
+		}
+	}
+	return &keeperStatsSource{client: client, now: time.Now, cpa: cpa}, ""
 }
 
 // analysisItem is one api_key_composition row (usage_analysis.go
@@ -423,33 +529,66 @@ func parseAnalysisComposition(raw []byte) ([]analysisItem, error) {
 // identifyAuthIndex). Only rows whose normalized groupKey is 5h or weekly are
 // rendered; missing usage/reset fields keep their "unknown" flags. The reset
 // credits endpoint supplements the cached available count when the cache
-// entry does not carry one.
-func (s *keeperStatsSource) collectWindows(ctx context.Context, authIndexes []string, now time.Time) ([]windowStat, *int, string, error) {
-	body, err := json.Marshal(struct {
-		AuthIndexes []string `json:"auth_indexes"`
-	}{authIndexes})
-	if err != nil {
-		return nil, nil, "", &keeperError{Code: "invalid_response"}
-	}
-	resp, err := s.client.authenticatedRequest(ctx, http.MethodPost, "/api/v1/quota/cache", body)
-	if err != nil {
+// entry does not carry one; wantResetCards=false skips that supplementary
+// round trips for callers that only need the plan (stats-only notifications).
+//
+// Refresh-first (2026-09-15): every round triggers a Keeper refresh task
+// before reading the cache (throttled per quotaRefreshThrottle), then polls
+// the cache inside a bounded budget. A cache that never yields data degrades
+// to an empty outcome instead of an error, so stats-only notifications keep
+// delivering and windowed ones skip their missing sections.
+func (s *keeperStatsSource) collectWindows(ctx context.Context, authIndexes []string, now time.Time, wantResetCards bool) ([]windowStat, *int, string, error) {
+	s.triggerQuotaRefresh(ctx, authIndexes)
+	windows, cards, plan, raw, err := s.quotaCacheOnce(ctx, authIndexes, now)
+	if err != nil && !errors.Is(err, errQuotaCacheEmpty) {
 		return nil, nil, "", err
 	}
-	defer resp.Body.Close()
-	if resp.StatusCode != http.StatusOK {
-		return nil, nil, "", keeperHTTPError(resp)
+	if !quotaCacheHasData(windows, cards, plan) {
+		interval := s.pollInterval
+		if interval <= 0 {
+			interval = quotaPollInterval
+		}
+		budget := s.pollBudget
+		if budget <= 0 {
+			budget = quotaPollBudget
+		}
+		sleep := s.sleep
+		clockNow := time.Now
+		if sleep == nil {
+			sleep = time.Sleep
+		} else {
+			// Injected sleep means a movable test clock: poll timing reads
+			// the source clock so sleep can advance it.
+			clockNow = s.now
+		}
+		start := clockNow()
+		for !quotaCacheHasData(windows, cards, plan) {
+			if clockNow().Sub(start) >= budget || ctx.Err() != nil {
+				break
+			}
+			sleep(interval)
+			if ctx.Err() != nil {
+				break
+			}
+			windows, cards, plan, raw, err = s.quotaCacheOnce(ctx, authIndexes, now)
+			if err != nil && !errors.Is(err, errQuotaCacheEmpty) {
+				return nil, nil, "", err
+			}
+		}
 	}
-	raw, err := readKeeperBody(ctx, resp.Body)
-	if err != nil {
-		return nil, nil, "", err
-	}
-	windows, cards, plan, err := parseQuotaCache(raw, now)
-	if err != nil {
-		return nil, nil, "", err
+	if !quotaCacheHasData(windows, cards, plan) {
+		// Last leg of the degradation chain: ask the CPA host's own quota
+		// endpoint. Swallowed failures keep the empty outcome closed.
+		if fw, fp, ok := s.cpaQuotaFallback(ctx, authIndexes, now); ok {
+			windows = append(windows, fw...)
+			if plan == "" {
+				plan = fp
+			}
+		}
 	}
 	// The cached count may be absent; the reset-credits endpoint is the
 	// documented supplementary source (closed codes preserved).
-	if cards == nil {
+	if wantResetCards && cards == nil {
 		for _, item := range decodedCacheItems(raw) {
 			count, err := s.fetchResetCards(ctx, item)
 			if err != nil {
@@ -517,7 +656,7 @@ func parseQuotaCache(raw []byte, now time.Time) ([]windowStat, *int, string, err
 		Items json.RawMessage `json:"items"`
 	}
 	if err := json.Unmarshal(raw, &payload); err != nil || len(payload.Items) == 0 || string(payload.Items) == "null" {
-		return nil, nil, "", &keeperError{Code: "invalid_response"}
+		return nil, nil, "", errQuotaCacheEmpty
 	}
 	var items []struct {
 		AuthIndex string `json:"auth_index"`

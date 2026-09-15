@@ -65,28 +65,35 @@ func (a *feishuAdapter) send(ctx context.Context, msg outboundMessage) ([]delive
 	return results, nil
 }
 
-// feishuComposeText prefixes inline @-markers for Open IDs and the official
-// "all" marker when at-all is on, and appends any remaining (non Open-ID)
-// user references as a plain-text list at the end of the text: external
-// Feishu groups only resolve Open IDs (spec).
+// feishuComposeText appends the inline @-markers for Open IDs and the
+// official "all" marker when at-all is on, plus any remaining (non Open-ID)
+// user references, all together on their own trailing line: external Feishu
+// groups only resolve Open IDs, and mentions render last (2026-09-15
+// quick-fix: @用户/@所有人 放在最后单独一行).
 func feishuComposeText(userIDs []string, atAll bool, body string) string {
-	var inline strings.Builder
+	var markers strings.Builder
 	var others []string
 	if atAll {
-		inline.WriteString("<at user_id=\"all\"></at> ")
+		markers.WriteString("<at user_id=\"all\"></at> ")
 	}
 	for _, id := range userIDs {
 		if strings.HasPrefix(id, "ou_") {
-			inline.WriteString("<at user_id=\"" + id + "\"></at> ")
+			markers.WriteString("<at user_id=\"" + id + "\"></at> ")
 		} else {
 			others = append(others, id)
 		}
 	}
-	text := inline.String() + body
-	if len(others) > 0 {
-		text += "\n@" + strings.Join(others, " @")
+	trailing := strings.TrimRight(markers.String(), " ")
+	for _, id := range others {
+		if trailing != "" {
+			trailing += " "
+		}
+		trailing += "@" + id
 	}
-	return text
+	if trailing == "" {
+		return body
+	}
+	return body + "\n" + trailing
 }
 
 // feishuSign computes the Feishu custom-bot signature: base64 of

@@ -24,10 +24,12 @@ const DEFAULT_SCHEDULE: NonNullable<Notification['schedule']> = { kind: 'interva
 // 分组小标题（与 NotificationModulesEditor 的「统计周期/渠道窗口」分组标题同款）
 const SECTION_TITLE_STYLE: CSSProperties = { fontSize: 12, color: 'var(--semi-color-text-1)', marginBottom: 6 }
 
-const PLATFORM_SKIN: Record<PlatformKind, { title: string; bg: string; avatar: string; bubble: string }> = {
-  wecom: { title: '企业微信 · markdown', bg: '#ededed', avatar: '#07c160', bubble: '#fff' },
-  feishu: { title: '飞书 · text', bg: '#f5f6f7', avatar: '#3370ff', bubble: '#fff' },
-  dingtalk: { title: '钉钉 · markdown', bg: '#f3f3f3', avatar: '#0089ff', bubble: '#fff' },
+// 皮肤只保留平台文案（2026-09-15 quick-fix：配色交给 styles.css 的
+// .preview-skin--* 双主题规则，深色主题不再白底浅字）。
+const PLATFORM_SKIN: Record<PlatformKind, { title: string }> = {
+  wecom: { title: '企业微信 · markdown' },
+  feishu: { title: '飞书 · text' },
+  dingtalk: { title: '钉钉 · markdown' },
 }
 
 export default function NotificationEditor({ visible, originalName, siblingNames, initial, scope = 'key', previewKey, onSaved, onClose }: {
@@ -192,11 +194,11 @@ export default function NotificationEditor({ visible, originalName, siblingNames
           {(preview?.platforms?.length ? preview.platforms : preview ? [{ kind: 'feishu' as PlatformKind, text: preview.text }] : []).map((p) => {
             const skin = PLATFORM_SKIN[p.kind] ?? PLATFORM_SKIN.feishu
             return (
-              <div key={p.kind} style={{ padding: 12, background: skin.bg, minHeight: 280 }}>
-                <div style={{ fontSize: 12, color: '#666', marginBottom: 10 }}>
+              <div key={p.kind} className={`preview-skin preview-skin--${p.kind}`} style={{ padding: 12, minHeight: 280 }}>
+                <div className="preview-skin__title" style={{ fontSize: 12, marginBottom: 10 }}>
                   {skin.title}{p.kind === 'dingtalk' ? `（会话列表标题：${draft.name}）` : ''}
                 </div>
-                <div style={{ background: skin.bubble, borderRadius: 8, padding: 12, whiteSpace: 'pre-wrap', fontSize: 13, lineHeight: 1.65 }}>
+                <div className="preview-skin__bubble" style={{ borderRadius: 8, padding: 12, whiteSpace: 'pre-wrap', fontSize: 13, lineHeight: 1.65 }}>
                   {p.text}
                 </div>
               </div>

@@ -412,33 +412,43 @@ func (s *notificationService) collectStats(ctx context.Context, binding *KeyBind
 			}
 		}
 	}
-	if needWindows {
-		indexes := []string{}
-		if channel != "" && channel != "-" {
-			indexes = []string{channel}
-		} else {
-			seen := map[string]bool{}
-			for _, ps := range data.Periods {
-				for _, ch := range ps.Channels {
-					id := ch.Identity
-					if id == "" {
-						id = ch.Name
-					}
-					if id != "" && !seen[id] {
-						seen[id] = true
-						indexes = append(indexes, id)
-					}
+	// The quota/cache round trip also carries the plan tier, so every
+	// notification with at least one channel index queries it (spec: the
+	// opening line always names the plan, regardless of module mix). Only
+	// notifications that actually render window/reset-card modules let a
+	// failed query abort the send; stats-only ones degrade to an empty plan.
+	indexes := []string{}
+	if channel != "" && channel != "-" {
+		indexes = []string{channel}
+	} else {
+		seen := map[string]bool{}
+		for _, ps := range data.Periods {
+			for _, ch := range ps.Channels {
+				id := ch.Identity
+				if id == "" {
+					id = ch.Name
+				}
+				if id != "" && !seen[id] {
+					seen[id] = true
+					indexes = append(indexes, id)
 				}
 			}
 		}
-		windows, cards, plan, err := s.deps.Source.collectWindows(ctx, indexes, now)
+	}
+	if len(indexes) > 0 {
+		windows, cards, plan, err := s.deps.Source.collectWindows(ctx, indexes, now, needWindows)
 		if err != nil {
-			return data, err
-		}
-		data.Windows = windows
-		data.ResetCards = cards
-		if data.Plan == "" {
-			data.Plan = plan
+			if needWindows {
+				return data, err
+			}
+			// Stats-only notification: keep the collected periods, the plan
+			// stays unknown instead of failing the whole send/preview.
+		} else {
+			data.Windows = windows
+			data.ResetCards = cards
+			if data.Plan == "" {
+				data.Plan = plan
+			}
 		}
 	}
 	return data, nil

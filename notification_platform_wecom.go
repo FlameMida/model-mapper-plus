@@ -67,8 +67,9 @@ func (a *wecomAdapter) send(ctx context.Context, msg outboundMessage) ([]deliver
 	return results, nil
 }
 
-// wecomComposeMarkdown prefixes official <@userid> mention markers. The
-// mentioned_list field is only defined for msgtype=text and is silently
+// wecomComposeMarkdown appends the official <@userid> mention markers on
+// their own trailing line (2026-09-15: @用户/@所有人 统一放在最后单独一行).
+// The mentioned_list field is only defined for msgtype=text and is silently
 // ignored on markdown, so markdown mentions must use the inline extension
 // syntax in content instead.
 func wecomComposeMarkdown(userIDs []string, body string) string {
@@ -79,6 +80,5 @@ func wecomComposeMarkdown(userIDs []string, body string) string {
 	for _, id := range userIDs {
 		b.WriteString("<@" + id + "> ")
 	}
-	b.WriteString(body)
-	return b.String()
+	return body + "\n" + strings.TrimRight(b.String(), " ")
 }

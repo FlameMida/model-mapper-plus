@@ -334,6 +334,8 @@ func isIncompleteSSEPrefix(p []byte) bool {
 type Config struct {
 	UsageKeeperURL         string `json:"usage_keeper_url"`
 	UsageKeeperPasswordEnv string `json:"usage_keeper_password_env"`
+	CPAManagementURL       string `json:"cpa_management_url"`
+	CPAManagementKeyEnv    string `json:"cpa_management_key_env"`
 	Enabled                bool   `json:"enabled"`
 	GlobalRules            string `json:"global_rules"`
 	ClaudeMessagesRules    string `json:"claude_messages_rules"`
@@ -380,6 +382,8 @@ func pluginRegistration() registration {
 				{Name: "state_file", Type: pluginapi.ConfigFieldTypeString, Description: "Path to the JSON state file holding mapping rules and key bindings. Relative paths resolve against the CPA process working directory; leave empty to use model-mapper-plus-state.json there. Edit the rules themselves in the Model Mapper Plus admin page."},
 				{Name: "usage_keeper_url", Type: pluginapi.ConfigFieldTypeString, Description: "Keeper base URL reachable from the CPA process, including any deployment subpath. Leave empty to disable API key alias lookup."},
 				{Name: "usage_keeper_password_env", Type: pluginapi.ConfigFieldTypeString, Description: "Environment variable holding the Keeper administrator login password. Defaults to CPA_KEEPER_LOGIN_PASSWORD. Set the actual password in the CPA process environment and restart CPA after changing it."},
+				{Name: "cpa_management_url", Type: pluginapi.ConfigFieldTypeString, Description: "CPA management base URL used as the degraded quota source for notifications, for example http://127.0.0.1:8317. Leave empty to disable. Used only when Keeper yields no window or plan data."},
+				{Name: "cpa_management_key_env", Type: pluginapi.ConfigFieldTypeString, Description: "Environment variable holding a CPA management key for the degraded quota source. Required when cpa_management_url is set."},
 			},
 		},
 		Capabilities: registrationCapabilities{
@@ -1371,6 +1375,8 @@ func dispatchMethod(method string, request []byte) ([]byte, error) {
 type lifecycleConfigYAML struct {
 	UsageKeeperURL         *string `yaml:"usage_keeper_url"`
 	UsageKeeperPasswordEnv *string `yaml:"usage_keeper_password_env"`
+	CPAManagementURL       *string `yaml:"cpa_management_url"`
+	CPAManagementKeyEnv    *string `yaml:"cpa_management_key_env"`
 	Enabled                *bool   `yaml:"enabled"`
 	GlobalRules            *string `yaml:"global_rules"`
 	ClaudeMessagesRules    *string `yaml:"claude_messages_rules"`
@@ -1407,6 +1413,12 @@ func decodeLifecycleConfig(raw []byte) (json.RawMessage, bool, error) {
 	}
 	if doc.UsageKeeperPasswordEnv != nil {
 		cfg.UsageKeeperPasswordEnv = *doc.UsageKeeperPasswordEnv
+	}
+	if doc.CPAManagementURL != nil {
+		cfg.CPAManagementURL = *doc.CPAManagementURL
+	}
+	if doc.CPAManagementKeyEnv != nil {
+		cfg.CPAManagementKeyEnv = *doc.CPAManagementKeyEnv
 	}
 	if doc.Enabled != nil {
 		cfg.Enabled = *doc.Enabled

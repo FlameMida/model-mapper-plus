@@ -43,8 +43,8 @@ func TestWeComSendRequestShape(t *testing.T) {
 		t.Fatal("markdown payload must not carry the text-only mentioned_list field")
 	}
 	content := md["content"].(string)
-	if !strings.HasPrefix(content, "<@u1> ") || !strings.Contains(content, "hello") {
-		t.Fatalf("content must prefix <@userid> markers then keep the body: %q", content)
+	if !strings.HasSuffix(content, "\n<@u1>") || !strings.Contains(content, "hello") {
+		t.Fatalf("content must keep the body then the trailing mention line: %q", content)
 	}
 }
 
@@ -52,8 +52,8 @@ func TestWeComComposeMarkdownWithoutUserIDs(t *testing.T) {
 	if got := wecomComposeMarkdown(nil, "plain body"); got != "plain body" {
 		t.Fatalf("no user IDs must keep body untouched: %q", got)
 	}
-	if got := wecomComposeMarkdown([]string{"u1", "u2"}, "body"); got != "<@u1> <@u2> body" {
-		t.Fatalf("each ID must become one <@userid> marker: %q", got)
+	if got := wecomComposeMarkdown([]string{"u1", "u2"}, "body"); got != "body\n<@u1> <@u2>" {
+		t.Fatalf("each ID must become one <@userid> marker on the trailing line: %q", got)
 	}
 }
 
@@ -190,4 +190,29 @@ func TestAtAllPlatformShapes(t *testing.T) {
 			t.Fatalf("content=%v", gotBody["text"])
 		}
 	})
+}
+
+// 2026-09-15 quick-fix：@用户/@所有人 统一渲染在消息最后单独一行（三平台
+// 发送适配层一致；钉钉走 at 字段由服务端附加，正文不参与）。
+func TestFeishuComposeTextAppendsMentionsOnLastLine(t *testing.T) {
+	got := feishuComposeText([]string{"ou_a", "legacy_1"}, true, "正文第一行\n正文第二行")
+	want := "正文第一行\n正文第二行\n<at user_id=\"all\"></at> <at user_id=\"ou_a\"></at> @legacy_1"
+	if got != want {
+		t.Fatalf("mentions must ride one trailing line:\n got %q\nwant %q", got, want)
+	}
+	if got := feishuComposeText(nil, false, "正文"); got != "正文" {
+		t.Fatalf("no mentions must keep body untouched: %q", got)
+	}
+	if got := feishuComposeText([]string{"ou_a"}, false, "正文"); got != "正文\n<at user_id=\"ou_a\"></at>" {
+		t.Fatalf("trailing marker must not carry a trailing space: %q", got)
+	}
+}
+
+func TestWeComComposeMarkdownAppendsMentionsOnLastLine(t *testing.T) {
+	if got := wecomComposeMarkdown(nil, "plain body"); got != "plain body" {
+		t.Fatalf("no user IDs must keep body untouched: %q", got)
+	}
+	if got := wecomComposeMarkdown([]string{"u1", "u2"}, "body"); got != "body\n<@u1> <@u2>" {
+		t.Fatalf("each ID must become one <@userid> marker on the trailing line: %q", got)
+	}
 }
