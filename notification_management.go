@@ -160,7 +160,32 @@ func managementNotificationSettingsGet() pluginapi.ManagementResponse {
 	}
 	normalized := *settings
 	normalizeNotificationSettings(&normalized)
+	_ = withNotificationStore(func(store *notificationStore) error {
+		projectSettingsNextFire(&normalized, store)
+		return nil
+	})
 	return managementJSON(http.StatusOK, &normalized)
+}
+
+func projectSettingsNextFire(settings *NotificationSettings, store *notificationStore) {
+	if settings == nil || store == nil {
+		return
+	}
+	now := time.Now()
+	for i := range settings.Notifications {
+		n := &settings.Notifications[i]
+		if n.Schedule == nil {
+			continue
+		}
+		last, _ := store.Clock(n.ID, "global", "-")
+		_, next := dueAt(*n.Schedule, last, now, NotificationLocation)
+		n.NextFire = formatNextFire(next)
+	}
+	if settings.GlobalDefault.Schedule != nil {
+		last, _ := store.Clock(settings.GlobalDefault.ID, "global", "-")
+		_, next := dueAt(*settings.GlobalDefault.Schedule, last, now, NotificationLocation)
+		settings.GlobalDefault.NextFire = formatNextFire(next)
+	}
 }
 
 // managementNotificationSettingsPut replaces the global notification block:
@@ -343,7 +368,17 @@ func managementNotificationPreview(req pluginapi.ManagementRequest) pluginapi.Ma
 		return managementError(http.StatusNotFound, err.Error())
 	}
 	text, warnings := renderNotificationPreview(binding, *n)
-	return managementJSON(http.StatusOK, map[string]any{"text": text, "warnings": warnings, "bytes": len(text)})
+	var platforms []map[string]any
+	for _, p := range n.Platforms {
+		if !p.Enabled {
+			continue
+		}
+		platforms = append(platforms, map[string]any{"kind": p.Kind, "text": text, "warnings": warnings})
+	}
+	if platforms == nil {
+		platforms = []map[string]any{}
+	}
+	return managementJSON(http.StatusOK, map[string]any{"text": text, "warnings": warnings, "bytes": len(text), "platforms": platforms})
 }
 
 // managementNotificationTestSend renders the chosen entity from the saved

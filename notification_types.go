@@ -71,6 +71,7 @@ type Notification struct {
 	Modules               []ModuleConfig        `json:"modules"`
 	Schedule              *NotificationSchedule `json:"schedule"`
 	Platforms             []PlatformIdentity    `json:"platforms"`
+	NextFire              string                `json:"next_fire,omitempty"`
 }
 
 // ModuleConfig pairs a statistics module with its period; window modules
@@ -244,11 +245,7 @@ func validateNotificationEntity(n *Notification, path string, allowAtAll bool) e
 					break
 				}
 			}
-			// @所有人 satisfies the mention requirement only on global entries.
-			if !hasUserID && !(allowAtAll && p.AtAll) {
-				if allowAtAll {
-					return fmt.Errorf("%s.platforms[%d]: 启用通知时用户唯一 ID 为必填（或开启 @所有人）", path, i)
-				}
+			if !hasUserID && !allowAtAll {
 				return fmt.Errorf("%s.platforms[%d]: 启用通知时用户唯一 ID 为必填", path, i)
 			}
 		}
