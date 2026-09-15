@@ -6,6 +6,7 @@ import {
   AUDIT_MODULES, actionLabel, arrayDiff, diffLines, errorText, fieldLabel, formatValue,
   idListDiff, isRedacted, moduleMeta, moduleOf, resolveName, summarizeChanges,
 } from '../auditDisplay'
+import { formatClock, formatDateTime } from '../formatTime'
 import './AuditPanel.css'
 
 const OUTCOME_META: Record<AuditOperation['outcome'], { label: string; tone: 'green' | 'red' | 'grey' }> = {
@@ -15,8 +16,6 @@ const OUTCOME_META: Record<AuditOperation['outcome'], { label: string; tone: 'gr
   unknown: { label: '结果未确认', tone: 'grey' },
 }
 
-const formatTime = (value: string) => new Date(value).toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai', hour12: false })
-const formatClock = (value: string) => new Date(value).toLocaleTimeString('zh-CN', { timeZone: 'Asia/Shanghai', hour12: false })
 const durationMs = (item: AuditOperation) =>
   item.finished_at ? Math.max(0, new Date(item.finished_at).getTime() - new Date(item.started_at).getTime()) : null
 
@@ -161,7 +160,7 @@ function AuditRow({ item, live, expanded, onToggle }: {
     {expanded && <div className="audit-detail">
       <div className="audit-meta">
         <span>操作 ID <code>{item.operation_id}</code></span>
-        <span>开始 {formatTime(item.started_at)}{item.finished_at ? ` · 结束 ${formatTime(item.finished_at)}` : ''}</span>
+        <span>开始 {formatDateTime(item.started_at)}{item.finished_at ? ` · 结束 ${formatDateTime(item.finished_at)}` : ''}</span>
         {duration != null && <span>耗时 {duration} ms</span>}
         <span>{item.changed == null ? '变更未确认' : item.changed ? '有变更' : '无变化（changed=false）'}</span>
         <span>来源 {item.actor}</span>

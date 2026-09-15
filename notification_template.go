@@ -142,7 +142,7 @@ func renderMessage(n Notification, d statsData, now time.Time) (string, renderWa
 				fmt.Fprintf(&b, "已用 %s tokens\n", abbreviateTokens(w.UsedTokens))
 			}
 			if w.ResetKnown {
-				fmt.Fprintf(&b, "重置 %s\n", w.ResetAt.In(NotificationLocation).Format("2006-01-02 15:04"))
+				fmt.Fprintf(&b, "重置 %s\n", formatNextFire(w.ResetAt))
 				fmt.Fprintf(&b, "还剩 %d 天 %d 小时\n", w.RemainingDays, w.RemainingHours)
 			}
 			b.WriteString("\n")

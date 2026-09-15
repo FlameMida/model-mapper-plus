@@ -43,6 +43,8 @@ describe('NotificationsPanel', () => {
     expect(screen.getByText(/待发任务/)).toBeInTheDocument()
     expect(screen.getByText('2026-09-15 08:44:47')).toBeInTheDocument()
     expect(screen.getByText(/下次触发 2026-09-14 09:00:00/)).toBeInTheDocument()
+    expect(await screen.findByText('2026-09-01 07:59:00')).toBeInTheDocument()
+    expect(screen.queryByText('2026-08-31T23:59:00Z')).not.toBeInTheDocument()
   })
 
   it('saves global entity via putSettings', async () => {

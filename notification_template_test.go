@@ -59,7 +59,7 @@ func TestRenderMessageSectionLayout(t *testing.T) {
 		"▍日统计 · 本期累计（2026-09-13）",
 		"Claude\n用量 800.00K tokens\n占比 40.00%\n折算 ≈ $12.34",
 		"Grok\n用量 12.00K tokens\n占比未知",
-		"▍Weekly 窗口", "还剩 3 天 12 小时",
+		"▍Weekly 窗口", "重置 2026-09-17 00:00:00", "还剩 3 天 12 小时",
 		"▍重置卡（2 张）", msgAmountNote,
 	} {
 		if !strings.Contains(out, want) {

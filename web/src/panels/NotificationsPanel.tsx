@@ -12,6 +12,7 @@ import { scheduleText } from '../notificationSummary'
 import NotificationEditor from '../components/NotificationEditor'
 import { validatePlatforms } from '../components/PlatformIdentityEditor'
 import { DeliveriesTable, LastDelivery } from '../components/NotificationDeliveries'
+import { formatDateTime } from '../formatTime'
 
 type DeliveryFilter = { platform?: string; outcome?: string; notification_id?: string; key_fingerprint?: string }
 
@@ -120,7 +121,7 @@ export default function NotificationsPanel() {
           {status?.running
             ? <Tag color="green" aria-live="polite">运行中</Tag>
             : <Tag color="red" aria-live="polite">不可用{errorCode ? `（${errorCode}）` : ''}</Tag>}
-          <Typography.Text>待发任务 {status?.pending_jobs ?? 0}{status?.next_fire ? ` · 下次触发 ${status.next_fire}` : ''}</Typography.Text>
+          <Typography.Text>待发任务 {status?.pending_jobs ?? 0}{status?.next_fire ? ` · 下次触发 ${formatDateTime(status.next_fire)}` : ''}</Typography.Text>
         </div>
       </Card>
       <Card title="全局通知" headerExtraContent={
@@ -148,7 +149,7 @@ export default function NotificationsPanel() {
               { title: '发送计划', render: (_: unknown, n: Notification) => (
                 <Typography.Text>{scheduleText(n.schedule)}</Typography.Text>
               ) },
-              { title: '下次发送', render: (_: unknown, n: Notification) => n.next_fire || '—' },
+              { title: '下次发送', render: (_: unknown, n: Notification) => n.next_fire ? formatDateTime(n.next_fire) : '—' },
               { title: '平台', render: (_: unknown, n: Notification) =>
                 (n.platforms ?? []).filter((p) => p.enabled).map((p) => p.kind + (p.at_all ? '(@所有人)' : '')).join('、') || '—' },
               { title: '最近投递', render: (_: unknown, n: Notification) => <LastDelivery notificationId={n.id} /> },
@@ -194,7 +195,7 @@ export default function NotificationsPanel() {
         </div>
         <Table dataSource={deliveries} rowKey="id" pagination={false} size="small"
           columns={[
-            { title: '时间', dataIndex: 'created_at', width: 170, render: (v: string) => new Date(v).toLocaleString() },
+            { title: '时间', dataIndex: 'created_at', width: 170, render: (v: string) => formatDateTime(v) },
             { title: '平台', dataIndex: 'platform', width: 90 },
             { title: '周期', dataIndex: 'period_key' },
             { title: '状态', dataIndex: 'outcome', width: 90, render: (v: DeliveryRecord['outcome']) =>

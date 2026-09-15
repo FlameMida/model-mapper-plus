@@ -55,6 +55,8 @@ describe('KeyNotificationsTab', () => {
     await user.click(screen.getByRole('button', { name: /投递记录/ }))
     expect(await screen.findByText('daily:2026-09-13')).toBeInTheDocument()
     expect(screen.getAllByText('rate_limited').length).toBeGreaterThan(0)
+    expect(screen.getByText('2026-09-13 17:00:00')).toBeInTheDocument()
+    expect(screen.queryByText('2026-09-13T09:00:00Z')).not.toBeInTheDocument()
   })
 
   it('delete removes from list via onChange', async () => {

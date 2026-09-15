@@ -48,12 +48,15 @@ describe('App 版本展示', () => {
       key_bindings: [],
       persisted: true,
       state_file: '/tmp/s.json',
+      updated_at: '2026-09-15T08:01:00Z',
       plugin_version: '0.0.0-dev.abc1234',
     } satisfies StateResponse)
     render(<App />)
     // 正向守卫：state 已加载（"已连接" Tag 出现），再断言版本段——避免 state=null 时空过
     await waitFor(() => expect(screen.getByText(/已连接/)).toBeInTheDocument())
     expect(screen.getByText(/v0\.0\.0-dev\.abc1234/)).toBeInTheDocument()
+    expect(screen.getByText(/state 已保存 2026-09-15 16:01:00/)).toBeInTheDocument()
+    expect(screen.queryByText(/2026-09-15T08:01:00Z/)).not.toBeInTheDocument()
   })
 
   // Scenario: 旧 .so 无该字段时前端容错

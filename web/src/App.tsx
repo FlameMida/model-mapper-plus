@@ -9,6 +9,7 @@ import PreviewPanel from './panels/PreviewPanel'
 import AuditPanel from './panels/AuditPanel'
 import NotificationsPanel from './panels/NotificationsPanel'
 import { useKeyOptions } from './useKeyOptions'
+import { formatDateTime } from './formatTime'
 
 const { Header, Content } = Layout
 
@@ -86,7 +87,7 @@ export default function App() {
               {state && (
                 <Typography.Text size="small" style={{ marginLeft: 8 }}>
                   {state.persisted
-                    ? `state 已保存 ${state.updated_at ?? ''}`
+                    ? `state 已保存 ${formatDateTime(state.updated_at)}`
                     : '当前为 YAML 配置（首次保存后接管）'}
                   {state.state_file ? ` · ${state.state_file}` : ''}
                   {state.plugin_version ? ` · v${state.plugin_version}` : ''}

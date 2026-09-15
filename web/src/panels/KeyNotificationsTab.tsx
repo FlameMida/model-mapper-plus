@@ -16,6 +16,7 @@ import type { Notification } from '../notifications'
 import { scheduleSummary } from '../notificationSummary'
 import NotificationEditor from '../components/NotificationEditor'
 import { DeliveriesTable, LastDelivery } from '../components/NotificationDeliveries'
+import { formatDateTime } from '../formatTime'
 
 /** 新建草稿：默认跟随全局模板与计划（2026-09-13 确认），平台身份三项全关待填。 */
 function newDraft(): Notification {
@@ -80,7 +81,7 @@ export default function KeyNotificationsTab({ binding, onChange, globalName, glo
             { title: '发送计划', render: (_: unknown, n: Notification) => (
               <Typography.Text>{scheduleSummary(n)}</Typography.Text>
             ) },
-            { title: '下次发送', render: (_: unknown, n: Notification) => n.next_fire || '—' },
+            { title: '下次发送', render: (_: unknown, n: Notification) => n.next_fire ? formatDateTime(n.next_fire) : '—' },
             { title: '平台', render: (_: unknown, n: Notification) =>
               (n.platforms ?? []).filter((p) => p.enabled).map((p) => p.kind).join('、') || '—' },
             { title: '最近投递', render: (_: unknown, n: Notification) => <LastDelivery notificationId={n.id} /> },

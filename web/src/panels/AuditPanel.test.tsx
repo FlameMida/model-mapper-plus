@@ -98,6 +98,8 @@ it('行内展开渠道定向三字段 diff，事件 labels 快照优先于实时
   expect(await screen.findByText('Codex 主力')).toBeInTheDocument()
   expect(screen.getByText(/操作 ID/)).toBeInTheDocument()
   expect(screen.getByText(/耗时 458 ms/)).toBeInTheDocument()
+  expect(screen.getByText(/开始 2026-09-13 14:32:05 · 结束 2026-09-13 14:32:05/)).toBeInTheDocument()
+  expect(screen.queryByText(/2026-09-13T14:32:05/)).not.toBeInTheDocument()
   await user.click(expanded)
   expect(screen.getByRole('button', { name: /prod-deepseek/ })).toHaveAttribute('aria-expanded', 'false')
 })
