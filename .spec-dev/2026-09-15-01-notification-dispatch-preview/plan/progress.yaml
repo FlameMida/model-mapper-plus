@@ -1,5 +1,5 @@
 format_version: 1
-current: T08
+current: null
 tasks:
   T00: { status: completed, commit: 4b3fb10b10f879e22ddccc676880cd353aa62fe0, tests: pass }
   T01: { status: completed, commit: eeb87b85e99501a8f3b7365218e51a3ff9c35ab6, tests: pass }
@@ -9,10 +9,10 @@ tasks:
   T05: { status: completed, commit: e034709d373c73ed1f17decafd7a95d8020ae023, tests: pass }
   T06: { status: completed, commit: 12882dad0fb067d817679c01eede133b3e98a77e, tests: pass }
   T07: { status: completed, commit: ab78e3f99baf4a3254b5710b014db6259e772589, tests: pass }
-  T08: { status: pending }
-  T09: { status: pending }
-resources:
-  - "worktree: /Users/maverick/cpa-model-mapper-plus/.worktrees/plan/2026-09-15-01-notification-dispatch-preview —— git worktree remove /Users/maverick/cpa-model-mapper-plus/.worktrees/plan/2026-09-15-01-notification-dispatch-preview && git branch -D plan/2026-09-15-01-notification-dispatch-preview"
+  T08: { status: completed, commit: da50811cfe7a80173de2ce29089d6b1a257f23e8, tests: pass }
+  T09: { status: completed, commit: b38e9e2aedc1b2678cd8de95da29c0933b96a2f9, tests: pass }
+resources: []
 notes:
   - "T00 created worktree. source=/Users/maverick/cpa-model-mapper-plus branch=main HEAD=4b3fb10. isolation=/Users/maverick/cpa-model-mapper-plus/.worktrees/plan/2026-09-15-01-notification-dispatch-preview branch=plan/2026-09-15-01-notification-dispatch-preview. baseline: go Test(Notification|ManagementNotification|Keeper) 41 passed; pnpm --prefix web test 196 passed."
-
+  - "T09 merged plan/2026-09-15-01-notification-dispatch-preview into main at b38e9e2; sync_commit a5ded8c. Worktree removed and plan branch deleted 2026-09-15. T08 visual/manual acceptance still pending."
+  - "T08 ran 2026-09-15 on main after merge. Target=MAPPER_ACCEPTANCE_SERVE loopback fixture 127.0.0.1:31819 (no live CPA/docker). Visual: desktop 3-col pass; 2-col hides dingtalk; metrics one-per-line; 390 wrap overflow-x auto but default scroll shows rightmost column (warn). Manual 3-platform unauthorized → manual-pending. Baked web/dist (T07 UI was missing from embed). Report: .spec-dev/2026-09-15-01-notification-dispatch-preview/acceptance/acceptance-report.md. Fixture process stopped after evidence captured."

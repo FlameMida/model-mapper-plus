@@ -96,8 +96,25 @@ func TestAdminAcceptanceServe(t *testing.T) {
 		mu.Lock()
 		defer mu.Unlock()
 		w.Header().Set("Content-Type", "application/json")
+		if r.URL.Path == "/api/v1/usage/analysis" {
+			_ = json.NewEncoder(w).Encode(map[string]any{
+				"granularity": "day", "timezone": "CST",
+				"api_key_composition": []any{
+					map[string]any{"key": "fake-client-key", "label": "验收Key", "total_tokens": int64(800000), "percent": 40, "cost_usd": 12.34, "cost_available": true},
+					map[string]any{"key": "sk-other", "label": "另一账号", "total_tokens": int64(1200000), "percent": 60, "cost_usd": 18.9, "cost_available": true},
+				},
+				"auth_files_composition": []any{
+					map[string]any{"key": "ai_1", "label": "Codex", "total_tokens": int64(2000000), "percent": 100, "cost_usd": 31.24, "cost_available": true},
+					map[string]any{"key": "ai_2", "label": "Claude", "total_tokens": int64(500000), "percent": 20, "cost_usd": 4.5, "cost_available": true},
+				},
+				"ai_provider_composition": []any{},
+			})
+			return
+		}
 		if r.URL.Path == "/api/v1/usage/api-keys/settings" {
-			_ = json.NewEncoder(w).Encode(map[string]any{"items": []any{}})
+			_ = json.NewEncoder(w).Encode(map[string]any{"items": []any{
+				map[string]any{"id": "1", "apiKey": "fake-client-key", "displayKey": "fake-***key", "keyAlias": "验收Key"},
+			}})
 			return
 		}
 		if r.Method == http.MethodPatch && r.URL.Path == "/api/v1/usage/identities/17" {
