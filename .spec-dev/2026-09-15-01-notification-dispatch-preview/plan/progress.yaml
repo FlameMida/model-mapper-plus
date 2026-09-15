@@ -1,8 +1,8 @@
 format_version: 1
-current: T01
+current: T02
 tasks:
   T00: { status: completed, commit: 4b3fb10b10f879e22ddccc676880cd353aa62fe0, tests: pass }
-  T01: { status: pending }
+  T01: { status: completed, commit: eeb87b85e99501a8f3b7365218e51a3ff9c35ab6, tests: pass }
   T02: { status: pending }
   T03: { status: pending }
   T04: { status: pending }
