@@ -128,6 +128,7 @@ func (c *cpaQuotaClient) fetchQuota(ctx context.Context, authIndex string, now t
 	}
 	var payload struct {
 		Subscription *struct {
+			Provider string `json:"provider"`
 			Plan     string `json:"plan"`
 			TierName string `json:"tierName"`
 			TierID   string `json:"tierId"`
@@ -160,10 +161,8 @@ func (c *cpaQuotaClient) fetchQuota(ctx context.Context, authIndex string, now t
 	}
 	plan := ""
 	if payload.Subscription != nil {
-		plan = strings.TrimSpace(payload.Subscription.TierName)
-		if plan == "" {
-			plan = strings.TrimSpace(payload.Subscription.Plan)
-		}
+		sub := payload.Subscription
+		plan = formatNotificationPlan(sub.Provider, sub.Plan, sub.TierName, sub.TierID)
 	}
 	return windows, plan, nil
 }

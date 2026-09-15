@@ -526,7 +526,8 @@ func parseAnalysisComposition(raw []byte) ([]analysisItem, error) {
 
 // collectWindows collects 5H/Weekly window usage, the plan tier and the
 // reset-card count for exact auth_index identities (already bridged by
-// identifyAuthIndex). Only rows whose normalized groupKey is 5h or weekly are
+// identifyAuthIndex). Only rows mapped to 5h or weekly (key, label, or
+// groupKey) are
 // rendered; missing usage/reset fields keep their "unknown" flags. The reset
 // credits endpoint supplements the cached available count when the cache
 // entry does not carry one; wantResetCards=false skips that supplementary
@@ -586,11 +587,25 @@ func (s *keeperStatsSource) collectWindows(ctx context.Context, authIndexes []st
 			}
 		}
 	}
-	// The cached count may be absent; the reset-credits endpoint is the
-	// documented supplementary source (closed codes preserved).
+	// Header-style Codex caches often have windows but omit the flattened
+	// count. Reset credits are Codex-only: walk requested indexes then cache
+	// items, skip non-Codex 4xx, and stop at the first known count.
 	if wantResetCards && cards == nil {
+		seen := map[string]struct{}{}
+		indexes := append([]string{}, authIndexes...)
 		for _, item := range decodedCacheItems(raw) {
-			count, err := s.fetchResetCards(ctx, item)
+			indexes = append(indexes, item.AuthIndex)
+		}
+		for _, index := range indexes {
+			index = strings.TrimSpace(index)
+			if index == "" {
+				continue
+			}
+			if _, dup := seen[index]; dup {
+				continue
+			}
+			seen[index] = struct{}{}
+			count, err := s.fetchResetCards(ctx, quotaCacheItemRef{AuthIndex: index})
 			if err != nil {
 				return nil, nil, "", err
 			}
@@ -600,7 +615,126 @@ func (s *keeperStatsSource) collectWindows(ctx context.Context, authIndexes []st
 			}
 		}
 	}
+	if plan == "" {
+		plan = s.identityPlan(ctx, authIndexes)
+	}
 	return windows, cards, plan, nil
+}
+
+// formatNotificationPlan maps Keeper subscription ids onto message labels.
+// Codex / Claude / Antigravity known plans use the same display names as
+// Keeper's credential badges; unknown Codex plans keep the raw plan text;
+// Antigravity "unknown" uses tierName/tierId. Empty stays empty so the
+// renderer can show 未知/未提供. "pro" is Pro 20x only for Codex — Claude
+// and provider-less "pro" stay Pro.
+func formatNotificationPlan(provider, plan, tierName, tierID string) string {
+	provider = strings.ToLower(strings.TrimSpace(provider))
+	rawPlan := strings.TrimSpace(plan)
+	tierName = strings.TrimSpace(tierName)
+	tierID = strings.TrimSpace(tierID)
+	id := strings.ToLower(strings.ReplaceAll(rawPlan, "_", "-"))
+	id = strings.Join(strings.Fields(id), "-")
+	if provider == "codex" {
+		switch id {
+		case "pro":
+			id = "pro-20x"
+		case "prolite", "pro-lite":
+			id = "pro-5x"
+		}
+	}
+	if label, ok := notificationPlanLabel(provider, id); ok && (provider != "" || tierName == "") {
+		return label
+	}
+	if provider == "antigravity" && (id == "unknown" || id == "") {
+		if tierName != "" {
+			return tierName
+		}
+		return tierID
+	}
+	if tierName != "" {
+		return tierName
+	}
+	return rawPlan
+}
+
+func notificationPlanLabel(provider, id string) (string, bool) {
+	if provider != "" {
+		if label, ok := notificationPlanLabels[provider+":"+id]; ok {
+			return label, true
+		}
+	}
+	label, ok := notificationPlanLabels[":"+id]
+	return label, ok
+}
+
+var notificationPlanLabels = map[string]string{
+	"codex:free": "Free", "codex:plus": "Plus", "codex:team": "Team",
+	"codex:pro-5x": "Pro 5x", "codex:pro-20x": "Pro 20x", "codex:enterprise": "Enterprise",
+	"claude:free": "Free", "claude:pro": "Pro", "claude:max": "Max", "claude:team": "Team",
+	"antigravity:free": "Free", "antigravity:pro": "Pro",
+	"antigravity:ultra-lite": "Ultra Lite", "antigravity:ultra": "Ultra",
+	":free": "Free", ":plus": "Plus", ":team": "Team", ":pro": "Pro",
+	":pro-5x": "Pro 5x", ":pro-20x": "Pro 20x", ":enterprise": "Enterprise",
+	":max": "Max", ":ultra-lite": "Ultra Lite", ":ultra": "Ultra",
+}
+
+// identityPlan reads Keeper identities and returns the first matching
+// subscription plan. Failures stay empty: the opening line already degrades
+// to 未知/未提供 and must not fail a send that already has period stats.
+func (s *keeperStatsSource) identityPlan(ctx context.Context, authIndexes []string) string {
+	if s.client == nil || len(authIndexes) == 0 {
+		return ""
+	}
+	want := map[string]struct{}{}
+	for _, index := range authIndexes {
+		index = strings.TrimSpace(index)
+		if index != "" {
+			want[index] = struct{}{}
+		}
+	}
+	if len(want) == 0 {
+		return ""
+	}
+	resp, err := s.client.authenticatedRequest(ctx, http.MethodGet, "/api/v1/usage/identities", nil)
+	if err != nil {
+		return ""
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		return ""
+	}
+	raw, err := readKeeperBody(ctx, resp.Body)
+	if err != nil {
+		return ""
+	}
+	return parseIdentityPlan(raw, want)
+}
+
+func parseIdentityPlan(raw []byte, want map[string]struct{}) string {
+	var body struct {
+		Identities []struct {
+			Identity     string `json:"identity"`
+			Subscription *struct {
+				Provider string `json:"provider"`
+				Plan     string `json:"plan"`
+				TierName string `json:"tierName"`
+				TierID   string `json:"tierId"`
+			} `json:"subscription"`
+		} `json:"identities"`
+	}
+	if err := json.Unmarshal(raw, &body); err != nil {
+		return ""
+	}
+	for _, row := range body.Identities {
+		if _, ok := want[strings.TrimSpace(row.Identity)]; !ok || row.Subscription == nil {
+			continue
+		}
+		sub := row.Subscription
+		if plan := formatNotificationPlan(sub.Provider, sub.Plan, sub.TierName, sub.TierID); plan != "" {
+			return plan
+		}
+	}
+	return ""
 }
 
 type quotaCacheItemRef struct {
@@ -631,26 +765,93 @@ func (s *keeperStatsSource) fetchResetCards(ctx context.Context, item quotaCache
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
+		if resp.StatusCode >= 400 && resp.StatusCode < 500 &&
+			resp.StatusCode != http.StatusUnauthorized &&
+			resp.StatusCode != http.StatusForbidden &&
+			resp.StatusCode != http.StatusTooManyRequests {
+			_, _ = readKeeperBody(ctx, resp.Body)
+			return nil, nil
+		}
 		return nil, keeperHTTPError(resp)
 	}
 	raw, err := readKeeperBody(ctx, resp.Body)
 	if err != nil {
 		return nil, err
 	}
+	return parseResetCredits(raw)
+}
+
+// parseResetCredits reads Keeper's reset-credits envelope. A JSON null
+// availableCount is "not provided" unless the credits list itself has rows
+// (same fallback Codex Check uses when the details API omits the aggregate).
+func parseResetCredits(raw []byte) (*int, error) {
 	var payload struct {
 		AvailableCount *int `json:"availableCount"`
+		Credits        []struct {
+			Status string `json:"status"`
+		} `json:"credits"`
 	}
 	if err := json.Unmarshal(raw, &payload); err != nil {
 		return nil, &keeperError{Code: "invalid_response"}
 	}
-	return payload.AvailableCount, nil
+	if payload.AvailableCount != nil {
+		count := *payload.AvailableCount
+		return &count, nil
+	}
+	n := 0
+	for _, credit := range payload.Credits {
+		status := strings.ToLower(strings.TrimSpace(credit.Status))
+		if status == "" || status == "available" {
+			n++
+		}
+	}
+	if n == 0 {
+		return nil, nil
+	}
+	return &n, nil
+}
+
+// keeperWindowGroup maps one Keeper QuotaRow onto the renderer 5h/weekly
+// keys. Real Codex/Claude rows omit groupKey and use key+label
+// (rate_limit.primary_window / five_hour + "5h"); invented groupKey=5h
+// fixtures and CPA-style labels stay accepted. Additional Spark/code-review
+// windows are ignored unless their label itself is a 5h/weekly token.
+func keeperWindowGroup(key, label, groupKey string) (string, bool) {
+	switch strings.ToLower(strings.TrimSpace(key)) {
+	case "rate_limit.primary_window", "five_hour":
+		return "5h", true
+	case "rate_limit.secondary_window", "seven_day":
+		return "weekly", true
+	}
+	gk := strings.ToLower(strings.TrimSpace(groupKey))
+	if gk == "5h" || gk == "weekly" {
+		return gk, true
+	}
+	return cpaWindowGroupKey(label)
+}
+
+func parseQuotaResetAt(raw string) (time.Time, bool) {
+	raw = strings.TrimSpace(raw)
+	for _, layout := range []string{time.RFC3339Nano, time.RFC3339} {
+		if at, err := time.Parse(layout, raw); err == nil {
+			return at, true
+		}
+	}
+	return time.Time{}, false
+}
+
+func derefString(p *string) string {
+	if p == nil {
+		return ""
+	}
+	return *p
 }
 
 // parseQuotaCache validates the CacheResponse envelope and projects each
 // completed entry's QuotaRows into 5h/weekly windowStats (tierName preferred
 // over plan; both empty keeps the plan unknown), the first known
 // rateLimitResetCreditsAvailableCount as reset cards, and discards unknown
-// group keys (spec: non-existent windows are not rendered).
+// windows (spec: non-existent windows are not rendered).
 func parseQuotaCache(raw []byte, now time.Time) ([]windowStat, *int, string, error) {
 	var payload struct {
 		Items json.RawMessage `json:"items"`
@@ -662,14 +863,18 @@ func parseQuotaCache(raw []byte, now time.Time) ([]windowStat, *int, string, err
 		AuthIndex string `json:"auth_index"`
 		Quota     *struct {
 			Quota []struct {
+				Key               *string `json:"key"`
+				Label             *string `json:"label"`
 				GroupKey          *string `json:"groupKey"`
 				GroupLabel        *string `json:"groupLabel"`
 				WindowUsageTokens *int64  `json:"window_usage_tokens"`
 				ResetAt           *string `json:"resetAt"`
 			} `json:"quota"`
 			Subscription *struct {
+				Provider *string `json:"provider"`
 				Plan     *string `json:"plan"`
 				TierName *string `json:"tierName"`
+				TierID   *string `json:"tierId"`
 			} `json:"subscription"`
 			RateLimitResetCreditsAvailableCount *int `json:"rateLimitResetCreditsAvailableCount"`
 		} `json:"quota"`
@@ -685,23 +890,29 @@ func parseQuotaCache(raw []byte, now time.Time) ([]windowStat, *int, string, err
 			continue
 		}
 		for _, row := range item.Quota.Quota {
-			if row.GroupKey == nil {
-				continue
-			}
-			group := strings.ToLower(strings.TrimSpace(*row.GroupKey))
-			if group != "5h" && group != "weekly" {
+			group, ok := keeperWindowGroup(derefString(row.Key), derefString(row.Label), derefString(row.GroupKey))
+			if !ok {
 				continue
 			}
 			w := windowStat{GroupKey: group}
-			if row.GroupLabel != nil {
+			if row.GroupLabel != nil && strings.TrimSpace(*row.GroupLabel) != "" {
 				w.Label = *row.GroupLabel
+			} else if lbl := strings.TrimSpace(derefString(row.Label)); lbl != "" {
+				switch {
+				case group == "5h" && strings.EqualFold(lbl, "5h"):
+					w.Label = "5H"
+				case group == "weekly" && strings.EqualFold(lbl, "weekly"):
+					w.Label = "Weekly"
+				default:
+					w.Label = lbl
+				}
 			}
 			if row.WindowUsageTokens != nil {
 				w.WindowUsageAvailable = true
 				w.UsedTokens = *row.WindowUsageTokens
 			}
 			if row.ResetAt != nil {
-				if resetAt, err := time.Parse(time.RFC3339, *row.ResetAt); err == nil {
+				if resetAt, ok := parseQuotaResetAt(*row.ResetAt); ok {
 					w.ResetKnown = true
 					w.ResetAt = resetAt
 					remaining := int64(resetAt.Sub(now).Seconds())
@@ -719,11 +930,8 @@ func parseQuotaCache(raw []byte, now time.Time) ([]windowStat, *int, string, err
 			cards = &count
 		}
 		if plan == "" && item.Quota.Subscription != nil {
-			if item.Quota.Subscription.TierName != nil && *item.Quota.Subscription.TierName != "" {
-				plan = *item.Quota.Subscription.TierName
-			} else if item.Quota.Subscription.Plan != nil && *item.Quota.Subscription.Plan != "" {
-				plan = *item.Quota.Subscription.Plan
-			}
+			sub := item.Quota.Subscription
+			plan = formatNotificationPlan(derefString(sub.Provider), derefString(sub.Plan), derefString(sub.TierName), derefString(sub.TierID))
 		}
 	}
 	return windows, cards, plan, nil

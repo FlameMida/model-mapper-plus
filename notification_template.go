@@ -7,17 +7,19 @@ import (
 )
 
 const (
-	msgUnknownPlan  = "未知/未提供"
-	msgUnknownShare = "占比未知"
-	msgAmountNote   = "金额为 Keeper 价格折算，非上游账单"
+	msgUnknownPlan     = "未知/未提供"
+	msgUnknownShare    = "占比未知"
+	msgResetCardsUnset = "未提供"
+	msgAmountNote      = "金额为 Keeper 价格折算，非上游账单"
 )
 
 // statsData carries everything renderMessage needs: per-period channel stats
 // keyed by periodKeyOf output, the Keeper quota windows of the bound identity
 // and the reset-card count (nil = Keeper did not provide one).
 type statsData struct {
-	DisplayName string
-	Plan        string
+	DisplayName  string
+	Plan         string
+	PlanProvider string
 	Periods     map[string]periodStats
 	Windows     []windowStat
 	ResetCards  *int
@@ -74,14 +76,15 @@ func periodRangeLabel(start, end time.Time) string {
 // renderMessage assembles one notification message in section style: title
 // and identity lines, then one ▍-headed section per configured module in
 // order, closing with the amount note. Missing period data, unmatched window
-// groups and a nil reset-card count each skip their whole section (spec
-// Scenarios); incomplete periods get an ⚠ line and a renderWarnings entry.
+// groups skip their section (spec: missing windows are omitted). A checked
+// reset-card module always renders: nil is 未提供, 0 is 0 张. Incomplete
+// periods get an ⚠ line and a renderWarnings entry.
 func renderMessage(n Notification, d statsData, now time.Time) (string, renderWarnings) {
 	var warn renderWarnings
 	var b strings.Builder
 	b.WriteString(n.Name)
 	b.WriteString("\n")
-	display, plan := d.DisplayName, d.Plan
+	display, plan := d.DisplayName, formatNotificationPlan(d.PlanProvider, d.Plan, "", "")
 	if display == "" {
 		display = msgUnknownPlan
 	}
@@ -148,8 +151,12 @@ func renderMessage(n Notification, d statsData, now time.Time) (string, renderWa
 			b.WriteString("\n")
 			continue
 		}
-		if m.Kind == ModuleResetCards && d.ResetCards != nil {
-			fmt.Fprintf(&b, "▍重置卡（%d 张）\n\n", *d.ResetCards)
+		if m.Kind == ModuleResetCards {
+			if d.ResetCards == nil {
+				fmt.Fprintf(&b, "▍重置卡（%s）\n\n", msgResetCardsUnset)
+			} else {
+				fmt.Fprintf(&b, "▍重置卡（%d 张）\n\n", *d.ResetCards)
+			}
 		}
 	}
 

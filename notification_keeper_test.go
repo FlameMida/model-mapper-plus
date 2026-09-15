@@ -6,6 +6,7 @@ import (
 	"errors"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -26,9 +27,9 @@ const analysisBody = `{"granularity":"day","timezone":"CST",
 // window usage as window_usage_tokens / window_usage_cost (snake_case).
 const quotaCacheBody = `{"items":[{"auth_index":"ai_1","status":"completed","quota":{
  "id":"q1","quota":[
-  {"key":"codex-primary","groupKey":"5h","groupLabel":"5H 窗口","window_usage_tokens":1200000,"window_usage_cost":1.5,"resetAt":"2026-09-13T19:00:00+08:00"},
-  {"key":"codex-primary","groupKey":"Weekly","groupLabel":"Weekly 窗口","resetAt":"2026-09-14T19:00:00+08:00"},
-  {"key":"codex-primary","groupKey":"daily","window_usage_tokens":9000,"resetAt":"2026-09-13T19:00:00+08:00"}
+  {"key":"rate_limit.primary_window","label":"5h","window_usage_tokens":1200000,"window_usage_cost":1.5,"resetAt":"2026-09-13T19:00:00+08:00"},
+  {"key":"rate_limit.secondary_window","label":"Weekly","resetAt":"2026-09-14T19:00:00+08:00"},
+  {"key":"rate_limit.daily","label":"daily","window_usage_tokens":9000,"resetAt":"2026-09-13T19:00:00+08:00"}
  ],
  "subscription":{"provider":"codex","plan":"Pro","tierName":"Pro 20x"},
  "rateLimitResetCreditsAvailableCount":2}}]}`
@@ -222,7 +223,7 @@ func TestCollectWindowsParsesQuotaCache(t *testing.T) {
 	if plan != "Pro 20x" || cards == nil || *cards != 2 {
 		t.Fatalf("plan/cards: %s %v", plan, cards)
 	}
-	// groupKey 归一为 5h/weekly；未知窗口（daily）不渲染。
+	// key+label 归一为 5h/weekly；未知窗口（daily）不渲染。
 	if len(windows) != 2 {
 		t.Fatalf("want 2 windows, got %d: %+v", len(windows), windows)
 	}
@@ -259,6 +260,11 @@ func TestIdentifyAuthIndexExactMatch(t *testing.T) {
 			// refresh-first rounds trigger the refresh endpoint first.
 			w.Write([]byte(`{"accepted":1,"skipped":0,"limit":1}`))
 		default:
+			if strings.HasPrefix(r.URL.Path, "/api/v1/quota/reset-credits/") {
+				w.WriteHeader(http.StatusBadRequest)
+				w.Write([]byte(`{"error":"unsupported_type"}`))
+				return
+			}
 			t.Errorf("unexpected path %s", r.URL.Path)
 			w.WriteHeader(404)
 		}
@@ -420,6 +426,8 @@ func TestCollectWindowsEmptyAfterRefreshStaysClosed(t *testing.T) {
 			w.Write([]byte(`{"accepted":1,"skipped":0,"limit":1}`))
 		case "/api/v1/quota/cache":
 			w.Write([]byte(`{"items":null}`))
+		case "/api/v1/usage/identities":
+			w.Write([]byte(`{"identities":[]}`))
 		default:
 			t.Errorf("unexpected %s %s", r.Method, r.URL.Path)
 			w.WriteHeader(http.StatusNotFound)
@@ -462,7 +470,7 @@ func TestCollectWindowsFallsBackToCPAQuota(t *testing.T) {
 		mu.Lock()
 		cpaCalls++
 		mu.Unlock()
-		w.Write([]byte(`{"subscription":{"plan":"pro","tierName":"Pro 20x"},"groups":[
+		w.Write([]byte(`{"subscription":{"provider":"codex","plan":"pro","tierName":"Pro 20x"},"groups":[
 			{"displayName":"5 hours","buckets":[{"window":"5 hours","resetTime":"2026-09-15T20:00:00Z","remainingFraction":0.4}]},
 			{"displayName":"Weekly","buckets":[{"window":"Weekly","resetTime":"2026-09-19T00:00:00Z","remainingFraction":0.8}]}]}`))
 	}))
@@ -473,6 +481,8 @@ func TestCollectWindowsFallsBackToCPAQuota(t *testing.T) {
 			w.Write([]byte(`{"accepted":1,"skipped":0,"limit":1}`))
 		case "/api/v1/quota/cache":
 			w.Write([]byte(`{"items":null}`))
+		case "/api/v1/usage/identities":
+			w.Write([]byte(`{"identities":[]}`))
 		default:
 			t.Errorf("unexpected %s %s", r.Method, r.URL.Path)
 			w.WriteHeader(http.StatusNotFound)
@@ -535,6 +545,188 @@ func TestCollectWindowsFallsBackToCPAQuota(t *testing.T) {
 	defer mu.Unlock()
 	if cpaCalls != 2 {
 		t.Fatalf("60s throttle must limit CPA fetches to two across 3 rounds (third inside the window), got %d", cpaCalls)
+	}
+}
+
+// realCodexQuotaCacheBody is the Keeper cache shape actually emitted for Codex
+// (quota/normalize.go): rows carry key+label, not groupKey. The historical
+// fixture invented groupKey=5h/Weekly and hid the production miss.
+const realCodexQuotaCacheBody = `{"items":[{"auth_index":"ai_1","status":"completed","quota":{
+ "id":"q1","quota":[
+  {"key":"rate_limit.primary_window","label":"5h","window_usage_tokens":1200000,"window_usage_cost":1.5,"resetAt":"2026-09-13T19:00:00+08:00"},
+  {"key":"rate_limit.secondary_window","label":"Weekly","resetAt":"2026-09-14T19:00:00+08:00"}
+ ],
+ "subscription":{"provider":"codex","plan":"pro-20x"},
+ "rateLimitResetCreditsAvailableCount":2}}]}`
+
+const cacheWindowsWithoutSubscription = `{"items":[{"auth_index":"ai_1","status":"completed","quota":{
+ "id":"q1","quota":[{"key":"rate_limit.primary_window","label":"5h","window_usage_tokens":1200000}]}}]}`
+
+const identitySubscriptionBody = `{"identities":[{
+  "id":"7","identity":"ai_1","alias":"primary","displayName":"Primary",
+  "auth_type":1,"type":"codex","provider":"codex","is_deleted":false,
+  "subscription":{"provider":"codex","plan":"pro-20x"}}]}`
+
+func TestParseIdentityPlanCoversProviders(t *testing.T) {
+	want := map[string]struct{}{"ai_1": {}}
+	cases := []struct {
+		body, label string
+	}{
+		{`{"identities":[{"identity":"ai_1","subscription":{"provider":"claude","plan":"max"}}]}`, "Max"},
+		{`{"identities":[{"identity":"ai_1","subscription":{"provider":"antigravity","plan":"ultra-lite"}}]}`, "Ultra Lite"},
+		{`{"identities":[{"identity":"ai_1","subscription":{"provider":"codex","plan":"plus"}}]}`, "Plus"},
+		{`{"identities":[{"identity":"ai_1","subscription":{"provider":"antigravity","plan":"unknown","tierName":"Future"}}]}`, "Future"},
+	}
+	for _, tc := range cases {
+		if got := parseIdentityPlan([]byte(tc.body), want); got != tc.label {
+			t.Fatalf("parseIdentityPlan=%q want %q body=%s", got, tc.label, tc.body)
+		}
+	}
+}
+
+func TestCollectWindowsFallsBackToIdentitySubscription(t *testing.T) {
+	t.Setenv("CPA_KEEPER_LOGIN_PASSWORD", "stub-secret")
+	var sawIdentities bool
+	src, _ := newStatsSourceStub(t, func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/api/v1/quota/refresh":
+			w.Write([]byte(`{"accepted":1,"skipped":0,"limit":1}`))
+		case "/api/v1/quota/cache":
+			w.Write([]byte(cacheWindowsWithoutSubscription))
+		case "/api/v1/usage/identities":
+			sawIdentities = true
+			w.Write([]byte(identitySubscriptionBody))
+		default:
+			t.Errorf("unexpected %s %s", r.Method, r.URL.Path)
+			w.WriteHeader(http.StatusNotFound)
+		}
+	})
+	_, _, plan, err := src.collectWindows(context.Background(), []string{"ai_1"}, time.Now(), false)
+	if err != nil {
+		t.Fatalf("identity subscription fallback must not fail: %v", err)
+	}
+	if !sawIdentities {
+		t.Fatal("quota cache without subscription must read identity subscription")
+	}
+	if plan != "Pro 20x" {
+		t.Fatalf("identity plan pro-20x must display as Pro 20x, got %q", plan)
+	}
+}
+
+const cacheWindowsWithoutResetCards = `{"items":[{"auth_index":"ai_1","status":"completed","quota":{
+ "id":"q1","quota":[{"key":"rate_limit.primary_window","label":"5h","window_usage_tokens":1200000}]}}]}`
+
+const mixedCacheWithoutResetCards = `{"items":[
+ {"auth_index":"claude_1","status":"completed","quota":{"id":"q-claude","quota":[{"key":"five_hour","label":"5h"}]}},
+ {"auth_index":"ai_1","status":"completed","quota":{"id":"q-codex","quota":[{"key":"rate_limit.primary_window","label":"5h"}]}}
+]}`
+
+func TestCollectWindowsFetchesCodexResetCardsWhenCacheOmitsCount(t *testing.T) {
+	t.Setenv("CPA_KEEPER_LOGIN_PASSWORD", "stub-secret")
+	var sawResetCredits bool
+	src, _ := newStatsSourceStub(t, func(w http.ResponseWriter, r *http.Request) {
+		switch {
+		case r.URL.Path == "/api/v1/quota/refresh":
+			w.Write([]byte(`{"accepted":1,"skipped":0,"limit":1}`))
+		case r.URL.Path == "/api/v1/quota/cache":
+			w.Write([]byte(cacheWindowsWithoutResetCards))
+		case r.URL.Path == "/api/v1/usage/identities":
+			w.Write([]byte(identitySubscriptionBody))
+		case r.URL.Path == "/api/v1/quota/reset-credits/ai_1":
+			sawResetCredits = true
+			w.Write([]byte(`{"authIndex":"ai_1","availableCount":2,"credits":[]}`))
+		default:
+			t.Errorf("unexpected %s %s", r.Method, r.URL.Path)
+			w.WriteHeader(http.StatusNotFound)
+		}
+	})
+	_, cards, _, err := src.collectWindows(context.Background(), []string{"ai_1"}, time.Now(), true)
+	if err != nil {
+		t.Fatalf("Codex reset-credits supplement must not fail: %v", err)
+	}
+	if !sawResetCredits {
+		t.Fatal("header-style cache without rateLimitResetCreditsAvailableCount must GET reset-credits")
+	}
+	if cards == nil || *cards != 2 {
+		t.Fatalf("Codex reset cards: got %v want 2", cards)
+	}
+}
+
+func TestCollectWindowsSkipsNonCodexResetCredits(t *testing.T) {
+	t.Setenv("CPA_KEEPER_LOGIN_PASSWORD", "stub-secret")
+	src, _ := newStatsSourceStub(t, func(w http.ResponseWriter, r *http.Request) {
+		switch {
+		case r.URL.Path == "/api/v1/quota/refresh":
+			w.Write([]byte(`{"accepted":2,"skipped":0,"limit":2}`))
+		case r.URL.Path == "/api/v1/quota/cache":
+			w.Write([]byte(mixedCacheWithoutResetCards))
+		case r.URL.Path == "/api/v1/usage/identities":
+			w.Write([]byte(`{"identities":[]}`))
+		case r.URL.Path == "/api/v1/quota/reset-credits/claude_1":
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte(`{"error":"unsupported_type"}`))
+		case r.URL.Path == "/api/v1/quota/reset-credits/ai_1":
+			w.Write([]byte(`{"authIndex":"ai_1","availableCount":3,"credits":[]}`))
+		default:
+			t.Errorf("unexpected %s %s", r.Method, r.URL.Path)
+			w.WriteHeader(http.StatusNotFound)
+		}
+	})
+	_, cards, _, err := src.collectWindows(context.Background(), []string{"claude_1", "ai_1"}, time.Now(), true)
+	if err != nil {
+		t.Fatalf("Claude unsupported reset-credits must not abort Codex cards: %v", err)
+	}
+	if cards == nil || *cards != 3 {
+		t.Fatalf("Codex reset cards after skipping Claude: got %v want 3", cards)
+	}
+}
+
+func TestCollectWindowsCountsResetCreditsWhenAvailableCountNull(t *testing.T) {
+	t.Setenv("CPA_KEEPER_LOGIN_PASSWORD", "stub-secret")
+	src, _ := newStatsSourceStub(t, func(w http.ResponseWriter, r *http.Request) {
+		switch {
+		case r.URL.Path == "/api/v1/quota/refresh":
+			w.Write([]byte(`{"accepted":1,"skipped":0,"limit":1}`))
+		case r.URL.Path == "/api/v1/quota/cache":
+			w.Write([]byte(cacheWindowsWithoutResetCards))
+		case r.URL.Path == "/api/v1/usage/identities":
+			w.Write([]byte(identitySubscriptionBody))
+		case r.URL.Path == "/api/v1/quota/reset-credits/ai_1":
+			w.Write([]byte(`{"authIndex":"ai_1","availableCount":null,"credits":[{"id":"c1","status":"available"},{"id":"c2","status":"available"}]}`))
+		default:
+			t.Errorf("unexpected %s %s", r.Method, r.URL.Path)
+			w.WriteHeader(http.StatusNotFound)
+		}
+	})
+	_, cards, _, err := src.collectWindows(context.Background(), []string{"ai_1"}, time.Now(), true)
+	if err != nil {
+		t.Fatalf("null availableCount with credits must not fail: %v", err)
+	}
+	if cards == nil || *cards != 2 {
+		t.Fatalf("credits[] fallback: got %v want 2", cards)
+	}
+}
+
+func TestParseQuotaCacheAcceptsRealCodexRows(t *testing.T) {
+	now := time.Date(2026, 9, 13, 17, 0, 0, 0, NotificationLocation)
+	windows, cards, plan, err := parseQuotaCache([]byte(realCodexQuotaCacheBody), now)
+	if err != nil {
+		t.Fatalf("real Codex cache must parse: %v", err)
+	}
+	if plan != "Pro 20x" {
+		t.Fatalf("plan: got %q want Pro 20x", plan)
+	}
+	if cards == nil || *cards != 2 {
+		t.Fatalf("reset cards: got %v want 2", cards)
+	}
+	if len(windows) != 2 {
+		t.Fatalf("want 5h+weekly from label/key, got %d: %+v", len(windows), windows)
+	}
+	if windows[0].GroupKey != "5h" || windows[0].Label != "5H" || !windows[0].WindowUsageAvailable || windows[0].UsedTokens != 1200000 || !windows[0].ResetKnown {
+		t.Fatalf("5h window: %+v", windows[0])
+	}
+	if windows[1].GroupKey != "weekly" || windows[1].WindowUsageAvailable {
+		t.Fatalf("weekly window: %+v", windows[1])
 	}
 }
 

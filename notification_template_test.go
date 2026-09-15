@@ -68,6 +68,65 @@ func TestRenderMessageSectionLayout(t *testing.T) {
 	}
 }
 
+func TestFormatNotificationPlanCoversKnownTiers(t *testing.T) {
+	cases := []struct {
+		provider, plan, tierName, tierID, want string
+	}{
+		{"codex", "free", "", "", "Free"},
+		{"codex", "plus", "", "", "Plus"},
+		{"codex", "team", "", "", "Team"},
+		{"codex", "pro-5x", "", "", "Pro 5x"},
+		{"codex", "prolite", "", "", "Pro 5x"},
+		{"codex", "pro", "", "", "Pro 20x"},
+		{"codex", "pro-20x", "", "", "Pro 20x"},
+		{"codex", "enterprise", "", "", "Enterprise"},
+		{"codex", "ChatGPT-Pro-Monthly", "", "", "ChatGPT-Pro-Monthly"},
+		{"claude", "free", "", "", "Free"},
+		{"claude", "pro", "", "", "Pro"},
+		{"claude", "max", "", "", "Max"},
+		{"claude", "team", "", "", "Team"},
+		{"antigravity", "free", "", "", "Free"},
+		{"antigravity", "pro", "", "", "Pro"},
+		{"antigravity", "ultra-lite", "", "", "Ultra Lite"},
+		{"antigravity", "ultra", "", "", "Ultra"},
+		{"antigravity", "unknown", "Future", "future-tier", "Future"},
+		{"", "ultra-lite", "", "", "Ultra Lite"},
+		{"", "pro-20x", "", "", "Pro 20x"},
+		{"", "pro", "", "", "Pro"},
+		{"", "", "", "", ""},
+	}
+	for _, tc := range cases {
+		if got := formatNotificationPlan(tc.provider, tc.plan, tc.tierName, tc.tierID); got != tc.want {
+			t.Fatalf("formatNotificationPlan(%q,%q,%q,%q)=%q want %q", tc.provider, tc.plan, tc.tierName, tc.tierID, got, tc.want)
+		}
+	}
+}
+
+func TestRenderMessageFormatsCanonicalCodexPlan(t *testing.T) {
+	now := time.Date(2026, 9, 13, 17, 0, 0, 0, NotificationLocation)
+	cases := []struct {
+		provider, plan, want string
+	}{
+		{"", "pro-20x", "Pro 20x"},
+		{"codex", "pro", "Pro 20x"},
+		{"claude", "pro", "Pro"},
+		{"claude", "max", "Max"},
+		{"", "plus", "Plus"},
+		{"antigravity", "ultra-lite", "Ultra Lite"},
+		{"antigravity", "ultra", "Ultra"},
+		{"codex", "enterprise", "Enterprise"},
+	}
+	for _, tc := range cases {
+		n, d := renderFixture()
+		d.PlanProvider, d.Plan = tc.provider, tc.plan
+		out, _ := renderMessage(n, d, now)
+		want := "研发主账号 · " + tc.want
+		if !strings.Contains(out, want) {
+			t.Fatalf("provider=%q plan=%q missing %q in:\n%s", tc.provider, tc.plan, want, out)
+		}
+	}
+}
+
 func TestRenderMessageUnknownPlanAndMissingWindow(t *testing.T) {
 	n, d := renderFixture()
 	d.Plan = ""
@@ -80,8 +139,8 @@ func TestRenderMessageUnknownPlanAndMissingWindow(t *testing.T) {
 	if strings.Contains(out, "Weekly") {
 		t.Fatal("absent window must not render")
 	}
-	if strings.Contains(out, "重置卡") {
-		t.Fatal("absent reset cards must not render")
+	if !strings.Contains(out, "▍重置卡（未提供）") {
+		t.Fatalf("checked reset-card module must render 未提供, got:\n%s", out)
 	}
 }
 
