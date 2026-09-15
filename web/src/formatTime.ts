@@ -38,3 +38,16 @@ export function formatClock(value?: string | null): string {
   if (full === '—' || !full.includes(' ')) return full
   return full.slice(full.lastIndexOf(' ') + 1)
 }
+
+// 投递记录 period_key：interval 内嵌 RFC3339，只格式化时刻；daily/monthly 等日历键原样返回。
+const RFC3339_IN_PERIOD = /T\d{2}:\d{2}:\d{2}/
+
+export function formatPeriodKey(value?: string | null): string {
+  const raw = value?.trim() ?? ''
+  if (!raw) return '—'
+  const colon = raw.indexOf(':')
+  if (colon < 0) return formatDateTime(raw)
+  const rest = raw.slice(colon + 1)
+  if (!RFC3339_IN_PERIOD.test(rest)) return raw
+  return `${raw.slice(0, colon)}:${formatDateTime(rest)}`
+}

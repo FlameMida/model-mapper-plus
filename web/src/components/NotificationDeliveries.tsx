@@ -4,7 +4,7 @@ import { Button, Table, Tag, Toast, Typography } from '@douyinfe/semi-ui'
 import { useEffect, useState } from 'react'
 import { api } from '../api'
 import type { DeliveryRecord } from '../notifications'
-import { formatDateTime } from '../formatTime'
+import { formatDateTime, formatPeriodKey } from '../formatTime'
 
 export function outcomeCell(r: DeliveryRecord) {
   if (r.outcome === 'accepted') return <Tag color="green">已投递</Tag>
@@ -43,7 +43,7 @@ export function DeliveriesTable({ notificationId }: { notificationId: string }) 
       columns={[
         { title: '时间', dataIndex: 'created_at', render: (v: string) => formatDateTime(v) },
         { title: '平台', dataIndex: 'platform' },
-        { title: '周期', dataIndex: 'period_key' },
+        { title: '周期', dataIndex: 'period_key', render: (v: string) => formatPeriodKey(v) },
         { title: '结果', dataIndex: 'outcome', render: (_: unknown, r: DeliveryRecord) => outcomeCell(r) },
         { title: '详情', dataIndex: 'detail', render: (v?: string) => v || '—' },
         { title: '', dataIndex: 'ops', render: (_: unknown, r: DeliveryRecord) => (

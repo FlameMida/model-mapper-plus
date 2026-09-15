@@ -12,7 +12,7 @@ import { scheduleText } from '../notificationSummary'
 import NotificationEditor from '../components/NotificationEditor'
 import { validatePlatforms } from '../components/PlatformIdentityEditor'
 import { DeliveriesTable, LastDelivery } from '../components/NotificationDeliveries'
-import { formatDateTime } from '../formatTime'
+import { formatDateTime, formatPeriodKey } from '../formatTime'
 
 type DeliveryFilter = { platform?: string; outcome?: string; notification_id?: string; key_fingerprint?: string }
 
@@ -197,7 +197,7 @@ export default function NotificationsPanel() {
           columns={[
             { title: '时间', dataIndex: 'created_at', width: 170, render: (v: string) => formatDateTime(v) },
             { title: '平台', dataIndex: 'platform', width: 90 },
-            { title: '周期', dataIndex: 'period_key' },
+            { title: '周期', dataIndex: 'period_key', render: (v: string) => formatPeriodKey(v) },
             { title: '状态', dataIndex: 'outcome', width: 90, render: (v: DeliveryRecord['outcome']) =>
                 v === 'accepted' ? <Tag color="green">已受理</Tag>
                   : v === 'unknown' ? <Tag color="grey">未知</Tag>

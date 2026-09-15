@@ -20,7 +20,7 @@ vi.mock('../api', () => ({
       putSettings: vi.fn().mockImplementation((s) => Promise.resolve(s)),
       deliveries: vi.fn().mockResolvedValue({ items: [{
         id: 'd1', job_id: 'j1', key_fingerprint: 'fp1', notification_id: 'global',
-        platform: 'dingtalk', period_key: 'monthly:2026-08', outcome: 'failed',
+        platform: 'dingtalk', period_key: 'interval:2026-09-15T17:31:54+08:00', outcome: 'failed',
         error_code: 'rate_limited', created_at: '2026-08-31T23:59:00Z' }] }),
       retryDelivery: vi.fn().mockResolvedValue({ job_id: 'j2' }),
       fetchMembers: vi.fn(),
@@ -44,7 +44,9 @@ describe('NotificationsPanel', () => {
     expect(screen.getByText('2026-09-15 08:44:47')).toBeInTheDocument()
     expect(screen.getByText(/下次触发 2026-09-14 09:00:00/)).toBeInTheDocument()
     expect(await screen.findByText('2026-09-01 07:59:00')).toBeInTheDocument()
+    expect(await screen.findByText('interval:2026-09-15 17:31:54')).toBeInTheDocument()
     expect(screen.queryByText('2026-08-31T23:59:00Z')).not.toBeInTheDocument()
+    expect(screen.queryByText('interval:2026-09-15T17:31:54+08:00')).not.toBeInTheDocument()
   })
 
   it('saves global entity via putSettings', async () => {
