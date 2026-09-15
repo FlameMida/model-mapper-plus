@@ -56,7 +56,7 @@ spec_dev:
 ## 已确认的关键决策
 
 - 渠道 = 认证渠道（auth file ∪ AI Provider identity），不是 API Key 行或投递平台。
-- 全局按认证渠道各发一条；无专属通知的 Key 不再复制全局消息（详见 `../../adr/0008-global-notifications-dispatch-per-auth-channel.md`）。
+- 全局按认证渠道各发一条，与 Key 是否配置专属通知无关；无专属通知的 Key 不再复制全局消息（详见 `../../adr/0008-global-notifications-dispatch-per-auth-channel.md`）。
 - Key 级名单 = 该 Key 在 analysis 上实际产生用量的认证身份；不读渠道定向。
 - 全局用户唯一 ID 选填；仅打开「@所有人」才 @所有人，否则不 @。Key 级仍必填用户 ID。
 - 错过只补最近一次；每隔 = 上次成功发送 + 间隔，不对齐钟点。
@@ -73,27 +73,35 @@ spec_dev:
 
 ## 取代与共存
 
-- [部分取代] `.spec-dev/2026-09-13-01-key-usage-notifications/spec/key-usage-notifications-design.md`：Requirement「多通知配置与继承」——全局不再对无专属通知的 Key 逐 Key 发送。
-- [部分取代] 同上：Requirement「Key 渠道消耗与占比」——周期行改为认证渠道，Key 级不含其他 Key。
-- [部分取代] 同上：Requirement「模板与消息结构」——指标改为每行一项。
-- [部分取代] 同上：Requirement「发送计划」——必须按计划触发并展示人类友好下次时间，废除 lastFire 滑动。
-- [部分取代] 同上：Requirement「平台身份配置」——全局启用平台可免填用户唯一 ID。
-- [部分取代] 同上：关键接口 `POST /notifications/preview`——改为分平台正文 + 遮罩弹窗。
+- [部分取代] `.spec-dev/2026-09-13-01-key-usage-notifications/spec/key-usage-notifications-design.md`：Requirement「多通知配置与继承」——全局改为认证渠道循环，不再对无专属通知的 Key 逐 Key 复制。
+- [部分取代] 同上：Requirement「Key 渠道消耗与占比」——周期行改为认证渠道；Key 级正文不含其他客户端 Key。
+- [部分取代] 同上：Requirement「模板与消息结构」——指标每行一项；全局单渠道消息标题下用该渠道命名/套餐。
+- [部分取代] 同上：Requirement「发送计划」——按调度时钟触发并展示人类友好下次时间（字段切换与非法日期规则仍有效，由本条完整新版本承接）。
+- [部分取代] 同上：Requirement「平台身份配置」——全局未开 @所有人也可免填用户 ID、只发群不 @（抽屉 Tab、常显标题、Key 级必填 ID 仍有效，由本条完整新版本承接）。
+- [部分取代] 同上：Requirement「投递、限流与恢复」——合并键增加认证渠道；identity 按通知实体解析；测试发送与调度同一 fan-out。
+- [部分取代] 同上：关键接口 `POST /notifications/preview`——分平台、多渠道堆叠正文 + 遮罩弹窗。
 - [分面共存] `.spec-dev/2026-09-12-01-admin-audit-keeper-names/spec/admin-audit-keeper-names-design.md`：管理写入仍走审计；本特性不改审计投影。
 - [分面共存] `.spec-dev/2026-08-22-channel-target-and-fast-control/spec/channel-target-and-fast-control-design.md`：渠道定向仍只服务 Scheduler，通知不读。
 - [分面共存] `.spec-dev/adr/0007-embedded-usage-notification-service.md`：继续内置服务 + bbolt。
+- 旧 Requirement「周期统计」「渠道窗口与认证信息」「数据采集与历史存档」「生命周期与安全」不分面冲突：窗口与套餐按本条渠道 identity 对齐 quota；本 spec 不重写其 SHALL。
 
 ## ADDED Requirements
 
 ### Requirement: 预览遮罩与分平台结构还原
 
-点击「预览消息」SHALL 打开遮罩弹窗，按该通知已启用平台并排展示企业微信、飞书、钉钉结构还原气泡（未启用的平台 SHALL NOT 出现）；正文指标 SHALL 每项一行。预览 SHALL NOT 向平台发送。
+点击「预览消息」SHALL 打开遮罩弹窗，按该通知已启用平台并排展示企业微信、飞书、钉钉结构还原气泡（未启用的平台 SHALL NOT 出现）；正文指标 SHALL 每项一行。全局预览 SHALL 在每一栏内按认证渠道堆叠 N 块正文（每块先标渠道展示名，再跟该渠道消息），N 与到期发送条数一致。Key 级预览 SHALL 每栏一份正文（含该 Key 全部用量身份）。预览 SHALL NOT 向平台发送。测试发送 SHALL 与到期发送使用同一 fan-out（全局：渠道 × 启用平台；Key 级：启用平台），并写入投递记录。
 
 #### Scenario: 三平台均启用
 
-- **GIVEN** 通知启用了企业微信、飞书、钉钉。
+- **GIVEN** 通知启用了企业微信、飞书、钉钉，且当前只有一个认证渠道。
 - **WHEN** 管理员点击预览消息。
-- **THEN** 遮罩弹窗三栏并排，分别按企微 markdown、飞书 text、钉钉 markdown 结构展示同一份分行正文；钉钉栏标明会话列表标题为通知名称。
+- **THEN** 遮罩弹窗三栏并排，分别按企微 markdown、飞书 text、钉钉 markdown 结构展示分行正文；钉钉栏标明会话列表标题为通知名称。
+
+#### Scenario: 全局多渠道预览
+
+- **GIVEN** 全局通知启用飞书，analysis 含认证渠道 A 与 B。
+- **WHEN** 预览。
+- **THEN** 飞书栏内上下两块正文，分别只含 A、只含 B，并以渠道展示名区分。
 
 #### Scenario: 只启用飞书
 
@@ -106,6 +114,12 @@ spec_dev:
 - **GIVEN** 平台 webhook 可用。
 - **WHEN** 预览成功。
 - **THEN** 不产生投递记录，平台收不到请求。
+
+#### Scenario: 全局测试发送按渠道拆条
+
+- **GIVEN** 全局通知启用飞书，认证渠道 A 与 B。
+- **WHEN** 测试发送。
+- **THEN** 产生两条飞书投递（正文分别只含 A、B），不是一条混合正文。
 
 ### Requirement: 飞书成员显示姓名
 
@@ -133,19 +147,19 @@ spec_dev:
 
 ### Requirement: 多通知配置与继承（全局改为按认证渠道发送，不再按 Key 复制）
 
-每个 Key SHALL 仍支持零条或多条专属通知。全局通知 SHALL 按认证渠道生成消息：每个认证渠道、每条启用的全局通知、每个启用平台至多一条待发任务。无专属通知的 Key SHALL NOT 再收到一份复制的全局消息。Key 一旦拥有专属通知，发送完全由专属通知接管。
+每个 Key SHALL 支持零条或多条专属通知；每条 SHALL 独立保存名称、启用状态、模板模块、统计周期、发送计划、平台目标和投递状态。未配置专属模板或计划时 SHALL 分别回退全局默认模板/计划。全局通知 SHALL 按认证渠道生成：每个认证渠道 × 每条启用的全局通知 × 每个启用平台至多一条待发任务，与是否存在「无专属通知的 Key」无关。无专属通知的 Key SHALL NOT 再收到一份复制的全局消息。Key 的专属通知 SHALL 只负责该 Key 自己的发送，SHALL NOT 使全局渠道循环停发或剔除渠道。Key 通知列表在空列表时 SHALL 说明「全局通知按认证渠道发送，不再按本 Key 复制」，SHALL NOT 再写「当前按全局默认通知发送」。
 
 #### Scenario: 全局两渠道两条正文
 
-- **GIVEN** 全局通知已启用，Keeper analysis 含认证渠道 A 与 B。
+- **GIVEN** 全局通知已启用，Keeper analysis 含认证渠道 A 与 B；部分 Key 已有专属通知。
 - **WHEN** 到达该通知的发送时间。
-- **THEN** 入队两条不同正文（分别只含 A、只含 B），再按启用平台拆 job；投递记录归属该全局通知与对应渠道，不归属某个客户端 Key。
+- **THEN** 入队两条不同正文（分别只含 A、只含 B），再按启用平台拆 job；投递记录归属该全局通知与对应渠道，不归属某个客户端 Key；不因已有专属通知的 Key 少发渠道。
 
-#### Scenario: 配置专属通知后不受全局渠道循环影响
+#### Scenario: 专属通知不代替全局渠道循环
 
-- **GIVEN** Key K 已有专属通知。
-- **WHEN** 全局渠道循环触发。
-- **THEN** 不因 K 再多发一份；K 只按其专属通知与计划发送。
+- **GIVEN** Key K 已有专属通知，全局通知也将到期。
+- **WHEN** 两者计划均到期。
+- **THEN** 全局仍按认证渠道发送；K 另按其专属通知发送。二者互不取消。
 
 #### Scenario: 同一 Key 的多条专属通知互相独立
 
@@ -153,15 +167,39 @@ spec_dev:
 - **WHEN** 修改日报计划或关闭周报。
 - **THEN** 另一条的模板、计划、启用状态和任务不变。
 
+#### Scenario: Key 专属模板优先
+
+- **GIVEN** 全局模板存在，Key K 有专属模板（不跟随全局）。
+- **WHEN** K 生成消息。
+- **THEN** K 使用专属模板模块，不使用全局模块序列。
+
+#### Scenario: 空列表文案
+
+- **GIVEN** Key K 的 `notifications` 为空。
+- **WHEN** 打开该 Key 的通知页签。
+- **THEN** 文案不出现「当前按全局默认通知发送」。
+
 ### Requirement: 模板与消息结构（指标每行一项）
 
-通知 SHALL 使用通知名称作为标题。周期模块下每个认证渠道 SHALL 先独占一行写展示名，随后用量、占比、折算金额各占一行；窗口模块的已用、重置时间、剩余时间各占一行。SHALL NOT 用间隔点把用量、占比、金额挤在同一行。关闭的模块 SHALL NOT 出现空行占位。
+通知 SHALL 使用通知名称作为消息标题。全局单渠道消息开头 SHALL 使用该认证渠道的 Keeper 自定义命名和套餐等级；Key 级消息开头 SHALL 使用该 Key 绑定对应身份的命名与套餐（多渠道时每个渠道块使用自己的命名/套餐）。模板 SHALL 支持勾选模块和调整顺序，但 SHALL NOT 改变系统计算的 Token、百分比、金额、窗口或重置卡字段。周期模块下每个认证渠道 SHALL 先独占一行写展示名，随后用量、占比、折算金额各占一行；窗口模块的已用、重置时间、剩余时间各占一行。SHALL NOT 用间隔点把用量、占比、金额挤在同一行。关闭的模块 SHALL NOT 出现空行占位。
+
+#### Scenario: 模块勾选实时影响消息
+
+- **GIVEN** 日统计、年统计和 Weekly 已开启，半年统计、5H 和重置卡已关闭。
+- **WHEN** 生成预览或发送文本。
+- **THEN** 文本只包含通知名称标题、认证命名/套餐、日统计、年统计和 Weekly；不出现关闭模块的空行或占位符。
 
 #### Scenario: 周期渠道分行
 
 - **GIVEN** 日统计开启，渠道 Codex 有 tokens、占比与金额。
 - **WHEN** 生成预览或发送文本。
 - **THEN** 文本含独立行「Codex」「用量 … tokens」「占比 …」「折算 ≈ $…」，同一渠道这三项不出现在同一行。
+
+#### Scenario: 全局单渠道窗口对齐 identity
+
+- **GIVEN** 全局消息只含认证渠道 A，quota 对 A 返回 Weekly、对 B 返回 5H。
+- **WHEN** 生成该条全局消息。
+- **THEN** 只出现 A 的 Weekly 窗口，不出现 B 的 5H。
 
 ### Requirement: Key 渠道消耗与占比（仅本 Key 实际用量身份）
 
@@ -185,9 +223,27 @@ Key 级通知的周期统计 SHALL 只把该客户端 Key 实际产生用量的�
 - **WHEN** 采集 Key 级统计。
 - **THEN** 任务记录闭码，正文不包含其他 Key 的渠道行，也不把失败写成 0 tokens。
 
+#### Scenario: 分母为零或覆盖不一致
+
+- **GIVEN** 渠道同期总消耗为零，或 Key 与渠道总量的覆盖日期不一致。
+- **WHEN** 生成消息。
+- **THEN** Token 和已知金额仍可展示，占比显示「未知」，不显示 0% 代替未知。
+
 ### Requirement: 发送计划（按计划触发、人类友好下次时间、错过只补最近一次）
 
-每条启用通知 SHALL 按自身（或跟随的全局默认）计划在东八区触发。固定间隔 SHALL 从该通知该 scope 上次成功发送起算间隔，不对齐日内钟点；从未成功发送过则到期一次。每月/每年 SHALL 按日历墙钟。插件重启或挂起后若错过计划点，SHALL 只补最近一次，SHALL NOT 把轮询时刻写成计划锚点。全局列表、Key 列表每一行以及服务卡的下次触发 SHALL 展示东八区 `YYYY-MM-DD HH:mm:ss`，SHALL NOT 使用 RFC3339 的 `T` 与数字时区偏移作为唯一展示。
+每条通知 SHALL 支持固定间隔和日历定时两类计划。固定间隔 SHALL 可选秒、分、时、天；每月计划 SHALL 只能选择月初或月末；每年计划 SHALL 选择月份、日期和时间且不得配置年份间隔；发送时间 SHALL 支持秒级 TimePicker。每条启用通知 SHALL 按自身（或跟随的全局默认）计划在东八区触发。固定间隔 SHALL 从该通知该 scope（全局按渠道键、Key 级按通知）上次成功发送起算间隔，不对齐日内钟点；从未成功发送过则到期一次。每月/每年 SHALL 按日历墙钟。插件重启或挂起后若错过计划点，SHALL 只补最近一次，SHALL NOT 把轮询时刻写成计划锚点。全局列表、Key 列表每一行以及服务卡的下次触发 SHALL 展示东八区 `YYYY-MM-DD HH:mm:ss`（一条通知有多个渠道时钟时取最早的一次），SHALL NOT 使用 RFC3339 的 `T` 与数字时区偏移作为唯一展示。
+
+#### Scenario: 三类计划字段不混用
+
+- **GIVEN** 管理员在周期 Select 中选择每隔、每月、每年。
+- **WHEN** 切换周期。
+- **THEN** 每隔显示单位和值，每月只显示月初/月末，每年显示月份、日期和时间；字段不混用。
+
+#### Scenario: 无效日历日期
+
+- **GIVEN** 月末或 2 月 29 日规则遇到不存在的日期。
+- **WHEN** 计算下一次触发。
+- **THEN** 月末按月末触发；2 月 29 日在非闰年跳过并记录下一次有效时间，不静默改成其他日期。
 
 #### Scenario: 每隔在第二拍仍发送
 
@@ -221,7 +277,7 @@ Key 级通知的周期统计 SHALL 只把该客户端 Key 实际产生用量的�
 
 ### Requirement: 平台身份配置（全局用户唯一 ID 改为选填）
 
-全局启用平台 SHALL 仍要求合法 Webhook；用户唯一 ID SHALL 为选填。仅当该平台「@所有人」开启时 SHALL @所有人；未开启且未填用户 ID 时 SHALL 只发群消息、不 @。Key 级通知 SHALL 不提供 @所有人，启用平台必须填写用户唯一 ID，保存时 SHALL 剥离 at_all。
+每条通知 SHALL 在编辑抽屉内提供「通知模板」和「平台身份配置」两个外层 Tab，平台身份配置内 SHALL 有企业微信、飞书、钉钉三个 Tab。每个平台 SHALL 独立保存 Webhook、用户唯一 ID、签名密钥和启用状态；企业微信无签名密钥字段。页面 SHALL 不提供目标群字段。Webhook、用户唯一 ID、签名密钥 SHALL 在输入框左侧显示常显标题。全局通知 SHALL 提供「@所有人」开关。全局启用平台 SHALL 要求合法 Webhook；用户唯一 ID SHALL 为选填。仅当该平台「@所有人」开启时 SHALL @所有人；未开启且未填用户 ID 时 SHALL 只发群消息、不 @。Key 级通知 SHALL 不提供该开关，保存时 SHALL 剥离 at_all，启用平台必须填写用户唯一 ID。保存校验失败时 SHALL 在出错字段行内展示原因，Toast 提示第一条错误并切到对应 Tab；保存键 SHALL 保持可点击。
 
 #### Scenario: 全局空用户 ID 可保存并发送
 
@@ -241,15 +297,27 @@ Key 级通知的周期统计 SHALL 只把该客户端 Key 实际产生用量的�
 - **WHEN** 保存。
 - **THEN** 字段行内报错，保存被拒绝。
 
-### Requirement: 投递身份解析（按通知实体取 webhook）
+#### Scenario: @所有人仅全局通知
 
-定时发送 SHALL 使用该 job 对应通知实体上、该平台的 Webhook、签名与用户 ID。SHALL NOT 在全配置里按平台 kind 取第一条启用身份。
+- **GIVEN** 分别打开全局与 Key 级平台身份配置。
+- **WHEN** 查看三个平台面板。
+- **THEN** 仅全局渲染「@所有人」开关。
+
+### Requirement: 投递、限流与恢复（合并键含认证渠道，identity 按通知实体）
+
+同通知、同认证渠道、同平台、同统计周期的待发任务 SHALL 合并为一条，保留最新配置版本。不同认证渠道 SHALL NOT 合并。定时与测试发送 SHALL 使用该 job 对应通知实体上、该平台的 Webhook、签名与用户 ID。SHALL NOT 在全配置里按平台 kind 取第一条启用身份。平台 HTTP 429 或 Retry-After SHALL 进入限流退避。测试发送 SHALL 与到期发送同一 fan-out。
 
 #### Scenario: 两条通知不同 webhook
 
 - **GIVEN** 全局通知 G 与 Key 通知 K 都启用飞书，Webhook 分别为 U1、U2。
 - **WHEN** 到期发送 K 的飞书 job。
 - **THEN** HTTP 请求打到 U2，不打到 U1。
+
+#### Scenario: 两渠道不合并
+
+- **GIVEN** 同一全局通知、同一飞书平台、同一周期，渠道 A 与 B 各一 job。
+- **WHEN** UpsertJob。
+- **THEN** store 中仍为两条 pending，不会并成一条混合正文。
 
 ## REMOVED Requirements
 
@@ -261,7 +329,7 @@ Key 级通知的周期统计 SHALL 只把该客户端 Key 实际产生用量的�
 
 - `notification_schedule.go`：保留 `nextTrigger`；新增 due 判定（结合 last_success 与 now）。
 - `notification_store.go`：新增 clock bucket；成功投递后写入 last_success。
-- `notification_service.go`：删除 `lastFire`；每次 tick 读 `loadedStateSnapshot()`；全局循环渠道 × 通知，Key 循环绑定 × 专属通知；`identityFor` 改为按 NotificationID（及 Key 指纹）解析。
+- `notification_service.go`：删除 `lastFire`；每次 tick 读 `loadedStateSnapshot()`；全局循环独立于 Key 列表（渠道 × 全局通知）；Key 循环仅绑定 × 专属通知；identity 按 NotificationID（及 Key 指纹）解析。
 - `notification_keeper.go`：解析 `auth_files_composition` 与 `ai_provider_composition`；Key 级经 `/usage/api-keys/settings` 映射 `api_key_id`。
 - `notification_template.go`：分行渲染。
 - `notification_management.go`：preview 返回 `platforms[]`；settings/status 带人类友好 `next_fire`。
@@ -272,14 +340,15 @@ Key 级通知的周期统计 SHALL 只把该客户端 Key 实际产生用量的�
 
 分析时间窗 → 渠道集合 → due(clock, plan, now) → collect/render（全局单渠道 / Key 级该 Key 全部身份）→ 每启用平台 UpsertJob → send → accepted 则更新 clock。预览走同一渲染、不入队。
 
-clock 键：`notification_id` + scope（`global` 或 Key 指纹）+ 渠道 identity（Key 级整包发送可用占位 `-`）。
+clock 键与 job 合并键均含认证渠道 identity：`notification_id` + scope（`global` 或 Key 指纹）+ 渠道 identity（Key 级整包发送可用占位 `-`）+ 平台 + periodKey。
 
 ### 关键接口
 
 - `GET/PUT /notifications/settings`：每条全局通知增加 `next_fire`（人类友好东八区字符串，未启用可空）。
 - Key 绑定的 `notifications[]` 每条同样带 `next_fire`（由 GET 投影，不必客户端保存）。
 - `GET /notifications/status`：`next_fire` 改为同一人类友好格式。
-- `POST /notifications/preview`：`{key?, notification_id}`；Key 级必须带 `key`。响应 `{platforms:[{kind,text,warnings}], warnings, bytes}`，仅启用平台。
+- `POST /notifications/preview`：`{key?, notification_id}`；Key 级必须带 `key`。响应 `{platforms:[{kind,text,warnings}], warnings, bytes}`，仅启用平台。全局时每个 `text` 为该平台下按渠道堆叠的 N 块正文（块间用空行分隔，每块第一行渠道展示名）；不另传 channel 查询参数。
+- `POST /notifications/test-send`：与到期发送同一 fan-out；全局按渠道 × 启用平台入队。
 - Keeper：`GET /api/v1/usage/analysis`（可选 `api_key_id`）；`GET /api/v1/usage/api-keys/settings`（完整 apiKey 映射）。不改 Keeper。
 
 ### 错误处理
@@ -296,7 +365,9 @@ Keeper 映射/认证/超时：闭码，不更新 clock，不发零值。渠道�
 |---|---|---|---|
 | 每隔第二拍仍发送；轮询不滑动 | unit | 任务内 TDD | due + scheduleTick |
 | 重启只补最近一次 | integration | 任务内 TDD | 临时 bbolt clock |
-| 全局两渠道两条正文 | integration | 任务内 TDD | job payload |
+| 全局两渠道两条正文且不合并 | integration | 任务内 TDD | job 条数与 payload |
+| 专属通知不取消全局渠道循环 | integration | 任务内 TDD | 两类 job 都在 |
+| 全局预览/试发按渠道堆叠或拆条 | integration + 组件 | 任务内 TDD | preview text 块数、test-send 记录 |
 | Key 级不含其他 Key；映射失败闭码 | integration | httptest | 正文/错误码 |
 | 定时使用实体 webhook | integration | 任务内 TDD | 请求 URL |
 | 预览三栏、未启用不出现、不发送 | unit + 组件 | 任务内 TDD | preview JSON + Modal |
