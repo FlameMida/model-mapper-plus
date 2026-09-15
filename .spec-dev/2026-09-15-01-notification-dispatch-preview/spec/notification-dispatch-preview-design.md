@@ -12,7 +12,7 @@ spec_dev:
     - "web/src/components/PlatformIdentityEditor.tsx"
     - "web/src/notification*.ts"
     - "web/src/api.ts"
-  sync_commit: null
+  sync_commit: b38e9e2aedc1b2678cd8de95da29c0933b96a2f9
   supersedes:
     - ".spec-dev/2026-09-13-01-key-usage-notifications/spec/key-usage-notifications-design.md"
   superseded_by: null
