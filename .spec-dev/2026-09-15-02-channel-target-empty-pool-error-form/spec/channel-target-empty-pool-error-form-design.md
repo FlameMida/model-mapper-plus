@@ -48,13 +48,14 @@ key 经 channel target 定向到凭据集合（典型为单一订阅）时，目
 |---|---|
 | OpenAI/Codex 客户端调用者（绑定 key 持有者） | 池空时收到 429 + 错误体（断言 `error.code=auth_not_found`）；按可重试语义退避重试 |
 | Claude 协议客户端调用者 | 同一错误出口（断言 `error.type=auth_not_found`），同一 429 形态 |
-| 管理员 | 经宿主日志（`warnLogAuthUnavailable` 记录 `err.Error()`，即新结构化 JSON）与错误体 `detail` 计数定位「哪个 key 的定向池空、池外还有多少候选」 |
+| 管理员 | 经宿主 pluginhost scheduler 适配层的 Warn 日志（`pluginhost: scheduler rejected auth pick`，含 `plugin_id` 与完整错误 message，即新结构化 JSON）与错误体 `detail` 计数定位「哪个 key 的定向池空、池外还有多少候选」 |
 
 ## 影响面
 
 - `main.go`：`handleSchedulerPick` 池空分支（错误体构造由常量改为函数、`HTTPStatus` 503→429）。
-- `main_test.go` / `scheduler_test.go`：现有 503 断言用例同步。
-- 旧 spec 两个 Requirement（部分取代，交付时回写）+ `acceptance/host-version-compat.md` 断言更新。
+- `scheduler_test.go`：现有 503 断言用例（`assertChannelTargetAuthNotFound`）同步；新用例沿既有模式落此文件。
+- `README.md`：面向用户的行为文档（第 109、111 行附近「过滤为空时返回 HTTP 503」「返回 503」）同步为 429 与新错误体描述。
+- 旧 spec 全部池空错误形态表述（部分取代，交付时回写，范围见「取代与共存」节）+ `.spec-dev/2026-08-22-channel-target-and-fast-control/acceptance/host-version-compat.md` 断言更新。
 - 无新依赖、无宿主改动、无前端改动、无 state 结构变更。
 
 ## 已确认的关键决策
@@ -76,10 +77,11 @@ key 经 channel target 定向到凭据集合（典型为单一订阅）时，目
 
 ## 取代与共存
 
-- [部分取代] `.spec-dev/2026-08-22-channel-target-and-fast-control/spec/channel-target-and-fast-control-design.md`：
+- [部分取代] `.spec-dev/2026-08-22-channel-target-and-fast-control/spec/channel-target-and-fast-control-design.md`。交付回写范围为**旧 spec 全部池空错误形态表述**，不只限于下列 Requirement 级清单：
   - Requirement「定向池空时显式报错不降级」—— 错误形态从 HTTP 503 改为 HTTP 429 + 结构化错误体（新增脱敏约束），「报错不降级」红线本身不变。
-  - Requirement「渠道定向候选池过滤」—— 仅 Scenario「单选认证文件命中」THEN 中的失败形态断言 503→429；候选池过滤规则与其它 Scenario 不变。
-  - 另：该 spec 设计概述区（约 70 行「池空行为：报错不降级——插件 ABI 保留 HTTPStatus=503」）随交付回写同步为 429 与新错误体描述。
+  - Requirement「渠道定向候选池过滤」—— Scenario「单选认证文件命中」THEN 的失败形态断言 503→429；Scenario「历史失败的目标凭据恢复可用」THEN 的「返回 503」措辞改为「返回错误」；其余 Scenario 不变。
+  - Requirement「AI Providers 凭据目录与精确勾选」—— 正文中「保持现有保存结构、池内轮转、池空 503 及宿主预过滤边界」的「池空 503」措辞同步为 429；该 Requirement 其余行为（目录、勾选、保存结构）不变。
+  - 非 Requirement 区的 503 表述一并同步：成功标准（交集为空时 HTTP 503）、设计概述（约 70、78、334、356、358、363 行）、错误处理表（372-374 行）、验收矩阵（391-393 行）及风险节相关断言。
 - 无其它相交 active spec。
 
 ## ADDED Requirements
@@ -124,7 +126,7 @@ key 经 channel target 定向到凭据集合（典型为单一订阅）时，目
 
 宿主全局无任何可选凭据时 MAY 在调用 Scheduler 前返回原生 429 `model_cooldown` 与 `Retry-After`；这是 CPA 宿主边界行为，不是本插件的 SHALL 承诺。变更后两侧错误形态（429）一致性更强。
 
-### Requirement: 渠道定向候选池过滤（改了什么：仅 Scenario「单选认证文件命中」THEN 的失败形态断言 503→429；过滤规则与其它 Scenario 原样）
+### Requirement: 渠道定向候选池过滤（改了什么：Scenario「单选认证文件命中」THEN 的失败形态断言 503→429；Scenario「历史失败的目标凭据恢复可用」THEN 的「返回 503」措辞改为「返回错误」以免状态码硬编码；过滤规则与其它 Scenario 原样）
 
 当某 key 的渠道定向开关开启时，该 key 发起的每个模型请求 SHALL 只能由候选池内的凭据执行：候选 = 宿主交给 Scheduler 的 Candidates ∩（所选供应商 ∪ 单独所选凭据）。宿主在 Scheduler 前已按模型能力、可用性、cooldown 与全局最高优先级收窄 Candidates；插件 SHALL NOT 选择不在 Candidates 中的 AuthID。池内多个凭据时插件按确定性顺序（ID 排序）轮转分配。
 
@@ -211,7 +213,7 @@ codex/Claude 请求 → CPA pickNextLegacy
 - suppliers 绑定（非 auth_ids）池空：同形态 429，`detail.binding` 反映 `{suppliers:N, auth_ids:0}`。
 - 宿主全局无凭据：宿主在征询插件前已返回自身错误（429 `model_cooldown` / `auth_unavailable`），插件不参与（现状不变）。
 - 同请求 failover 重挑（绑定凭据已 tried）：非 Home 模式宿主优先返回上游 `lastErr`（现状不变）；若冒出亦为新形态。
-- 宿主日志 `warnLogAuthUnavailable` 记录的 `err.Error()` 即新结构化 JSON，可诊断性自动受益。
+- 宿主日志：pluginhost scheduler 适配层以 Warn 级记录 `pluginhost: scheduler rejected auth pick`（含 `plugin_id` 与完整错误 message），新结构化 JSON 直接入日志，可诊断性自动受益。
 
 ## 测试与验收策略
 
@@ -231,14 +233,16 @@ codex/Claude 请求 → CPA pickNextLegacy
 | 目标被全局优先级收窄排除（同构造面，断言同一 429 形态） | unit | 任务内 TDD（fast，可与上行共用用例不同子测） | 测试通过 |
 | 单选认证文件命中（未进 Candidates 失败分支 → 429） | unit | 任务内 TDD（fast） | 测试通过 |
 | 错误体脱敏（全文不含凭据 ID/供应商名/key 值） | unit | 任务内 TDD（fast） | 测试通过 |
-| detail 诊断计数正确（candidates/binding 计数） | unit | 任务内 TDD（fast） | 测试通过 |
+| detail 诊断计数正确（candidates/binding 计数；含 suppliers 整选 `{suppliers:N, auth_ids:0}` 对称性子测） | unit | 任务内 TDD（fast） | 测试通过 |
 | 宿主链路 429 透传到客户端（codex 与 claude 协议路径） | integration | 验收任务（D，manual/冒烟 + host-version-compat 断言更新重跑） | 验收报告 |
+
+注：MODIFIED Requirement 2 中本次未变更的 Scenario（供应商整选动态入池、池内多凭据轮转分摊、无法识别上下文时 fail-open、历史失败的目标凭据恢复可用、其他模型失败不影响当前可用模型）沿用既有验收资产，不在本矩阵重复立项。
 
 ## 风险与边缘情况
 
 - codex 客户端对 429 与 503 的重试节奏差异未读其源码验证——重试在 503 下已实际发生（症状中的 Reconnecting），最坏情况是退避节奏变化，非行为退化；如实告知，不阻塞。
 - 429 无 `Retry-After`：客户端用默认退避（已裁决：无数据源，不伪造；宿主自身的 429 `model_cooldown` 有 Retry-After 是宿主层信息，插件无法获得）。
-- 断言兼容面：宿主/客户端对 `error.code`（OpenAI/Codex）与 `error.type`（Claude）的断言不变；`acceptance/host-version-compat.md` 中涉及 503 的断言需随交付更新并重跑。
+- 断言兼容面：宿主/客户端对 `error.code`（OpenAI/Codex）与 `error.type`（Claude）的断言不变；`.spec-dev/2026-08-22-channel-target-and-fast-control/acceptance/host-version-compat.md` 中涉及 503 的断言需随交付更新并重跑。
 - 未来扩展（本次裁剪，方案 C）：经管理 API 反查 + 缓存区分「绑定指向不存在凭据」（配置错，恒失败）与「短暂窗口」——记录为非目标，需求出现时按新特性立项。
 
 ## 开放问题
