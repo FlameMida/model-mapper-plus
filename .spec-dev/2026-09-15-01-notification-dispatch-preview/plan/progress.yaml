@@ -1,7 +1,7 @@
 format_version: 1
-current: null
+current: T01
 tasks:
-  T00: { status: pending }
+  T00: { status: completed, commit: 4b3fb10b10f879e22ddccc676880cd353aa62fe0, tests: pass }
   T01: { status: pending }
   T02: { status: pending }
   T03: { status: pending }
@@ -12,5 +12,7 @@ tasks:
   T08: { status: pending }
   T09: { status: pending }
 resources:
-  - "worktree: .worktrees/plan/2026-09-15-01-notification-dispatch-preview —— git worktree remove .worktrees/plan/2026-09-15-01-notification-dispatch-preview && git branch -D plan/2026-09-15-01-notification-dispatch-preview"
-notes: []
+  - "worktree: /Users/maverick/cpa-model-mapper-plus/.worktrees/plan/2026-09-15-01-notification-dispatch-preview —— git worktree remove /Users/maverick/cpa-model-mapper-plus/.worktrees/plan/2026-09-15-01-notification-dispatch-preview && git branch -D plan/2026-09-15-01-notification-dispatch-preview"
+notes:
+  - "T00 created worktree. source=/Users/maverick/cpa-model-mapper-plus branch=main HEAD=4b3fb10. isolation=/Users/maverick/cpa-model-mapper-plus/.worktrees/plan/2026-09-15-01-notification-dispatch-preview branch=plan/2026-09-15-01-notification-dispatch-preview. baseline: go Test(Notification|ManagementNotification|Keeper) 41 passed; pnpm --prefix web test 196 passed."
+
