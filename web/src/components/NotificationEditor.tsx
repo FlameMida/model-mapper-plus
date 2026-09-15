@@ -8,11 +8,11 @@
 // key scope 保存时剥离平台 at_all（后端 managementPostKey 同样剥离，双保险）。
 // 预览针对已保存实体（POST /notifications/preview），抽屉内编辑不即时上传；dirty 时提示
 // 预览可能过期，预览成功后清除 dirty。
-import { Banner, Button, Input, SideSheet, Switch, TabPane, Tabs, Toast, Typography } from '@douyinfe/semi-ui'
+import { Banner, Button, Input, Modal, SideSheet, Switch, TabPane, Tabs, Toast, Typography } from '@douyinfe/semi-ui'
 import { useEffect, useMemo, useState } from 'react'
 import type { CSSProperties } from 'react'
 import { api } from '../api'
-import type { Notification } from '../notifications'
+import type { Notification, PlatformKind, PreviewResponse } from '../notifications'
 import NotificationModulesEditor from './NotificationModulesEditor'
 import NotificationScheduleEditor from './NotificationScheduleEditor'
 import PlatformIdentityEditor, { validatePlatforms } from './PlatformIdentityEditor'
@@ -24,7 +24,13 @@ const DEFAULT_SCHEDULE: NonNullable<Notification['schedule']> = { kind: 'interva
 // 分组小标题（与 NotificationModulesEditor 的「统计周期/渠道窗口」分组标题同款）
 const SECTION_TITLE_STYLE: CSSProperties = { fontSize: 12, color: 'var(--semi-color-text-1)', marginBottom: 6 }
 
-export default function NotificationEditor({ visible, originalName, siblingNames, initial, scope = 'key', onSaved, onClose }: {
+const PLATFORM_SKIN: Record<PlatformKind, { title: string; bg: string; avatar: string; bubble: string }> = {
+  wecom: { title: '企业微信 · markdown', bg: '#ededed', avatar: '#07c160', bubble: '#fff' },
+  feishu: { title: '飞书 · text', bg: '#f5f6f7', avatar: '#3370ff', bubble: '#fff' },
+  dingtalk: { title: '钉钉 · markdown', bg: '#f3f3f3', avatar: '#0089ff', bubble: '#fff' },
+}
+
+export default function NotificationEditor({ visible, originalName, siblingNames, initial, scope = 'key', previewKey, onSaved, onClose }: {
   visible: boolean
   /** 编辑态原名（空串 = 新建）。 */
   originalName: string
@@ -37,10 +43,12 @@ export default function NotificationEditor({ visible, originalName, siblingNames
   /** 保存回调；返回 Promise 且 reject 时抽屉不关闭（保存即落库失败场景）。 */
   onSaved: (n: Notification) => void | Promise<void>
   onClose: () => void
+  /** Key 级预览必须带绑定 Key。 */
+  previewKey?: string
 }) {
   const [draft, setDraft] = useState<Notification>(initial)
   const [dirty, setDirty] = useState(false)
-  const [preview, setPreview] = useState<string | null>(null)
+  const [preview, setPreview] = useState<PreviewResponse | null>(null)
   const [error, setError] = useState('')
   const [activeTab, setActiveTab] = useState('template')
 
@@ -75,8 +83,11 @@ export default function NotificationEditor({ visible, originalName, siblingNames
 
   async function doPreview() {
     try {
-      const r = await api.notifications.preview({ notification_id: draft.id || undefined })
-      setPreview(r.text)
+      const r = await api.notifications.preview({
+        key: previewKey || undefined,
+        notification_id: draft.id || undefined,
+      })
+      setPreview(r)
       setDirty(false)
       setError('')
     } catch (e) {
@@ -173,8 +184,24 @@ export default function NotificationEditor({ visible, originalName, siblingNames
         <Banner type="warning" bordered style={{ marginTop: 12 }}
           description="配置自上次预览后已修改——预览结果可能过期，发送前请重新预览。" />
       )}
-      {preview && <Banner type="info" bordered style={{ marginTop: 12 }} description={preview} />}
       {error && <Banner type="danger" bordered style={{ marginTop: 12 }} description={error} />}
+      <Modal title="预览消息" visible={!!preview} onCancel={() => setPreview(null)}
+        footer={<Button onClick={() => setPreview(null)}>关闭</Button>} width={1080}>
+        <Typography.Text type="tertiary" style={{ display: 'block', marginBottom: 8 }}>结构还原 · 非客户端截图</Typography.Text>
+        <div style={{ display: 'grid', gridTemplateColumns: `repeat(${Math.max(preview?.platforms?.length ?? 1, 1)}, minmax(0, 1fr))` }}>
+          {(preview?.platforms?.length ? preview.platforms : preview ? [{ kind: 'feishu' as PlatformKind, text: preview.text }] : []).map((p) => {
+            const skin = PLATFORM_SKIN[p.kind] ?? PLATFORM_SKIN.feishu
+            return (
+              <div key={p.kind} style={{ padding: 12, background: skin.bg, minHeight: 280 }}>
+                <div style={{ fontSize: 12, color: '#666', marginBottom: 10 }}>{skin.title}</div>
+                <div style={{ background: skin.bubble, borderRadius: 8, padding: 12, whiteSpace: 'pre-wrap', fontSize: 13, lineHeight: 1.65 }}>
+                  {p.text}
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      </Modal>
     </SideSheet>
   )
 }

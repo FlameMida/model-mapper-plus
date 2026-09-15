@@ -43,8 +43,7 @@ describe('KeyNotificationsTab', () => {
   it('empty state announces the active global notification', () => {
     render(<KeyNotificationsTab binding={{ ...binding, notifications: undefined }}
       siblingNames={[]} onChange={() => {}} globalName="用量通知" globalSchedule="每隔 1 天 09:00" />)
-    expect(screen.getByText(/当前按全局默认通知「用量通知」发送/)).toBeInTheDocument()
-    expect(screen.getByText(/新增第一条专属通知后/)).toBeInTheDocument()
+    expect(screen.getByText(/全局通知按认证渠道发送/)).toBeInTheDocument()
   })
 
   it('lists notifications with inline toggle, test-send and expandable deliveries', async () => {

@@ -8,13 +8,14 @@ import NotificationsPanel from './NotificationsPanel'
 vi.mock('../api', () => ({
   api: {
     notifications: {
-      getStatus: vi.fn().mockResolvedValue({ running: true, revision: 3, pending_jobs: 2, next_fire: '2026-09-14T09:00:00+08:00' }),
+      getStatus: vi.fn().mockResolvedValue({ running: true, revision: 3, pending_jobs: 2, next_fire: '2026-09-14 09:00:00' }),
       getSettings: vi.fn().mockResolvedValue({
         enabled: true,
         global_default: { id: 'global', name: '用量通知', enabled: true,
           modules: [{ kind: 'daily', period: 'current' }],
           schedule: { kind: 'interval', interval: 86400, time: '09:00:00' },
-          platforms: [{ kind: 'feishu', enabled: true, webhook: 'https://f', user_ids: ['ou_a'] }] },
+          platforms: [{ kind: 'feishu', enabled: true, webhook: 'https://f', user_ids: ['ou_a'] }],
+          next_fire: '2026-09-15 08:44:47' },
       }),
       putSettings: vi.fn().mockImplementation((s) => Promise.resolve(s)),
       deliveries: vi.fn().mockResolvedValue({ items: [{
@@ -40,6 +41,8 @@ describe('NotificationsPanel', () => {
     expect(screen.getByRole('button', { name: '＋ 新增通知' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: '保存全局通知' })).toBeInTheDocument()
     expect(screen.getByText(/待发任务/)).toBeInTheDocument()
+    expect(screen.getByText('2026-09-15 08:44:47')).toBeInTheDocument()
+    expect(screen.getByText(/下次触发 2026-09-14 09:00:00/)).toBeInTheDocument()
   })
 
   it('saves global entity via putSettings', async () => {

@@ -100,6 +100,7 @@ export interface Notification {
   modules?: ModuleConfig[]
   schedule?: NotificationSchedule | null
   platforms?: PlatformIdentity[]
+  next_fire?: string
 }
 
 export interface NotificationSettings {
@@ -142,4 +143,5 @@ export interface PreviewResponse {
   text: string
   warnings: string[]
   bytes: number
+  platforms?: { kind: PlatformKind; text: string; warnings?: string[] }[]
 }

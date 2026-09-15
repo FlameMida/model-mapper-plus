@@ -64,7 +64,7 @@ export default function KeyNotificationsTab({ binding, onChange, globalName, glo
         <div style={{ border: '1px dashed var(--semi-color-border)', borderRadius: 8, padding: 20, textAlign: 'center' }}>
           <Typography.Paragraph>该 Key 尚未配置专属通知</Typography.Paragraph>
           <Typography.Text type="tertiary">
-            当前按全局默认通知「{globalName ?? '用量通知'}」发送（{globalSchedule ?? '跟随全局计划'}）——新增第一条专属通知后，全局默认通知即对本 Key 停止。
+            全局通知按认证渠道发送，不再按本 Key 复制。需要本 Key 自己的用量正文时请新增专属通知。
           </Typography.Text>
         </div>
       ) : (
@@ -80,6 +80,7 @@ export default function KeyNotificationsTab({ binding, onChange, globalName, glo
             { title: '发送计划', render: (_: unknown, n: Notification) => (
               <Typography.Text>{scheduleSummary(n)}</Typography.Text>
             ) },
+            { title: '下次发送', render: (_: unknown, n: Notification) => n.next_fire || '—' },
             { title: '平台', render: (_: unknown, n: Notification) =>
               (n.platforms ?? []).filter((p) => p.enabled).map((p) => p.kind).join('、') || '—' },
             { title: '最近投递', render: (_: unknown, n: Notification) => <LastDelivery notificationId={n.id} /> },
@@ -114,7 +115,7 @@ export default function KeyNotificationsTab({ binding, onChange, globalName, glo
       {editing && (
         <NotificationEditor visible originalName={editing.originalName}
           siblingNames={list.map((n) => n.name).filter((name) => name !== editing.originalName)}
-          initial={editing.draft}
+          initial={editing.draft} previewKey={binding.key}
           onSaved={async (n) => {
             const next = editing.originalName
               ? list.map((x) => (x.id === n.id ? n : x))
