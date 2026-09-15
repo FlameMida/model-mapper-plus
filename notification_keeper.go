@@ -35,12 +35,12 @@ type periodStats struct {
 // denominator keeps ShareKnown=false so the renderer can show "unknown"
 // instead of a fabricated 0%.
 type channelStats struct {
-	Name, Label   string
-	Tokens        int64
-	CostUSD       float64
-	CostAvailable bool
-	Share         float64
-	ShareKnown    bool
+	Name, Label, Identity string
+	Tokens                int64
+	CostUSD               float64
+	CostAvailable         bool
+	Share                 float64
+	ShareKnown            bool
 }
 
 // windowStat is one 5H/Weekly window of a bound auth_index. WindowUsageAvailable
@@ -124,7 +124,7 @@ func (s *keeperStatsSource) collectForPeriod(ctx context.Context, apiKey string,
 	}
 	total, _ := channelShares(items)
 	for _, it := range items {
-		cs := channelStats{Name: it.Key, Label: it.Label, Tokens: it.TotalTokens,
+		cs := channelStats{Name: it.Key, Label: it.Label, Identity: it.Key, Tokens: it.TotalTokens,
 			CostUSD: it.CostUSD, CostAvailable: it.CostAvailable, ShareKnown: total > 0}
 		if total > 0 {
 			cs.Share = float64(it.TotalTokens) / float64(total)
@@ -194,6 +194,176 @@ func (s *keeperStatsSource) fetchAnalysis(ctx context.Context, start, end, now t
 		return nil, cov, err
 	}
 	return items, cov, nil
+}
+
+func (s *keeperStatsSource) fetchAnalysisPath(ctx context.Context, start, end, now time.Time, apiKeyID string) ([]byte, periodCoverage, error) {
+	startDate, endDate, cov := analysisQueryRange(start, end, now)
+	path := "/api/v1/usage/analysis?range=custom&unit=day&start=" + url.QueryEscape(startDate) + "&end=" + url.QueryEscape(endDate)
+	if apiKeyID != "" {
+		path += "&api_key_id=" + url.QueryEscape(apiKeyID)
+	}
+	resp, err := s.client.authenticatedRequest(ctx, http.MethodGet, path, nil)
+	if err != nil {
+		return nil, cov, err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		return nil, cov, keeperHTTPError(resp)
+	}
+	raw, err := readKeeperBody(ctx, resp.Body)
+	if err != nil {
+		return nil, cov, err
+	}
+	return raw, cov, nil
+}
+
+func parseNamedComposition(raw []byte, field string) ([]analysisItem, error) {
+	var body map[string]json.RawMessage
+	if err := json.Unmarshal(raw, &body); err != nil {
+		return nil, &keeperError{Code: "invalid_response"}
+	}
+	comp, ok := body[field]
+	if !ok || len(comp) == 0 || string(comp) == "null" {
+		return []analysisItem{}, nil
+	}
+	var rows []struct {
+		Key           *string  `json:"key"`
+		Label         *string  `json:"label"`
+		TotalTokens   *int64   `json:"total_tokens"`
+		CostUSD       *float64 `json:"cost_usd"`
+		CostAvailable *bool    `json:"cost_available"`
+	}
+	if err := json.Unmarshal(comp, &rows); err != nil {
+		return nil, &keeperError{Code: "invalid_response"}
+	}
+	items := make([]analysisItem, 0, len(rows))
+	for _, row := range rows {
+		if row.Key == nil || strings.TrimSpace(*row.Key) == "" || row.TotalTokens == nil {
+			continue
+		}
+		item := analysisItem{Key: *row.Key, TotalTokens: *row.TotalTokens}
+		if row.Label != nil {
+			item.Label = *row.Label
+		}
+		if row.CostUSD != nil {
+			item.CostUSD = *row.CostUSD
+		}
+		if row.CostAvailable != nil {
+			item.CostAvailable = *row.CostAvailable
+		}
+		items = append(items, item)
+	}
+	return items, nil
+}
+
+func unionAuthItems(files, providers []analysisItem) []analysisItem {
+	seen := map[string]analysisItem{}
+	order := []string{}
+	add := func(it analysisItem) {
+		if _, ok := seen[it.Key]; ok {
+			return
+		}
+		seen[it.Key] = it
+		order = append(order, it.Key)
+	}
+	for _, it := range files {
+		add(it)
+	}
+	for _, it := range providers {
+		add(it)
+	}
+	out := make([]analysisItem, 0, len(order))
+	for _, k := range order {
+		out = append(out, seen[k])
+	}
+	return out
+}
+
+func (s *keeperStatsSource) lookupAPIKeyID(ctx context.Context, apiKey string) (string, error) {
+	resp, err := s.client.authenticatedRequest(ctx, http.MethodGet, "/api/v1/usage/api-keys/settings", nil)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		return "", keeperHTTPError(resp)
+	}
+	raw, err := readKeeperBody(ctx, resp.Body)
+	if err != nil {
+		return "", err
+	}
+	var body struct {
+		Items []struct {
+			ID     string `json:"id"`
+			APIKey string `json:"apiKey"`
+		} `json:"items"`
+	}
+	if err := json.Unmarshal(raw, &body); err != nil {
+		return "", &keeperError{Code: "invalid_response"}
+	}
+	want := strings.TrimSpace(apiKey)
+	for _, it := range body.Items {
+		if strings.TrimSpace(it.APIKey) == want && strings.TrimSpace(it.ID) != "" {
+			return strings.TrimSpace(it.ID), nil
+		}
+	}
+	return "", &keeperError{Code: "configuration_error"}
+}
+
+func (s *keeperStatsSource) collectAuthChannels(ctx context.Context, apiKey string) ([]channelStats, map[string]int64, error) {
+	now := s.now()
+	start, end, ok := periodRange(ModuleDaily, PeriodCurrent, now, NotificationLocation)
+	if !ok {
+		return nil, nil, &keeperError{Code: "invalid_response"}
+	}
+	wideRaw, _, err := s.fetchAnalysisPath(ctx, start, end, now, "")
+	if err != nil {
+		return nil, nil, err
+	}
+	wideFiles, err := parseNamedComposition(wideRaw, "auth_files_composition")
+	if err != nil {
+		return nil, nil, err
+	}
+	wideProv, err := parseNamedComposition(wideRaw, "ai_provider_composition")
+	if err != nil {
+		return nil, nil, err
+	}
+	wide := unionAuthItems(wideFiles, wideProv)
+	totals := map[string]int64{}
+	for _, it := range wide {
+		totals[it.Key] = it.TotalTokens
+	}
+	source := wide
+	if strings.TrimSpace(apiKey) != "" {
+		id, err := s.lookupAPIKeyID(ctx, apiKey)
+		if err != nil {
+			return nil, nil, err
+		}
+		filtRaw, _, err := s.fetchAnalysisPath(ctx, start, end, now, id)
+		if err != nil {
+			return nil, nil, err
+		}
+		ff, err := parseNamedComposition(filtRaw, "auth_files_composition")
+		if err != nil {
+			return nil, nil, err
+		}
+		fp, err := parseNamedComposition(filtRaw, "ai_provider_composition")
+		if err != nil {
+			return nil, nil, err
+		}
+		source = unionAuthItems(ff, fp)
+	}
+	rows := make([]channelStats, 0, len(source))
+	for _, it := range source {
+		total := totals[it.Key]
+		cs := channelStats{Name: it.Key, Label: it.Label, Identity: it.Key, Tokens: it.TotalTokens,
+			CostUSD: it.CostUSD, CostAvailable: it.CostAvailable, ShareKnown: total > 0}
+		if total > 0 {
+			cs.Share = float64(it.TotalTokens) / float64(total)
+		}
+		rows = append(rows, cs)
+	}
+	return rows, totals, nil
 }
 
 // parseAnalysisComposition strictly validates identity fields (key,

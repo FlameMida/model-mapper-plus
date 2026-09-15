@@ -45,11 +45,11 @@ type notificationStatus struct {
 }
 
 type notificationService struct {
-	cfg      Config
-	state    State
-	deps     serviceDeps
-	cancel   context.CancelFunc
-	wg       sync.WaitGroup
+	cfg    Config
+	state  State
+	deps   serviceDeps
+	cancel context.CancelFunc
+	wg     sync.WaitGroup
 	mu     sync.Mutex
 	status notificationStatus
 }
@@ -200,11 +200,25 @@ func globalNotificationList(st *State) []Notification {
 	return []Notification{st.Notifications.GlobalDefault}
 }
 
-func (s *notificationService) authChannelIDs() []string {
-	if len(_testChannels) > 0 {
+func (s *notificationService) authChannelIDs(ctx context.Context) []string {
+	if _testChannels != nil {
 		return _testChannels
 	}
-	return []string{"-"}
+	if s.deps.Source == nil || s.deps.Source.client == nil {
+		return []string{"-"}
+	}
+	rows, _, err := s.deps.Source.collectAuthChannels(ctx, "")
+	if err != nil {
+		s.setStatusError(controlled(err))
+		return nil
+	}
+	ids := make([]string, 0, len(rows))
+	for _, r := range rows {
+		if r.Identity != "" {
+			ids = append(ids, r.Identity)
+		}
+	}
+	return ids
 }
 
 func clockScope(fp string) string {
@@ -242,7 +256,7 @@ func (s *notificationService) scheduleTick(ctx context.Context) {
 		if !n.Enabled || n.Schedule == nil {
 			continue
 		}
-		for _, ch := range s.authChannelIDs() {
+		for _, ch := range s.authChannelIDs(ctx) {
 			last, _ := s.deps.Store.Clock(n.ID, "global", ch)
 			due, next := dueAt(*n.Schedule, last, now, NotificationLocation)
 			if due {

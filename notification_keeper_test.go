@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"sync"
@@ -81,6 +82,89 @@ func TestCollectChannelStatsAndShare(t *testing.T) {
 	}
 	if mine.Label != "研发主账号" || !mine.CostAvailable || mine.CostUSD != 12.34 {
 		t.Fatalf("channel fields mismatch: %+v", mine)
+	}
+}
+
+const authAnalysisBody = `{"granularity":"day","timezone":"CST",
+ "api_key_composition":[{"key":"sk-k1","label":"研发主账号","total_tokens":800000,"percent":40,"cost_usd":12.34,"cost_available":true},
+  {"key":"sk-k2","label":"另一账号","total_tokens":1200000,"percent":60,"cost_usd":18.9,"cost_available":true}],
+ "auth_files_composition":[
+  {"key":"ai_1","label":"Codex","total_tokens":2000000,"percent":100,"cost_usd":31.24,"cost_available":true},
+  {"key":"ai_2","label":"Claude","total_tokens":0,"percent":0,"cost_usd":0,"cost_available":true}],
+ "ai_provider_composition":[]}`
+
+const keyFilteredAnalysisBody = `{"auth_files_composition":[
+  {"key":"ai_1","label":"Codex","total_tokens":800000,"percent":40,"cost_usd":12.34,"cost_available":true}],
+ "ai_provider_composition":[]}`
+
+func TestCollectAuthChannelsKeyLevelExcludesOtherKeys(t *testing.T) {
+	t.Setenv("CPA_KEEPER_LOGIN_PASSWORD", "stub-secret")
+	src, _ := newStatsSourceStub(t, func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/api/v1/usage/api-keys/settings":
+			w.Write([]byte(`{"items":[{"id":"1","apiKey":"sk-k1","displayKey":"sk-***1"}]}`))
+		case "/api/v1/usage/analysis":
+			if r.URL.Query().Get("api_key_id") == "1" {
+				w.Write([]byte(keyFilteredAnalysisBody))
+				return
+			}
+			w.Write([]byte(authAnalysisBody))
+		default:
+			w.WriteHeader(http.StatusNotFound)
+		}
+	})
+	rows, _, err := src.collectAuthChannels(context.Background(), "sk-k1")
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, ch := range rows {
+		if ch.Label == "另一账号" || ch.Identity == "sk-k2" {
+			t.Fatalf("other key leaked: %+v", ch)
+		}
+	}
+	if len(rows) != 1 || rows[0].Identity != "ai_1" || rows[0].Label != "Codex" {
+		t.Fatalf("want Codex ai_1, got %+v", rows)
+	}
+}
+
+func TestShareUsesChannelWideDenominator(t *testing.T) {
+	t.Setenv("CPA_KEEPER_LOGIN_PASSWORD", "stub-secret")
+	src, _ := newStatsSourceStub(t, func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/api/v1/usage/api-keys/settings":
+			w.Write([]byte(`{"items":[{"id":"1","apiKey":"sk-k1"}]}`))
+		case "/api/v1/usage/analysis":
+			if r.URL.Query().Get("api_key_id") == "1" {
+				w.Write([]byte(keyFilteredAnalysisBody))
+				return
+			}
+			w.Write([]byte(authAnalysisBody))
+		default:
+			w.WriteHeader(http.StatusNotFound)
+		}
+	})
+	rows, _, err := src.collectAuthChannels(context.Background(), "sk-k1")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(rows) != 1 || !rows[0].ShareKnown || rows[0].Share < 0.399 || rows[0].Share > 0.401 {
+		t.Fatalf("share want 0.4, got %+v", rows)
+	}
+}
+
+func TestAPIKeyMappingFailureClosedCode(t *testing.T) {
+	t.Setenv("CPA_KEEPER_LOGIN_PASSWORD", "stub-secret")
+	src, _ := newStatsSourceStub(t, func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/api/v1/usage/api-keys/settings" {
+			w.Write([]byte(`{"items":[{"id":"9","apiKey":"sk-other"}]}`))
+			return
+		}
+		w.Write([]byte(authAnalysisBody))
+	})
+	_, _, err := src.collectAuthChannels(context.Background(), "sk-k1")
+	var ke *keeperError
+	if err == nil || !errors.As(err, &ke) || ke.Code != "configuration_error" {
+		t.Fatalf("want closed mapping error, got %v", err)
 	}
 }
 
