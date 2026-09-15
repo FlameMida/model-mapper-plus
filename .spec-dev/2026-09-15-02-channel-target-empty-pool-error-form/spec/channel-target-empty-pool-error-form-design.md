@@ -77,11 +77,13 @@ key 经 channel target 定向到凭据集合（典型为单一订阅）时，目
 
 ## 取代与共存
 
-- [部分取代] `.spec-dev/2026-08-22-channel-target-and-fast-control/spec/channel-target-and-fast-control-design.md`。交付回写范围为**旧 spec 全部池空错误形态表述**，不只限于下列 Requirement 级清单：
-  - Requirement「定向池空时显式报错不降级」—— 错误形态从 HTTP 503 改为 HTTP 429 + 结构化错误体（新增脱敏约束），「报错不降级」红线本身不变。
-  - Requirement「渠道定向候选池过滤」—— Scenario「单选认证文件命中」THEN 的失败形态断言 503→429；Scenario「历史失败的目标凭据恢复可用」THEN 的「返回 503」措辞改为「返回错误」；其余 Scenario 不变。
-  - Requirement「AI Providers 凭据目录与精确勾选」—— 正文中「保持现有保存结构、池内轮转、池空 503 及宿主预过滤边界」的「池空 503」措辞同步为 429；该 Requirement 其余行为（目录、勾选、保存结构）不变。
-  - 非 Requirement 区的 503 表述一并同步：成功标准（交集为空时 HTTP 503）、设计概述（约 70、78、334、356、358、363 行）、错误处理表（372-374 行）、验收矩阵（391-393 行）及风险节相关断言。
+- [部分取代] `.spec-dev/2026-08-22-channel-target-and-fast-control/spec/channel-target-and-fast-control-design.md`。回写分两类形制：
+  - **Requirement 级取代**（新 spec 差量三节给出 MODIFIED 完整新版接管，旧 spec 该 Requirement 标题下插 Superseded 标注、正文保留原文仅作历史参考）：
+    - Requirement「定向池空时显式报错不降级」—— 错误形态从 HTTP 503 改为 HTTP 429 + 结构化错误体（新增脱敏约束），「报错不降级」红线本身不变。
+    - Requirement「渠道定向候选池过滤」—— Scenario「单选认证文件命中」THEN 的失败形态断言 503→429；Scenario「历史失败的目标凭据恢复可用」THEN 的「返回 503」措辞改为「返回错误」；其余 Scenario 不变。
+  - **关联文本同步**（旧 spec 保持该处现行有效，仅更新池空错误形态表述使其与交付后行为一致）：
+    - Requirement「AI Providers 凭据目录与精确勾选」—— 正文中「保持现有保存结构、池内轮转、池空 503 及宿主预过滤边界」的「池空 503」措辞同步为 429；该 Requirement 其余行为（目录、勾选、保存结构）不变，不标注 Superseded。
+    - 非 Requirement 区的 503 表述一并同步：成功标准（交集为空时 HTTP 503）、设计概述（约 70、78、334、356、358、363 行）、错误处理表（372-374 行）、验收矩阵（391-393 行）及风险节相关断言；H1 下 Superseded-pending 行移除。
 - 无其它相交 active spec。
 
 ## ADDED Requirements
