@@ -46,6 +46,16 @@ describe('KeyNotificationsTab', () => {
     expect(screen.getByText(/全局通知按认证渠道发送/)).toBeInTheDocument()
   })
 
+  it('keeps row actions on one line', () => {
+    render(<KeyNotificationsTab binding={binding} siblingNames={[]} onChange={() => {}} />)
+    const ops = screen.getByRole('button', { name: '编辑' }).closest('.notification-row-ops')
+    expect(ops).not.toBeNull()
+    expect(ops).toHaveStyle({ flexWrap: 'nowrap' })
+    expect(ops).toContainElement(screen.getByRole('button', { name: '测试发送' }))
+    expect(ops).toContainElement(screen.getByRole('button', { name: /投递记录/ }))
+    expect(ops).toContainElement(screen.getByRole('button', { name: '删除' }))
+  })
+
   it('lists notifications with inline toggle, test-send and expandable deliveries', async () => {
     const user = userEvent.setup()
     render(<KeyNotificationsTab binding={binding} siblingNames={[]} onChange={() => {}} />)

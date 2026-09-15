@@ -1,5 +1,4 @@
-// 2026-09-15 quick-fix：通知 tab 加入后 860 宽度放不下四个 tab（通知标签换行），
-// key 编辑 Modal 加宽到 1000。
+// 2026-09-15：通知 tab 加入后 860 放不下四个 tab；1000 仍挤换行操作列，加宽到 1280。
 import { createKeyOptions } from '../test/keyOptions'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
@@ -33,13 +32,13 @@ afterEach(() => {
 })
 
 describe('KeysPanel 编辑 Modal 宽度', () => {
-  it('加宽到 1000 使通知 tab 不再换行', async () => {
+  it('加宽到 1280 使通知表操作列不再换行', async () => {
     const user = userEvent.setup()
     render(<KeysPanel keyOptions={createKeyOptions()} state={STATE} onSaved={vi.fn()} />)
     await user.click(screen.getByRole('button', { name: '编辑' }))
     const modal = await screen.findByText('编辑绑定：Width')
     const modalRoot = modal.closest('.semi-modal')
     expect(modalRoot).not.toBeNull()
-    expect(modalRoot).toHaveStyle({ width: '1000px' })
+    expect(modalRoot).toHaveStyle({ width: '1280px' })
   })
 })

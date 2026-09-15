@@ -343,7 +343,7 @@ export default function KeysPanel({ state, onSaved, keyOptions }: Props) {
         onCancel={closeEdit}
         onOk={save}
         confirmLoading={saving}
-        width={1000}
+        width={1280}
         style={{ maxWidth: 'calc(100vw - 32px)' }}
       >
         {editing && (

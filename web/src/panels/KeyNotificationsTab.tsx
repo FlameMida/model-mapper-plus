@@ -69,28 +69,30 @@ export default function KeyNotificationsTab({ binding, onChange, globalName, glo
           </Typography.Text>
         </div>
       ) : (
-        <Table dataSource={list} rowKey="id" pagination={false}
+        <Table dataSource={list} rowKey="id" pagination={false} scroll={{ x: 1100 }}
           expandedRowKeys={expanded ? [expanded] : []}
           onExpandedRowsChange={(keys) => setExpanded((keys ?? [])[0] as unknown as string | undefined)}
           expandedRowRender={(n?: Notification) => <DeliveriesTable notificationId={n!.id} />}
           columns={[
-            { title: '通知名称', dataIndex: 'name' },
-            { title: '启用', dataIndex: 'enabled', render: (_: unknown, n: Notification) => (
+            { title: '通知名称', dataIndex: 'name', width: 140 },
+            { title: '启用', dataIndex: 'enabled', width: 64, render: (_: unknown, n: Notification) => (
               <Switch aria-label={`启用通知：${n.name}`} checked={n.enabled} onChange={(v) => toggle(n, v)} />
             ) },
-            { title: '发送计划', render: (_: unknown, n: Notification) => (
-              <Typography.Text>{scheduleSummary(n)}</Typography.Text>
+            { title: '发送计划', width: 180, render: (_: unknown, n: Notification) => (
+              <Typography.Text style={{ whiteSpace: 'nowrap' }}>{scheduleSummary(n)}</Typography.Text>
             ) },
-            { title: '下次发送', render: (_: unknown, n: Notification) => n.next_fire ? formatDateTime(n.next_fire) : '—' },
-            { title: '平台', render: (_: unknown, n: Notification) =>
+            { title: '下次发送', width: 200, render: (_: unknown, n: Notification) => (
+              <Typography.Text style={{ whiteSpace: 'nowrap' }}>{n.next_fire ? formatDateTime(n.next_fire) : '—'}</Typography.Text>
+            ) },
+            { title: '平台', width: 140, render: (_: unknown, n: Notification) =>
               (n.platforms ?? []).filter((p) => p.enabled).map((p) => p.kind).join('、') || '—' },
-            { title: '最近投递', render: (_: unknown, n: Notification) => <LastDelivery notificationId={n.id} /> },
-            { title: '操作', render: (_: unknown, n: Notification) => (
-              <>
-                <Button size="small" style={{ marginRight: 4 }}
+            { title: '最近投递', width: 88, render: (_: unknown, n: Notification) => <LastDelivery notificationId={n.id} /> },
+            { title: '操作', width: 308, render: (_: unknown, n: Notification) => (
+              <div className="notification-row-ops" style={{ display: 'flex', flexWrap: 'nowrap', gap: 4, alignItems: 'center' }}>
+                <Button size="small"
                   onClick={() => setEditing({ draft: n, originalName: n.name })}>编辑</Button>
                 {isSaved(n) ? (
-                  <Button size="small" style={{ marginRight: 4 }} disabled={!n.enabled}
+                  <Button size="small" disabled={!n.enabled}
                     onClick={() => api.notifications.testSend({ key: binding.key, notification_id: n.id })
                       .then(() => Toast.success('测试发送已受理'))
                       .catch((e: Error) => Toast.error(e.message))}
@@ -98,18 +100,18 @@ export default function KeyNotificationsTab({ binding, onChange, globalName, glo
                 ) : (
                   <Tooltip content="该通知尚未保存，请先在抽屉保存（或保存 Key 配置）后再测试发送">
                     {/* disabled 按钮不触发 hover 事件，Tooltip 需包一层 span */}
-                    <span style={{ marginRight: 4, display: 'inline-block' }}>
+                    <span style={{ display: 'inline-block' }}>
                       <Button size="small" disabled={!n.enabled || !isSaved(n)}>测试发送</Button>
                     </span>
                   </Tooltip>
                 )}
-                <Button size="small" style={{ marginRight: 4 }}
+                <Button size="small"
                   onClick={() => setExpanded(expanded === n.id ? undefined : n.id)}>投递记录</Button>
                 <Button size="small" type="danger" onClick={() => Modal.confirm({
                   title: '删除通知', content: `确认删除 ${n.name}？`,
                   onOk: () => onChange(list.filter((x) => x.id !== n.id)),
                 })}>删除</Button>
-              </>
+              </div>
             )},
           ]} />
       )}
