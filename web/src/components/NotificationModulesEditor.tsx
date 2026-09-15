@@ -134,7 +134,10 @@ export default function NotificationModulesEditor({ value, onChange }: {
 
   const toggle = (kind: ModuleKind, checked: boolean) => {
     if (checked) {
-      onChange([...value, STAT_MODULE_KINDS.includes(kind) ? { kind, period: 'current' } : { kind }])
+      const next: ModuleConfig = STAT_MODULE_KINDS.includes(kind) ? { kind, period: 'current' } : { kind }
+      const stats = value.filter((m) => STAT_MODULE_KINDS.includes(m.kind))
+      const windows = value.filter((m) => WINDOW_MODULE_KINDS.includes(m.kind))
+      onChange(STAT_MODULE_KINDS.includes(kind) ? [...stats, next, ...windows] : [...stats, ...windows, next])
     } else {
       onChange(value.filter((m) => m.kind !== kind))
     }

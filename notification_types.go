@@ -300,12 +300,35 @@ func defaultGlobalNotification(s *NotificationSettings) *Notification {
 // effectiveModules resolves the modules a render should use: followers take
 // the pinned global entry's template, everything else its own.
 func effectiveModules(st *State, n Notification) []ModuleConfig {
+	mods := n.Modules
 	if n.TemplateFollowsGlobal && st != nil && st.Notifications != nil {
 		if d := defaultGlobalNotification(st.Notifications); d != nil {
-			return d.Modules
+			mods = d.Modules
 		}
 	}
-	return n.Modules
+	return orderModulesByGroup(mods)
+}
+
+// orderModulesByGroup matches the editor's 统计周期 / 渠道窗口 sections:
+// period modules keep their relative order, then window/reset-card modules.
+// Checking a window module must not hoist it above daily/monthly stats.
+func orderModulesByGroup(mods []ModuleConfig) []ModuleConfig {
+	if len(mods) < 2 {
+		return mods
+	}
+	stats := make([]ModuleConfig, 0, len(mods))
+	windows := make([]ModuleConfig, 0, len(mods))
+	for _, m := range mods {
+		if moduleKindsWithPeriod[m.Kind] {
+			stats = append(stats, m)
+			continue
+		}
+		windows = append(windows, m)
+	}
+	if len(stats) == 0 || len(windows) == 0 {
+		return mods
+	}
+	return append(stats, windows...)
 }
 
 // effectiveSchedule resolves the schedule a tick should fire: followers take

@@ -707,6 +707,77 @@ func TestCollectWindowsCountsResetCreditsWhenAvailableCountNull(t *testing.T) {
 	}
 }
 
+func TestExpandQuotaAuthIndexesRecoversKeeperRedaction(t *testing.T) {
+	real := "codex-primary-auth"
+	redacted := keeperRedactIdentity(real)
+	if redacted == real || !strings.Contains(redacted, "*********") {
+		t.Fatalf("keeper redaction must mask %q, got %q", real, redacted)
+	}
+	if keeperRedactIdentity("ai_1") != "*********" {
+		t.Fatalf("identities of 9 runes or fewer must be fully masked")
+	}
+	got := expandQuotaAuthIndexes([]string{redacted, "*********"}, []string{real, "ai_1", "claude-long-identity"})
+	if len(got) < 2 || got[0] != real {
+		t.Fatalf("redacted analysis keys must expand to catalog identities, got %v", got)
+	}
+	var sawShort bool
+	for _, id := range got {
+		if id == "ai_1" {
+			sawShort = true
+		}
+	}
+	if !sawShort {
+		t.Fatalf("fully masked key must recover short catalog identities, got %v", got)
+	}
+}
+
+func TestCollectWindowsResolvesRedactedAuthIndex(t *testing.T) {
+	t.Setenv("CPA_KEEPER_LOGIN_PASSWORD", "stub-secret")
+	real := "codex-primary-auth"
+	redacted := keeperRedactIdentity(real)
+	src, _ := newStatsSourceStub(t, func(w http.ResponseWriter, r *http.Request) {
+		switch {
+		case r.URL.Path == "/api/v1/quota/refresh":
+			w.Write([]byte(`{"accepted":1,"skipped":0,"limit":1}`))
+		case r.URL.Path == "/api/v1/quota/cache":
+			var req struct {
+				AuthIndexes []string `json:"auth_indexes"`
+			}
+			_ = json.NewDecoder(r.Body).Decode(&req)
+			for _, idx := range req.AuthIndexes {
+				if idx == real {
+					w.Write([]byte(strings.ReplaceAll(realCodexQuotaCacheBody, `"ai_1"`, `"`+real+`"`)))
+					return
+				}
+			}
+			w.Write([]byte(`{"items":[]}`))
+		case r.URL.Path == "/api/v1/usage/identities":
+			w.Write([]byte(`{"identities":[{
+			  "id":"7","identity":"codex-primary-auth","alias":"场","displayName":"场",
+			  "auth_type":1,"type":"codex","provider":"codex","is_deleted":false,
+			  "subscription":{"provider":"codex","plan":"plus"}}]}`))
+		case r.URL.Path == "/api/v1/quota/reset-credits/"+real:
+			w.Write([]byte(`{"authIndex":"` + real + `","availableCount":2,"credits":[]}`))
+		default:
+			t.Errorf("unexpected %s %s", r.Method, r.URL.Path)
+			w.WriteHeader(http.StatusNotFound)
+		}
+	})
+	windows, cards, plan, err := src.collectWindows(context.Background(), []string{redacted}, time.Now(), true)
+	if err != nil {
+		t.Fatalf("redacted analysis key must still collect: %v", err)
+	}
+	if plan != "Pro 20x" {
+		t.Fatalf("plan: got %q want Pro 20x", plan)
+	}
+	if len(windows) != 2 {
+		t.Fatalf("windows: got %d want 2", len(windows))
+	}
+	if cards == nil || *cards != 2 {
+		t.Fatalf("reset cards: got %v want 2", cards)
+	}
+}
+
 func TestParseQuotaCacheAcceptsRealCodexRows(t *testing.T) {
 	now := time.Date(2026, 9, 13, 17, 0, 0, 0, NotificationLocation)
 	windows, cards, plan, err := parseQuotaCache([]byte(realCodexQuotaCacheBody), now)

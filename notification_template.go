@@ -94,7 +94,7 @@ func renderMessage(n Notification, d statsData, now time.Time) (string, renderWa
 	}
 	fmt.Fprintf(&b, "%s · %s\n\n", display, plan)
 
-	for _, m := range n.Modules {
+	for _, m := range orderModulesByGroup(n.Modules) {
 		if head, ok := moduleHead[m.Kind]; ok {
 			start, end, rangeOK := periodRange(m.Kind, m.Period, now, NotificationLocation)
 			ps, dataOK := d.Periods[periodKeyOf(m.Kind, m.Period, now)]

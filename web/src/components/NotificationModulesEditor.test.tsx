@@ -23,7 +23,11 @@ describe('NotificationModulesEditor', () => {
     const onChange = vi.fn()
     render(<NotificationModulesEditor value={mods} onChange={onChange} />)
     await userEvent.click(screen.getByRole('checkbox', { name: '年统计' }))
-    expect(onChange).toHaveBeenCalledWith([...mods, { kind: 'yearly', period: 'current' }])
+    expect(onChange).toHaveBeenCalledWith([
+      { kind: 'daily', period: 'current' },
+      { kind: 'yearly', period: 'current' },
+      { kind: 'weekly' },
+    ])
     await userEvent.click(screen.getByRole('checkbox', { name: 'Weekly 窗口' }))
     expect(onChange).toHaveBeenLastCalledWith([{ kind: 'daily', period: 'current' }])
   })

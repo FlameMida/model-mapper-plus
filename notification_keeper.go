@@ -539,6 +539,11 @@ func parseAnalysisComposition(raw []byte) ([]analysisItem, error) {
 // to an empty outcome instead of an error, so stats-only notifications keep
 // delivering and windowed ones skip their missing sections.
 func (s *keeperStatsSource) collectWindows(ctx context.Context, authIndexes []string, now time.Time, wantResetCards bool) ([]windowStat, *int, string, error) {
+	if quotaIndexesLookRedacted(authIndexes) {
+		if catalog := s.identityIndexes(ctx); len(catalog) > 0 {
+			authIndexes = expandQuotaAuthIndexes(authIndexes, catalog)
+		}
+	}
 	s.triggerQuotaRefresh(ctx, authIndexes)
 	windows, cards, plan, raw, err := s.quotaCacheOnce(ctx, authIndexes, now)
 	if err != nil && !errors.Is(err, errQuotaCacheEmpty) {
@@ -621,6 +626,69 @@ func (s *keeperStatsSource) collectWindows(ctx context.Context, authIndexes []st
 	return windows, cards, plan, nil
 }
 
+const keeperSensitiveMask = "*********"
+
+// keeperRedactIdentity mirrors Keeper helper.RedactSensitiveValue so analysis
+// composition keys can be reversed against /usage/identities. Long values keep
+// 3 prefix + 6 suffix runes; 9 or fewer become *********.
+func keeperRedactIdentity(value string) string {
+	trimmed := strings.TrimSpace(value)
+	if trimmed == "" || trimmed == "unknown" {
+		return "unknown"
+	}
+	runes := []rune(trimmed)
+	if len(runes) <= 9 {
+		return keeperSensitiveMask
+	}
+	return string(runes[:3]) + keeperSensitiveMask + string(runes[len(runes)-6:])
+}
+
+func quotaIndexesLookRedacted(keys []string) bool {
+	for _, key := range keys {
+		if strings.Contains(key, keeperSensitiveMask) {
+			return true
+		}
+	}
+	return false
+}
+
+func expandQuotaAuthIndexes(keys, catalog []string) []string {
+	out := make([]string, 0, len(keys))
+	seen := map[string]struct{}{}
+	add := func(id string) {
+		id = strings.TrimSpace(id)
+		if id == "" {
+			return
+		}
+		if _, ok := seen[id]; ok {
+			return
+		}
+		seen[id] = struct{}{}
+		out = append(out, id)
+	}
+	for _, key := range keys {
+		key = strings.TrimSpace(key)
+		if key == "" {
+			continue
+		}
+		matched := false
+		for _, id := range catalog {
+			id = strings.TrimSpace(id)
+			if id == "" {
+				continue
+			}
+			if id == key || keeperRedactIdentity(id) == key {
+				add(id)
+				matched = true
+			}
+		}
+		if !matched {
+			add(key)
+		}
+	}
+	return out
+}
+
 // formatNotificationPlan maps Keeper subscription ids onto message labels.
 // Codex / Claude / Antigravity known plans use the same display names as
 // Keeper's credential badges; unknown Codex plans keep the raw plan text;
@@ -681,10 +749,11 @@ var notificationPlanLabels = map[string]string{
 // identityPlan reads Keeper identities and returns the first matching
 // subscription plan. Failures stay empty: the opening line already degrades
 // to 未知/未提供 and must not fail a send that already has period stats.
+func (s *keeperStatsSource) identityIndexes(ctx context.Context) []string {
+	return parseIdentityIndexes(s.readIdentities(ctx))
+}
+
 func (s *keeperStatsSource) identityPlan(ctx context.Context, authIndexes []string) string {
-	if s.client == nil || len(authIndexes) == 0 {
-		return ""
-	}
 	want := map[string]struct{}{}
 	for _, index := range authIndexes {
 		index = strings.TrimSpace(index)
@@ -695,19 +764,54 @@ func (s *keeperStatsSource) identityPlan(ctx context.Context, authIndexes []stri
 	if len(want) == 0 {
 		return ""
 	}
+	return parseIdentityPlan(s.readIdentities(ctx), want)
+}
+
+func (s *keeperStatsSource) readIdentities(ctx context.Context) []byte {
+	if s.client == nil {
+		return nil
+	}
 	resp, err := s.client.authenticatedRequest(ctx, http.MethodGet, "/api/v1/usage/identities", nil)
 	if err != nil {
-		return ""
+		return nil
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
-		return ""
+		return nil
 	}
 	raw, err := readKeeperBody(ctx, resp.Body)
 	if err != nil {
-		return ""
+		return nil
 	}
-	return parseIdentityPlan(raw, want)
+	return raw
+}
+
+func parseIdentityIndexes(raw []byte) []string {
+	if len(raw) == 0 {
+		return nil
+	}
+	var body struct {
+		Identities []struct {
+			Identity string `json:"identity"`
+		} `json:"identities"`
+	}
+	if err := json.Unmarshal(raw, &body); err != nil {
+		return nil
+	}
+	out := make([]string, 0, len(body.Identities))
+	seen := map[string]struct{}{}
+	for _, row := range body.Identities {
+		id := strings.TrimSpace(row.Identity)
+		if id == "" {
+			continue
+		}
+		if _, ok := seen[id]; ok {
+			continue
+		}
+		seen[id] = struct{}{}
+		out = append(out, id)
+	}
+	return out
 }
 
 func parseIdentityPlan(raw []byte, want map[string]struct{}) string {

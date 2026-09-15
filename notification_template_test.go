@@ -164,6 +164,23 @@ func TestRenderMessageUnknownPlanAndMissingWindow(t *testing.T) {
 	}
 }
 
+func TestRenderMessagePutsPeriodModulesBeforeWindows(t *testing.T) {
+	n, d := renderFixture()
+	n.Modules = []ModuleConfig{{Kind: ModuleResetCards}, {Kind: ModuleWindow5H}, {Kind: ModuleDaily, Period: PeriodCurrent}}
+	d.Windows = []windowStat{{GroupKey: "5h", Label: "5H", WindowUsageAvailable: true, UsedTokens: 10}}
+	d.ResetCards = intPtr(1)
+	out, _ := renderMessage(n, d, time.Date(2026, 9, 13, 17, 0, 0, 0, NotificationLocation))
+	daily := strings.Index(out, "▍日统计")
+	five := strings.Index(out, "▍5H 窗口")
+	cards := strings.Index(out, "▍重置卡")
+	if daily < 0 || five < 0 || cards < 0 {
+		t.Fatalf("missing section in:\n%s", out)
+	}
+	if daily > five || daily > cards {
+		t.Fatalf("日统计 must stay above window modules, got daily=%d 5h=%d cards=%d in:\n%s", daily, five, cards, out)
+	}
+}
+
 func TestRenderIncompleteAnnotated(t *testing.T) {
 	n, d := renderFixture()
 	out, warn := renderMessage(n, d, time.Now())
